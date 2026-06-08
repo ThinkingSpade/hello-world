@@ -253,11 +253,12 @@ body.cursor-on [data-cursor] { cursor: none; }
   22%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
   100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(.85) rotate(var(--r)); }
 }
-/* rocket blasting up */
+/* rocket blasting up and off the page */
 @keyframes fxRocket {
   0%   { opacity: 0; transform: translate(-50%, -50%) translateY(0) rotate(0); }
   10%  { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), -250px) rotate(var(--rot)); }
+  90%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--up, -250px)) rotate(var(--rot)); }
 }
 /* rocket exhaust puffs */
 @keyframes fxPuff {
@@ -265,16 +266,17 @@ body.cursor-on [data-cursor] { cursor: none; }
   25%  { opacity: .9; }
   100% { opacity: 0; transform: translate(-50%, -50%) translateY(var(--rise)) scale(1.1); }
 }
-/* expanding idea ring */
+/* expanding idea ring (scales across the page) */
 @keyframes fxRing {
   0%   { opacity: .85; transform: translate(-50%, -50%) scale(.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(4.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(var(--s, 4.2)); }
 }
-/* binary / matrix rain falling down */
+/* binary / matrix rain falling down the page */
 @keyframes fxBin {
   0%   { opacity: 0; transform: translate(-50%, -50%) translateY(-6px); }
   16%  { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateY(var(--fall)); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--fall)); }
 }
 
 /* ───────────────────────── entrances ───────────────────────── */
