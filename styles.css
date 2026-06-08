@@ -204,15 +204,10 @@ mark { color: inherit; background: none; }
 @keyframes blink { 50% { opacity: 0; } }
 
 /* ───────────────────────── pixel cursor ───────────────────────── */
-.cursor, .cursor-ring { position: fixed; top: 0; left: 0; z-index: 99999; pointer-events: none;
-  opacity: 0; will-change: transform; }
-.cursor { margin: -2px 0 0 -2px; }
+.cursor { position: fixed; top: 0; left: 0; z-index: 99999; pointer-events: none;
+  opacity: 0; will-change: transform; margin: -2px 0 0 -2px; }
 .cursor svg { display: block; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.28)); }
 .cursor.down svg { transform: scale(.82); }
-.cursor-ring i { display: block; color: var(--cur-accent, var(--line));
-  transform: translate(-50%, -50%) scale(0) rotate(-12deg);
-  transition: transform .3s var(--pop); }
-.cursor-ring.show i { transform: translate(-50%, -50%) scale(1) rotate(0); }
 body.cursor-on { cursor: none; }
 body.cursor-on a, body.cursor-on button, body.cursor-on .hl, body.cursor-on .term,
 body.cursor-on .exp-logo, body.cursor-on .btn, body.cursor-on .social, body.cursor-on .logo,
