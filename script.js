@@ -132,6 +132,7 @@
     cap:    (c) => wrap(`<path d="M16 6 L29.5 11 L16 16 L2.5 11 Z" fill="${c}"/><path d="M16 8.7 L23.4 11.4 L16 14.1 L8.6 11.4 Z" stroke="#fff" stroke-width="1.2" fill="none"/><circle cx="16" cy="11" r="1.3" fill="${INK}"/><path d="M8 13 V18 C8 21 24 21 24 18 V13" fill="${c}"/><path d="M29.5 11 V19.3" stroke-width="1.9"/><path d="M27.9 19.8 L29.5 24.2 L31.1 19.8 Z" fill="var(--gold-bg)"/><circle cx="29.5" cy="19.1" r="1.3" fill="var(--gold-bg)"/>`),
     book:   (c) => wrap(`<path d="M8 5 H23 A2 2 0 0 1 25 7 V27 H10 A2 2 0 0 1 8 25 Z" fill="${c}"/><path d="M12 5 V25" stroke-width="1.6"/><path d="M8 25 A2 2 0 0 1 10 23 H25" stroke-width="1.5" fill="none"/><path d="M15 11 H21 M15 14.5 H21 M15 18 H19" stroke-width="1.5"/><path d="M20 5 V14 L18 12 L16 14 V5 Z" fill="var(--coral-bg)"/>`),
     chart:  (c) => wrap(`<path d="M6 5 V26 H28" stroke-width="2.2"/><rect x="9" y="18" width="4.5" height="8" fill="${c}"/><rect x="15.5" y="13" width="4.5" height="13" fill="${c}"/><rect x="22" y="8" width="4.5" height="18" fill="${c}"/><path d="M9 16 L17 11 L24.5 6" stroke-width="1.4" stroke-dasharray="2.4 2.4"/><circle cx="24.5" cy="6" r="1.5" fill="var(--coral-bg)"/>`),
+    percent:(c) => wrap(`<circle cx="9.5" cy="9.5" r="3.6" fill="${c}"/><circle cx="22.5" cy="22.5" r="3.6" fill="${c}"/><path d="M7 25 L25 7" stroke-width="2.6"/>`),
     arrow:  () => wrap(`<path d="M5 22 L13 14 L18 19 L27 9" stroke-width="2.4"/><path d="M20 9 H27 V16" stroke-width="2.4"/>`)
   };
 
@@ -176,17 +177,16 @@
         else mk("fx-confetti", { ...base, size: rand(17, 27), svg: ICON[pick(shapes)](c) });
       }
     },
-    // bar chart shoots up + trend arrows fly off across the page
-    bars(r) {
-      const n = 9, vw = VW(), vh = VH();
-      for (let i = 0; i < n; i++) {
-        const h = rand(30, 120);
-        mk("fx-bar", { x: r.left + (i + .5) / n * r.width, y: r.bottom - h, w: rand(8, 13), h,
-          bg: i % 2 ? "var(--blue-tx)" : "var(--blue-bg)", dur: rand(.9, 1.3), delay: i * .05 });
+    // data stream: charts, trend arrows, %/digits flowing up and out across the page
+    data(r) {
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2, vw = VW(), vh = VH();
+      const icons = [() => ICON.chart(pick(["var(--blue-bg)", "var(--green-bg)"])), () => ICON.arrow(), () => ICON.percent("var(--blue-bg)")];
+      for (let i = 0; i < 18; i++) {
+        const base = { x: cx + rand(-r.width / 2, r.width / 2), y: cy, dur: rand(1.2, 2.0), delay: rand(0, .22),
+          vars: { "--dx": rand(-vw * 0.3, vw * 0.3).toFixed(0) + "px", "--up": (-rand(vh * 0.4, vh * 0.78)).toFixed(0) + "px", "--r": (rand(-26, 26) | 0) + "deg" } };
+        if (i % 3 === 2) mk("fx-rise fx-num", { ...base, text: pick(["0", "1", "%", "7", "$", "3"]), size: rand(15, 22), color: "var(--blue-tx)" });
+        else mk("fx-rise", { ...base, size: rand(20, 30), svg: pick(icons)() });
       }
-      for (let i = 0; i < 6; i++)
-        mk("fx-spark", { svg: ICON.arrow(), x: r.left + rand(0, r.width), y: r.top, size: rand(22, 32),
-          dur: rand(1.1, 1.7), vars: { "--dx": rand(vw * 0.08, vw * 0.34).toFixed(0) + "px", "--dy": rand(-vh * 0.34, -vh * 0.1).toFixed(0) + "px", "--r": "0deg" } });
     },
     // electric zap of robots / bolts / stars radiating out across the page
     sparks(r) {
@@ -241,8 +241,39 @@
         if (block) mk("fx-bin", { ...base, svg: ICON.chart("var(--blue-bg)"), size: 22 });
         else mk("fx-bin", { ...base, text: Math.random() < .5 ? "0" : "1", size: rand(14, 22), color: "var(--blue-tx)" });
       }
+    },
+    // (about page) orbit: drawn icons spiral outward and circle the word — a brand-new motion
+    orbit(r) {
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2, reach = Math.min(VW(), VH());
+      const icons = [() => ICON.star(pick(fills)), () => ICON.dot(pick(fills)), () => ICON.bulb("var(--gold-bg)"), () => ICON.robot("var(--violet-bg)")];
+      const N = 8;
+      for (let i = 0; i < N; i++) {
+        const dur = rand(1.2, 1.9), dir = Math.random() < .5 ? 1 : -1;
+        const outer = document.createElement("span");        // spins around the word
+        outer.className = "fx fx-orbit";
+        outer.style.left = cx + "px"; outer.style.top = cy + "px";
+        outer.style.animationDuration = dur + "s";
+        outer.style.setProperty("--a0", (i / N * 360).toFixed(0) + "deg");
+        outer.style.setProperty("--turn", ((dir * rand(180, 400)) | 0) + "deg");
+        const inner = document.createElement("span");        // pushes outward = spiral
+        inner.className = "fx-orbit-i fx-svg";
+        const size = rand(16, 26);
+        inner.style.width = size + "px"; inner.style.height = size + "px";
+        inner.style.animationDuration = dur + "s";
+        inner.style.setProperty("--r0", rand(6, 16).toFixed(0) + "px");
+        inner.style.setProperty("--r1", rand(reach * 0.12, reach * 0.3).toFixed(0) + "px");
+        inner.innerHTML = pick(icons)();
+        outer.appendChild(inner);
+        document.body.appendChild(outer);
+        const kill = () => outer.remove();
+        inner.addEventListener("animationend", kill);
+        setTimeout(kill, (dur + 0.4) * 1000);
+      }
     }
   };
+
+  // give every About-page term the new orbit animation on hover
+  document.querySelectorAll(".term").forEach((t) => { if (!t.dataset.fx) t.dataset.fx = "orbit"; });
 
   document.querySelectorAll("[data-fx]").forEach((el) => {
     let last = 0;
