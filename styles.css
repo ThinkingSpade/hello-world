@@ -221,61 +221,82 @@ body.cursor-on [data-cursor] { cursor: none; }
 /* ───────────────────────── hover effect particles ───────────────────────── */
 .fx { position: fixed; pointer-events: none; user-select: none; z-index: 200; line-height: 1;
   transform: translate(-50%, -50%); will-change: transform, opacity;
-  animation-fill-mode: forwards; animation-timing-function: cubic-bezier(.2, .6, .35, 1); animation-duration: 1.1s; }
-.fx-piece  { border: 2px solid var(--line); border-radius: 2px; }
-.fx-bar    { transform-origin: bottom center; border: 2px solid var(--line); border-radius: 3px 3px 0 0; animation-name: fxBar; }
-.fx-toss   { animation-name: fxToss; }
-.fx-spark  { animation-name: fxSpark; }
-.fx-rocket { animation-name: fxRocket; }
-.fx-puff   { animation-name: fxPuff; }
-.fx-ring   { border: 3px solid var(--c, var(--violet-tx)); border-radius: 50%; background: transparent; animation-name: fxRing; }
-.fx-bin    { font-family: var(--px); animation-name: fxBin; }
-.fx-svg    { display: block; }
-.fx-svg svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(1px 1px 0 rgba(28, 26, 23, .3)); }
+  animation-fill-mode: both; animation-timing-function: cubic-bezier(.2, .6, .35, 1); animation-duration: 1.2s; }
+.fx-piece    { border: 2px solid var(--line); border-radius: 2px; }
+.fx-bar      { transform-origin: bottom center; border: 2px solid var(--line); border-radius: 3px 3px 0 0; animation-name: fxBar; }
+.fx-confetti { animation-name: fxConfetti; }
+.fx-cap      { animation-name: fxCap; }
+.fx-spark    { animation-name: fxSpark; }
+.fx-float    { animation-name: fxFloat; }
+.fx-rocket   { animation-name: fxRocket; }
+.fx-puff     { animation-name: fxPuff; }
+.fx-ring     { border: 3px solid var(--c, var(--violet-tx)); border-radius: 50%; background: transparent; animation-name: fxRing; }
+.fx-bin      { font-family: var(--px); animation-name: fxBin; animation-timing-function: linear; }
+.fx-svg      { display: block; }
+.fx-svg svg  { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(1px 1px 0 rgba(28, 26, 23, .3)); }
 
-/* confetti + cap toss — up, then arc back down with spin */
-@keyframes fxToss {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(0); }
-  12%  { opacity: 1; }
-  40%  { opacity: 1; transform: translate(-50%, -50%) translate(calc(var(--dx) * .45), var(--up)) rotate(calc(var(--spin) / 2)); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--fall)) rotate(var(--spin)); }
+/* confetti — fade in off the word, ease up, then gravity-fall with a sway + spin */
+@keyframes fxConfetti {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) scale(.6) rotate(0deg); animation-timing-function: cubic-bezier(.12, .66, .4, 1); }
+  16%  { opacity: 1; }
+  40%  { transform: translate(-50%, -50%) translate(calc(var(--dx) * .35), var(--up)) scale(1) rotate(calc(var(--spin) * .35)); animation-timing-function: cubic-bezier(.5, .04, .7, .5); }
+  70%  { transform: translate(-50%, -50%) translate(calc(var(--dx) * .8), calc(var(--fall) * .45)) scale(1) rotate(calc(var(--spin) * .7)); animation-timing-function: cubic-bezier(.35, 0, .5, 1); }
+  84%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--fall)) scale(.96) rotate(var(--spin)); }
 }
-/* bar chart bars growing upward */
+/* graduation caps — a high tumbling arc */
+@keyframes fxCap {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) scale(.6) rotate(0deg); animation-timing-function: cubic-bezier(.1, .7, .35, 1); }
+  18%  { opacity: 1; }
+  46%  { transform: translate(-50%, -50%) translate(calc(var(--dx) * .5), var(--up)) scale(1) rotate(calc(var(--spin) * .5)); animation-timing-function: cubic-bezier(.5, .03, .7, .5); }
+  84%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--fall)) scale(.96) rotate(var(--spin)); }
+}
+/* electric spark — a snappy outward zap */
+@keyframes fxSpark {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) scale(.4) rotate(0deg); animation-timing-function: cubic-bezier(.05, .8, .2, 1); }
+  22%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); }
+}
+/* idea sparkle — a gentle floaty drift outward and up */
+@keyframes fxFloat {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) scale(.5) rotate(0deg); animation-timing-function: cubic-bezier(.2, .55, .3, 1); }
+  26%  { opacity: 1; }
+  74%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) - 22px)) scale(1.04) rotate(var(--r, 0deg)); }
+}
+/* bar — a spring grow upward */
 @keyframes fxBar {
-  0%   { opacity: 0; transform: translate(-50%, 0) scaleY(0); }
-  14%  { opacity: 1; }
-  65%  { opacity: 1; transform: translate(-50%, 0) scaleY(1); }
+  0%   { opacity: 0; transform: translate(-50%, 0) scaleY(0); animation-timing-function: cubic-bezier(.2, .85, .3, 1); }
+  22%  { opacity: 1; }
+  58%  { transform: translate(-50%, 0) scaleY(1); }
+  82%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, 0) scaleY(1); }
 }
-/* radial spark / sparkle burst */
-@keyframes fxSpark {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
-  22%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(.85) rotate(var(--r)); }
-}
-/* rocket blasting up and off the page */
+/* rocket — accelerate up and off the page */
 @keyframes fxRocket {
-  0%   { opacity: 0; transform: translate(-50%, -50%) translateY(0) rotate(0); }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) rotate(0deg); animation-timing-function: cubic-bezier(.42, 0, .9, .4); }
+  12%  { opacity: 1; }
+  86%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--up, -250px)) rotate(var(--rot)); }
 }
-/* rocket exhaust puffs */
+/* rocket exhaust puffs — gentle rise + fade */
 @keyframes fxPuff {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
-  25%  { opacity: .9; }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateY(var(--rise)) scale(1.1); }
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px) scale(.4); }
+  30%  { opacity: .85; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(0px, var(--rise)) scale(1.15); }
 }
-/* expanding idea ring (scales across the page) */
+/* idea ring — ease-out expand across the page */
 @keyframes fxRing {
-  0%   { opacity: .85; transform: translate(-50%, -50%) scale(.2); }
+  0%   { opacity: .8; transform: translate(-50%, -50%) scale(.2); animation-timing-function: cubic-bezier(.1, .6, .3, 1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(var(--s, 4.2)); }
 }
-/* binary / matrix rain falling down the page */
+/* binary / matrix rain — steady linear fall down the page */
 @keyframes fxBin {
-  0%   { opacity: 0; transform: translate(-50%, -50%) translateY(-6px); }
-  16%  { opacity: 1; }
-  85%  { opacity: 1; }
+  0%   { opacity: 0; transform: translate(-50%, -50%) translate(0px, 0px); }
+  14%  { opacity: 1; }
+  84%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--fall)); }
 }
 
