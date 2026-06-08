@@ -172,8 +172,8 @@
           vars: { "--dx": rand(-vw * 0.45, vw * 0.45).toFixed(0) + "px", "--up": rand(-vh * 0.42, -vh * 0.12).toFixed(0) + "px",
                   "--fall": rand(vh * 0.4, vh * 0.8).toFixed(0) + "px", "--spin": (rand(-720, 720) | 0) + "deg" }
         };
-        if (i % 4 === 0) mk("fx-toss fx-piece", { ...base, w: rand(8, 13), h: rand(11, 18), bg: c });
-        else mk("fx-toss", { ...base, size: rand(17, 27), svg: ICON[pick(shapes)](c) });
+        if (i % 4 === 0) mk("fx-confetti fx-piece", { ...base, w: rand(8, 13), h: rand(11, 18), bg: c });
+        else mk("fx-confetti", { ...base, size: rand(17, 27), svg: ICON[pick(shapes)](c) });
       }
     },
     // bar chart shoots up + trend arrows fly off across the page
@@ -218,15 +218,15 @@
       for (let i = 0; i < 3; i++) mk("fx-ring", { x: cx, y: cy, w: 30, h: 30, dur: rand(1.0, 1.5), delay: i * .16, vars: { "--c": "var(--violet-tx)", "--s": rand(8, 16).toFixed(1) } });
       for (let i = 0; i < 14; i++) {
         const a = rand(0, Math.PI * 2), d = rand(reach * 0.1, reach * 0.4);
-        mk("fx-spark", { svg: pick(kinds)(), x: cx, y: cy, size: rand(19, 28), dur: rand(.85, 1.4),
-          vars: { "--dx": (Math.cos(a) * d).toFixed(0) + "px", "--dy": (Math.sin(a) * d).toFixed(0) + "px", "--r": "0deg" } });
+        mk("fx-float", { svg: pick(kinds)(), x: cx, y: cy, size: rand(19, 28), dur: rand(1.0, 1.6),
+          vars: { "--dx": (Math.cos(a) * d).toFixed(0) + "px", "--dy": (Math.sin(a) * d).toFixed(0) + "px", "--r": (rand(-40, 40) | 0) + "deg" } });
       }
     },
     // graduation-cap toss: caps + books fountain high and rain across the page
     caps(r) {
       const cx = r.left + r.width / 2, cy = r.top + r.height / 2, vw = VW(), vh = VH();
       for (let i = 0; i < 16; i++)
-        mk("fx-toss", { svg: (i % 3 ? ICON.cap("var(--violet-bg)") : ICON.book("var(--peach-bg)")),
+        mk("fx-cap", { svg: (i % 3 ? ICON.cap("var(--violet-bg)") : ICON.book("var(--peach-bg)")),
           x: cx + rand(-r.width / 3, r.width / 3), y: cy, size: rand(22, 34), dur: rand(1.3, 2.0),
           vars: { "--dx": rand(-vw * 0.34, vw * 0.34).toFixed(0) + "px", "--up": rand(-vh * 0.46, -vh * 0.2).toFixed(0) + "px",
                   "--fall": rand(vh * 0.35, vh * 0.72).toFixed(0) + "px", "--spin": (rand(-720, 720) | 0) + "deg" } });
@@ -248,7 +248,7 @@
     let last = 0;
     const fire = () => {
       const now = performance.now();
-      if (now - last < 240) return;
+      if (now - last < 340) return;
       last = now;
       if (reduce) return;
       (FX[el.dataset.fx] || FX.confetti)(el.getBoundingClientRect(), el);
