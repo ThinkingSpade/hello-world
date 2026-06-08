@@ -59,52 +59,27 @@
     return `<svg width="${W * S}" height="${H * S}" viewBox="-1 -1 ${W + 1} ${H + 1}" shape-rendering="crispEdges">${rects}</svg>`;
   }
 
-  // pixel targeting reticle (four corner brackets)
-  function reticleSVG() {
-    const r = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
-    return `<svg width="42" height="42" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="currentColor">
-      ${r(0,0,5,2)}${r(0,0,2,5)} ${r(11,0,5,2)}${r(14,0,2,5)}
-      ${r(0,14,5,2)}${r(0,11,2,5)} ${r(11,14,5,2)}${r(14,11,2,5)}</svg>`;
-  }
-
   function initCursor() {
     document.body.classList.add("cursor-on");
 
     const cur = document.createElement("div");
     cur.className = "cursor"; cur.setAttribute("aria-hidden", "true");
     cur.innerHTML = pixelArrowSVG();
+    document.body.append(cur);
 
-    const ring = document.createElement("div");
-    ring.className = "cursor-ring"; ring.setAttribute("aria-hidden", "true");
-    ring.innerHTML = "<i>" + reticleSVG() + "</i>";
-
-    document.body.append(cur, ring);
-
-    const SEL = 'a, button, .hl, .term, .exp-logo, .btn, .social, .logo, [data-cursor]';
-    let mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my, lastHit = null;
-    const k = reduce ? 1 : 0.22;
+    let mx = innerWidth / 2, my = innerHeight / 2;
 
     addEventListener("mousemove", (e) => {
       mx = e.clientX; my = e.clientY;
-      cur.style.opacity = ring.style.opacity = "1";
-      const hit = e.target.closest ? e.target.closest(SEL) : null;
-      if (hit !== lastHit) {
-        lastHit = hit;
-        ring.classList.toggle("show", !!hit);
-        const accent = hit ? getComputedStyle(hit).getPropertyValue("--cur").trim() : "";
-        if (accent) ring.style.setProperty("--cur-accent", accent);
-        else ring.style.removeProperty("--cur-accent");
-      }
+      cur.style.opacity = "1";
     }, { passive: true });
 
     addEventListener("mousedown", () => cur.classList.add("down"));
     addEventListener("mouseup",   () => cur.classList.remove("down"));
-    document.addEventListener("mouseleave", () => { cur.style.opacity = ring.style.opacity = "0"; });
+    document.addEventListener("mouseleave", () => { cur.style.opacity = "0"; });
 
     (function loop() {
-      rx += (mx - rx) * k; ry += (my - ry) * k;
-      cur.style.transform  = `translate3d(${mx}px, ${my}px, 0)`;
-      ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+      cur.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
       requestAnimationFrame(loop);
     })();
   }
