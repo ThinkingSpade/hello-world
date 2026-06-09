@@ -282,5 +282,6 @@
     };
     el.addEventListener("mouseenter", fire);
     el.addEventListener("focus", fire);
+    el.addEventListener("click", fire); // tap to trigger on touch devices
   });
 })();
