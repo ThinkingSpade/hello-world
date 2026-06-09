@@ -98,7 +98,7 @@
       ul.appendChild(li);
     });
   });
-  document.querySelectorAll(".stack-toggle").forEach((btn) => {
+  document.querySelectorAll(".win-max").forEach((btn) => {
     btn.addEventListener("click", () => {
       const open = btn.closest(".exp").classList.toggle("open");
       btn.setAttribute("aria-expanded", open ? "true" : "false");
