@@ -139,10 +139,11 @@ mark { color: inherit; background: none; }
 .exp { transition: transform .25s var(--pop), box-shadow .25s var(--pop); }
 .exp:hover { transform: translate(-3px, -4px); box-shadow: var(--shadow-lg); }
 .exp-body { display: grid; grid-template-columns: 150px 1fr; gap: clamp(18px, 3vw, 30px); align-items: start; }
-.exp-logo { width: 150px; height: 150px; display: grid; place-items: center; color: #fff;
-  font-family: var(--px); font-size: 2rem; background: var(--accent, var(--blue-tx));
+.exp-logo { width: 150px; height: 150px; display: grid; place-items: center;
+  background: var(--accent, var(--blue-bg));
   border: 3px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-sm);
-  image-rendering: pixelated; transition: transform .28s var(--pop), box-shadow .28s var(--pop); }
+  transition: transform .28s var(--pop), box-shadow .28s var(--pop); }
+.exp-logo svg { width: 80%; height: 80%; display: block; }
 .exp:hover .exp-logo { transform: translate(-2px, -3px) rotate(-2deg); box-shadow: 6px 7px 0 var(--line); }
 .exp-main h3 { margin: .1rem 0 .5rem; font-size: 1.3rem; font-weight: 800; line-height: 1.2; }
 .exp-role { margin: 0; font-family: var(--px); font-size: .56rem; color: var(--blue-tx); }
