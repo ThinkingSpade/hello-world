@@ -50,11 +50,14 @@
             <p class="exp-role">Multi-agent reasoning engine</p>
             <p class="exp-meta">Agentic AI · 2025</p>
             <p class="exp-desc">A council of debating agents — a skeptic, an optimist, and a fact-checker — argue over your data until they reach consensus, then hand back the answer with a confidence score drawn straight from where they disagreed.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech"><li>Python</li><li>LangGraph</li><li>GPT-4o</li><li>FastAPI</li><li>React</li><li>Postgres</li></ul>
-            </div>
-            <p class="exp-tie"><b>↳ How it fits</b>Each agent is a LangGraph node with its own persona prompt; a moderator node weighs their arguments and turns the spread of opinions into the confidence score the React front end renders — so the disagreement <em>is</em> the metric.</p>
+            <button class="stack-toggle" type="button" aria-expanded="false">Stack &amp; how it fits</button>
+            <div class="expand"><div class="expand-inner">
+              <div class="stack">
+                <span class="stack-label">STACK</span>
+                <ul class="chips-tech" data-stack="Python, LangGraph, GPT-4o, FastAPI, React, Postgres"></ul>
+              </div>
+              <p class="exp-tie"><b>↳ How it fits</b>Each agent is a LangGraph node with its own persona prompt; a moderator node weighs their arguments and turns the spread of opinions into the confidence score the React front end renders — so the disagreement <em>is</em> the metric.</p>
+            </div></div>
             <div class="exp-cta">
               <a class="btn primary" href="#">Live Demo&nbsp;↗</a>
               <a class="btn locked" href="#">Case Study&nbsp;🔒</a>
@@ -72,11 +75,14 @@
             <p class="exp-role">Conversational analytics agent</p>
             <p class="exp-meta">Text-to-SQL · 2024</p>
             <p class="exp-desc">Ask your warehouse anything in plain English. Querybird writes the SQL, runs it, walks you through its reasoning step by step — and is honest enough to tell you when the data simply can't answer the question.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech"><li>TypeScript</li><li>LangChain</li><li>Claude</li><li>dbt</li><li>Snowflake</li><li>Next.js</li></ul>
-            </div>
-            <p class="exp-tie"><b>↳ How it fits</b>A LangChain planner reads the dbt schema to draft SQL, runs it on Snowflake in a read-only sandbox, then streams both the rows and a step-by-step rationale back to Next.js — the schema is what keeps the agent honest.</p>
+            <button class="stack-toggle" type="button" aria-expanded="false">Stack &amp; how it fits</button>
+            <div class="expand"><div class="expand-inner">
+              <div class="stack">
+                <span class="stack-label">STACK</span>
+                <ul class="chips-tech" data-stack="TypeScript, LangChain, Claude, dbt, Snowflake, Next.js"></ul>
+              </div>
+              <p class="exp-tie"><b>↳ How it fits</b>A LangChain planner reads the dbt schema to draft SQL, runs it on Snowflake in a read-only sandbox, then streams both the rows and a step-by-step rationale back to Next.js — the schema is what keeps the agent honest.</p>
+            </div></div>
             <div class="exp-cta">
               <a class="btn primary" href="#">Live Demo&nbsp;↗</a>
               <a class="btn locked" href="#">Source&nbsp;↗</a>
@@ -94,11 +100,14 @@
             <p class="exp-role">Real-time civic dashboard</p>
             <p class="exp-meta">Open data · 2024</p>
             <p class="exp-desc">A live “city mood” index that fuses Houston's open data — traffic, air quality, and 311 calls — into a single heartbeat for the city, re-scored every minute.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech"><li>Python</li><li>Kafka</li><li>DuckDB</li><li>Airflow</li><li>Plotly</li><li>Mapbox</li></ul>
-            </div>
-            <p class="exp-tie"><b>↳ How it fits</b>Airflow pulls each open-data feed on a one-minute cadence and streams it through Kafka into DuckDB; a scoring job blends the signals into one index that Plotly and Mapbox render as a live, zoomable city map.</p>
+            <button class="stack-toggle" type="button" aria-expanded="false">Stack &amp; how it fits</button>
+            <div class="expand"><div class="expand-inner">
+              <div class="stack">
+                <span class="stack-label">STACK</span>
+                <ul class="chips-tech" data-stack="Python, Kafka, DuckDB, Airflow, Plotly, Mapbox"></ul>
+              </div>
+              <p class="exp-tie"><b>↳ How it fits</b>Airflow pulls each open-data feed on a one-minute cadence and streams it through Kafka into DuckDB; a scoring job blends the signals into one index that Plotly and Mapbox render as a live, zoomable city map.</p>
+            </div></div>
             <div class="exp-cta">
               <a class="btn primary" href="#">Live Demo&nbsp;↗</a>
             </div>
@@ -115,11 +124,14 @@
             <p class="exp-role">Data-storytelling tool</p>
             <p class="exp-meta">NLP · Fintech · 2023</p>
             <p class="exp-desc">Drop in a year of messy transactions and get back an interactive map of where your money actually went — narrated in plain English by an agent that has read every single line.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech"><li>Python</li><li>Pandas</li><li>Plaid</li><li>GPT-4o-mini</li><li>D3.js</li><li>Flask</li></ul>
-            </div>
-            <p class="exp-tie"><b>↳ How it fits</b>Plaid imports the transactions, Pandas categorizes and clusters them, an LLM writes a plain-English story for each cluster, and D3 lays the whole year out as an interactive Sankey of where the money flowed.</p>
+            <button class="stack-toggle" type="button" aria-expanded="false">Stack &amp; how it fits</button>
+            <div class="expand"><div class="expand-inner">
+              <div class="stack">
+                <span class="stack-label">STACK</span>
+                <ul class="chips-tech" data-stack="Python, Pandas, Plaid, GPT-4o-mini, D3.js, Flask"></ul>
+              </div>
+              <p class="exp-tie"><b>↳ How it fits</b>Plaid imports the transactions, Pandas categorizes and clusters them, an LLM writes a plain-English story for each cluster, and D3 lays the whole year out as an interactive Sankey of where the money flowed.</p>
+            </div></div>
             <div class="exp-cta">
               <a class="btn primary" href="#">Live Demo&nbsp;↗</a>
               <a class="btn locked" href="#">Case Study&nbsp;🔒</a>
