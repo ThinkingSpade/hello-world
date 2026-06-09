@@ -191,7 +191,7 @@ mark { color: inherit; background: none; }
 .bio p { margin: 0 0 1.4rem; font-size: clamp(1.02rem, .6vw + .9rem, 1.22rem); line-height: 1.95; }
 .bio .reach { margin-top: 2rem; }
 
-.term { position: relative; font-weight: 600; color: var(--tx, var(--ink));
+.term { position: relative; font-weight: 600; color: var(--tx, var(--ink)); white-space: nowrap;
   border: 2px dashed currentColor; border-radius: 6px; padding: .02em .38em;
   transition: transform .2s var(--pop), background .2s; }
 .term.h-coral  { color: var(--coral-tx);  --cur: var(--coral-tx); }
