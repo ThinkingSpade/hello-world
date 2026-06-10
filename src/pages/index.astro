@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import main from '../content/home.html?raw';
+---
+<Layout
+  title="Huy Nguyen — Developer & Tinkerer"
+  description="Huy Nguyen is a developer, tinkerer and systems architect in Houston, Texas. I build software, automations and agentic AI experiences, and help small businesses with AI governance and cybersecurity."
+  page="home"
+>
+  <Fragment set:html={main} />
+</Layout>

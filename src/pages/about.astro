@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import main from '../content/about.html?raw';
+---
+<Layout
+  title="About — Huy Nguyen"
+  description="About Huy Nguyen — a self-taught developer and systems architect in Houston, Texas. From sysadmin to software and systems, mentored by Mike Onslow; M.S. in Information Systems from UNT; AWS, Google Cloud and CompTIA Security+ certified."
+  page="about"
+>
+  <Fragment set:html={main} />
+</Layout>
