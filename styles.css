@@ -110,7 +110,7 @@ mark { color: inherit; background: none; }
 
 /* hovering "breaking things" shatters the whole screen (JS-driven) */
 [data-shatter-window] { cursor: pointer; }
-.win-shatter { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.win-shatter { position: fixed; z-index: 60; pointer-events: none; }
 .win-shard { position: absolute; inset: 0; clip-path: var(--c); will-change: transform; transform: translateZ(0); }
 .win-shatter.go .win-shard { animation: winShatter 1.2s cubic-bezier(.4,1.12,.45,1) both; }
 .win-shard .scene-piece { position: absolute; margin: 0 !important; box-shadow: none !important; }

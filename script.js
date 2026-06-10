@@ -287,61 +287,65 @@
     el.addEventListener("click", fire); // tap to trigger on touch devices
   });
 
-  /* ---------- hovering "breaking things" shatters the whole screen ---------- */
+  /* ---------- hovering "breaking things" shatters each piece on its own ---------- */
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
     if (!trigger || reduce) return;
-    // everything that should break: the hero (window + social icons) and the nav
-    const SELECTORS = [".hero", "header.nav"];
+    // each of these breaks into its own shards, in place, from its own center
+    const SELECTOR = ".logo, .nav-links, .hero-window, .social";
     const POLYS = [
-      { c: "polygon(50% 50%,0 0,33% 0)",          tx: -60,  ty: -130, r: -10 },
-      { c: "polygon(50% 50%,33% 0,66% 0)",        tx: 0,    ty: -155, r: 6 },
-      { c: "polygon(50% 50%,66% 0,100% 0)",       tx: 60,   ty: -130, r: 10 },
-      { c: "polygon(50% 50%,100% 0,100% 100%)",   tx: 190,  ty: 0,    r: -8 },
-      { c: "polygon(50% 50%,100% 100%,66% 100%)", tx: 60,   ty: 130,  r: 9 },
-      { c: "polygon(50% 50%,66% 100%,33% 100%)",  tx: 0,    ty: 155,  r: -7 },
-      { c: "polygon(50% 50%,33% 100%,0 100%)",    tx: -60,  ty: 130,  r: 8 },
-      { c: "polygon(50% 50%,0 100%,0 0)",         tx: -190, ty: 0,    r: -11 },
+      { c: "polygon(50% 50%,0 0,33% 0)",          dx: -1, dy: -1.5, r: -10 },
+      { c: "polygon(50% 50%,33% 0,66% 0)",        dx: 0,  dy: -1.8, r: 6 },
+      { c: "polygon(50% 50%,66% 0,100% 0)",       dx: 1,  dy: -1.5, r: 10 },
+      { c: "polygon(50% 50%,100% 0,100% 100%)",   dx: 2,  dy: 0,    r: -8 },
+      { c: "polygon(50% 50%,100% 100%,66% 100%)", dx: 1,  dy: 1.5,  r: 9 },
+      { c: "polygon(50% 50%,66% 100%,33% 100%)",  dx: 0,  dy: 1.8,  r: -7 },
+      { c: "polygon(50% 50%,33% 100%,0 100%)",    dx: -1, dy: 1.5,  r: 8 },
+      { c: "polygon(50% 50%,0 100%,0 0)",         dx: -2, dy: 0,    r: -11 },
     ];
+    function shatterOne(el) {
+      const b = el.getBoundingClientRect();
+      if (b.width < 2 || b.height < 2) return null;
+      const hx = b.width * 0.1, vy = b.height * 0.16;
+      const layer = document.createElement("div");
+      layer.className = "win-shatter";
+      layer.setAttribute("aria-hidden", "true");
+      layer.style.cssText = `left:${b.left}px;top:${b.top}px;width:${b.width}px;height:${b.height}px`;
+      for (const p of POLYS) {
+        const shard = document.createElement("div");
+        shard.className = "win-shard";
+        shard.style.setProperty("--c", p.c);
+        shard.style.setProperty("--tx", (p.dx * hx).toFixed(1) + "px");
+        shard.style.setProperty("--ty", (p.dy * vy).toFixed(1) + "px");
+        shard.style.setProperty("--r", p.r + "deg");
+        const c = el.cloneNode(true);
+        c.classList.add("scene-piece");
+        c.style.left = "0"; c.style.top = "0";
+        c.style.width = b.width + "px"; c.style.height = b.height + "px";
+        shard.appendChild(c);
+        layer.appendChild(shard);
+      }
+      return layer;
+    }
     let cooling = false;
     trigger.addEventListener("mouseenter", () => {
       if (cooling) return;
       cooling = true;
       setTimeout(() => (cooling = false), 1700);
-      const els = SELECTORS.map((s) => document.querySelector(s)).filter(Boolean);
-      if (!els.length) return;
-      // one "scene" = clones of each target, pinned at its on-screen position
-      const scene = document.createElement("div");
+      const els = [...document.querySelectorAll(SELECTOR)];
+      const layers = [];
       for (const el of els) {
-        const b = el.getBoundingClientRect();
-        const c = el.cloneNode(true);
-        c.classList.add("scene-piece");
-        c.style.left = b.left + "px";
-        c.style.top = b.top + "px";
-        c.style.width = b.width + "px";
-        c.style.height = b.height + "px";
-        scene.appendChild(c);
+        const layer = shatterOne(el);
+        if (!layer) continue;
+        layers.push(layer);
+        document.body.appendChild(layer);
+        el.classList.add("is-shattering-hidden");
       }
-      const layer = document.createElement("div");
-      layer.className = "win-shatter";
-      layer.setAttribute("aria-hidden", "true");
-      for (const p of POLYS) {
-        const shard = document.createElement("div");
-        shard.className = "win-shard";
-        shard.style.setProperty("--c", p.c);
-        shard.style.setProperty("--tx", p.tx + "px");
-        shard.style.setProperty("--ty", p.ty + "px");
-        shard.style.setProperty("--r", p.r + "deg");
-        shard.appendChild(scene.cloneNode(true));
-        layer.appendChild(shard);
-      }
-      document.body.appendChild(layer);
-      els.forEach((el) => el.classList.add("is-shattering-hidden"));
       // let the clones paint first, then start the fly-apart (avoids a mid-animation hitch)
-      requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("go")));
+      requestAnimationFrame(() => requestAnimationFrame(() => layers.forEach((l) => l.classList.add("go"))));
       setTimeout(() => {
         els.forEach((el) => el.classList.remove("is-shattering-hidden"));
-        layer.remove();
+        layers.forEach((l) => l.remove());
       }, 1480);
     });
   })();
