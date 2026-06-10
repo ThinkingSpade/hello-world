@@ -242,6 +242,21 @@ mark { color: inherit; background: none; }
 .bio p { margin: 0 0 1.4rem; font-size: clamp(1.02rem, .6vw + .9rem, 1.22rem); line-height: 1.95; }
 .bio .reach { margin-top: 2rem; }
 
+/* certifications */
+.certs { margin: 1.9rem 0 1.6rem; }
+.certs-label { font-family: var(--px); font-size: .52rem; letter-spacing: .08em; color: var(--ink-soft); }
+.cert-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: .85rem; }
+.cert { display: flex; align-items: center; gap: 11px; padding: 10px 13px;
+  border: 2px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow-sm);
+  color: var(--ink); transition: transform .2s var(--pop), box-shadow .2s var(--pop); }
+.cert:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--line); }
+.cert-ic { flex: none; display: grid; place-items: center; width: 28px; height: 28px; }
+.cert-ic svg { width: 100%; height: 100%; fill: var(--ink); }
+.cert-tx { display: flex; flex-direction: column; font-family: var(--sans); line-height: 1.18; gap: 1px; }
+.cert-tx b { font-size: .9rem; font-weight: 700; color: var(--ink); }
+.cert-tx { font-size: .72rem; color: var(--ink-soft); }
+.cert-go { align-self: flex-start; margin-left: 1px; font-size: .82rem; color: var(--ink-soft); }
+
 .term { position: relative; font-weight: 600; color: var(--tx, var(--ink)); white-space: nowrap;
   border: 2px dashed currentColor; border-radius: 6px; padding: .02em .38em;
   transition: transform .2s var(--pop), background .2s; }
