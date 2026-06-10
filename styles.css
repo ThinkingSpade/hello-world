@@ -89,8 +89,8 @@ mark { color: inherit; background: none; }
 .hero { position: relative; min-height: 100svh; display: flex; flex-direction: column;
   justify-content: center; align-items: center; padding: 104px clamp(18px, 5vw, 40px) 140px; }
 .hero-window { width: 100%; max-width: 900px; }
-.intro { margin: 0; font-family: var(--display); font-weight: 700; letter-spacing: 0;
-  font-size: clamp(1.7rem, 3.8vw + .5rem, 3.2rem); line-height: 1.4; }
+.intro { margin: 0; font-weight: 800; letter-spacing: -.01em;
+  font-size: clamp(1.7rem, 3.8vw + .5rem, 3.3rem); line-height: 1.42; }
 .sub { margin: 1.7rem 0 0; max-width: 640px; color: var(--ink-soft);
   font-weight: 400; font-size: clamp(1rem, 1vw + .7rem, 1.28rem); line-height: 1.8; }
 
