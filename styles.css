@@ -106,21 +106,26 @@ mark { color: inherit; background: none; }
 .h-peach  { background: var(--peach-bg);  color: var(--peach-tx);  --cur: var(--peach-tx); }
 .h-pink   { background: var(--pink-bg);   color: var(--pink-tx);   --cur: var(--pink-tx); }
 
-/* "Dallas → Houston" correction gag (plays once on load) */
-.swap-from { position: relative; animation: swapDim .4s ease 1.5s both; }
+/* "Dallas → Houston" correction gag (plays once on load, slow & smooth) */
+.swap-from { position: relative; animation: swapDim .7s ease 2.2s both; }
 .swap-from::after { content: ""; position: absolute; left: -.06em; right: -.06em; top: 54%;
   height: .1em; border-radius: 3px; background: currentColor;
-  transform: scaleX(0); transform-origin: left center; animation: swapStrike .42s var(--pop) 1.1s both; }
-.swap-to { display: inline-block; max-width: 0; opacity: 0; overflow: hidden;
-  white-space: nowrap; vertical-align: bottom; animation: swapReveal .55s var(--pop) 1.55s both; }
+  transform: scaleX(0); transform-origin: left center;
+  animation: swapStrike .75s cubic-bezier(.45,.05,.25,1) 1.7s both; }
+.swap-to { display: inline-grid; grid-template-columns: 0fr; vertical-align: bottom;
+  animation: swapReveal 1.05s cubic-bezier(.25,.9,.3,1) 2.25s both; }
+.swap-to > span { overflow: hidden; min-width: 0; white-space: nowrap; opacity: 0;
+  animation: swapFade .7s ease 2.45s both; }
 @keyframes swapStrike { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes swapDim    { to { opacity: .5; } }
-@keyframes swapReveal { to { max-width: 14ch; opacity: 1; } }
+@keyframes swapReveal { to { grid-template-columns: 1fr; } }
+@keyframes swapFade   { to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   .swap-from { opacity: .5; animation: none; }
   .swap-from::after { transform: scaleX(1); animation: none; }
-  .swap-to { max-width: 14ch; opacity: 1; animation: none; }
+  .swap-to { grid-template-columns: 1fr; animation: none; }
+  .swap-to > span { opacity: 1; animation: none; }
 }
 
 /* ───────────────────────── socials ───────────────────────── */
@@ -244,11 +249,8 @@ mark { color: inherit; background: none; }
   margin: 4px 0 18px 34px; transform: rotate(-1.4deg);
   transition: transform .3s var(--pop); }
 .portrait:hover { transform: rotate(0) translateY(-3px); }
-.portrait-body { display: grid; place-items: center; align-content: center; gap: 18px;
-  padding: 26px 22px; aspect-ratio: 5 / 6;
-  background: repeating-linear-gradient(45deg, #fbfaf6, #fbfaf6 12px, #f2efe7 12px, #f2efe7 24px); }
-.portrait-art { width: clamp(120px, 46%, 168px); height: auto; }
-.portrait figcaption { font-family: var(--px); font-size: .52rem; color: var(--ink-soft); }
+.portrait-body { padding: 0; overflow: hidden; border-radius: 0 0 7px 7px; background: #fbfaf6; }
+.portrait-img { display: block; width: 100%; height: auto; image-rendering: auto; }
 
 /* ───────────────────────── footer status bar ───────────────────────── */
 .statusbar { display: flex; align-items: center; gap: 12px; padding: 12px clamp(16px, 4vw, 28px);
