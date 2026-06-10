@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projects — Huy Nguyen</title>
   <meta name="description" content="Selected work by Huy Nguyen — agentic experiences, analytics platforms, and data engineering." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='11' fill='%23F7F5EF'/%3E%3Cline x1='24' y1='6' x2='24' y2='12.5' stroke='%231c1a17' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='5' r='2.6' fill='%23b8463a'/%3E%3Cpath d='M12 24c0-7 5-12 12-12s12 5 12 12c0 4 1 5.5 1 7.5 0 4-5 6.5-13 6.5s-13-2.5-13-6.5c0-2 1-3.5 1-7.5z' fill='%23CDE9D6' stroke='%231c1a17' stroke-width='2.6' stroke-linejoin='round'/%3E%3Crect x='17.5' y='23' width='3.4' height='3.4' fill='%231c1a17'/%3E%3Crect x='27.1' y='23' width='3.4' height='3.4' fill='%231c1a17'/%3E%3Cpath d='M19 31c1.7 1.9 8.3 1.9 10 0' stroke='%231c1a17' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="huy-avatar.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -13,15 +13,8 @@
 </head>
 <body data-page="work">
   <header class="nav">
-    <a class="logo" href="index.html" aria-label="Huy Nguyen — home">
-      <svg class="logo-art" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-        <line x1="24" y1="6" x2="24" y2="12.5" stroke="#1c1a17" stroke-width="2.6" stroke-linecap="round"/>
-        <circle cx="24" cy="5" r="2.6" fill="#b8463a"/>
-        <path d="M12 24c0-7 5-12 12-12s12 5 12 12c0 4 1 5.5 1 7.5 0 4-5 6.5-13 6.5s-13-2.5-13-6.5c0-2 1-3.5 1-7.5z" fill="#CDE9D6" stroke="#1c1a17" stroke-width="2.6" stroke-linejoin="round"/>
-        <rect x="17.5" y="23" width="3.4" height="3.4" fill="#1c1a17"/>
-        <rect x="27.1" y="23" width="3.4" height="3.4" fill="#1c1a17"/>
-        <path d="M19 31c1.7 1.9 8.3 1.9 10 0" stroke="#1c1a17" stroke-width="2.4" stroke-linecap="round"/>
-      </svg>
+    <a class="logo no-save" href="index.html" aria-label="Huy Nguyen — home">
+      <span class="logo-ava" aria-hidden="true"></span>
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="index.html">HOME</a>
@@ -96,7 +89,7 @@
             <p class="exp-desc">A model that flags the telecom customers most likely to cancel before they actually do, trained on real subscriber data and tuned to surface the handful of churn signals that genuinely move the needle. Built at the University of North Texas.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, XGBoost, Jupyter"></ul>
+              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, NumPy, Jupyter"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>I cleaned and explored the subscriber data in pandas, engineered the contract and usage features that carried the most signal, then put logistic regression up against gradient-boosted trees. The feature importances doubled as a story about <em>why</em> people leave.</p>
@@ -111,15 +104,15 @@
           <div class="exp-logo" style="--accent:var(--peach-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.7" fill="none"/><circle cx="12" cy="12" r="4.8" fill="none" stroke-width="1.1"/><path d="M12 7.2 V10 M12 14 V16.8 M7.2 12 H10 M14 12 H16.8 M8.6 8.6 L10.2 10.2 M13.8 13.8 L15.4 15.4 M8.6 15.4 L10.2 13.8 M13.8 10.2 L15.4 8.6" fill="none" stroke-width="1.2"/><path d="M12 5.3 V2.6 M12 18.7 V21.4 M5.3 12 H2.6 M18.7 12 H21.4 M7.26 7.26 L5.4 5.4 M16.74 16.74 L18.6 18.6 M7.26 16.74 L5.4 18.6 M16.74 7.26 L18.6 5.4" fill="none"/><circle cx="12" cy="2.2" r=".8"/><circle cx="12" cy="21.8" r=".8"/><circle cx="2.2" cy="12" r=".8"/><circle cx="21.8" cy="12" r=".8"/><circle cx="5.1" cy="5.1" r=".8"/><circle cx="18.9" cy="5.1" r=".8"/><circle cx="5.1" cy="18.9" r=".8"/><circle cx="18.9" cy="18.9" r=".8"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r=".65" fill="#1c1a17" stroke="none"/></svg></div>
           <div class="exp-main">
             <h3>Helmsman</h3>
-            <p class="exp-role">Agentic SRE copilot</p>
-            <p class="exp-meta">Kubernetes · 2025</p>
-            <p class="exp-desc">An on-call agent that watches your cluster, reads the logs and metrics the moment something breaks, explains the likely root cause in plain English, and drafts the kubectl/Helm fix for a human to approve.</p>
+            <p class="exp-role">Agentic DevOps copilot</p>
+            <p class="exp-meta">DevOps · 2025</p>
+            <p class="exp-desc">A side project I built with my girlfriend to make her DevOps job less painful. It keeps an eye on her clusters, and when something breaks it reads the logs, explains the likely cause in plain English, and drafts the kubectl or Helm fix for her to approve before anything touches production.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Go, Kubernetes, Docker, Linux, Prometheus, LangGraph"></ul>
+              <ul class="chips-tech" data-stack="Python, Kubernetes, Docker, Linux, Bash, LangGraph"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Agents tail Prometheus alerts and pod logs through the Kubernetes API, reason over the cluster state in a LangGraph plan, and propose a remediation — nothing touches prod until you hit <em>approve</em>.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>It pulls pod logs and events straight from the Kubernetes API, reasons over the cluster state with a LangGraph agent, and writes the fix in plain language. Nothing actually runs until she hits <em>approve</em>.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="#">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="#">Case Study&nbsp;🔒</a>
@@ -160,7 +153,7 @@
             <p class="exp-desc">Gives every agent its own disposable Linux sandbox to run code, browse, and call tools safely — a fresh container per task, scheduled across the cluster and torn down the moment the agent is done.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Docker, Linux, Kubernetes, Go, NATS, Redis"></ul>
+              <ul class="chips-tech" data-stack="Docker, Linux, Kubernetes, Python, FastAPI, Redis"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>A Go orchestrator schedules one Docker sandbox per agent task on Kubernetes, streams stdout and results back over NATS, and Redis tracks state so nothing leaks between runs.</p>
