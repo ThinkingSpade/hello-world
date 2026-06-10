@@ -108,11 +108,12 @@ mark { color: inherit; background: none; }
 .h-peach  { background: var(--peach-bg);  color: var(--peach-tx);  --cur: var(--peach-tx); }
 .h-pink   { background: var(--pink-bg);   color: var(--pink-tx);   --cur: var(--pink-tx); }
 
-/* hovering "breaking things" shatters the whole screen (JS-driven) */
+/* hovering "breaking things" shatters each piece (JS-driven, prebuilt + cached) */
 [data-shatter-window] { cursor: pointer; }
-.win-shatter { position: fixed; z-index: 60; pointer-events: none; }
-.win-shard { position: absolute; inset: 0; clip-path: var(--c); will-change: transform; transform: translateZ(0); }
-.win-shatter.go .win-shard { animation: winShatter 1.2s cubic-bezier(.4,1.12,.45,1) both; }
+.win-shatter { position: fixed; z-index: 60; pointer-events: none; display: none; }
+.win-shatter.active { display: block; }
+.win-shard { position: absolute; inset: 0; clip-path: var(--c); }
+.win-shatter.go .win-shard { animation: winShatter 1.2s cubic-bezier(.4,1.12,.45,1) both; will-change: transform; }
 .win-shard .scene-piece { position: absolute; margin: 0 !important; box-shadow: none !important; }
 .win-shard * { animation: none !important; transition: none !important; }
 /* freeze the Dallas -> Houston swap at its finished state inside every shard */
@@ -126,7 +127,7 @@ mark { color: inherit; background: none; }
   36%  { transform: translate(var(--tx), var(--ty)) rotate(var(--r)); }
   100% { transform: none; }
 }
-@media (prefers-reduced-motion: reduce) { .win-shatter { display: none; } }
+@media (prefers-reduced-motion: reduce) { .win-shatter, .win-shatter.active { display: none !important; } }
 
 /* "Dallas → Houston" correction gag (plays once on load, slow & smooth) */
 .swap-from { position: relative; animation: swapDim .7s ease 2.2s both; }
