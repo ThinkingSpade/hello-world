@@ -291,19 +291,21 @@
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
     if (!trigger || reduce) return;
-    // each of these breaks into its own shards, in place, from its own center
+    // each of these breaks into its own shards, in place, from its own centre
     const SELECTOR = ".logo, .nav-links, .hero-window, .social";
+    // 6 triangular shards radiating from the centre (dx/dy are scaled to each element's size)
     const POLYS = [
-      { c: "polygon(50% 50%,0 0,33% 0)",          dx: -1, dy: -1.5, r: -10 },
-      { c: "polygon(50% 50%,33% 0,66% 0)",        dx: 0,  dy: -1.8, r: 6 },
-      { c: "polygon(50% 50%,66% 0,100% 0)",       dx: 1,  dy: -1.5, r: 10 },
+      { c: "polygon(50% 50%,0 0,50% 0)",          dx: -1, dy: -1.7, r: -10 },
+      { c: "polygon(50% 50%,50% 0,100% 0)",       dx: 1,  dy: -1.7, r: 9 },
       { c: "polygon(50% 50%,100% 0,100% 100%)",   dx: 2,  dy: 0,    r: -8 },
-      { c: "polygon(50% 50%,100% 100%,66% 100%)", dx: 1,  dy: 1.5,  r: 9 },
-      { c: "polygon(50% 50%,66% 100%,33% 100%)",  dx: 0,  dy: 1.8,  r: -7 },
-      { c: "polygon(50% 50%,33% 100%,0 100%)",    dx: -1, dy: 1.5,  r: 8 },
-      { c: "polygon(50% 50%,0 100%,0 0)",         dx: -2, dy: 0,    r: -11 },
+      { c: "polygon(50% 50%,100% 100%,50% 100%)", dx: 1,  dy: 1.7,  r: 8 },
+      { c: "polygon(50% 50%,50% 100%,0 100%)",    dx: -1, dy: 1.7,  r: -9 },
+      { c: "polygon(50% 50%,0 100%,0 0)",         dx: -2, dy: 0,    r: 10 },
     ];
-    function shatterOne(el) {
+    let cache = null;   // prebuilt layers (appended, hidden), reused on every hover
+    let busy = false;
+
+    function buildLayer(el) {
       const b = el.getBoundingClientRect();
       if (b.width < 2 || b.height < 2) return null;
       const hx = b.width * 0.1, vy = b.height * 0.16;
@@ -311,6 +313,7 @@
       layer.className = "win-shatter";
       layer.setAttribute("aria-hidden", "true");
       layer.style.cssText = `left:${b.left}px;top:${b.top}px;width:${b.width}px;height:${b.height}px`;
+      layer._el = el;
       for (const p of POLYS) {
         const shard = document.createElement("div");
         shard.className = "win-shard";
@@ -325,27 +328,38 @@
         shard.appendChild(c);
         layer.appendChild(shard);
       }
+      document.body.appendChild(layer); // stays display:none until a shatter
       return layer;
     }
-    let cooling = false;
+    function build() {
+      if (cache) cache.forEach((l) => l.remove());
+      cache = [...document.querySelectorAll(SELECTOR)].map(buildLayer).filter(Boolean);
+    }
+    // prebuild while the browser is idle so even the first hover is smooth
+    (window.requestIdleCallback || ((f) => setTimeout(f, 250)))(() => { if (!cache) build(); });
+    let rt;
+    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 200); }, { passive: true });
+
     trigger.addEventListener("mouseenter", () => {
-      if (cooling) return;
-      cooling = true;
-      setTimeout(() => (cooling = false), 1700);
-      const els = [...document.querySelectorAll(SELECTOR)];
-      const layers = [];
-      for (const el of els) {
-        const layer = shatterOne(el);
-        if (!layer) continue;
-        layers.push(layer);
-        document.body.appendChild(layer);
-        el.classList.add("is-shattering-hidden");
-      }
-      // let the clones paint first, then start the fly-apart (avoids a mid-animation hitch)
+      if (busy) return;
+      busy = true;
+      if (!cache) build();
+      const layers = cache;
+      layers.forEach((l) => {
+        const b = l._el.getBoundingClientRect();   // refresh position (handles scroll)
+        l.style.left = b.left + "px"; l.style.top = b.top + "px";
+        l.classList.add("active");
+        l._el.classList.add("is-shattering-hidden");
+      });
+      // paint the (already-built) shards first, then start the fly-apart
       requestAnimationFrame(() => requestAnimationFrame(() => layers.forEach((l) => l.classList.add("go"))));
       setTimeout(() => {
-        els.forEach((el) => el.classList.remove("is-shattering-hidden"));
-        layers.forEach((l) => l.remove());
+        layers.forEach((l) => {
+          l.classList.remove("go");
+          l.classList.remove("active");
+          l._el.classList.remove("is-shattering-hidden");
+        });
+        busy = false;
       }, 1480);
     });
   })();
