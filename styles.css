@@ -57,12 +57,12 @@ mark { color: inherit; background: none; }
 }
 .nav.scrolled { background: rgba(247, 245, 239, .78); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 
-.logo { justify-self: start; display: inline-grid; place-items: center; width: 50px; height: 50px;
-  border: 3px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow-sm);
+.logo { justify-self: start; display: inline-grid; place-items: center; width: 60px; height: 60px;
+  border: 3px solid var(--line); border-radius: 13px; background: #fff; box-shadow: var(--shadow-sm);
   transition: transform .2s var(--pop), box-shadow .2s var(--pop); }
 .logo:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--line); }
 .logo-art { width: 34px; height: 34px; }
-.logo-ava { width: 100%; height: 100%; border-radius: 6px;
+.logo-ava { width: 100%; height: 100%; border-radius: 9px;
   background: url(huy-avatar.png) center / cover no-repeat; }
 
 .nav-links { justify-self: center; display: flex; border: 3px solid var(--line); border-radius: 8px;
@@ -107,6 +107,21 @@ mark { color: inherit; background: none; }
 .h-violet { background: var(--violet-bg); color: var(--violet-tx); --cur: var(--violet-tx); }
 .h-peach  { background: var(--peach-bg);  color: var(--peach-tx);  --cur: var(--peach-tx); }
 .h-pink   { background: var(--pink-bg);   color: var(--pink-tx);   --cur: var(--pink-tx); }
+
+/* "breaking things" shatters into shards and snaps back on hover */
+.shatter { position: relative; }
+.shatter:hover { transform: none; color: transparent; background: transparent; }
+.shatter .shards { position: absolute; inset: 0; pointer-events: none; }
+.shatter .shards > span { position: absolute; inset: 0; clip-path: var(--c);
+  display: inline-block; font: inherit; padding: .02em .3em; border-radius: 7px;
+  background: var(--pink-bg); color: var(--pink-tx); opacity: 0; will-change: transform; }
+.shatter:hover .shards > span { animation: shatter .5s var(--pop) both; }
+@keyframes shatter {
+  0%   { opacity: 1; transform: none; }
+  30%  { opacity: 1; transform: translate(var(--tx), var(--ty)) rotate(var(--r)); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .shatter .shards { display: none; } }
 
 /* "Dallas → Houston" correction gag (plays once on load, slow & smooth) */
 .swap-from { position: relative; animation: swapDim .7s ease 2.2s both; }
@@ -163,6 +178,15 @@ mark { color: inherit; background: none; }
 /* ───────────────────────── work / experience ───────────────────────── */
 .exp-list { display: flex; flex-direction: column; gap: clamp(22px, 4vw, 34px); }
 .exp { transition: transform .25s var(--pop), box-shadow .25s var(--pop); }
+
+/* "coming soon" card — peeks like a little stack of upcoming cards */
+.exp.coming { position: relative; }
+.exp.coming::before, .exp.coming::after { content: ""; position: absolute; z-index: -1;
+  left: 16px; right: 16px; top: -8px; height: 18px; background: #fff;
+  border: 3px solid var(--line); border-radius: 11px 11px 0 0; }
+.exp.coming::after { top: -16px; left: 32px; right: 32px; opacity: .55; }
+.exp.coming .exp-role, .exp.coming .exp-desc { color: var(--ink-soft); }
+.exp.coming .exp-meta { color: var(--gold-tx); font-weight: 700; }
 .exp:hover { transform: translate(-3px, -4px); box-shadow: var(--shadow-lg); }
 .exp-body { display: grid; grid-template-columns: 150px 1fr; gap: clamp(18px, 3vw, 30px); align-items: start; }
 .exp-logo { width: 150px; height: 150px; display: grid; place-items: center;
@@ -392,7 +416,7 @@ body.cursor-on [data-cursor] { cursor: none; }
 @media (max-width: 640px) {
   .nav { padding: 10px 12px; }
   .nav-links a { font-size: .5rem; padding: .85em .62em; letter-spacing: .06em; }
-  .logo { width: 46px; height: 46px; }
+  .logo { width: 54px; height: 54px; }
   .logo-art { width: 32px; height: 32px; }
 
   .hero { padding: 84px 15px 104px; min-height: 100svh; }
