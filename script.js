@@ -291,8 +291,8 @@
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
     if (!trigger || reduce) return;
-    // each of these breaks into its own shards, in place, from its own centre
-    const SELECTOR = ".logo, .nav-links, .hero-window, .social";
+    // just the hero window breaks into its own shards, in place, from its centre
+    const SELECTOR = ".hero-window";
     // 6 triangular shards radiating from the centre (dx/dy are scaled to each element's size)
     const POLYS = [
       { c: "polygon(50% 50%,0 0,50% 0)",          dx: -1, dy: -1.7, r: -10 },
