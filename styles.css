@@ -108,19 +108,24 @@ mark { color: inherit; background: none; }
 .h-peach  { background: var(--peach-bg);  color: var(--peach-tx);  --cur: var(--peach-tx); }
 .h-pink   { background: var(--pink-bg);   color: var(--pink-tx);   --cur: var(--pink-tx); }
 
-/* hovering "breaking things" shatters the whole hero window (JS-driven) */
+/* hovering "breaking things" shatters the whole screen (JS-driven) */
 [data-shatter-window] { cursor: pointer; }
-.win-shatter { position: fixed; z-index: 60; pointer-events: none; }
-.win-shard { position: absolute; inset: 0; clip-path: var(--c); will-change: transform;
-  animation: winShatter .62s cubic-bezier(.32,1.45,.5,1) both; }
-.win-shard-copy { position: absolute; inset: 0; margin: 0 !important;
-  animation: none !important; box-shadow: none !important; }
+.win-shatter { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.win-shard { position: absolute; inset: 0; clip-path: var(--c); will-change: transform; transform: translateZ(0); }
+.win-shatter.go .win-shard { animation: winShatter 1.2s cubic-bezier(.4,1.12,.45,1) both; }
+.win-shard .scene-piece { position: absolute; margin: 0 !important; box-shadow: none !important; }
+.win-shard * { animation: none !important; transition: none !important; }
+/* freeze the Dallas -> Houston swap at its finished state inside every shard */
+.win-shard .swap-to { grid-template-columns: 1fr !important; }
+.win-shard .swap-to > span { opacity: 1 !important; }
+.win-shard .swap-from { opacity: .5 !important; }
+.win-shard .swap-from::after { transform: scaleX(1) !important; }
+.is-shattering-hidden { opacity: 0 !important; }
 @keyframes winShatter {
   0%   { transform: none; }
-  32%  { transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(.985); }
+  36%  { transform: translate(var(--tx), var(--ty)) rotate(var(--r)); }
   100% { transform: none; }
 }
-.hero-window.is-shattering { opacity: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .win-shatter { display: none; } }
 
 /* "Dallas → Houston" correction gag (plays once on load, slow & smooth) */
