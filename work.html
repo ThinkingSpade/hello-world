@@ -66,13 +66,13 @@
             <h3>Armada</h3>
             <p class="exp-role">A control plane for browser fleets</p>
             <p class="exp-meta">Distributed Systems · Agentic Automation · 2026</p>
-            <p class="exp-desc">A control plane for running fleets of real browsers as a managed service. Operators compose multi-tenant campaigns in a React console, a scheduler spreads them across the day with cron, jitter, and ramp-up, and every run drives a live Chromium session by handing the page, its accessibility tree, links, and title, to a frontier model that replies with one schema-checked action. Underneath sits the unglamorous platform that makes it survivable: warmed persistent identities pulled from a pool, health-scored proxies that disable themselves, classified failures with alerting, cost metered against a hard ceiling, and live VNC into any running worker. All of it on Postgres and Redis, built to run unattended on a single Mac Mini in the corner.</p>
+            <p class="exp-desc">A control plane for running fleets of real browsers as a managed service. Operators compose multi-tenant campaigns in a React console, a scheduler spreads them across the day, and every run drives a live Chromium session by handing the page's accessibility tree to a frontier model that replies with one schema-checked action.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Every step is a strict JSON action schema, so the model can only click, fill, scroll, or stop, never improvise into chaos. Workers report back constantly, so proxies that start failing pull themselves out, a runaway run halts itself at the cost ceiling, and I can VNC straight into any live session to watch it think.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>Under the hood is the unglamorous platform that keeps it alive: a scheduler with cron, jitter, and ramp-up, warmed persistent identities pulled from a pool, health-scored proxies that disable themselves, classified failures with alerting, and cost metered against a hard ceiling so a runaway run halts itself. Every action is a strict JSON schema, so the model can only click, fill, scroll, or stop, and I can VNC straight into any live worker to watch it think. All of it on Postgres and Redis, running unattended on a single Mac Mini in the corner.</p>
             </div></div>
           </div>
         </div>
