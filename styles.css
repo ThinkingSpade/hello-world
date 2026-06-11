@@ -355,6 +355,26 @@ mark { color: inherit; background: none; }
 .portrait-body { padding: 0; overflow: hidden; border-radius: 0 0 7px 7px; background: #fbfaf6; }
 .portrait-photo { width: 100%; aspect-ratio: 1 / 1; background: url(huy.png) center / cover no-repeat; }
 
+/* glitch-load: the portrait, education card and certificates "decode" in on first view
+   (the .gload / .gload-go classes are only ever added by JS, and only when motion is allowed) */
+@media (prefers-reduced-motion: no-preference) {
+  .gload { opacity: 0; }
+  .gload-go, .portrait-photo.gload-go { animation: glitchLoad .9s steps(1, end) both; opacity: 1; }
+}
+@keyframes glitchLoad {
+  0%   { opacity: 0; clip-path: inset(0 0 100% 0); transform: translate(-12px, -3px); filter: brightness(2.4) saturate(.2) contrast(1.5); }
+  7%   { opacity: 1; clip-path: inset(0 0 62% 0);  transform: translate(9px, 2px);   filter: brightness(1.5) hue-rotate(-55deg) saturate(1.9); }
+  16%  { clip-path: inset(40% 0 42% 0); transform: translate(-8px, 0);  filter: hue-rotate(45deg) saturate(1.7); }
+  26%  { clip-path: inset(10% 0 72% 0); transform: translate(7px, -2px); filter: contrast(1.7) brightness(1.2); }
+  38%  { clip-path: inset(60% 0 18% 0); transform: translate(-6px, 1px); filter: hue-rotate(-35deg) saturate(1.6); }
+  50%  { clip-path: inset(28% 0 52% 0); transform: translate(5px, 0);   filter: saturate(1.5); }
+  62%  { clip-path: inset(74% 0 8% 0);  transform: translate(-4px, 0);  filter: hue-rotate(25deg); }
+  74%  { clip-path: none; transform: translate(3px, 0); filter: brightness(1.15); }
+  86%  { transform: translate(-2px, 0); filter: none; }
+  94%  { transform: translate(1px, 0); }
+  100% { opacity: 1; clip-path: none; transform: none; filter: none; }
+}
+
 /* the portrait catches signal interference every few seconds (worse under the cursor) */
 @media (prefers-reduced-motion: no-preference) {
   .portrait-photo { position: relative; animation: glitchBase 7.5s steps(1, end) 2.4s infinite; }
