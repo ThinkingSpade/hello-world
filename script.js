@@ -287,6 +287,76 @@
     el.addEventListener("click", fire); // tap to trigger on touch devices
   });
 
+  /* ---------- scroll/boot reveal: windows & cards pop in ---------- */
+  if (!reduce && "IntersectionObserver" in window) {
+    const targets = [...document.querySelectorAll(".hero-window, .socials, .page-head, .exp, .bio > *")];
+    if (targets.length) {
+      targets.forEach((el) => el.classList.add("reveal"));
+      const settle = (el) => { el.classList.remove("reveal", "in"); el.style.transitionDelay = ""; };
+      const io = new IntersectionObserver((entries) => {
+        entries.filter((en) => en.isIntersecting).forEach((en, k) => {
+          const el = en.target;
+          io.unobserve(el);
+          el.style.transitionDelay = (k * 70) + "ms";
+          el.classList.add("in");
+          el.addEventListener("transitionend", () => settle(el), { once: true });
+          setTimeout(() => settle(el), 1100 + k * 70);   // fallback if transitionend never fires
+        });
+      }, { rootMargin: "0px 0px -6% 0px", threshold: 0.05 });
+      targets.forEach((el) => io.observe(el));
+    }
+  }
+
+  /* ---------- window titles type themselves out ---------- */
+  if (!reduce && "IntersectionObserver" in window) {
+    document.querySelectorAll(".window-title").forEach((t) => {
+      const full = t.textContent;
+      if (!full.trim()) return;
+      t.textContent = "";
+      t.classList.add("typing");
+      let started = false;
+      const start = () => {
+        if (started) return;
+        started = true;
+        let i = 0;
+        (function tick() {
+          t.textContent = full.slice(0, ++i);
+          if (i < full.length) setTimeout(tick, 30 + Math.random() * 38);
+          else setTimeout(() => t.classList.remove("typing"), 900);
+        })();
+      };
+      const io = new IntersectionObserver((es) => {
+        if (es.some((en) => en.isIntersecting)) { io.disconnect(); setTimeout(start, 220); }
+      }, { threshold: 0.3 });
+      io.observe(t);
+    });
+  }
+
+  /* ---------- the hero window leans toward the cursor ---------- */
+  (function () {
+    if (reduce || !fine) return;
+    const el = document.querySelector(".hero-window");
+    if (!el) return;
+    let cx = 0, cy = 0, tx = 0, ty = 0, raf = 0;
+    function step() {
+      raf = 0;
+      if (document.body.classList.contains("shattering")) return;
+      tx += (cx - tx) * 0.16; ty += (cy - ty) * 0.16;
+      el.style.transform = `perspective(1100px) rotateX(${ty.toFixed(2)}deg) rotateY(${tx.toFixed(2)}deg)`;
+      if (Math.abs(cx - tx) + Math.abs(cy - ty) > 0.02) raf = requestAnimationFrame(step);
+    }
+    addEventListener("pointermove", (e) => {
+      if (document.body.classList.contains("shattering")) return;
+      const b = el.getBoundingClientRect();
+      const mx = (e.clientX - (b.left + b.width / 2)) / (b.width / 2);
+      const my = (e.clientY - (b.top + b.height / 2)) / (b.height / 2);
+      const fade = Math.max(0, 1.7 - Math.hypot(mx, my)) / 1.7;   // fades with distance from the window
+      cx = Math.max(-1.5, Math.min(1.5, mx)) * 2.4 * fade;
+      cy = -Math.max(-1.5, Math.min(1.5, my)) * 2.0 * fade;
+      if (!raf) raf = requestAnimationFrame(step);
+    }, { passive: true });
+  })();
+
   /* ---------- hovering "breaking things" shatters the hero window like 3D glass ---------- */
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
@@ -295,19 +365,19 @@
     // then 24 panes (8 jittered spokes x 3 rings) fly apart in real 3D and glide home
     const SELECTOR = ".hero-window";
     const SPOKES = 8, RINGS = [0.22, 0.52, 1.45];   // ring radii as a share of the cover radius
-    const DUR = 1500, MAXDELAY = 135, BREAK_AT = 170;   // cracks get a beat before the burst
+    const DUR = 1500, MAXDELAY = 135, BREAK_AT = 130;   // flash + shockwave get a beat before the burst
     const rnd = (a, b) => a + Math.random() * (b - a);
 
     let cache = null;   // prebuilt layers (appended, hidden), reused on every hover
     let busy = false;
 
     function buildLayer(el) {
-      const b = el.getBoundingClientRect();
-      if (b.width < 2 || b.height < 2) return null;
+      const W = el.offsetWidth, H = el.offsetHeight;   // layout size: immune to tilt/reveal transforms
+      if (W < 2 || H < 2) return null;
       const layer = document.createElement("div");
       layer.className = "win-shatter";
       layer.setAttribute("aria-hidden", "true");
-      layer.style.cssText = `left:${b.left}px;top:${b.top}px;width:${b.width}px;height:${b.height}px`;
+      layer.style.cssText = `left:0;top:0;width:${W}px;height:${H}px`;
       layer._el = el;
       layer._shards = [];
       for (let i = 0; i < SPOKES * RINGS.length; i++) {
@@ -315,8 +385,10 @@
         shard.className = "win-shard";
         const c = el.cloneNode(true);
         c.classList.add("scene-piece");
+        c.classList.remove("reveal", "in");
         c.style.left = "0"; c.style.top = "0";
-        c.style.width = b.width + "px"; c.style.height = b.height + "px";
+        c.style.width = W + "px"; c.style.height = H + "px";
+        c.style.transform = "none";
         shard.appendChild(c);
         const glint = document.createElement("div");
         glint.className = "win-glint";
@@ -333,8 +405,12 @@
       return layer;
     }
     function build() {
-      if (cache) cache.forEach((l) => l.remove());
-      cache = [...document.querySelectorAll(SELECTOR)].map(buildLayer).filter(Boolean);
+      if (cache) { cache.forEach((l) => l.remove()); cache = null; }
+      const els = [...document.querySelectorAll(SELECTOR)];
+      if (!els.length) { cache = []; return; }
+      // let the title finish typing so the clones read right
+      if (els.some((el) => el.querySelector(".window-title.typing"))) { setTimeout(build, 500); return; }
+      cache = els.map(buildLayer).filter(Boolean);
     }
     // prebuild while the browser is idle so even the first hover is smooth
     (window.requestIdleCallback || ((f) => setTimeout(f, 250)))(() => { if (!cache) build(); });
@@ -360,31 +436,6 @@
         cells.push({ band: 2, pts: [pts[1][i], pts[2][i], pts[2][j], pts[1][j]] });
       }
       return { cells, pts };
-    }
-
-    function drawCracks(layer, w, h, ex, ey, web) {
-      const NS = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(NS, "svg");
-      svg.setAttribute("class", "win-cracks");
-      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-      const line = (p2, width, alpha, delay) => {
-        const p = document.createElementNS(NS, "polyline");
-        p.setAttribute("points", p2.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" "));
-        p.setAttribute("fill", "none");
-        p.setAttribute("stroke", `rgba(28,26,23,${alpha})`);
-        p.setAttribute("stroke-width", width);
-        p.setAttribute("stroke-linejoin", "round");
-        p.setAttribute("pathLength", "1");
-        p.style.strokeDasharray = "1";
-        p.style.strokeDashoffset = "1";
-        p.animate({ strokeDashoffset: [1, 0] }, { duration: 130, delay, easing: "ease-out", fill: "both" });
-        svg.appendChild(p);
-      };
-      for (let i = 0; i < SPOKES; i++)
-        line([[ex, ey], web.pts[0][i], web.pts[1][i], web.pts[2][i]], 2.2, 0.85, 0);
-      [0, 1].forEach((k) => line([...web.pts[k], web.pts[k][0]], 1.6, 0.6, 45 + k * 45));
-      svg.animate({ opacity: [1, 1, 0] }, { duration: 620, easing: "ease-in", fill: "forwards" });
-      layer.appendChild(svg);
     }
 
     // pixel dust kicked out of the impact point, with gravity
@@ -455,12 +506,16 @@
 
     function fire(e) {
       if (busy) return;
-      busy = true;
       if (!cache) build();
+      if (!cache || !cache.length) return;   // still prebuilding (e.g. title mid-type)
+      busy = true;
+      document.body.classList.add("shattering");   // pauses the cursor tilt
       cache.forEach((layer) => {
-        const el = layer._el, b = el.getBoundingClientRect();   // refresh position (handles scroll)
+        const el = layer._el;
+        el.style.transform = "";                    // drop any tilt so panes line up exactly
+        const b = el.getBoundingClientRect();       // refresh position (handles scroll)
         layer.style.left = b.left + "px"; layer.style.top = b.top + "px";
-        const w = b.width, h = b.height;
+        const w = parseFloat(layer.style.width), h = parseFloat(layer.style.height);
         // impact point = where the pointer crossed in, kept well inside the glass
         const ex = Math.min(w * 0.86, Math.max(w * 0.14, (e.clientX || b.left + w * 0.55) - b.left));
         const ey = Math.min(h * 0.84, Math.max(h * 0.16, (e.clientY || b.top + h * 0.6) - b.top));
@@ -469,8 +524,7 @@
         const s = Math.min(1, w / 950);   // smaller screens fly shorter
         layer.classList.add("active");
 
-        // 1) the crack web snaps out from the impact point
-        drawCracks(layer, w, h, ex, ey, web);
+        // 1) impact: radial flash, recoil and the shockwave letting go
         layer._flash.style.background =
           `radial-gradient(circle at ${ex.toFixed(0)}px ${ey.toFixed(0)}px, rgba(255,255,255,.95), rgba(255,255,255,.25) 38%, transparent 62%)`;
         layer._flash.animate({ opacity: [0, 0.5, 0] }, { duration: 160, easing: "ease-out" });
@@ -521,9 +575,10 @@
         cache.forEach((layer) => {
           layer.classList.remove("active");
           layer._el.classList.remove("is-shattering-hidden");
-          layer.querySelectorAll(".win-cracks,.win-dust,.win-sliver,.win-shock").forEach((n) => n.remove());
+          layer.querySelectorAll(".win-dust,.win-sliver,.win-shock").forEach((n) => n.remove());
           reglint(layer._el);
         });
+        document.body.classList.remove("shattering");
         busy = false;
       }, BREAK_AT + DUR + MAXDELAY + 120);
     }
