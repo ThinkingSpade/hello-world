@@ -406,6 +406,53 @@
       }
     }
 
+    // thin glass slivers that spin off fast and don't come back
+    function burstSlivers(layer, ex, ey, s) {
+      const colors = ["#fff", "#fff", "#fff", "#f6c6c0", "#cdd8f3", "#f3dfae", "#cfe6d8"];
+      for (let i = 0; i < 10; i++) {
+        const d = document.createElement("div");
+        d.className = "win-sliver";
+        d.style.cssText = `left:${ex.toFixed(0)}px;top:${ey.toFixed(0)}px;width:${rnd(18, 44).toFixed(0)}px;height:${rnd(5, 10).toFixed(0)}px;background:${colors[(Math.random() * colors.length) | 0]};clip-path:polygon(0 50%,100% 0,78% 100%)`;
+        layer.appendChild(d);
+        const a = rnd(0, Math.PI * 2), v = rnd(180, 420) * s;
+        const dx = Math.cos(a) * v, dy = Math.sin(a) * v - 50 * s;
+        const spin = `${rnd(-1, 1).toFixed(2)},${rnd(-1, 1).toFixed(2)},1`;
+        d.animate([
+          { transform: `rotate(${(a * 57.3).toFixed(0)}deg)`, opacity: 1, offset: 0, easing: "cubic-bezier(.16,.7,.4,1)" },
+          { transform: `translate3d(${(dx * 0.75).toFixed(1)}px,${(dy * 0.75).toFixed(1)}px,${rnd(-60, 160).toFixed(0)}px) rotate3d(${spin},${rnd(140, 420).toFixed(0)}deg)`, opacity: 1, offset: 0.6 },
+          { transform: `translate3d(${dx.toFixed(1)}px,${(dy + 150 * s).toFixed(1)}px,${rnd(-60, 160).toFixed(0)}px) rotate3d(${spin},${rnd(260, 620).toFixed(0)}deg)`, opacity: 0, offset: 1 },
+        ], { duration: rnd(700, 1050), delay: BREAK_AT + rnd(0, 50), easing: "linear", fill: "forwards" });
+      }
+    }
+
+    // expanding ring at the moment the glass lets go
+    function shockwave(layer, ex, ey, s) {
+      const ring = document.createElement("div");
+      ring.className = "win-shock";
+      const r = 320 * s;
+      ring.style.cssText = `left:${(ex - r).toFixed(0)}px;top:${(ey - r).toFixed(0)}px;width:${(r * 2).toFixed(0)}px;height:${(r * 2).toFixed(0)}px`;
+      layer.appendChild(ring);
+      ring.animate([
+        { transform: "scale(.08)", opacity: 0.9, easing: "cubic-bezier(.15,.8,.3,1)" },
+        { transform: "scale(1)", opacity: 0 },
+      ], { duration: 520, delay: BREAK_AT - 50, fill: "both" });
+    }
+
+    // one specular sweep across the restored window: good as new
+    function reglint(el) {
+      const b = el.getBoundingClientRect();
+      const g = document.createElement("div");
+      g.className = "win-reglint";
+      g.setAttribute("aria-hidden", "true");
+      g.style.cssText = `left:${b.left}px;top:${b.top}px;width:${b.width}px;height:${b.height}px`;
+      const streak = document.createElement("div");
+      g.appendChild(streak);
+      document.body.appendChild(g);
+      streak.animate(
+        { transform: ["translateX(-130%) skewX(-14deg)", "translateX(130%) skewX(-14deg)"], opacity: [0, 0.5, 0] },
+        { duration: 430, easing: "ease-out" }).finished.finally(() => g.remove());
+    }
+
     function fire(e) {
       if (busy) return;
       busy = true;
@@ -424,8 +471,11 @@
 
         // 1) the crack web snaps out from the impact point
         drawCracks(layer, w, h, ex, ey, web);
-        layer._flash.animate({ opacity: [0, 0.28, 0] }, { duration: 160, easing: "ease-out" });
-        layer._flash.animate({ opacity: [0, 0.42, 0] }, { duration: 220, delay: BREAK_AT - 40, easing: "ease-out" });
+        layer._flash.style.background =
+          `radial-gradient(circle at ${ex.toFixed(0)}px ${ey.toFixed(0)}px, rgba(255,255,255,.95), rgba(255,255,255,.25) 38%, transparent 62%)`;
+        layer._flash.animate({ opacity: [0, 0.5, 0] }, { duration: 160, easing: "ease-out" });
+        layer._flash.animate({ opacity: [0, 0.85, 0] }, { duration: 240, delay: BREAK_AT - 40, easing: "ease-out" });
+        shockwave(layer, ex, ey, s);
         layer.animate(
           { transform: ["none", `translate(${rnd(-3, 3).toFixed(1)}px,2px) rotate(.3deg)`, "none"] },
           { duration: 190, easing: "ease-out" });
@@ -462,15 +512,17 @@
             { duration: 560, delay: delay + 60, easing: "ease-out" });
         });
 
-        // 4) sparks out of the impact point
+        // 4) sparks and slivers out of the impact point
         burstDust(layer, ex, ey, s);
+        burstSlivers(layer, ex, ey, s);
       });
 
       setTimeout(() => {
         cache.forEach((layer) => {
           layer.classList.remove("active");
           layer._el.classList.remove("is-shattering-hidden");
-          layer.querySelectorAll(".win-cracks,.win-dust").forEach((n) => n.remove());
+          layer.querySelectorAll(".win-cracks,.win-dust,.win-sliver,.win-shock").forEach((n) => n.remove());
+          reglint(layer._el);
         });
         busy = false;
       }, BREAK_AT + DUR + MAXDELAY + 120);
