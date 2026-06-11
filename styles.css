@@ -354,6 +354,40 @@ mark { color: inherit; background: none; }
 .portrait:hover { transform: rotate(0) translateY(-3px); }
 .portrait-body { padding: 0; overflow: hidden; border-radius: 0 0 7px 7px; background: #fbfaf6; }
 .portrait-photo { width: 100%; aspect-ratio: 1 / 1; background: url(huy.png) center / cover no-repeat; }
+
+/* the portrait catches signal interference every few seconds (worse under the cursor) */
+@media (prefers-reduced-motion: no-preference) {
+  .portrait-photo { position: relative; animation: glitchBase 7.5s steps(1, end) 2.4s infinite; }
+  .portrait-photo::before, .portrait-photo::after {
+    content: ""; position: absolute; inset: 0; background: inherit;
+    opacity: 0; pointer-events: none; }
+  .portrait-photo::before { animation: glitchA 7.5s steps(1, end) 2.4s infinite; }
+  .portrait-photo::after  { animation: glitchB 7.5s steps(1, end) 2.4s infinite; }
+  .portrait:hover .portrait-photo,
+  .portrait:hover .portrait-photo::before,
+  .portrait:hover .portrait-photo::after { animation-duration: 1.7s; animation-delay: 0s; }
+}
+@keyframes glitchA {
+  0%, 6.2%, 100% { opacity: 0; clip-path: none; transform: none; filter: none; }
+  1%   { opacity: .9; clip-path: inset(6% 0 76% 0);  transform: translateX(-7px); filter: hue-rotate(-40deg) saturate(1.7); }
+  2.2% { opacity: .9; clip-path: inset(52% 0 32% 0); transform: translateX(6px);  filter: hue-rotate(15deg); }
+  3.4% { opacity: .9; clip-path: inset(26% 0 60% 0); transform: translateX(-5px); filter: hue-rotate(-20deg) saturate(1.4); }
+  4.8% { opacity: .9; clip-path: inset(70% 0 11% 0); transform: translateX(7px);  filter: hue-rotate(30deg); }
+}
+@keyframes glitchB {
+  0%, 6.2%, 100% { opacity: 0; clip-path: none; transform: none; filter: none; }
+  1.4% { opacity: .85; clip-path: inset(34% 0 48% 0); transform: translate(6px, 2px);  filter: hue-rotate(160deg) saturate(1.5); }
+  2.8% { opacity: .85; clip-path: inset(80% 0 6% 0);  transform: translateX(-6px);     filter: hue-rotate(120deg); }
+  4.2% { opacity: .85; clip-path: inset(12% 0 70% 0); transform: translate(4px, -2px); filter: hue-rotate(140deg) saturate(1.6); }
+  5.6% { opacity: .85; clip-path: inset(58% 0 24% 0); transform: translateX(-7px); }
+}
+@keyframes glitchBase {
+  0%, 6.2%, 100% { transform: none; filter: none; }
+  1.2% { transform: translate(2px, -1px); }
+  2.6% { transform: translate(-2px, 1px); filter: contrast(1.35) brightness(1.12); }
+  4%   { transform: translate(1px, 0); }
+  5.4% { transform: translate(-1px, 0); filter: saturate(1.4); }
+}
 /* deter casual right-click / drag saving (not bulletproof — screenshots & devtools always work) */
 .no-save { -webkit-user-select: none; user-select: none; }
 .logo-ava, .portrait-photo { -webkit-user-drag: none; user-select: none; pointer-events: none; }
