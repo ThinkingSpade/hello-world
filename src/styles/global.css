@@ -388,6 +388,28 @@ mark { color: inherit; background: none; }
   4%   { transform: translate(1px, 0); }
   5.4% { transform: translate(-1px, 0); filter: saturate(1.4); }
 }
+
+/* the nav avatar glitches when you hover the logo (kept off ambiently — it's on every page) */
+.logo-ava { position: relative; overflow: hidden; }
+.logo-ava::before, .logo-ava::after { content: ""; position: absolute; inset: 0;
+  background: inherit; opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .logo:hover .logo-ava::before { animation: glitchA 1.4s steps(1, end) infinite; }
+  .logo:hover .logo-ava::after  { animation: glitchB 1.4s steps(1, end) infinite; }
+}
+
+/* the UNT eagle catches interference too — ambient burst offset from the portrait */
+@media (prefers-reduced-motion: no-preference) {
+  .edu-cap { position: relative; overflow: hidden; }
+  .edu-cap img { animation: glitchBase 9s steps(1, end) 5.5s infinite; }
+  .edu-cap::before, .edu-cap::after { content: ""; position: absolute; inset: 0;
+    background: url(/unt-eagle.png) center / contain no-repeat; opacity: 0; pointer-events: none; }
+  .edu-cap::before { animation: glitchA 9s steps(1, end) 5.5s infinite; }
+  .edu-cap::after  { animation: glitchB 9s steps(1, end) 5.5s infinite; }
+  .edu-card:hover .edu-cap img,
+  .edu-card:hover .edu-cap::before,
+  .edu-card:hover .edu-cap::after { animation-duration: 1.7s; animation-delay: 0s; }
+}
 /* deter casual right-click / drag saving (not bulletproof — screenshots & devtools always work) */
 .no-save { -webkit-user-select: none; user-select: none; }
 .logo-ava, .portrait-photo { -webkit-user-drag: none; user-select: none; pointer-events: none; }
