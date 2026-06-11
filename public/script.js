@@ -287,47 +287,48 @@
     el.addEventListener("click", fire); // tap to trigger on touch devices
   });
 
-  /* ---------- hovering "breaking things" shatters each piece on its own ---------- */
+  /* ---------- hovering "breaking things" shatters the hero window like 3D glass ---------- */
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
     if (!trigger || reduce) return;
-    // just the hero window breaks into its own shards, in place, from its centre
+    // just the hero window breaks: a crack web flashes out from the impact point,
+    // then 24 panes (8 jittered spokes x 3 rings) fly apart in real 3D and glide home
     const SELECTOR = ".hero-window";
-    // 6 triangular shards radiating from the centre (dx/dy are scaled to each element's size)
-    const POLYS = [
-      { c: "polygon(50% 50%,0 0,50% 0)",          dx: -1, dy: -1.7, r: -10 },
-      { c: "polygon(50% 50%,50% 0,100% 0)",       dx: 1,  dy: -1.7, r: 9 },
-      { c: "polygon(50% 50%,100% 0,100% 100%)",   dx: 2,  dy: 0,    r: -8 },
-      { c: "polygon(50% 50%,100% 100%,50% 100%)", dx: 1,  dy: 1.7,  r: 8 },
-      { c: "polygon(50% 50%,50% 100%,0 100%)",    dx: -1, dy: 1.7,  r: -9 },
-      { c: "polygon(50% 50%,0 100%,0 0)",         dx: -2, dy: 0,    r: 10 },
-    ];
+    const SPOKES = 8, RINGS = [0.22, 0.52, 1.45];   // ring radii as a share of the cover radius
+    const DUR = 1500, MAXDELAY = 135, BREAK_AT = 170;   // cracks get a beat before the burst
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
     let cache = null;   // prebuilt layers (appended, hidden), reused on every hover
     let busy = false;
 
     function buildLayer(el) {
       const b = el.getBoundingClientRect();
       if (b.width < 2 || b.height < 2) return null;
-      const hx = b.width * 0.1, vy = b.height * 0.16;
       const layer = document.createElement("div");
       layer.className = "win-shatter";
       layer.setAttribute("aria-hidden", "true");
       layer.style.cssText = `left:${b.left}px;top:${b.top}px;width:${b.width}px;height:${b.height}px`;
       layer._el = el;
-      for (const p of POLYS) {
+      layer._shards = [];
+      for (let i = 0; i < SPOKES * RINGS.length; i++) {
         const shard = document.createElement("div");
         shard.className = "win-shard";
-        shard.style.setProperty("--c", p.c);
-        shard.style.setProperty("--tx", (p.dx * hx).toFixed(1) + "px");
-        shard.style.setProperty("--ty", (p.dy * vy).toFixed(1) + "px");
-        shard.style.setProperty("--r", p.r + "deg");
         const c = el.cloneNode(true);
         c.classList.add("scene-piece");
         c.style.left = "0"; c.style.top = "0";
         c.style.width = b.width + "px"; c.style.height = b.height + "px";
         shard.appendChild(c);
+        const glint = document.createElement("div");
+        glint.className = "win-glint";
+        shard.appendChild(glint);
+        shard._glint = glint;
         layer.appendChild(shard);
+        layer._shards.push(shard);
       }
+      const flash = document.createElement("div");
+      flash.className = "win-flash";
+      layer.appendChild(flash);
+      layer._flash = flash;
       document.body.appendChild(layer); // stays display:none until a shatter
       return layer;
     }
@@ -340,28 +341,142 @@
     let rt;
     addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 200); }, { passive: true });
 
-    trigger.addEventListener("mouseenter", () => {
+    // crack web around the impact point: jittered spokes crossed by jittered rings
+    function makeWeb(w, h, ex, ey) {
+      const R = Math.max(
+        Math.hypot(ex, ey), Math.hypot(w - ex, ey),
+        Math.hypot(ex, h - ey), Math.hypot(w - ex, h - ey));
+      const ang = [];
+      for (let i = 0; i < SPOKES; i++) ang.push((i / SPOKES) * Math.PI * 2 + rnd(-0.24, 0.24));
+      const pts = RINGS.map((rr) => ang.map((a) => {
+        const ro = R * rr * rnd(0.84, 1.16);
+        return [ex + Math.cos(a) * ro, ey + Math.sin(a) * ro];
+      }));
+      const cells = [];
+      for (let i = 0; i < SPOKES; i++) {
+        const j = (i + 1) % SPOKES;
+        cells.push({ band: 0, pts: [[ex, ey], pts[0][i], pts[0][j]] });
+        cells.push({ band: 1, pts: [pts[0][i], pts[1][i], pts[1][j], pts[0][j]] });
+        cells.push({ band: 2, pts: [pts[1][i], pts[2][i], pts[2][j], pts[1][j]] });
+      }
+      return { cells, pts };
+    }
+
+    function drawCracks(layer, w, h, ex, ey, web) {
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("class", "win-cracks");
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      const line = (p2, width, alpha, delay) => {
+        const p = document.createElementNS(NS, "polyline");
+        p.setAttribute("points", p2.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" "));
+        p.setAttribute("fill", "none");
+        p.setAttribute("stroke", `rgba(28,26,23,${alpha})`);
+        p.setAttribute("stroke-width", width);
+        p.setAttribute("stroke-linejoin", "round");
+        p.setAttribute("pathLength", "1");
+        p.style.strokeDasharray = "1";
+        p.style.strokeDashoffset = "1";
+        p.animate({ strokeDashoffset: [1, 0] }, { duration: 130, delay, easing: "ease-out", fill: "both" });
+        svg.appendChild(p);
+      };
+      for (let i = 0; i < SPOKES; i++)
+        line([[ex, ey], web.pts[0][i], web.pts[1][i], web.pts[2][i]], 2.2, 0.85, 0);
+      [0, 1].forEach((k) => line([...web.pts[k], web.pts[k][0]], 1.6, 0.6, 45 + k * 45));
+      svg.animate({ opacity: [1, 1, 0] }, { duration: 620, easing: "ease-in", fill: "forwards" });
+      layer.appendChild(svg);
+    }
+
+    // pixel dust kicked out of the impact point, with gravity
+    function burstDust(layer, ex, ey, s) {
+      const colors = ["#1c1a17", "#b8463a", "#c9971c", "#2f6b4f", "#3b5bb5", "#fff"];
+      for (let i = 0; i < 26; i++) {
+        const d = document.createElement("div");
+        d.className = "win-dust";
+        const sz = rnd(3, 6) | 0;
+        d.style.cssText = `width:${sz}px;height:${sz}px;background:${colors[(Math.random() * colors.length) | 0]};left:${ex.toFixed(0)}px;top:${ey.toFixed(0)}px`;
+        layer.appendChild(d);
+        const a = rnd(0, Math.PI * 2), v = rnd(46, 170) * s;
+        const dx = Math.cos(a) * v, dy = Math.sin(a) * v - 36 * s;
+        d.animate([
+          { transform: "translate(0,0)", opacity: 1, offset: 0, easing: "cubic-bezier(.16,.7,.4,1)" },
+          { transform: `translate(${(dx * 0.7).toFixed(1)}px,${(dy * 0.7).toFixed(1)}px) rotate(${rnd(-140, 140).toFixed(0)}deg)`, opacity: 1, offset: 0.55 },
+          { transform: `translate(${dx.toFixed(1)}px,${(dy + 110 * s).toFixed(1)}px) rotate(${rnd(-240, 240).toFixed(0)}deg)`, opacity: 0, offset: 1 },
+        ], { duration: rnd(640, 960), delay: BREAK_AT + rnd(0, 70), easing: "linear", fill: "forwards" });
+      }
+    }
+
+    function fire(e) {
       if (busy) return;
       busy = true;
       if (!cache) build();
-      const layers = cache;
-      layers.forEach((l) => {
-        const b = l._el.getBoundingClientRect();   // refresh position (handles scroll)
-        l.style.left = b.left + "px"; l.style.top = b.top + "px";
-        l.classList.add("active");
-        l._el.classList.add("is-shattering-hidden");
+      cache.forEach((layer) => {
+        const el = layer._el, b = el.getBoundingClientRect();   // refresh position (handles scroll)
+        layer.style.left = b.left + "px"; layer.style.top = b.top + "px";
+        const w = b.width, h = b.height;
+        // impact point = where the pointer crossed in, kept well inside the glass
+        const ex = Math.min(w * 0.86, Math.max(w * 0.14, (e.clientX || b.left + w * 0.55) - b.left));
+        const ey = Math.min(h * 0.84, Math.max(h * 0.16, (e.clientY || b.top + h * 0.6) - b.top));
+        layer.style.perspectiveOrigin = `${((ex / w) * 100).toFixed(1)}% ${((ey / h) * 100).toFixed(1)}%`;
+        const web = makeWeb(w, h, ex, ey);
+        const s = Math.min(1, w / 950);   // smaller screens fly shorter
+        layer.classList.add("active");
+
+        // 1) the crack web snaps out from the impact point
+        drawCracks(layer, w, h, ex, ey, web);
+        layer._flash.animate({ opacity: [0, 0.28, 0] }, { duration: 160, easing: "ease-out" });
+        layer._flash.animate({ opacity: [0, 0.42, 0] }, { duration: 220, delay: BREAK_AT - 40, easing: "ease-out" });
+        layer.animate(
+          { transform: ["none", `translate(${rnd(-3, 3).toFixed(1)}px,2px) rotate(.3deg)`, "none"] },
+          { duration: 190, easing: "ease-out" });
+
+        // 2) the panes take over from the real window once they're painted
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-shattering-hidden")));
+
+        // 3) each pane flies its own 3D arc - out fast, hang + drift, glide home (no end pop)
+        web.cells.forEach((cell, idx) => {
+          const shard = layer._shards[idx];
+          shard.getAnimations().forEach((a) => a.cancel());
+          shard._glint.getAnimations().forEach((a) => a.cancel());
+          shard.style.setProperty("--c", "polygon(" + cell.pts.map(([x, y]) =>
+            ((x / w) * 100).toFixed(2) + "% " + ((y / h) * 100).toFixed(2) + "%").join(",") + ")");
+          const cx = cell.pts.reduce((t, p) => t + p[0], 0) / cell.pts.length;
+          const cy = cell.pts.reduce((t, p) => t + p[1], 0) / cell.pts.length;
+          let vx = cx - ex, vy = cy - ey;
+          const len = Math.hypot(vx, vy) || 1; vx /= len; vy /= len;
+          const fly = (70 + 280 * [0.55, 0.85, 1][cell.band]) * s * rnd(0.85, 1.15);
+          const tz = [rnd(120, 260), rnd(-30, 170), rnd(-120, 80)][cell.band];
+          const deg = [rnd(40, 72), rnd(26, 52), rnd(14, 38)][cell.band] * (Math.random() < 0.5 ? -1 : 1);
+          const axis = `${(-vy + rnd(-0.3, 0.3)).toFixed(2)},${(vx + rnd(-0.3, 0.3)).toFixed(2)},${rnd(-0.45, 0.45).toFixed(2)}`;
+          const out   = `translate3d(${(vx * fly).toFixed(1)}px,${(vy * fly * 0.9 + 26 * s).toFixed(1)}px,${tz.toFixed(0)}px) rotate3d(${axis},${deg.toFixed(1)}deg)`;
+          const drift = `translate3d(${(vx * fly * 1.06).toFixed(1)}px,${(vy * fly * 0.9 + 78 * s).toFixed(1)}px,${(tz * 0.92).toFixed(0)}px) rotate3d(${axis},${(deg * 1.14).toFixed(1)}deg)`;
+          const delay = BREAK_AT + cell.band * 42 + rnd(0, 26);   // panes nearest the impact leave first
+          shard.animate([
+            { transform: "none", offset: 0, easing: "cubic-bezier(.17,.84,.3,1)" },
+            { transform: out, offset: 0.4, easing: "linear" },
+            { transform: drift, offset: 0.55, easing: "cubic-bezier(.45,.04,.22,1)" },
+            { transform: "none", offset: 1 },
+          ], { duration: DUR, delay, fill: "both" });
+          shard._glint.animate(
+            { transform: ["translateX(-130%) skewX(-14deg)", "translateX(130%) skewX(-14deg)"], opacity: [0, 0.55, 0] },
+            { duration: 560, delay: delay + 60, easing: "ease-out" });
+        });
+
+        // 4) sparks out of the impact point
+        burstDust(layer, ex, ey, s);
       });
-      // paint the (already-built) shards first, then start the fly-apart
-      requestAnimationFrame(() => requestAnimationFrame(() => layers.forEach((l) => l.classList.add("go"))));
+
       setTimeout(() => {
-        layers.forEach((l) => {
-          l.classList.remove("go");
-          l.classList.remove("active");
-          l._el.classList.remove("is-shattering-hidden");
+        cache.forEach((layer) => {
+          layer.classList.remove("active");
+          layer._el.classList.remove("is-shattering-hidden");
+          layer.querySelectorAll(".win-cracks,.win-dust").forEach((n) => n.remove());
         });
         busy = false;
-      }, 1480);
-    });
+      }, BREAK_AT + DUR + MAXDELAY + 120);
+    }
+
+    trigger.addEventListener("mouseenter", fire);
   })();
 
   // deter casual saving of the photo / logo
