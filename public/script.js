@@ -289,7 +289,7 @@
 
   /* ---------- scroll/boot reveal: windows & cards pop in ---------- */
   if (!reduce && "IntersectionObserver" in window) {
-    const targets = [...document.querySelectorAll(".hero-window, .socials, .page-head, .exp, .bio > *")];
+    const targets = [...document.querySelectorAll(".hero-window, .socials, .page-head, .exp, .bio > p, .bio > figure")];
     if (targets.length) {
       targets.forEach((el) => el.classList.add("reveal"));
       const settle = (el) => { el.classList.remove("reveal", "in"); el.style.transitionDelay = ""; };
@@ -365,6 +365,26 @@
         d.classList.add("dots-boot");
         setTimeout(() => d.classList.remove("dots-boot"), 950);
       }, 0.4);
+    });
+  }
+
+  /* ---------- glitch-load: portrait, education & certificates "decode" in on first view ---------- */
+  if (!reduce && "IntersectionObserver" in window) {
+    const runLoad = (el) => {
+      el.classList.add("gload-go");
+      const done = () => el.classList.remove("gload", "gload-go");
+      el.addEventListener("animationend", done, { once: true });
+      setTimeout(done, 1400);   // fallback if animationend never fires
+    };
+    document.querySelectorAll(".portrait-photo, .edu-card").forEach((el) => {
+      el.classList.add("gload");
+      onFirstView(el, () => runLoad(el), 0.25);
+    });
+    document.querySelectorAll(".cert-row").forEach((row) => {
+      const cards = [...row.querySelectorAll(".cert")];
+      if (!cards.length) return;
+      cards.forEach((c) => c.classList.add("gload"));
+      onFirstView(row, () => cards.forEach((c, k) => setTimeout(() => runLoad(c), k * 130)), 0.2);
     });
   }
 
