@@ -307,28 +307,64 @@
     }
   }
 
-  /* ---------- window titles type themselves out ---------- */
+  /* ---------- terminal typing: window titles, prompt labels, chip installs ---------- */
+  function typewrite(t, done, hold) {
+    const full = t.textContent;
+    if (!full.trim()) { if (done) done(); return; }
+    const h = t.offsetHeight;   // lock the box so emptying the text causes no layout shift
+    if (h) {
+      if (getComputedStyle(t).display === "inline") t.style.display = "inline-block";
+      t.style.minHeight = h + "px";
+    }
+    t.textContent = "";
+    t.classList.add("typing");
+    let i = 0;
+    (function tick() {
+      t.textContent = full.slice(0, ++i);
+      if (i < full.length) setTimeout(tick, 30 + Math.random() * 38);
+      else setTimeout(() => { t.classList.remove("typing"); t.style.minHeight = ""; if (done) done(); }, hold == null ? 700 : hold);
+    })();
+  }
+  function onFirstView(el, fn, threshold) {
+    const io = new IntersectionObserver((es) => {
+      if (es.some((en) => en.isIntersecting)) { io.disconnect(); fn(); }
+    }, { threshold: threshold == null ? 0.3 : threshold });
+    io.observe(el);
+  }
   if (!reduce && "IntersectionObserver" in window) {
-    document.querySelectorAll(".window-title").forEach((t) => {
-      const full = t.textContent;
-      if (!full.trim()) return;
-      t.textContent = "";
-      t.classList.add("typing");
-      let started = false;
-      const start = () => {
-        if (started) return;
-        started = true;
-        let i = 0;
-        (function tick() {
-          t.textContent = full.slice(0, ++i);
-          if (i < full.length) setTimeout(tick, 30 + Math.random() * 38);
-          else setTimeout(() => t.classList.remove("typing"), 900);
-        })();
-      };
-      const io = new IntersectionObserver((es) => {
-        if (es.some((en) => en.isIntersecting)) { io.disconnect(); setTimeout(start, 220); }
-      }, { threshold: 0.3 });
-      io.observe(t);
+    // window titles and the little terminal labels all type themselves out
+    document.querySelectorAll(".window-title, .certs-label, .stack-label").forEach((t) => {
+      onFirstView(t, () => setTimeout(() => typewrite(t), 220));
+    });
+
+    // page heads run like a prompt: the command types, then the output renders
+    document.querySelectorAll(".page-head").forEach((head) => {
+      const eye = head.querySelector(".eyebrow");
+      if (!eye) return;
+      const rest = [...head.children].filter((c) => c !== eye);
+      rest.forEach((el) => el.classList.add("await-prompt"));
+      onFirstView(head, () => setTimeout(() => typewrite(eye, () => {
+        rest.forEach((el, k) => setTimeout(() => el.classList.add("prompt-done"), k * 150));
+      }, 260), 180), 0.2);
+    });
+
+    // stack chips install one by one
+    document.querySelectorAll(".chips-tech").forEach((ul) => {
+      const lis = [...ul.children];
+      if (!lis.length) return;
+      lis.forEach((li) => li.classList.add("chip-wait"));
+      onFirstView(ul, () => lis.forEach((li, k) => setTimeout(() => {
+        li.classList.add("chip-in");
+        setTimeout(() => li.classList.remove("chip-wait", "chip-in"), 650);
+      }, 140 + k * 50)), 0.2);
+    });
+
+    // window dots boot in sequence
+    document.querySelectorAll(".window .dots").forEach((d) => {
+      onFirstView(d, () => {
+        d.classList.add("dots-boot");
+        setTimeout(() => d.classList.remove("dots-boot"), 950);
+      }, 0.4);
     });
   }
 
