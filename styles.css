@@ -118,7 +118,6 @@ mark { color: inherit; background: none; }
 .win-glint { position: absolute; inset: -12%; opacity: 0;
   background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.5) 50%, transparent 60%); }
 .win-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
-.win-cracks { position: absolute; inset: 0; overflow: hidden; border-radius: 14px; }
 .win-dust { position: absolute; left: 0; top: 0; }
 .win-shock { position: absolute; border-radius: 50%; opacity: 0;
   border: 3px solid rgba(28,26,23,.45);
@@ -136,6 +135,24 @@ mark { color: inherit; background: none; }
 .win-shard .swap-from::after { transform: scaleX(1) !important; }
 .is-shattering-hidden { opacity: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .win-shatter, .win-shatter.active { display: none !important; } }
+
+/* scroll/boot reveal: windows & cards pop in (classes only ever added by JS) */
+.reveal { opacity: 0; transform: translateY(16px) scale(.985); }
+.reveal.in { opacity: 1; transform: none;
+  transition: opacity .5s ease, transform .5s cubic-bezier(.18,.7,.3,1); }
+
+/* window titles type themselves out */
+.window-title.typing::after { content: ""; display: inline-block; width: .5em; height: .85em;
+  margin-left: 3px; vertical-align: -8%; background: var(--ink);
+  animation: caretBlink .6s steps(1) infinite; }
+@keyframes caretBlink { 50% { opacity: 0; } }
+
+/* avatar says hi */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-ava { transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
+  .logo:hover .logo-ava { transform: translateY(-2px) rotate(-5deg) scale(1.07); }
+  .logo:active .logo-ava { transform: scale(.93); }
+}
 
 /* "Dallas → Houston" correction gag (plays once on load, slow & smooth) */
 .swap-from { position: relative; animation: swapDim .7s ease 2.2s both; }
