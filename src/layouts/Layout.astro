@@ -1,0 +1,98 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+
+const { title, description, page, ogImage = '/og.png' } = Astro.props;
+
+const site = Astro.site ?? new URL('https://hello-world-bp7.pages.dev');
+const base = site.href.replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname, site).href;
+const image = new URL(ogImage, site).href;
+
+const personLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Huy Nguyen',
+  url: base + '/',
+  image,
+  jobTitle: 'Software Developer & Systems Architect',
+  description:
+    'Self-taught developer, tinkerer and systems architect in Houston, Texas. Builds software, automations and agentic AI, and helps small businesses with AI governance and cybersecurity.',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Houston',
+    addressRegion: 'TX',
+    addressCountry: 'US',
+  },
+  alumniOf: {
+    '@type': 'CollegeOrUniversity',
+    name: 'University of North Texas',
+  },
+  knowsAbout: [
+    'Software development',
+    'Automation',
+    'Systems architecture',
+    'Agentic AI',
+    'Browser automation',
+    'AI governance',
+    'Cybersecurity',
+    'Cloud architecture',
+  ],
+  sameAs: ['https://www.linkedin.com/in/huyn', 'https://github.com/ThinkingSpade'],
+  hasCredential: [
+    { '@type': 'EducationalOccupationalCredential', name: 'AWS Certified Solutions Architect – Associate' },
+    { '@type': 'EducationalOccupationalCredential', name: 'Google Cloud Generative AI Leader' },
+    { '@type': 'EducationalOccupationalCredential', name: 'CompTIA Security+' },
+  ],
+};
+const siteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Huy Nguyen',
+  url: base + '/',
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="author" content="Huy Nguyen" />
+    <meta name="theme-color" content="#F7F5EF" />
+    <link rel="icon" type="image/png" href="/huy-avatar.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Huy Nguyen" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(siteLd)} />
+  </head>
+  <body data-page={page}>
+    <Nav active={page} />
+    <slot />
+    <script is:inline src="/script.js" defer></script>
+  </body>
+</html>

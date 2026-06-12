@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import main from '../content/home.html?raw';
+---
+<Layout
+  title="Huy Nguyen — README.md"
+  description="Huy Nguyen is a developer and tinkerer in Houston, Texas who likes building software, automating the tedious parts, and tinkering with side projects (like this one)."
+  page="home"
+>
+  <Fragment set:html={main} />
+</Layout>
