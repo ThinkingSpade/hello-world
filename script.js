@@ -42,8 +42,8 @@
       const advance = () => {
         if (step >= STEPS.length - 1) {            // finished: a beat of "✓ ready", then the real title
           clearInterval(spinT);
-          if (!document.hidden) document.title = "✓ ready";
-          stepT = setTimeout(() => { if (!document.hidden) document.title = REST; }, 650);
+          document.title = "✓ ready";
+          stepT = setTimeout(() => { document.title = REST; }, 650);   // always settle, even on a hidden tab
           return;
         }
         step++; stepT = setTimeout(advance, STEP_MS);
