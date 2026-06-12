@@ -22,6 +22,45 @@
   /* ---------- pixel cursor ---------- */
   if (fine) initCursor();
 
+  /* ---------- agentic tab title: boots like an AI agent, rests at the page title,
+       drops to "signal lost" when you leave, greets you when you're back ---------- */
+  (function () {
+    const REST = document.title;                  // the page's real <title>
+    const AWAY = "░▒▓ signal lost ▓▒░";
+    const BACK = "there you are 👋";
+    const SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
+    const STEPS = ["thinking", "reasoning", "planning", "rendering"];
+    let spin = 0, step = 0, spinT = 0, stepT = 0, backT = 0, booting = false;
+
+    const stopBoot = () => { clearInterval(spinT); clearTimeout(stepT); booting = false; };
+    const settle = () => { stopBoot(); if (!document.hidden) document.title = REST; };
+
+    function boot() {
+      booting = true; step = 0;
+      spinT = setInterval(() => {
+        if (document.hidden || !booting) return;
+        spin = (spin + 1) % SPIN.length;
+        document.title = SPIN[spin] + " " + STEPS[step] + "…";
+      }, 85);
+      const advance = () => {
+        if (step >= STEPS.length - 1) { stepT = setTimeout(settle, 720); return; }
+        step++; stepT = setTimeout(advance, 680);
+      };
+      stepT = setTimeout(advance, 680);
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) { stopBoot(); clearTimeout(backT); document.title = AWAY; }
+      else {
+        clearTimeout(backT);
+        document.title = BACK;
+        backT = setTimeout(() => { if (!document.hidden) document.title = REST; }, 1700);
+      }
+    });
+
+    if (!reduce && !document.hidden) boot();
+  })();
+
   // build a crisp pixel-art arrow by rasterising a polygon onto a grid
   function pixelArrowSVG() {
     const W = 12, H = 18, S = 2.4;
