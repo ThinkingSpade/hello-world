@@ -22,34 +22,28 @@
   /* ---------- pixel cursor ---------- */
   if (fine) initCursor();
 
-  /* ---------- agentic tab title: boots like an AI agent, rests at the page title,
-       drops to "signal lost" when you leave, greets you only on a genuine return ---------- */
+  /* ---------- agentic tab title: the tab boots like an AI agent, then rests at the page title ---------- */
   (function () {
+    if (reduce) return;                           // reduced motion: leave the static <title> alone
     const REST = document.title;                  // the page's real <title>
-    const AWAY = "░▒▓ signal lost ▓▒░";
-    const BACK = "there you are 👋";
     const SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
-    const STEPS = ["booting", "loading context", "waking agents", "thinking",
-                   "reasoning", "analyzing", "planning", "compiling", "rendering"];
-    const STEP_MS = 720;
-    let spin = 0, step = 0, spinT = 0, stepT = 0, backT = 0;
-    let booting = false, booted = false, hasLeft = false;
-
-    const stopBoot = () => { clearInterval(spinT); clearTimeout(stepT); booting = false; };
-    const settle = () => { stopBoot(); if (!document.hidden) document.title = REST; };
+    const STEPS = ["booting", "thinking", "reasoning", "analyzing", "planning", "rendering"];
+    const STEP_MS = 1000;                          // slow, deliberate per-step
+    let spin = 0, step = 0, spinT = 0, stepT = 0, started = false;
 
     function boot() {
-      booted = true; booting = true; step = 0;
+      if (started) return;
+      started = true; step = 0;
       spinT = setInterval(() => {
-        if (document.hidden || !booting) return;
+        if (document.hidden) return;
         spin = (spin + 1) % SPIN.length;
         document.title = SPIN[spin] + " " + STEPS[step] + "…";
-      }, 85);
+      }, 90);
       const advance = () => {
         if (step >= STEPS.length - 1) {            // finished: a beat of "✓ ready", then the real title
-          clearInterval(spinT); booting = false;
+          clearInterval(spinT);
           if (!document.hidden) document.title = "✓ ready";
-          stepT = setTimeout(settle, 620);
+          stepT = setTimeout(() => { if (!document.hidden) document.title = REST; }, 650);
           return;
         }
         step++; stepT = setTimeout(advance, STEP_MS);
@@ -57,18 +51,11 @@
       stepT = setTimeout(advance, STEP_MS);
     }
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) { hasLeft = true; stopBoot(); clearTimeout(backT); document.title = AWAY; }
-      else if (!booted && !reduce) { boot(); }      // loaded in the background → boot now it's actually seen
-      else if (hasLeft) {                           // only greet a real return, never on first load
-        hasLeft = false; clearTimeout(backT);
-        document.title = BACK;
-        backT = setTimeout(() => { if (!document.hidden) document.title = REST; }, 1800);
-      }
-    });
-
-    if (reduce) document.title = REST;
-    else if (!document.hidden) boot();
+    if (!document.hidden) boot();                  // loaded in the foreground → boot now
+    else {                                         // loaded hidden → boot the first time it's actually seen
+      const onVis = () => { if (!document.hidden) { document.removeEventListener("visibilitychange", onVis); boot(); } };
+      document.addEventListener("visibilitychange", onVis);
+    }
   })();
 
   // build a crisp pixel-art arrow by rasterising a polygon onto a grid
