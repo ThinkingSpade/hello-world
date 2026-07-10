@@ -6,6 +6,18 @@ experience designer based in Houston, Texas.
 A pixel custom cursor, chunky "window" UI, and a hand-drawn SVG hover effect on
 every highlight — built in plain HTML/CSS/JS, no build step.
 
+## Deployment
+
+**This repo is the live site at [hnguyen.dev](https://hnguyen.dev).** It is
+served by **Cloudflare Pages**, which builds from the **`main`** branch of this
+repo (`ThinkingSpade/hello-world`). The static files at the repo root
+(`index.html`, `work.html`, `about.html`, `styles.css`, `script.js`) are what
+ship — there is no build step.
+
+> Note: the `gh-pages` branch is **not** the site. If you see a "Planets of the
+> Universe" placeholder, you're on the wrong branch — the real site is on
+> `main`.
+
 ## Pages
 
 | File | Page |
