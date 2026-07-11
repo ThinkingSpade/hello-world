@@ -577,9 +577,12 @@
         const res = await fetch(url);
         if (!res.ok) throw new Error(res.statusText);
         const rows = parseCSV(await res.text());
+        const MAX_RENDER = 1500;
+        const total = Math.max(0, rows.length - 1);
         const count = document.createElement("div");
         count.className = "sheet-count";
-        count.textContent = `${Math.max(0, rows.length - 1)} rows × ${rows[0] ? rows[0].length : 0} columns`;
+        count.textContent = `${total.toLocaleString()} rows × ${rows[0] ? rows[0].length : 0} columns` +
+          (total > MAX_RENDER ? ` — showing the first ${MAX_RENDER.toLocaleString()}; "open file" for everything` : "");
         body.appendChild(count);
         const table = document.createElement("table");
         table.className = "sheet";
@@ -590,7 +593,7 @@
         }
         thead.appendChild(hr); table.appendChild(thead);
         const tbody = document.createElement("tbody");
-        for (const r of rows.slice(1)) {
+        for (const r of rows.slice(1, MAX_RENDER + 1)) {
           const tr = document.createElement("tr");
           for (const c of r) { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); }
           tbody.appendChild(tr);
@@ -890,7 +893,7 @@
       const d = await api.map();
       MAP.pts = d.points;
       if (!MAP.pts.length) { $("map-card").classList.add("hide"); return; }
-      MAP.words = d.words; MAP.dims = d.dims; MAP.docCount = d.docs; MAP.formats = d.formats;
+      MAP.words = d.words; MAP.dims = d.dims; MAP.docCount = d.docs; MAP.formats = d.formats; MAP.rows = d.rows;
       computeBounds();
       const docs = [...new Set(MAP.pts.map((p) => p.doc_id))];
       MAP.pts.forEach((p, i) => {
@@ -905,8 +908,9 @@
       const b = (t) => { const el = document.createElement("b"); el.textContent = t; return el; };
       s.append(
         b(`${MAP.docCount} documents`), ` (${fmts}) · `,
+        b(`${(MAP.rows || 0).toLocaleString()} data rows`), ` · `,
         b(`${MAP.words.toLocaleString()} words`), ` · `,
-        b(`${MAP.pts.length} chunks`),
+        b(`${MAP.pts.length} chunks indexed`),
         ` — nobody reads all this. The `, b("ASK ATLAS"), ` tab turns it into cited answers →`
       );
       // the ingest sequence arms when the ASK tab is first opened

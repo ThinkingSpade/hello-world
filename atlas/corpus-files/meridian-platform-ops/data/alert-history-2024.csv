@@ -1,153 +1,1130 @@
 fired_at_utc,alert,service,severity,duration_min,acked_by,resolution
-2024-01-02 02:00,RateLimiterSaturation,notification-svc,critical,8,huy.n,escalated to secondary
-2024-01-05 00:20,RedisMemoryHigh,auth-svc,warning,8,sam.o,auto-resolved
-2024-01-05 18:06,ReplicationLagHigh,search-indexer,warning,15,sam.o,partner notified
-2024-01-06 01:17,RedisMemoryHigh,payments-api,warning,8,huy.n,false positive - tuned threshold
-2024-01-06 10:00,DiskPressure,notification-svc,warning,41,priya.k,false positive - tuned threshold
-2024-01-09 21:05,RateLimiterSaturation,webhook-dispatch,critical,15,dana.r,config fix deployed
-2024-01-11 04:52,QueueDepthGrowing,webhook-dispatch,warning,8,huy.n,auto-resolved
-2024-01-14 08:42,ReplicationLagHigh,webhook-dispatch,warning,41,lena.v,deploy rolled back
-2024-01-18 21:10,PodCrashLooping,feature-flags,critical,22,huy.n,false positive - tuned threshold
-2024-01-19 17:17,ReplicationLagHigh,auth-svc,warning,12,lena.v,ticket filed
-2024-01-22 17:28,RedisMemoryHigh,auth-svc,warning,22,sam.o,config fix deployed
-2024-01-24 20:50,DiskPressure,reporting-api,warning,70,marcus.t,scaled up replicas
-2024-01-26 09:11,RateLimiterSaturation,cron-runner,critical,8,dana.r,false positive - tuned threshold
-2024-02-02 02:00,ReplicationLagHigh,partner-gateway,warning,95,dana.r,config fix deployed
-2024-02-05 12:58,RateLimiterSaturation,cron-runner,critical,8,marcus.t,config fix deployed
-2024-02-07 00:33,BackupMissed,payments-api,critical,3,marcus.t,ticket filed
-2024-02-08 18:44,BackupMissed,auth-svc,critical,70,huy.n,escalated to secondary
-2024-02-10 06:32,ErrorRateAboveSLO,notification-svc,critical,30,sam.o,silenced during maintenance
-2024-02-10 20:03,ReplicationLagHigh,payments-api,warning,12,dana.r,false positive - tuned threshold
-2024-02-13 14:07,RedisMemoryHigh,feature-flags,warning,95,marcus.t,runbook applied
-2024-02-15 12:03,QueueDepthGrowing,search-indexer,warning,8,sam.o,auto-resolved
-2024-02-17 05:56,CertExpiresSoon,rate-limiter,info,3,priya.k,scaled up replicas
-2024-02-20 23:40,PodCrashLooping,payments-api,critical,41,lena.v,deploy rolled back
-2024-02-24 19:32,PodCrashLooping,notification-svc,critical,5,lena.v,deploy rolled back
-2024-02-25 08:48,RedisMemoryHigh,partner-gateway,warning,30,sam.o,silenced during maintenance
-2024-02-26 16:50,RedisMemoryHigh,edge-proxy,warning,41,lena.v,partner notified
-2024-03-02 11:27,DiskPressure,edge-proxy,warning,95,lena.v,config fix deployed
-2024-03-03 01:07,HighP95Latency,notification-svc,warning,8,dana.r,config fix deployed
-2024-03-07 07:38,RedisMemoryHigh,cron-runner,warning,8,marcus.t,ticket filed
-2024-03-08 11:20,ReplicationLagHigh,reporting-api,warning,12,huy.n,deploy rolled back
-2024-03-11 06:58,CertExpiresSoon,edge-proxy,info,22,huy.n,partner notified
-2024-03-13 12:36,BackupMissed,search-indexer,critical,30,dana.r,deploy rolled back
-2024-03-15 22:51,HighP95Latency,edge-proxy,warning,3,marcus.t,ticket filed
-2024-03-17 03:07,BackupMissed,auth-svc,critical,8,marcus.t,runbook applied
-2024-03-19 12:35,PodCrashLooping,partner-gateway,critical,12,priya.k,silenced during maintenance
-2024-03-21 17:48,HighP95Latency,search-indexer,warning,3,dana.r,config fix deployed
-2024-03-24 03:17,ErrorRateAboveSLO,edge-proxy,critical,55,lena.v,silenced during maintenance
-2024-03-27 19:25,ReplicationLagHigh,payments-api,warning,95,marcus.t,scaled up replicas
-2024-04-04 01:09,QueueDepthGrowing,auth-svc,warning,30,priya.k,escalated to secondary
-2024-04-08 06:15,QueueDepthGrowing,rate-limiter,warning,30,huy.n,false positive - tuned threshold
-2024-04-12 20:12,ReplicationLagHigh,rate-limiter,warning,12,marcus.t,false positive - tuned threshold
-2024-04-14 19:46,QueueDepthGrowing,reporting-api,warning,55,huy.n,config fix deployed
-2024-04-15 10:14,HighP95Latency,edge-proxy,warning,95,huy.n,scaled up replicas
-2024-04-16 11:56,PodCrashLooping,cron-runner,critical,41,priya.k,partner notified
-2024-04-19 05:36,RateLimiterSaturation,notification-svc,critical,5,marcus.t,false positive - tuned threshold
-2024-04-19 23:54,HighP95Latency,cron-runner,warning,55,lena.v,false positive - tuned threshold
-2024-04-20 07:37,QueueDepthGrowing,search-indexer,warning,55,marcus.t,auto-resolved
-2024-04-21 06:16,HighP95Latency,auth-svc,warning,30,lena.v,runbook applied
-2024-04-23 20:54,DiskPressure,billing-worker,warning,95,marcus.t,ticket filed
-2024-04-27 15:17,BackupMissed,payments-api,critical,5,dana.r,auto-resolved
-2024-04-28 04:39,RateLimiterSaturation,search-indexer,critical,5,huy.n,runbook applied
-2024-05-01 17:47,BackupMissed,auth-svc,critical,3,dana.r,false positive - tuned threshold
-2024-05-02 07:53,CertExpiresSoon,rate-limiter,info,3,huy.n,partner notified
-2024-05-05 01:00,RedisMemoryHigh,partner-gateway,warning,8,huy.n,deploy rolled back
-2024-05-08 05:34,CertExpiresSoon,search-indexer,info,55,sam.o,config fix deployed
-2024-05-10 07:52,ErrorRateAboveSLO,webhook-dispatch,critical,3,priya.k,deploy rolled back
-2024-05-13 02:51,RateLimiterSaturation,webhook-dispatch,critical,55,marcus.t,ticket filed
-2024-05-15 23:55,PodCrashLooping,webhook-dispatch,critical,8,lena.v,runbook applied
-2024-05-17 02:57,PodCrashLooping,partner-gateway,critical,41,sam.o,config fix deployed
-2024-05-19 10:58,PodCrashLooping,notification-svc,critical,12,lena.v,config fix deployed
-2024-05-23 10:10,CertExpiresSoon,billing-worker,info,95,sam.o,runbook applied
-2024-05-25 12:27,QueueDepthGrowing,payments-api,warning,3,dana.r,config fix deployed
-2024-05-27 16:00,CertExpiresSoon,notification-svc,info,70,lena.v,escalated to secondary
-2024-05-28 21:27,QueueDepthGrowing,edge-proxy,warning,30,huy.n,escalated to secondary
-2024-06-03 14:33,ErrorRateAboveSLO,edge-proxy,critical,8,dana.r,partner notified
-2024-06-05 08:13,ErrorRateAboveSLO,rate-limiter,critical,5,dana.r,auto-resolved
-2024-06-08 11:22,BackupMissed,reporting-api,critical,3,dana.r,auto-resolved
-2024-06-09 18:41,ReplicationLagHigh,search-indexer,warning,30,priya.k,scaled up replicas
-2024-06-10 17:53,HighP95Latency,notification-svc,warning,30,sam.o,auto-resolved
-2024-06-14 19:22,DiskPressure,payments-api,warning,5,lena.v,scaled up replicas
-2024-06-15 13:04,RedisMemoryHigh,notification-svc,warning,15,lena.v,partner notified
-2024-06-18 03:02,CertExpiresSoon,notification-svc,info,95,priya.k,config fix deployed
-2024-06-21 23:59,BackupMissed,rate-limiter,critical,22,lena.v,ticket filed
-2024-06-22 13:29,CertExpiresSoon,edge-proxy,info,15,lena.v,config fix deployed
-2024-06-25 03:57,BackupMissed,payments-api,critical,41,huy.n,runbook applied
-2024-06-27 13:34,HighP95Latency,edge-proxy,warning,3,marcus.t,false positive - tuned threshold
-2024-07-02 00:15,ReplicationLagHigh,rate-limiter,warning,41,lena.v,runbook applied
-2024-07-04 14:19,BackupMissed,search-indexer,critical,95,priya.k,silenced during maintenance
-2024-07-05 11:55,CertExpiresSoon,search-indexer,info,3,sam.o,false positive - tuned threshold
-2024-07-06 05:25,RateLimiterSaturation,reporting-api,critical,5,marcus.t,escalated to secondary
-2024-07-08 12:00,BackupMissed,auth-svc,critical,41,lena.v,false positive - tuned threshold
-2024-07-09 15:37,PodCrashLooping,rate-limiter,critical,15,sam.o,escalated to secondary
-2024-07-11 23:25,DiskPressure,billing-worker,warning,5,marcus.t,runbook applied
-2024-07-14 12:07,QueueDepthGrowing,search-indexer,warning,70,dana.r,scaled up replicas
-2024-07-15 15:40,RedisMemoryHigh,edge-proxy,warning,3,priya.k,auto-resolved
-2024-07-18 05:38,RateLimiterSaturation,auth-svc,critical,12,dana.r,deploy rolled back
-2024-07-21 11:31,CertExpiresSoon,payments-api,info,30,lena.v,false positive - tuned threshold
-2024-07-24 15:23,RateLimiterSaturation,edge-proxy,critical,15,sam.o,false positive - tuned threshold
-2024-07-26 19:51,QueueDepthGrowing,auth-svc,warning,3,priya.k,escalated to secondary
-2024-08-03 16:39,PodCrashLooping,partner-gateway,critical,22,marcus.t,silenced during maintenance
-2024-08-06 09:12,PodCrashLooping,rate-limiter,critical,70,huy.n,escalated to secondary
-2024-08-09 11:56,ReplicationLagHigh,webhook-dispatch,warning,41,huy.n,runbook applied
-2024-08-12 09:42,RateLimiterSaturation,webhook-dispatch,critical,41,marcus.t,false positive - tuned threshold
-2024-08-12 10:28,RateLimiterSaturation,cron-runner,critical,55,marcus.t,scaled up replicas
-2024-08-13 15:31,BackupMissed,webhook-dispatch,critical,5,dana.r,deploy rolled back
-2024-08-13 19:49,RedisMemoryHigh,notification-svc,warning,70,priya.k,scaled up replicas
-2024-08-14 23:59,DiskPressure,edge-proxy,warning,15,dana.r,silenced during maintenance
-2024-08-17 18:11,ReplicationLagHigh,partner-gateway,warning,30,marcus.t,partner notified
-2024-08-18 02:14,HighP95Latency,webhook-dispatch,warning,70,priya.k,partner notified
-2024-08-22 07:57,HighP95Latency,payments-api,warning,55,dana.r,deploy rolled back
-2024-08-24 03:11,CertExpiresSoon,rate-limiter,info,22,sam.o,silenced during maintenance
-2024-08-28 07:14,ErrorRateAboveSLO,notification-svc,critical,5,priya.k,silenced during maintenance
-2024-09-04 13:40,HighP95Latency,search-indexer,warning,41,sam.o,config fix deployed
-2024-09-08 02:51,PodCrashLooping,payments-api,critical,95,sam.o,deploy rolled back
-2024-09-10 18:54,DiskPressure,search-indexer,warning,5,priya.k,silenced during maintenance
-2024-09-13 15:18,CertExpiresSoon,partner-gateway,info,41,huy.n,runbook applied
-2024-09-16 02:21,DiskPressure,notification-svc,warning,41,lena.v,deploy rolled back
-2024-09-17 02:12,HighP95Latency,billing-worker,warning,5,marcus.t,deploy rolled back
-2024-09-17 02:48,HighP95Latency,notification-svc,warning,15,sam.o,runbook applied
-2024-09-18 14:17,RedisMemoryHigh,notification-svc,warning,70,huy.n,runbook applied
-2024-09-19 12:22,HighP95Latency,notification-svc,warning,22,lena.v,deploy rolled back
-2024-09-23 09:25,RateLimiterSaturation,billing-worker,critical,3,lena.v,partner notified
-2024-09-26 14:42,ErrorRateAboveSLO,payments-api,critical,12,huy.n,auto-resolved
-2024-09-28 22:02,BackupMissed,cron-runner,critical,8,sam.o,ticket filed
-2024-10-01 17:32,QueueDepthGrowing,rate-limiter,warning,70,huy.n,runbook applied
-2024-10-03 23:05,RateLimiterSaturation,feature-flags,critical,41,sam.o,scaled up replicas
-2024-10-04 07:30,RedisMemoryHigh,reporting-api,warning,55,marcus.t,runbook applied
-2024-10-08 17:20,QueueDepthGrowing,partner-gateway,warning,70,marcus.t,scaled up replicas
-2024-10-12 19:16,CertExpiresSoon,feature-flags,info,30,dana.r,silenced during maintenance
-2024-10-15 14:24,RateLimiterSaturation,webhook-dispatch,critical,70,huy.n,auto-resolved
-2024-10-18 17:32,ErrorRateAboveSLO,webhook-dispatch,critical,22,marcus.t,ticket filed
-2024-10-19 02:31,RedisMemoryHigh,cron-runner,warning,8,huy.n,scaled up replicas
-2024-10-20 09:25,RateLimiterSaturation,rate-limiter,critical,30,sam.o,partner notified
-2024-10-21 18:04,ReplicationLagHigh,webhook-dispatch,warning,55,huy.n,partner notified
-2024-10-22 22:06,DiskPressure,notification-svc,warning,41,marcus.t,auto-resolved
-2024-10-23 20:12,ErrorRateAboveSLO,search-indexer,critical,5,huy.n,false positive - tuned threshold
-2024-10-25 15:06,BackupMissed,payments-api,critical,12,dana.r,auto-resolved
-2024-11-01 09:21,PodCrashLooping,notification-svc,critical,3,sam.o,ticket filed
-2024-11-05 08:38,DiskPressure,search-indexer,warning,12,sam.o,partner notified
-2024-11-06 02:10,CertExpiresSoon,webhook-dispatch,info,15,marcus.t,deploy rolled back
-2024-11-07 18:54,ErrorRateAboveSLO,payments-api,critical,15,marcus.t,deploy rolled back
-2024-11-11 20:50,HighP95Latency,feature-flags,warning,55,lena.v,config fix deployed
-2024-11-13 05:06,CertExpiresSoon,search-indexer,info,3,huy.n,silenced during maintenance
-2024-11-14 08:06,CertExpiresSoon,payments-api,info,12,lena.v,silenced during maintenance
-2024-11-15 22:58,DiskPressure,billing-worker,warning,41,lena.v,scaled up replicas
-2024-11-18 13:44,HighP95Latency,billing-worker,warning,30,sam.o,scaled up replicas
-2024-11-19 17:11,BackupMissed,partner-gateway,critical,55,dana.r,false positive - tuned threshold
-2024-11-22 21:22,DiskPressure,feature-flags,warning,15,huy.n,config fix deployed
-2024-11-24 08:43,HighP95Latency,rate-limiter,warning,15,lena.v,runbook applied
-2024-11-25 21:49,BackupMissed,billing-worker,critical,3,huy.n,escalated to secondary
-2024-12-02 05:59,RedisMemoryHigh,auth-svc,warning,22,lena.v,auto-resolved
-2024-12-06 07:20,HighP95Latency,webhook-dispatch,warning,15,priya.k,auto-resolved
-2024-12-08 12:00,PodCrashLooping,webhook-dispatch,critical,15,dana.r,scaled up replicas
-2024-12-09 10:18,BackupMissed,payments-api,critical,5,sam.o,false positive - tuned threshold
-2024-12-12 23:16,ErrorRateAboveSLO,edge-proxy,critical,30,huy.n,scaled up replicas
-2024-12-16 22:11,QueueDepthGrowing,billing-worker,warning,70,sam.o,deploy rolled back
-2024-12-20 04:27,RateLimiterSaturation,edge-proxy,critical,8,dana.r,runbook applied
-2024-12-21 04:08,CertExpiresSoon,webhook-dispatch,info,15,dana.r,partner notified
-2024-12-22 07:09,ReplicationLagHigh,notification-svc,warning,30,dana.r,scaled up replicas
-2024-12-23 01:41,BackupMissed,webhook-dispatch,critical,70,lena.v,silenced during maintenance
-2024-12-24 19:48,PodCrashLooping,rate-limiter,critical,95,lena.v,partner notified
-2024-12-28 10:37,BackupMissed,feature-flags,critical,41,dana.r,config fix deployed
+2023-01-04 19:45,DiskPressure,partner-gateway,warning,15,lena.v,deploy rolled back
+2023-01-06 07:23,DiskPressure,cron-runner,warning,22,sam.o,runbook applied
+2023-01-06 09:33,RateLimiterSaturation,payments-api,critical,8,sam.o,escalated to secondary
+2023-01-06 17:15,OOMKilled,edge-proxy,critical,12,lena.v,escalated to secondary
+2023-01-07 13:10,HighP95Latency,rate-limiter,warning,15,priya.k,scaled up replicas
+2023-01-07 13:21,DiskPressure,notification-svc,warning,12,priya.k,config fix deployed
+2023-01-08 11:31,ErrorRateAboveSLO,cron-runner,critical,41,priya.k,config fix deployed
+2023-01-08 17:19,RateLimiterSaturation,feature-flags,critical,55,dana.r,scaled up replicas
+2023-01-09 17:47,SyntheticCheckFailing,partner-gateway,warning,55,huy.n,ticket filed
+2023-01-09 21:20,OOMKilled,search-indexer,critical,5,lena.v,scaled up replicas
+2023-01-10 19:02,RedisMemoryHigh,notification-svc,warning,130,dana.r,partner notified
+2023-01-11 00:27,ReplicationLagHigh,feature-flags,warning,8,huy.n,false positive - tuned threshold
+2023-01-11 10:30,ReplicationLagHigh,payments-api,warning,12,dana.r,scaled up replicas
+2023-01-11 19:44,OOMKilled,payments-api,critical,3,marcus.t,runbook applied
+2023-01-13 05:04,CertExpiresSoon,notification-svc,info,22,priya.k,ticket filed
+2023-01-13 11:25,PodCrashLooping,feature-flags,critical,5,dana.r,scaled up replicas
+2023-01-13 18:01,QueueDepthGrowing,rate-limiter,warning,41,dana.r,false positive - tuned threshold
+2023-01-14 15:05,OOMKilled,search-indexer,critical,3,sam.o,auto-resolved
+2023-01-16 04:38,CertExpiresSoon,notification-svc,info,95,huy.n,runbook applied
+2023-01-16 22:08,QueueDepthGrowing,reporting-api,warning,130,marcus.t,runbook applied
+2023-01-17 04:31,QueueDepthGrowing,auth-svc,warning,30,priya.k,scaled up replicas
+2023-01-17 13:25,ErrorRateAboveSLO,billing-worker,critical,55,priya.k,silenced during maintenance
+2023-01-18 23:21,DiskPressure,notification-svc,warning,3,priya.k,partner notified
+2023-01-19 15:17,BackupMissed,reporting-api,critical,12,lena.v,escalated to secondary
+2023-01-20 14:25,QueueDepthGrowing,payments-api,warning,12,sam.o,partner notified
+2023-01-21 08:00,ErrorRateAboveSLO,billing-worker,critical,41,marcus.t,ticket filed
+2023-01-21 10:24,RedisMemoryHigh,cron-runner,warning,12,sam.o,partner notified
+2023-01-21 11:33,SyntheticCheckFailing,edge-proxy,warning,95,dana.r,silenced during maintenance
+2023-01-22 01:08,SyntheticCheckFailing,payments-api,warning,55,lena.v,false positive - tuned threshold
+2023-01-22 19:40,HighP95Latency,payments-api,warning,41,priya.k,silenced during maintenance
+2023-01-23 13:28,RedisMemoryHigh,notification-svc,warning,22,sam.o,partner notified
+2023-01-24 09:47,SyntheticCheckFailing,feature-flags,warning,12,lena.v,runbook applied
+2023-01-25 11:43,DiskPressure,rate-limiter,warning,8,sam.o,scaled up replicas
+2023-01-26 21:35,RedisMemoryHigh,rate-limiter,warning,22,dana.r,escalated to secondary
+2023-01-27 21:05,OOMKilled,edge-proxy,critical,95,sam.o,partner notified
+2023-01-29 05:04,QueueDepthGrowing,payments-api,warning,8,sam.o,false positive - tuned threshold
+2023-01-30 06:08,PodCrashLooping,webhook-dispatch,critical,95,marcus.t,scaled up replicas
+2023-01-30 19:59,OOMKilled,payments-api,critical,41,dana.r,runbook applied
+2023-01-31 06:38,QueueDepthGrowing,feature-flags,warning,30,lena.v,ticket filed
+2023-01-31 18:31,SyntheticCheckFailing,partner-gateway,warning,55,priya.k,escalated to secondary
+2023-02-02 05:13,SyntheticCheckFailing,payments-api,warning,5,sam.o,config fix deployed
+2023-02-03 09:10,ErrorRateAboveSLO,rate-limiter,critical,30,lena.v,partner notified
+2023-02-04 14:17,RedisMemoryHigh,partner-gateway,warning,95,huy.n,auto-resolved
+2023-02-05 09:38,QueueDepthGrowing,reporting-api,warning,15,huy.n,ticket filed
+2023-02-06 17:43,ErrorRateAboveSLO,notification-svc,critical,41,priya.k,config fix deployed
+2023-02-06 23:53,BackupMissed,billing-worker,critical,130,priya.k,deploy rolled back
+2023-02-08 02:35,QueueDepthGrowing,edge-proxy,warning,55,dana.r,false positive - tuned threshold
+2023-02-08 22:10,RateLimiterSaturation,webhook-dispatch,critical,22,marcus.t,config fix deployed
+2023-02-09 19:06,ReplicationLagHigh,partner-gateway,warning,3,marcus.t,ticket filed
+2023-02-09 22:47,ErrorRateAboveSLO,edge-proxy,critical,55,huy.n,partner notified
+2023-02-10 19:36,PodCrashLooping,notification-svc,critical,22,sam.o,partner notified
+2023-02-11 16:45,SyntheticCheckFailing,rate-limiter,warning,12,huy.n,deploy rolled back
+2023-02-12 04:00,ReplicationLagHigh,feature-flags,warning,22,huy.n,ticket filed
+2023-02-12 17:20,RateLimiterSaturation,auth-svc,critical,12,marcus.t,config fix deployed
+2023-02-13 20:40,PodCrashLooping,payments-api,critical,41,lena.v,false positive - tuned threshold
+2023-02-14 07:59,ErrorRateAboveSLO,payments-api,critical,95,huy.n,escalated to secondary
+2023-02-14 09:45,RedisMemoryHigh,billing-worker,warning,12,dana.r,runbook applied
+2023-02-14 15:28,BackupMissed,webhook-dispatch,critical,55,sam.o,ticket filed
+2023-02-15 23:47,CertExpiresSoon,reporting-api,info,15,marcus.t,scaled up replicas
+2023-02-16 07:41,PodCrashLooping,billing-worker,critical,15,huy.n,false positive - tuned threshold
+2023-02-17 04:51,CertExpiresSoon,notification-svc,info,55,huy.n,auto-resolved
+2023-02-18 17:27,CertExpiresSoon,notification-svc,info,55,dana.r,partner notified
+2023-02-19 10:17,PodCrashLooping,feature-flags,critical,30,marcus.t,silenced during maintenance
+2023-02-19 22:00,ReplicationLagHigh,partner-gateway,warning,30,dana.r,silenced during maintenance
+2023-02-21 07:08,DiskPressure,partner-gateway,warning,8,priya.k,auto-resolved
+2023-02-21 22:25,PodCrashLooping,cron-runner,critical,55,lena.v,silenced during maintenance
+2023-02-22 00:52,RedisMemoryHigh,notification-svc,warning,70,marcus.t,scaled up replicas
+2023-02-22 21:25,OOMKilled,feature-flags,critical,130,sam.o,ticket filed
+2023-02-22 21:53,ErrorRateAboveSLO,payments-api,critical,130,huy.n,false positive - tuned threshold
+2023-02-23 10:47,RedisMemoryHigh,rate-limiter,warning,15,lena.v,runbook applied
+2023-02-23 16:01,HighP95Latency,reporting-api,warning,12,priya.k,config fix deployed
+2023-02-23 17:44,ErrorRateAboveSLO,webhook-dispatch,critical,3,marcus.t,scaled up replicas
+2023-02-25 03:39,QueueDepthGrowing,webhook-dispatch,warning,30,huy.n,false positive - tuned threshold
+2023-02-25 21:20,RedisMemoryHigh,notification-svc,warning,22,sam.o,runbook applied
+2023-02-26 07:47,CertExpiresSoon,search-indexer,info,70,priya.k,config fix deployed
+2023-02-27 03:15,RedisMemoryHigh,auth-svc,warning,55,sam.o,config fix deployed
+2023-02-28 03:04,QueueDepthGrowing,notification-svc,warning,22,sam.o,config fix deployed
+2023-03-01 02:41,BackupMissed,edge-proxy,critical,22,huy.n,runbook applied
+2023-03-01 20:20,RateLimiterSaturation,feature-flags,critical,8,priya.k,auto-resolved
+2023-03-01 21:48,OOMKilled,notification-svc,critical,22,lena.v,false positive - tuned threshold
+2023-03-02 16:44,SyntheticCheckFailing,webhook-dispatch,warning,41,priya.k,partner notified
+2023-03-03 04:17,SyntheticCheckFailing,billing-worker,warning,8,priya.k,ticket filed
+2023-03-03 18:23,DiskPressure,reporting-api,warning,22,marcus.t,partner notified
+2023-03-03 22:56,RateLimiterSaturation,search-indexer,critical,41,marcus.t,ticket filed
+2023-03-04 16:42,PodCrashLooping,payments-api,critical,70,dana.r,partner notified
+2023-03-05 12:23,QueueDepthGrowing,billing-worker,warning,5,marcus.t,config fix deployed
+2023-03-05 15:13,ErrorRateAboveSLO,auth-svc,critical,130,lena.v,runbook applied
+2023-03-06 10:42,PodCrashLooping,rate-limiter,critical,95,huy.n,ticket filed
+2023-03-06 19:31,HighP95Latency,cron-runner,warning,130,huy.n,escalated to secondary
+2023-03-07 11:54,CertExpiresSoon,billing-worker,info,70,marcus.t,runbook applied
+2023-03-08 17:54,ReplicationLagHigh,edge-proxy,warning,55,sam.o,partner notified
+2023-03-10 07:55,RedisMemoryHigh,billing-worker,warning,41,sam.o,false positive - tuned threshold
+2023-03-10 18:36,RedisMemoryHigh,notification-svc,warning,130,marcus.t,deploy rolled back
+2023-03-11 11:25,ErrorRateAboveSLO,cron-runner,critical,12,sam.o,false positive - tuned threshold
+2023-03-12 02:20,CertExpiresSoon,rate-limiter,info,130,lena.v,ticket filed
+2023-03-14 15:59,ErrorRateAboveSLO,cron-runner,critical,3,marcus.t,scaled up replicas
+2023-03-15 16:06,SyntheticCheckFailing,webhook-dispatch,warning,70,lena.v,scaled up replicas
+2023-03-15 23:34,ErrorRateAboveSLO,notification-svc,critical,5,sam.o,deploy rolled back
+2023-03-16 08:20,CertExpiresSoon,feature-flags,info,130,sam.o,escalated to secondary
+2023-03-17 17:51,HighP95Latency,payments-api,warning,30,dana.r,false positive - tuned threshold
+2023-03-18 04:55,QueueDepthGrowing,partner-gateway,warning,5,lena.v,deploy rolled back
+2023-03-18 17:11,RateLimiterSaturation,edge-proxy,critical,5,dana.r,deploy rolled back
+2023-03-19 01:41,RedisMemoryHigh,feature-flags,warning,95,huy.n,escalated to secondary
+2023-03-19 02:21,PodCrashLooping,notification-svc,critical,12,sam.o,silenced during maintenance
+2023-03-20 09:10,BackupMissed,partner-gateway,critical,70,lena.v,auto-resolved
+2023-03-21 06:17,BackupMissed,webhook-dispatch,critical,41,huy.n,partner notified
+2023-03-21 14:44,BackupMissed,cron-runner,critical,130,sam.o,scaled up replicas
+2023-03-22 22:26,DiskPressure,payments-api,warning,15,dana.r,auto-resolved
+2023-03-22 22:46,ReplicationLagHigh,partner-gateway,warning,30,lena.v,ticket filed
+2023-03-22 23:36,SyntheticCheckFailing,auth-svc,warning,55,lena.v,scaled up replicas
+2023-03-23 08:59,OOMKilled,edge-proxy,critical,22,huy.n,config fix deployed
+2023-03-23 09:14,CertExpiresSoon,cron-runner,info,3,lena.v,partner notified
+2023-03-23 16:41,DiskPressure,webhook-dispatch,warning,130,lena.v,false positive - tuned threshold
+2023-03-24 11:40,OOMKilled,billing-worker,critical,130,marcus.t,auto-resolved
+2023-03-25 04:35,OOMKilled,payments-api,critical,41,dana.r,ticket filed
+2023-03-25 20:31,RedisMemoryHigh,billing-worker,warning,3,lena.v,auto-resolved
+2023-03-26 03:45,RedisMemoryHigh,cron-runner,warning,12,huy.n,deploy rolled back
+2023-03-26 14:23,DiskPressure,auth-svc,warning,55,priya.k,silenced during maintenance
+2023-03-27 17:17,RateLimiterSaturation,rate-limiter,critical,5,marcus.t,auto-resolved
+2023-03-28 03:31,CertExpiresSoon,cron-runner,info,5,lena.v,partner notified
+2023-03-29 06:21,RateLimiterSaturation,feature-flags,critical,30,priya.k,config fix deployed
+2023-03-29 09:19,DiskPressure,partner-gateway,warning,12,lena.v,partner notified
+2023-03-30 09:47,ReplicationLagHigh,webhook-dispatch,warning,3,lena.v,config fix deployed
+2023-03-31 05:39,SyntheticCheckFailing,billing-worker,warning,70,sam.o,deploy rolled back
+2023-03-31 16:46,OOMKilled,notification-svc,critical,55,huy.n,false positive - tuned threshold
+2023-04-01 00:48,HighP95Latency,partner-gateway,warning,8,dana.r,auto-resolved
+2023-04-01 20:54,HighP95Latency,cron-runner,warning,55,priya.k,false positive - tuned threshold
+2023-04-02 04:43,SyntheticCheckFailing,billing-worker,warning,70,sam.o,ticket filed
+2023-04-02 15:13,ReplicationLagHigh,webhook-dispatch,warning,12,marcus.t,silenced during maintenance
+2023-04-04 06:26,RedisMemoryHigh,rate-limiter,warning,55,priya.k,silenced during maintenance
+2023-04-04 16:57,DiskPressure,rate-limiter,warning,22,sam.o,runbook applied
+2023-04-04 21:25,CertExpiresSoon,webhook-dispatch,info,12,marcus.t,scaled up replicas
+2023-04-05 03:06,HighP95Latency,notification-svc,warning,55,lena.v,ticket filed
+2023-04-05 19:00,RedisMemoryHigh,edge-proxy,warning,95,dana.r,false positive - tuned threshold
+2023-04-06 12:44,PodCrashLooping,billing-worker,critical,95,sam.o,auto-resolved
+2023-04-06 17:35,QueueDepthGrowing,cron-runner,warning,15,dana.r,ticket filed
+2023-04-07 22:26,BackupMissed,edge-proxy,critical,22,marcus.t,partner notified
+2023-04-07 23:06,PodCrashLooping,search-indexer,critical,22,marcus.t,false positive - tuned threshold
+2023-04-08 14:50,ReplicationLagHigh,auth-svc,warning,5,lena.v,escalated to secondary
+2023-04-10 09:56,OOMKilled,payments-api,critical,70,lena.v,config fix deployed
+2023-04-10 12:13,RateLimiterSaturation,partner-gateway,critical,41,dana.r,deploy rolled back
+2023-04-11 05:08,PodCrashLooping,reporting-api,critical,8,huy.n,escalated to secondary
+2023-04-11 17:09,ReplicationLagHigh,feature-flags,warning,30,sam.o,partner notified
+2023-04-12 03:48,PodCrashLooping,rate-limiter,critical,95,huy.n,false positive - tuned threshold
+2023-04-13 07:57,DiskPressure,auth-svc,warning,12,priya.k,runbook applied
+2023-04-13 15:40,ReplicationLagHigh,feature-flags,warning,15,huy.n,runbook applied
+2023-04-13 20:29,HighP95Latency,edge-proxy,warning,8,sam.o,silenced during maintenance
+2023-04-14 16:28,CertExpiresSoon,reporting-api,info,22,marcus.t,runbook applied
+2023-04-16 04:56,QueueDepthGrowing,rate-limiter,warning,5,marcus.t,config fix deployed
+2023-04-17 04:59,BackupMissed,cron-runner,critical,95,huy.n,silenced during maintenance
+2023-04-19 09:01,ErrorRateAboveSLO,partner-gateway,critical,30,huy.n,auto-resolved
+2023-04-19 23:30,OOMKilled,edge-proxy,critical,22,huy.n,scaled up replicas
+2023-04-20 05:37,ReplicationLagHigh,payments-api,warning,15,marcus.t,runbook applied
+2023-04-20 07:56,RateLimiterSaturation,cron-runner,critical,55,priya.k,escalated to secondary
+2023-04-21 14:04,ReplicationLagHigh,webhook-dispatch,warning,5,dana.r,deploy rolled back
+2023-04-22 18:01,QueueDepthGrowing,partner-gateway,warning,130,huy.n,deploy rolled back
+2023-04-22 23:25,ErrorRateAboveSLO,reporting-api,critical,8,priya.k,config fix deployed
+2023-04-22 23:45,RedisMemoryHigh,billing-worker,warning,70,dana.r,ticket filed
+2023-04-23 12:19,BackupMissed,search-indexer,critical,41,dana.r,scaled up replicas
+2023-04-24 21:11,OOMKilled,edge-proxy,critical,5,dana.r,silenced during maintenance
+2023-04-25 01:52,CertExpiresSoon,search-indexer,info,3,lena.v,deploy rolled back
+2023-04-26 15:35,PodCrashLooping,rate-limiter,critical,41,dana.r,scaled up replicas
+2023-04-26 17:39,SyntheticCheckFailing,feature-flags,warning,130,sam.o,runbook applied
+2023-04-26 21:31,ErrorRateAboveSLO,edge-proxy,critical,12,lena.v,config fix deployed
+2023-04-28 07:54,QueueDepthGrowing,reporting-api,warning,5,dana.r,partner notified
+2023-04-28 13:50,CertExpiresSoon,cron-runner,info,15,marcus.t,false positive - tuned threshold
+2023-04-28 21:03,DiskPressure,auth-svc,warning,130,dana.r,scaled up replicas
+2023-04-29 16:28,RateLimiterSaturation,payments-api,critical,70,priya.k,escalated to secondary
+2023-04-29 18:47,PodCrashLooping,billing-worker,critical,55,huy.n,deploy rolled back
+2023-04-30 20:24,OOMKilled,partner-gateway,critical,3,sam.o,config fix deployed
+2023-04-30 20:48,BackupMissed,reporting-api,critical,12,marcus.t,silenced during maintenance
+2023-05-01 02:31,QueueDepthGrowing,rate-limiter,warning,70,marcus.t,false positive - tuned threshold
+2023-05-01 04:31,PodCrashLooping,notification-svc,critical,12,priya.k,runbook applied
+2023-05-02 13:20,QueueDepthGrowing,billing-worker,warning,15,sam.o,runbook applied
+2023-05-02 20:04,PodCrashLooping,feature-flags,critical,30,huy.n,auto-resolved
+2023-05-02 22:39,ErrorRateAboveSLO,webhook-dispatch,critical,95,dana.r,ticket filed
+2023-05-03 07:20,DiskPressure,notification-svc,warning,5,sam.o,silenced during maintenance
+2023-05-03 20:56,HighP95Latency,edge-proxy,warning,41,dana.r,partner notified
+2023-05-04 08:10,DiskPressure,webhook-dispatch,warning,130,priya.k,scaled up replicas
+2023-05-05 11:40,ReplicationLagHigh,auth-svc,warning,70,dana.r,deploy rolled back
+2023-05-05 15:59,SyntheticCheckFailing,search-indexer,warning,70,dana.r,scaled up replicas
+2023-05-07 22:29,SyntheticCheckFailing,billing-worker,warning,70,lena.v,deploy rolled back
+2023-05-07 22:53,RedisMemoryHigh,auth-svc,warning,12,huy.n,partner notified
+2023-05-08 03:39,HighP95Latency,billing-worker,warning,41,priya.k,config fix deployed
+2023-05-08 20:17,RedisMemoryHigh,notification-svc,warning,12,priya.k,deploy rolled back
+2023-05-09 00:52,QueueDepthGrowing,notification-svc,warning,30,dana.r,deploy rolled back
+2023-05-09 22:40,ErrorRateAboveSLO,search-indexer,critical,8,marcus.t,partner notified
+2023-05-10 07:06,BackupMissed,webhook-dispatch,critical,95,sam.o,silenced during maintenance
+2023-05-10 23:26,RateLimiterSaturation,webhook-dispatch,critical,3,priya.k,config fix deployed
+2023-05-11 07:51,RateLimiterSaturation,webhook-dispatch,critical,22,sam.o,partner notified
+2023-05-11 13:30,QueueDepthGrowing,edge-proxy,warning,12,sam.o,partner notified
+2023-05-11 21:02,QueueDepthGrowing,auth-svc,warning,95,huy.n,config fix deployed
+2023-05-12 07:45,OOMKilled,partner-gateway,critical,3,sam.o,ticket filed
+2023-05-12 09:26,OOMKilled,partner-gateway,critical,130,sam.o,escalated to secondary
+2023-05-12 10:19,PodCrashLooping,partner-gateway,critical,95,sam.o,ticket filed
+2023-05-13 04:45,BackupMissed,payments-api,critical,70,marcus.t,false positive - tuned threshold
+2023-05-13 14:50,PodCrashLooping,feature-flags,critical,30,huy.n,auto-resolved
+2023-05-14 15:03,ErrorRateAboveSLO,reporting-api,critical,130,dana.r,false positive - tuned threshold
+2023-05-14 15:47,HighP95Latency,auth-svc,warning,30,priya.k,deploy rolled back
+2023-05-15 08:13,ErrorRateAboveSLO,search-indexer,critical,15,dana.r,partner notified
+2023-05-15 13:58,ErrorRateAboveSLO,payments-api,critical,5,marcus.t,false positive - tuned threshold
+2023-05-16 00:12,BackupMissed,notification-svc,critical,41,priya.k,deploy rolled back
+2023-05-17 23:17,BackupMissed,billing-worker,critical,70,marcus.t,silenced during maintenance
+2023-05-18 13:11,ErrorRateAboveSLO,rate-limiter,critical,3,lena.v,ticket filed
+2023-05-18 23:50,BackupMissed,feature-flags,critical,22,huy.n,config fix deployed
+2023-05-19 04:28,QueueDepthGrowing,cron-runner,warning,41,lena.v,auto-resolved
+2023-05-20 05:39,QueueDepthGrowing,partner-gateway,warning,5,sam.o,deploy rolled back
+2023-05-20 19:59,RateLimiterSaturation,rate-limiter,critical,3,dana.r,auto-resolved
+2023-05-21 02:06,PodCrashLooping,rate-limiter,critical,130,huy.n,partner notified
+2023-05-23 16:54,QueueDepthGrowing,edge-proxy,warning,15,sam.o,auto-resolved
+2023-05-26 04:44,RateLimiterSaturation,partner-gateway,critical,3,marcus.t,scaled up replicas
+2023-05-26 10:55,RateLimiterSaturation,payments-api,critical,130,sam.o,runbook applied
+2023-05-27 16:52,ErrorRateAboveSLO,search-indexer,critical,8,lena.v,config fix deployed
+2023-05-27 20:43,PodCrashLooping,auth-svc,critical,30,sam.o,deploy rolled back
+2023-05-29 02:54,HighP95Latency,payments-api,warning,70,sam.o,auto-resolved
+2023-05-29 04:37,RedisMemoryHigh,payments-api,warning,15,marcus.t,deploy rolled back
+2023-05-29 22:22,QueueDepthGrowing,search-indexer,warning,12,huy.n,deploy rolled back
+2023-05-30 03:23,QueueDepthGrowing,billing-worker,warning,5,marcus.t,escalated to secondary
+2023-05-31 19:30,RateLimiterSaturation,auth-svc,critical,130,lena.v,partner notified
+2023-06-01 14:03,ReplicationLagHigh,payments-api,warning,95,dana.r,runbook applied
+2023-06-02 04:45,HighP95Latency,partner-gateway,warning,3,dana.r,ticket filed
+2023-06-02 09:46,HighP95Latency,webhook-dispatch,warning,55,sam.o,config fix deployed
+2023-06-02 13:36,RedisMemoryHigh,rate-limiter,warning,130,huy.n,runbook applied
+2023-06-03 22:49,DiskPressure,feature-flags,warning,3,lena.v,auto-resolved
+2023-06-04 13:40,PodCrashLooping,webhook-dispatch,critical,15,lena.v,deploy rolled back
+2023-06-05 00:44,QueueDepthGrowing,cron-runner,warning,70,dana.r,auto-resolved
+2023-06-07 13:28,DiskPressure,billing-worker,warning,22,lena.v,partner notified
+2023-06-07 21:47,SyntheticCheckFailing,feature-flags,warning,30,lena.v,escalated to secondary
+2023-06-08 19:41,RateLimiterSaturation,auth-svc,critical,5,sam.o,ticket filed
+2023-06-09 18:05,HighP95Latency,reporting-api,warning,5,huy.n,auto-resolved
+2023-06-09 23:01,DiskPressure,cron-runner,warning,30,marcus.t,deploy rolled back
+2023-06-10 01:38,PodCrashLooping,feature-flags,critical,3,dana.r,config fix deployed
+2023-06-10 19:32,HighP95Latency,feature-flags,warning,55,sam.o,deploy rolled back
+2023-06-11 12:46,ErrorRateAboveSLO,partner-gateway,critical,8,lena.v,partner notified
+2023-06-12 15:38,BackupMissed,webhook-dispatch,critical,70,huy.n,auto-resolved
+2023-06-13 09:41,SyntheticCheckFailing,feature-flags,warning,8,priya.k,config fix deployed
+2023-06-13 23:32,DiskPressure,partner-gateway,warning,41,lena.v,escalated to secondary
+2023-06-14 11:33,BackupMissed,cron-runner,critical,70,dana.r,config fix deployed
+2023-06-15 00:24,BackupMissed,edge-proxy,critical,70,dana.r,scaled up replicas
+2023-06-15 07:12,PodCrashLooping,webhook-dispatch,critical,130,priya.k,config fix deployed
+2023-06-15 22:18,SyntheticCheckFailing,payments-api,warning,55,priya.k,false positive - tuned threshold
+2023-06-16 01:16,DiskPressure,billing-worker,warning,130,marcus.t,deploy rolled back
+2023-06-18 18:22,ReplicationLagHigh,notification-svc,warning,8,dana.r,escalated to secondary
+2023-06-19 01:31,DiskPressure,cron-runner,warning,70,sam.o,silenced during maintenance
+2023-06-19 11:35,CertExpiresSoon,search-indexer,info,30,priya.k,escalated to secondary
+2023-06-19 17:18,QueueDepthGrowing,partner-gateway,warning,12,sam.o,silenced during maintenance
+2023-06-20 05:28,PodCrashLooping,feature-flags,critical,70,sam.o,escalated to secondary
+2023-06-21 04:44,DiskPressure,auth-svc,warning,15,priya.k,config fix deployed
+2023-06-21 13:39,RateLimiterSaturation,search-indexer,critical,130,priya.k,escalated to secondary
+2023-06-21 21:31,QueueDepthGrowing,search-indexer,warning,41,marcus.t,config fix deployed
+2023-06-22 02:34,RedisMemoryHigh,webhook-dispatch,warning,95,marcus.t,partner notified
+2023-06-22 13:36,DiskPressure,feature-flags,warning,8,lena.v,false positive - tuned threshold
+2023-06-23 06:29,CertExpiresSoon,payments-api,info,12,priya.k,scaled up replicas
+2023-06-23 09:39,SyntheticCheckFailing,notification-svc,warning,70,lena.v,runbook applied
+2023-06-23 23:01,RedisMemoryHigh,partner-gateway,warning,3,priya.k,runbook applied
+2023-06-24 23:44,SyntheticCheckFailing,rate-limiter,warning,70,marcus.t,runbook applied
+2023-06-25 07:51,SyntheticCheckFailing,reporting-api,warning,70,priya.k,deploy rolled back
+2023-06-26 05:03,RateLimiterSaturation,notification-svc,critical,95,sam.o,scaled up replicas
+2023-06-26 16:29,PodCrashLooping,notification-svc,critical,55,dana.r,silenced during maintenance
+2023-06-26 16:31,OOMKilled,search-indexer,critical,130,marcus.t,config fix deployed
+2023-06-27 19:42,SyntheticCheckFailing,webhook-dispatch,warning,22,huy.n,ticket filed
+2023-06-30 17:15,OOMKilled,payments-api,critical,95,huy.n,auto-resolved
+2023-06-30 18:25,ErrorRateAboveSLO,webhook-dispatch,critical,12,dana.r,auto-resolved
+2023-06-30 18:39,SyntheticCheckFailing,webhook-dispatch,warning,5,sam.o,ticket filed
+2023-07-01 08:34,BackupMissed,reporting-api,critical,3,priya.k,runbook applied
+2023-07-01 12:10,PodCrashLooping,reporting-api,critical,30,dana.r,silenced during maintenance
+2023-07-02 06:56,QueueDepthGrowing,edge-proxy,warning,5,marcus.t,scaled up replicas
+2023-07-03 03:49,RedisMemoryHigh,rate-limiter,warning,130,priya.k,partner notified
+2023-07-03 07:41,PodCrashLooping,partner-gateway,critical,5,marcus.t,false positive - tuned threshold
+2023-07-03 13:23,DiskPressure,notification-svc,warning,41,marcus.t,runbook applied
+2023-07-04 10:10,HighP95Latency,auth-svc,warning,95,priya.k,auto-resolved
+2023-07-05 01:21,OOMKilled,partner-gateway,critical,3,marcus.t,runbook applied
+2023-07-05 07:13,QueueDepthGrowing,rate-limiter,warning,8,huy.n,partner notified
+2023-07-06 09:22,RedisMemoryHigh,feature-flags,warning,70,marcus.t,config fix deployed
+2023-07-06 14:11,HighP95Latency,payments-api,warning,41,huy.n,deploy rolled back
+2023-07-07 11:09,SyntheticCheckFailing,search-indexer,warning,22,huy.n,deploy rolled back
+2023-07-07 11:28,OOMKilled,partner-gateway,critical,41,marcus.t,scaled up replicas
+2023-07-08 01:55,OOMKilled,search-indexer,critical,95,sam.o,auto-resolved
+2023-07-08 07:10,RedisMemoryHigh,reporting-api,warning,22,priya.k,deploy rolled back
+2023-07-08 09:05,OOMKilled,webhook-dispatch,critical,70,huy.n,scaled up replicas
+2023-07-09 01:31,BackupMissed,feature-flags,critical,8,dana.r,partner notified
+2023-07-10 18:03,ReplicationLagHigh,reporting-api,warning,41,sam.o,false positive - tuned threshold
+2023-07-10 21:43,RedisMemoryHigh,edge-proxy,warning,15,dana.r,false positive - tuned threshold
+2023-07-11 04:15,CertExpiresSoon,edge-proxy,info,41,sam.o,ticket filed
+2023-07-11 05:40,ErrorRateAboveSLO,partner-gateway,critical,70,dana.r,ticket filed
+2023-07-11 21:29,RateLimiterSaturation,edge-proxy,critical,8,lena.v,silenced during maintenance
+2023-07-12 00:45,ErrorRateAboveSLO,cron-runner,critical,3,lena.v,silenced during maintenance
+2023-07-12 23:32,SyntheticCheckFailing,billing-worker,warning,55,dana.r,config fix deployed
+2023-07-13 07:24,CertExpiresSoon,billing-worker,info,70,huy.n,config fix deployed
+2023-07-13 08:00,PodCrashLooping,notification-svc,critical,30,dana.r,scaled up replicas
+2023-07-13 15:25,RateLimiterSaturation,auth-svc,critical,30,priya.k,false positive - tuned threshold
+2023-07-14 03:29,QueueDepthGrowing,cron-runner,warning,15,dana.r,auto-resolved
+2023-07-14 16:08,CertExpiresSoon,edge-proxy,info,15,sam.o,config fix deployed
+2023-07-15 02:59,SyntheticCheckFailing,cron-runner,warning,95,huy.n,auto-resolved
+2023-07-16 09:16,DiskPressure,payments-api,warning,5,dana.r,scaled up replicas
+2023-07-17 11:12,ErrorRateAboveSLO,edge-proxy,critical,70,sam.o,partner notified
+2023-07-17 12:18,QueueDepthGrowing,feature-flags,warning,5,priya.k,auto-resolved
+2023-07-18 05:05,SyntheticCheckFailing,partner-gateway,warning,22,lena.v,silenced during maintenance
+2023-07-18 22:19,DiskPressure,billing-worker,warning,12,huy.n,runbook applied
+2023-07-19 18:09,OOMKilled,auth-svc,critical,30,marcus.t,partner notified
+2023-07-20 08:17,RedisMemoryHigh,auth-svc,warning,5,priya.k,ticket filed
+2023-07-20 12:31,RateLimiterSaturation,feature-flags,critical,41,huy.n,escalated to secondary
+2023-07-20 14:52,HighP95Latency,auth-svc,warning,70,marcus.t,escalated to secondary
+2023-07-21 10:17,RedisMemoryHigh,edge-proxy,warning,55,marcus.t,config fix deployed
+2023-07-21 18:35,QueueDepthGrowing,feature-flags,warning,55,priya.k,runbook applied
+2023-07-21 18:48,ErrorRateAboveSLO,webhook-dispatch,critical,12,sam.o,ticket filed
+2023-07-22 03:36,SyntheticCheckFailing,billing-worker,warning,95,lena.v,false positive - tuned threshold
+2023-07-22 07:53,CertExpiresSoon,billing-worker,info,22,huy.n,deploy rolled back
+2023-07-23 07:55,RedisMemoryHigh,payments-api,warning,5,dana.r,partner notified
+2023-07-23 10:36,CertExpiresSoon,webhook-dispatch,info,15,marcus.t,deploy rolled back
+2023-07-23 11:08,BackupMissed,feature-flags,critical,70,huy.n,silenced during maintenance
+2023-07-24 10:31,RateLimiterSaturation,feature-flags,critical,95,priya.k,partner notified
+2023-07-26 00:52,SyntheticCheckFailing,webhook-dispatch,warning,5,priya.k,auto-resolved
+2023-07-26 06:42,RedisMemoryHigh,reporting-api,warning,70,lena.v,escalated to secondary
+2023-07-26 23:21,OOMKilled,cron-runner,critical,12,lena.v,deploy rolled back
+2023-07-27 02:11,DiskPressure,edge-proxy,warning,22,marcus.t,runbook applied
+2023-07-27 03:57,QueueDepthGrowing,rate-limiter,warning,30,sam.o,scaled up replicas
+2023-07-27 23:28,BackupMissed,partner-gateway,critical,15,dana.r,escalated to secondary
+2023-07-28 13:42,DiskPressure,search-indexer,warning,55,priya.k,escalated to secondary
+2023-07-28 18:30,RateLimiterSaturation,edge-proxy,critical,12,huy.n,scaled up replicas
+2023-07-29 08:33,ErrorRateAboveSLO,auth-svc,critical,5,sam.o,silenced during maintenance
+2023-07-30 09:36,CertExpiresSoon,notification-svc,info,130,sam.o,false positive - tuned threshold
+2023-07-30 11:05,RateLimiterSaturation,partner-gateway,critical,70,sam.o,runbook applied
+2023-07-31 16:40,CertExpiresSoon,edge-proxy,info,15,sam.o,scaled up replicas
+2023-07-31 22:57,ReplicationLagHigh,cron-runner,warning,130,marcus.t,deploy rolled back
+2023-08-01 05:44,OOMKilled,partner-gateway,critical,8,lena.v,auto-resolved
+2023-08-02 10:32,DiskPressure,partner-gateway,warning,70,lena.v,runbook applied
+2023-08-02 16:40,PodCrashLooping,billing-worker,critical,41,marcus.t,runbook applied
+2023-08-03 00:14,OOMKilled,search-indexer,critical,95,marcus.t,partner notified
+2023-08-03 08:25,BackupMissed,edge-proxy,critical,12,priya.k,false positive - tuned threshold
+2023-08-06 20:16,DiskPressure,cron-runner,warning,8,huy.n,false positive - tuned threshold
+2023-08-06 22:56,HighP95Latency,partner-gateway,warning,12,huy.n,escalated to secondary
+2023-08-06 23:17,QueueDepthGrowing,cron-runner,warning,55,sam.o,partner notified
+2023-08-07 04:32,RedisMemoryHigh,rate-limiter,warning,41,marcus.t,scaled up replicas
+2023-08-07 06:56,PodCrashLooping,auth-svc,critical,22,lena.v,escalated to secondary
+2023-08-07 11:36,RateLimiterSaturation,auth-svc,critical,70,huy.n,escalated to secondary
+2023-08-08 00:12,ErrorRateAboveSLO,edge-proxy,critical,12,sam.o,partner notified
+2023-08-08 23:49,RedisMemoryHigh,search-indexer,warning,130,sam.o,ticket filed
+2023-08-09 20:45,OOMKilled,partner-gateway,critical,41,dana.r,deploy rolled back
+2023-08-10 23:51,BackupMissed,search-indexer,critical,30,priya.k,auto-resolved
+2023-08-12 01:19,RedisMemoryHigh,reporting-api,warning,15,sam.o,partner notified
+2023-08-12 18:59,ReplicationLagHigh,cron-runner,warning,15,sam.o,ticket filed
+2023-08-13 15:09,DiskPressure,notification-svc,warning,130,marcus.t,silenced during maintenance
+2023-08-13 19:49,DiskPressure,cron-runner,warning,95,huy.n,scaled up replicas
+2023-08-14 10:47,QueueDepthGrowing,partner-gateway,warning,15,dana.r,silenced during maintenance
+2023-08-14 12:27,CertExpiresSoon,rate-limiter,info,8,sam.o,runbook applied
+2023-08-15 22:14,DiskPressure,feature-flags,warning,15,priya.k,partner notified
+2023-08-15 22:30,BackupMissed,partner-gateway,critical,41,priya.k,deploy rolled back
+2023-08-16 05:59,SyntheticCheckFailing,payments-api,warning,95,dana.r,runbook applied
+2023-08-17 01:26,OOMKilled,rate-limiter,critical,12,lena.v,config fix deployed
+2023-08-17 07:50,ErrorRateAboveSLO,feature-flags,critical,22,dana.r,scaled up replicas
+2023-08-17 22:30,RateLimiterSaturation,feature-flags,critical,12,marcus.t,escalated to secondary
+2023-08-18 13:08,BackupMissed,billing-worker,critical,12,priya.k,ticket filed
+2023-08-18 18:14,CertExpiresSoon,auth-svc,info,12,marcus.t,ticket filed
+2023-08-19 15:28,RedisMemoryHigh,payments-api,warning,15,sam.o,deploy rolled back
+2023-08-21 07:07,OOMKilled,rate-limiter,critical,30,lena.v,runbook applied
+2023-08-21 07:41,BackupMissed,auth-svc,critical,41,dana.r,scaled up replicas
+2023-08-21 13:13,RateLimiterSaturation,search-indexer,critical,15,marcus.t,scaled up replicas
+2023-08-22 07:58,CertExpiresSoon,search-indexer,info,95,huy.n,auto-resolved
+2023-08-22 19:18,HighP95Latency,notification-svc,warning,130,priya.k,scaled up replicas
+2023-08-23 14:39,ErrorRateAboveSLO,feature-flags,critical,70,huy.n,escalated to secondary
+2023-08-23 23:34,DiskPressure,cron-runner,warning,55,dana.r,ticket filed
+2023-08-26 22:03,QueueDepthGrowing,billing-worker,warning,30,dana.r,auto-resolved
+2023-08-27 08:19,DiskPressure,rate-limiter,warning,30,marcus.t,silenced during maintenance
+2023-08-27 12:22,BackupMissed,billing-worker,critical,5,lena.v,silenced during maintenance
+2023-08-29 07:38,RateLimiterSaturation,edge-proxy,critical,41,marcus.t,false positive - tuned threshold
+2023-08-29 12:24,PodCrashLooping,feature-flags,critical,12,huy.n,scaled up replicas
+2023-08-30 02:30,ReplicationLagHigh,partner-gateway,warning,30,priya.k,deploy rolled back
+2023-08-31 09:45,OOMKilled,rate-limiter,critical,30,priya.k,ticket filed
+2023-08-31 16:28,QueueDepthGrowing,partner-gateway,warning,41,lena.v,partner notified
+2023-09-01 18:50,HighP95Latency,auth-svc,warning,95,marcus.t,auto-resolved
+2023-09-01 19:30,BackupMissed,partner-gateway,critical,95,priya.k,config fix deployed
+2023-09-02 07:56,BackupMissed,rate-limiter,critical,41,dana.r,auto-resolved
+2023-09-02 14:34,QueueDepthGrowing,webhook-dispatch,warning,12,lena.v,deploy rolled back
+2023-09-03 07:34,SyntheticCheckFailing,edge-proxy,warning,3,huy.n,false positive - tuned threshold
+2023-09-08 03:40,QueueDepthGrowing,search-indexer,warning,12,priya.k,auto-resolved
+2023-09-08 07:39,PodCrashLooping,partner-gateway,critical,22,sam.o,false positive - tuned threshold
+2023-09-08 14:36,SyntheticCheckFailing,search-indexer,warning,22,marcus.t,runbook applied
+2023-09-09 15:11,QueueDepthGrowing,notification-svc,warning,30,sam.o,partner notified
+2023-09-09 19:51,HighP95Latency,payments-api,warning,22,dana.r,escalated to secondary
+2023-09-10 05:48,BackupMissed,cron-runner,critical,70,dana.r,deploy rolled back
+2023-09-10 16:18,HighP95Latency,rate-limiter,warning,8,dana.r,auto-resolved
+2023-09-10 16:38,RateLimiterSaturation,notification-svc,critical,30,priya.k,escalated to secondary
+2023-09-11 02:49,RedisMemoryHigh,notification-svc,warning,3,priya.k,partner notified
+2023-09-11 10:50,OOMKilled,auth-svc,critical,55,priya.k,silenced during maintenance
+2023-09-11 22:08,HighP95Latency,reporting-api,warning,8,sam.o,partner notified
+2023-09-12 17:59,QueueDepthGrowing,cron-runner,warning,15,priya.k,escalated to secondary
+2023-09-14 04:15,SyntheticCheckFailing,billing-worker,warning,15,dana.r,false positive - tuned threshold
+2023-09-15 02:48,OOMKilled,billing-worker,critical,130,dana.r,deploy rolled back
+2023-09-16 17:33,ErrorRateAboveSLO,partner-gateway,critical,130,dana.r,false positive - tuned threshold
+2023-09-17 09:31,RedisMemoryHigh,payments-api,warning,3,sam.o,false positive - tuned threshold
+2023-09-17 19:48,DiskPressure,auth-svc,warning,70,lena.v,silenced during maintenance
+2023-09-19 23:32,QueueDepthGrowing,search-indexer,warning,70,priya.k,runbook applied
+2023-09-20 22:22,SyntheticCheckFailing,partner-gateway,warning,30,marcus.t,silenced during maintenance
+2023-09-21 03:03,RedisMemoryHigh,notification-svc,warning,8,lena.v,auto-resolved
+2023-09-21 15:18,ErrorRateAboveSLO,reporting-api,critical,22,lena.v,ticket filed
+2023-09-21 23:12,OOMKilled,billing-worker,critical,22,lena.v,silenced during maintenance
+2023-09-22 10:38,RedisMemoryHigh,feature-flags,warning,130,marcus.t,escalated to secondary
+2023-09-23 10:32,DiskPressure,reporting-api,warning,95,dana.r,silenced during maintenance
+2023-09-23 19:09,HighP95Latency,search-indexer,warning,3,sam.o,deploy rolled back
+2023-09-24 11:54,HighP95Latency,rate-limiter,warning,12,dana.r,runbook applied
+2023-09-24 19:46,OOMKilled,rate-limiter,critical,30,lena.v,false positive - tuned threshold
+2023-09-25 02:48,ErrorRateAboveSLO,rate-limiter,critical,130,dana.r,escalated to secondary
+2023-09-25 17:08,SyntheticCheckFailing,payments-api,warning,22,dana.r,auto-resolved
+2023-09-26 00:44,OOMKilled,search-indexer,critical,41,dana.r,scaled up replicas
+2023-09-26 03:03,RedisMemoryHigh,webhook-dispatch,warning,30,priya.k,config fix deployed
+2023-09-26 04:57,CertExpiresSoon,cron-runner,info,8,priya.k,escalated to secondary
+2023-09-28 15:29,OOMKilled,webhook-dispatch,critical,55,priya.k,silenced during maintenance
+2023-09-30 10:28,QueueDepthGrowing,payments-api,warning,95,sam.o,false positive - tuned threshold
+2023-09-30 14:27,ErrorRateAboveSLO,payments-api,critical,30,sam.o,auto-resolved
+2023-09-30 22:21,CertExpiresSoon,cron-runner,info,12,sam.o,false positive - tuned threshold
+2023-10-01 14:27,CertExpiresSoon,partner-gateway,info,3,sam.o,partner notified
+2023-10-03 19:00,HighP95Latency,search-indexer,warning,130,dana.r,silenced during maintenance
+2023-10-04 08:11,SyntheticCheckFailing,reporting-api,warning,30,marcus.t,runbook applied
+2023-10-06 01:51,QueueDepthGrowing,webhook-dispatch,warning,22,marcus.t,false positive - tuned threshold
+2023-10-06 08:18,ReplicationLagHigh,rate-limiter,warning,3,sam.o,escalated to secondary
+2023-10-06 19:02,BackupMissed,webhook-dispatch,critical,5,sam.o,ticket filed
+2023-10-07 13:51,ErrorRateAboveSLO,partner-gateway,critical,8,sam.o,escalated to secondary
+2023-10-07 19:23,RateLimiterSaturation,cron-runner,critical,95,sam.o,runbook applied
+2023-10-08 11:03,HighP95Latency,payments-api,warning,15,marcus.t,config fix deployed
+2023-10-08 20:14,HighP95Latency,payments-api,warning,41,dana.r,silenced during maintenance
+2023-10-09 02:17,RedisMemoryHigh,auth-svc,warning,70,marcus.t,false positive - tuned threshold
+2023-10-09 08:42,BackupMissed,billing-worker,critical,12,dana.r,partner notified
+2023-10-09 15:59,DiskPressure,feature-flags,warning,12,dana.r,silenced during maintenance
+2023-10-10 03:13,ErrorRateAboveSLO,feature-flags,critical,8,priya.k,false positive - tuned threshold
+2023-10-10 04:25,RedisMemoryHigh,feature-flags,warning,95,marcus.t,deploy rolled back
+2023-10-11 21:26,SyntheticCheckFailing,edge-proxy,warning,5,dana.r,partner notified
+2023-10-12 00:06,QueueDepthGrowing,feature-flags,warning,41,marcus.t,scaled up replicas
+2023-10-12 07:06,DiskPressure,reporting-api,warning,70,marcus.t,false positive - tuned threshold
+2023-10-12 23:02,BackupMissed,webhook-dispatch,critical,70,sam.o,ticket filed
+2023-10-13 17:16,HighP95Latency,auth-svc,warning,3,huy.n,partner notified
+2023-10-14 01:47,OOMKilled,webhook-dispatch,critical,5,sam.o,partner notified
+2023-10-14 05:55,DiskPressure,webhook-dispatch,warning,70,marcus.t,ticket filed
+2023-10-14 12:55,OOMKilled,billing-worker,critical,15,marcus.t,silenced during maintenance
+2023-10-15 15:09,ReplicationLagHigh,feature-flags,warning,12,sam.o,config fix deployed
+2023-10-16 07:38,SyntheticCheckFailing,billing-worker,warning,130,sam.o,escalated to secondary
+2023-10-16 13:52,HighP95Latency,partner-gateway,warning,15,dana.r,deploy rolled back
+2023-10-16 18:35,QueueDepthGrowing,partner-gateway,warning,130,priya.k,escalated to secondary
+2023-10-17 18:59,QueueDepthGrowing,payments-api,warning,41,priya.k,deploy rolled back
+2023-10-17 21:00,QueueDepthGrowing,billing-worker,warning,5,priya.k,partner notified
+2023-10-17 21:20,ReplicationLagHigh,reporting-api,warning,15,marcus.t,auto-resolved
+2023-10-18 21:35,ReplicationLagHigh,cron-runner,warning,70,huy.n,escalated to secondary
+2023-10-19 08:31,RedisMemoryHigh,webhook-dispatch,warning,8,dana.r,silenced during maintenance
+2023-10-19 19:47,ReplicationLagHigh,payments-api,warning,3,sam.o,ticket filed
+2023-10-20 01:06,ReplicationLagHigh,rate-limiter,warning,3,priya.k,runbook applied
+2023-10-20 07:37,HighP95Latency,edge-proxy,warning,55,marcus.t,runbook applied
+2023-10-22 00:07,PodCrashLooping,feature-flags,critical,41,marcus.t,scaled up replicas
+2023-10-23 00:17,HighP95Latency,payments-api,warning,30,sam.o,deploy rolled back
+2023-10-23 21:25,ReplicationLagHigh,rate-limiter,warning,8,sam.o,config fix deployed
+2023-10-24 05:07,BackupMissed,edge-proxy,critical,3,priya.k,partner notified
+2023-10-24 08:45,RedisMemoryHigh,auth-svc,warning,30,priya.k,ticket filed
+2023-10-24 12:25,RedisMemoryHigh,auth-svc,warning,55,marcus.t,silenced during maintenance
+2023-10-25 01:52,ErrorRateAboveSLO,billing-worker,critical,8,lena.v,config fix deployed
+2023-10-25 14:50,DiskPressure,webhook-dispatch,warning,130,lena.v,false positive - tuned threshold
+2023-10-25 15:44,QueueDepthGrowing,partner-gateway,warning,95,dana.r,escalated to secondary
+2023-10-26 14:18,PodCrashLooping,payments-api,critical,70,dana.r,silenced during maintenance
+2023-10-26 21:46,PodCrashLooping,notification-svc,critical,8,marcus.t,runbook applied
+2023-10-27 04:10,RateLimiterSaturation,rate-limiter,critical,5,dana.r,ticket filed
+2023-10-27 04:33,CertExpiresSoon,payments-api,info,3,priya.k,false positive - tuned threshold
+2023-10-28 11:53,SyntheticCheckFailing,auth-svc,warning,70,marcus.t,ticket filed
+2023-10-28 22:36,HighP95Latency,reporting-api,warning,5,priya.k,config fix deployed
+2023-10-29 21:27,ErrorRateAboveSLO,feature-flags,critical,15,sam.o,runbook applied
+2023-10-30 23:10,ReplicationLagHigh,auth-svc,warning,8,priya.k,scaled up replicas
+2023-10-31 07:39,DiskPressure,feature-flags,warning,22,dana.r,escalated to secondary
+2023-10-31 17:33,ReplicationLagHigh,payments-api,warning,12,marcus.t,escalated to secondary
+2023-11-02 05:12,DiskPressure,feature-flags,warning,5,priya.k,scaled up replicas
+2023-11-03 00:11,PodCrashLooping,feature-flags,critical,130,marcus.t,scaled up replicas
+2023-11-03 19:04,DiskPressure,search-indexer,warning,5,priya.k,auto-resolved
+2023-11-04 00:28,PodCrashLooping,billing-worker,critical,5,dana.r,false positive - tuned threshold
+2023-11-04 19:39,OOMKilled,feature-flags,critical,70,sam.o,partner notified
+2023-11-05 12:59,ErrorRateAboveSLO,webhook-dispatch,critical,95,sam.o,config fix deployed
+2023-11-06 02:22,ErrorRateAboveSLO,notification-svc,critical,130,sam.o,auto-resolved
+2023-11-07 06:01,RedisMemoryHigh,rate-limiter,warning,3,huy.n,scaled up replicas
+2023-11-07 17:22,HighP95Latency,feature-flags,warning,70,lena.v,deploy rolled back
+2023-11-08 00:30,HighP95Latency,billing-worker,warning,15,priya.k,scaled up replicas
+2023-11-08 08:21,QueueDepthGrowing,edge-proxy,warning,30,huy.n,escalated to secondary
+2023-11-08 20:10,RedisMemoryHigh,notification-svc,warning,22,sam.o,escalated to secondary
+2023-11-10 06:40,BackupMissed,partner-gateway,critical,55,sam.o,auto-resolved
+2023-11-10 18:44,RateLimiterSaturation,search-indexer,critical,15,sam.o,false positive - tuned threshold
+2023-11-12 01:42,HighP95Latency,reporting-api,warning,3,priya.k,ticket filed
+2023-11-12 09:32,DiskPressure,rate-limiter,warning,22,dana.r,deploy rolled back
+2023-11-12 16:42,ErrorRateAboveSLO,billing-worker,critical,70,lena.v,config fix deployed
+2023-11-13 06:02,RedisMemoryHigh,billing-worker,warning,15,sam.o,auto-resolved
+2023-11-13 12:46,ErrorRateAboveSLO,search-indexer,critical,22,huy.n,auto-resolved
+2023-11-13 18:06,SyntheticCheckFailing,search-indexer,warning,130,priya.k,silenced during maintenance
+2023-11-14 04:21,HighP95Latency,auth-svc,warning,95,sam.o,config fix deployed
+2023-11-15 04:56,BackupMissed,edge-proxy,critical,55,dana.r,escalated to secondary
+2023-11-15 11:27,ReplicationLagHigh,notification-svc,warning,8,huy.n,auto-resolved
+2023-11-15 21:20,RateLimiterSaturation,payments-api,critical,22,dana.r,scaled up replicas
+2023-11-16 05:13,DiskPressure,payments-api,warning,130,huy.n,runbook applied
+2023-11-16 17:19,PodCrashLooping,auth-svc,critical,41,sam.o,deploy rolled back
+2023-11-17 00:28,ErrorRateAboveSLO,search-indexer,critical,15,lena.v,auto-resolved
+2023-11-17 07:22,DiskPressure,payments-api,warning,30,lena.v,escalated to secondary
+2023-11-18 19:40,QueueDepthGrowing,cron-runner,warning,30,huy.n,escalated to secondary
+2023-11-18 21:49,ReplicationLagHigh,notification-svc,warning,130,huy.n,deploy rolled back
+2023-11-19 11:48,PodCrashLooping,reporting-api,critical,130,huy.n,escalated to secondary
+2023-11-19 22:56,PodCrashLooping,payments-api,critical,22,huy.n,false positive - tuned threshold
+2023-11-20 15:06,RedisMemoryHigh,partner-gateway,warning,3,lena.v,silenced during maintenance
+2023-11-20 18:41,CertExpiresSoon,webhook-dispatch,info,3,lena.v,escalated to secondary
+2023-11-21 23:20,QueueDepthGrowing,partner-gateway,warning,8,lena.v,auto-resolved
+2023-11-22 01:55,DiskPressure,rate-limiter,warning,55,marcus.t,false positive - tuned threshold
+2023-11-23 18:12,SyntheticCheckFailing,billing-worker,warning,3,huy.n,ticket filed
+2023-11-24 02:15,RedisMemoryHigh,edge-proxy,warning,8,marcus.t,config fix deployed
+2023-11-24 23:07,RateLimiterSaturation,edge-proxy,critical,8,huy.n,scaled up replicas
+2023-11-27 06:33,BackupMissed,rate-limiter,critical,95,priya.k,scaled up replicas
+2023-11-27 08:31,RateLimiterSaturation,rate-limiter,critical,70,sam.o,runbook applied
+2023-11-29 04:00,ReplicationLagHigh,webhook-dispatch,warning,30,dana.r,config fix deployed
+2023-11-29 15:12,PodCrashLooping,auth-svc,critical,22,lena.v,auto-resolved
+2023-11-29 22:11,BackupMissed,payments-api,critical,15,priya.k,config fix deployed
+2023-11-30 04:34,PodCrashLooping,billing-worker,critical,95,sam.o,config fix deployed
+2023-11-30 16:33,QueueDepthGrowing,payments-api,warning,70,dana.r,scaled up replicas
+2023-12-01 03:57,CertExpiresSoon,rate-limiter,info,70,dana.r,runbook applied
+2023-12-01 09:17,PodCrashLooping,feature-flags,critical,95,huy.n,deploy rolled back
+2023-12-02 01:16,RedisMemoryHigh,billing-worker,warning,8,priya.k,deploy rolled back
+2023-12-02 06:54,BackupMissed,cron-runner,critical,3,dana.r,false positive - tuned threshold
+2023-12-03 03:19,HighP95Latency,reporting-api,warning,3,priya.k,scaled up replicas
+2023-12-03 15:27,OOMKilled,webhook-dispatch,critical,12,dana.r,ticket filed
+2023-12-03 22:36,ErrorRateAboveSLO,edge-proxy,critical,55,sam.o,scaled up replicas
+2023-12-04 20:07,OOMKilled,feature-flags,critical,30,priya.k,partner notified
+2023-12-04 21:54,CertExpiresSoon,billing-worker,info,130,marcus.t,config fix deployed
+2023-12-05 02:09,QueueDepthGrowing,reporting-api,warning,95,huy.n,runbook applied
+2023-12-05 04:16,OOMKilled,notification-svc,critical,41,priya.k,config fix deployed
+2023-12-05 09:09,BackupMissed,payments-api,critical,70,sam.o,config fix deployed
+2023-12-06 15:09,ReplicationLagHigh,webhook-dispatch,warning,5,dana.r,partner notified
+2023-12-06 21:00,RateLimiterSaturation,billing-worker,critical,41,dana.r,silenced during maintenance
+2023-12-07 14:51,ErrorRateAboveSLO,billing-worker,critical,12,huy.n,config fix deployed
+2023-12-08 01:40,OOMKilled,webhook-dispatch,critical,55,priya.k,false positive - tuned threshold
+2023-12-08 16:07,SyntheticCheckFailing,webhook-dispatch,warning,22,priya.k,scaled up replicas
+2023-12-08 22:24,HighP95Latency,edge-proxy,warning,30,marcus.t,silenced during maintenance
+2023-12-13 01:15,OOMKilled,billing-worker,critical,130,sam.o,false positive - tuned threshold
+2023-12-13 12:11,SyntheticCheckFailing,notification-svc,warning,55,priya.k,config fix deployed
+2023-12-14 03:34,DiskPressure,billing-worker,warning,55,lena.v,scaled up replicas
+2023-12-14 16:42,BackupMissed,auth-svc,critical,130,huy.n,scaled up replicas
+2023-12-14 23:32,RedisMemoryHigh,notification-svc,warning,12,sam.o,config fix deployed
+2023-12-15 11:01,RateLimiterSaturation,rate-limiter,critical,5,priya.k,ticket filed
+2023-12-15 13:57,PodCrashLooping,billing-worker,critical,70,sam.o,silenced during maintenance
+2023-12-16 14:21,RedisMemoryHigh,edge-proxy,warning,95,priya.k,silenced during maintenance
+2023-12-18 05:23,ErrorRateAboveSLO,feature-flags,critical,3,huy.n,partner notified
+2023-12-18 12:32,BackupMissed,feature-flags,critical,30,sam.o,false positive - tuned threshold
+2023-12-18 13:39,ErrorRateAboveSLO,rate-limiter,critical,8,lena.v,runbook applied
+2023-12-19 23:38,RedisMemoryHigh,notification-svc,warning,55,priya.k,silenced during maintenance
+2023-12-20 09:18,HighP95Latency,cron-runner,warning,41,huy.n,deploy rolled back
+2023-12-20 19:32,RateLimiterSaturation,cron-runner,critical,130,marcus.t,silenced during maintenance
+2023-12-21 12:19,ErrorRateAboveSLO,webhook-dispatch,critical,22,sam.o,config fix deployed
+2023-12-21 17:16,PodCrashLooping,partner-gateway,critical,12,lena.v,escalated to secondary
+2023-12-23 06:09,BackupMissed,edge-proxy,critical,95,huy.n,ticket filed
+2023-12-24 12:49,RateLimiterSaturation,feature-flags,critical,55,marcus.t,config fix deployed
+2023-12-25 09:45,BackupMissed,payments-api,critical,130,sam.o,deploy rolled back
+2023-12-25 19:41,CertExpiresSoon,billing-worker,info,130,sam.o,silenced during maintenance
+2023-12-26 10:24,SyntheticCheckFailing,feature-flags,warning,12,dana.r,false positive - tuned threshold
+2023-12-26 12:05,RedisMemoryHigh,billing-worker,warning,30,lena.v,config fix deployed
+2023-12-27 05:43,RateLimiterSaturation,auth-svc,critical,55,marcus.t,deploy rolled back
+2023-12-27 14:48,BackupMissed,notification-svc,critical,22,dana.r,ticket filed
+2023-12-27 20:05,RateLimiterSaturation,payments-api,critical,55,priya.k,config fix deployed
+2023-12-28 17:35,QueueDepthGrowing,feature-flags,warning,70,huy.n,silenced during maintenance
+2023-12-28 17:55,BackupMissed,search-indexer,critical,3,priya.k,escalated to secondary
+2023-12-28 18:15,SyntheticCheckFailing,search-indexer,warning,22,priya.k,false positive - tuned threshold
+2023-12-31 12:56,RateLimiterSaturation,payments-api,critical,70,sam.o,auto-resolved
+2024-01-01 18:03,RateLimiterSaturation,feature-flags,critical,130,sam.o,config fix deployed
+2024-01-01 22:09,DiskPressure,edge-proxy,warning,3,priya.k,config fix deployed
+2024-01-02 17:07,BackupMissed,cron-runner,critical,95,priya.k,false positive - tuned threshold
+2024-01-03 04:28,QueueDepthGrowing,partner-gateway,warning,8,priya.k,partner notified
+2024-01-03 05:59,BackupMissed,edge-proxy,critical,130,priya.k,escalated to secondary
+2024-01-04 18:45,PodCrashLooping,cron-runner,critical,12,marcus.t,scaled up replicas
+2024-01-05 06:58,BackupMissed,search-indexer,critical,3,sam.o,config fix deployed
+2024-01-07 20:13,PodCrashLooping,payments-api,critical,30,huy.n,escalated to secondary
+2024-01-09 03:13,DiskPressure,webhook-dispatch,warning,12,priya.k,false positive - tuned threshold
+2024-01-10 02:53,ReplicationLagHigh,reporting-api,warning,130,marcus.t,ticket filed
+2024-01-11 05:50,HighP95Latency,partner-gateway,warning,5,priya.k,runbook applied
+2024-01-11 14:27,RedisMemoryHigh,notification-svc,warning,41,priya.k,config fix deployed
+2024-01-12 06:22,ReplicationLagHigh,edge-proxy,warning,130,lena.v,ticket filed
+2024-01-13 14:40,OOMKilled,feature-flags,critical,55,dana.r,escalated to secondary
+2024-01-13 17:20,PodCrashLooping,feature-flags,critical,95,priya.k,scaled up replicas
+2024-01-13 23:57,OOMKilled,feature-flags,critical,3,marcus.t,auto-resolved
+2024-01-14 09:46,RedisMemoryHigh,rate-limiter,warning,30,priya.k,partner notified
+2024-01-15 11:28,SyntheticCheckFailing,auth-svc,warning,5,priya.k,deploy rolled back
+2024-01-15 12:44,HighP95Latency,reporting-api,warning,95,priya.k,ticket filed
+2024-01-16 16:17,HighP95Latency,edge-proxy,warning,130,priya.k,auto-resolved
+2024-01-16 17:56,RedisMemoryHigh,notification-svc,warning,95,sam.o,partner notified
+2024-01-17 12:15,RedisMemoryHigh,edge-proxy,warning,41,marcus.t,escalated to secondary
+2024-01-18 11:20,CertExpiresSoon,rate-limiter,info,3,marcus.t,scaled up replicas
+2024-01-18 20:16,CertExpiresSoon,reporting-api,info,95,priya.k,escalated to secondary
+2024-01-19 06:28,SyntheticCheckFailing,rate-limiter,warning,8,marcus.t,scaled up replicas
+2024-01-19 18:00,OOMKilled,partner-gateway,critical,130,sam.o,ticket filed
+2024-01-20 06:57,SyntheticCheckFailing,cron-runner,warning,70,priya.k,scaled up replicas
+2024-01-20 16:45,RateLimiterSaturation,feature-flags,critical,41,priya.k,silenced during maintenance
+2024-01-22 09:30,HighP95Latency,auth-svc,warning,95,marcus.t,false positive - tuned threshold
+2024-01-22 16:51,PodCrashLooping,reporting-api,critical,22,huy.n,escalated to secondary
+2024-01-23 18:51,ReplicationLagHigh,reporting-api,warning,55,lena.v,scaled up replicas
+2024-01-23 20:57,ErrorRateAboveSLO,search-indexer,critical,70,dana.r,config fix deployed
+2024-01-25 07:00,ReplicationLagHigh,feature-flags,warning,15,lena.v,ticket filed
+2024-01-27 14:14,PodCrashLooping,webhook-dispatch,critical,41,dana.r,runbook applied
+2024-01-28 01:40,QueueDepthGrowing,feature-flags,warning,8,sam.o,config fix deployed
+2024-01-28 05:58,RedisMemoryHigh,webhook-dispatch,warning,95,priya.k,ticket filed
+2024-01-28 10:21,BackupMissed,webhook-dispatch,critical,5,priya.k,runbook applied
+2024-01-29 16:37,RedisMemoryHigh,edge-proxy,warning,55,huy.n,false positive - tuned threshold
+2024-01-30 01:15,SyntheticCheckFailing,search-indexer,warning,22,sam.o,escalated to secondary
+2024-01-30 14:02,RedisMemoryHigh,billing-worker,warning,55,huy.n,silenced during maintenance
+2024-01-31 06:28,CertExpiresSoon,feature-flags,info,130,dana.r,false positive - tuned threshold
+2024-01-31 14:15,DiskPressure,auth-svc,warning,22,dana.r,config fix deployed
+2024-01-31 19:32,SyntheticCheckFailing,reporting-api,warning,130,priya.k,deploy rolled back
+2024-02-01 05:33,DiskPressure,payments-api,warning,130,lena.v,config fix deployed
+2024-02-01 12:51,PodCrashLooping,feature-flags,critical,22,dana.r,false positive - tuned threshold
+2024-02-01 20:25,OOMKilled,payments-api,critical,30,lena.v,config fix deployed
+2024-02-02 01:51,QueueDepthGrowing,rate-limiter,warning,12,huy.n,auto-resolved
+2024-02-02 15:13,RateLimiterSaturation,notification-svc,critical,55,huy.n,false positive - tuned threshold
+2024-02-03 04:15,OOMKilled,reporting-api,critical,30,priya.k,config fix deployed
+2024-02-03 13:05,RateLimiterSaturation,billing-worker,critical,15,dana.r,auto-resolved
+2024-02-04 22:06,ReplicationLagHigh,feature-flags,warning,95,lena.v,auto-resolved
+2024-02-05 15:54,RateLimiterSaturation,billing-worker,critical,30,huy.n,silenced during maintenance
+2024-02-05 16:40,QueueDepthGrowing,auth-svc,warning,95,lena.v,partner notified
+2024-02-06 16:14,OOMKilled,auth-svc,critical,3,dana.r,deploy rolled back
+2024-02-07 21:16,ErrorRateAboveSLO,search-indexer,critical,130,sam.o,auto-resolved
+2024-02-08 15:03,RedisMemoryHigh,cron-runner,warning,95,lena.v,false positive - tuned threshold
+2024-02-08 19:57,QueueDepthGrowing,rate-limiter,warning,15,sam.o,ticket filed
+2024-02-09 10:19,OOMKilled,partner-gateway,critical,22,priya.k,false positive - tuned threshold
+2024-02-09 19:56,HighP95Latency,notification-svc,warning,30,lena.v,scaled up replicas
+2024-02-10 17:29,DiskPressure,cron-runner,warning,30,marcus.t,deploy rolled back
+2024-02-10 21:11,BackupMissed,billing-worker,critical,8,marcus.t,scaled up replicas
+2024-02-11 00:11,RateLimiterSaturation,edge-proxy,critical,95,priya.k,ticket filed
+2024-02-11 08:41,BackupMissed,partner-gateway,critical,95,lena.v,auto-resolved
+2024-02-12 07:20,PodCrashLooping,notification-svc,critical,22,lena.v,auto-resolved
+2024-02-12 09:21,RateLimiterSaturation,feature-flags,critical,22,lena.v,config fix deployed
+2024-02-13 05:25,PodCrashLooping,webhook-dispatch,critical,5,marcus.t,partner notified
+2024-02-14 07:36,QueueDepthGrowing,webhook-dispatch,warning,15,huy.n,ticket filed
+2024-02-15 04:26,ReplicationLagHigh,search-indexer,warning,70,dana.r,auto-resolved
+2024-02-15 07:00,DiskPressure,billing-worker,warning,22,lena.v,config fix deployed
+2024-02-15 23:20,QueueDepthGrowing,payments-api,warning,8,dana.r,auto-resolved
+2024-02-16 01:41,BackupMissed,rate-limiter,critical,95,priya.k,escalated to secondary
+2024-02-16 07:56,BackupMissed,edge-proxy,critical,22,sam.o,scaled up replicas
+2024-02-17 21:52,QueueDepthGrowing,search-indexer,warning,5,lena.v,false positive - tuned threshold
+2024-02-18 13:19,ReplicationLagHigh,payments-api,warning,95,dana.r,escalated to secondary
+2024-02-19 04:09,PodCrashLooping,webhook-dispatch,critical,12,marcus.t,escalated to secondary
+2024-02-19 10:24,DiskPressure,feature-flags,warning,95,priya.k,scaled up replicas
+2024-02-21 23:31,RedisMemoryHigh,webhook-dispatch,warning,95,lena.v,silenced during maintenance
+2024-02-22 15:12,SyntheticCheckFailing,feature-flags,warning,15,lena.v,auto-resolved
+2024-02-23 11:08,RedisMemoryHigh,notification-svc,warning,8,priya.k,partner notified
+2024-02-23 17:27,ErrorRateAboveSLO,webhook-dispatch,critical,15,sam.o,escalated to secondary
+2024-02-24 10:26,ErrorRateAboveSLO,notification-svc,critical,8,marcus.t,auto-resolved
+2024-02-24 22:46,DiskPressure,auth-svc,warning,30,huy.n,runbook applied
+2024-02-25 09:26,HighP95Latency,billing-worker,warning,30,dana.r,auto-resolved
+2024-02-25 21:27,RedisMemoryHigh,cron-runner,warning,3,dana.r,false positive - tuned threshold
+2024-02-26 00:09,DiskPressure,feature-flags,warning,95,lena.v,scaled up replicas
+2024-02-26 03:34,OOMKilled,auth-svc,critical,41,huy.n,runbook applied
+2024-02-26 07:43,RateLimiterSaturation,cron-runner,critical,15,sam.o,deploy rolled back
+2024-02-27 05:02,HighP95Latency,auth-svc,warning,22,priya.k,partner notified
+2024-02-27 10:23,ErrorRateAboveSLO,edge-proxy,critical,41,huy.n,auto-resolved
+2024-02-28 00:40,RateLimiterSaturation,webhook-dispatch,critical,55,lena.v,deploy rolled back
+2024-02-28 22:23,ErrorRateAboveSLO,payments-api,critical,95,priya.k,config fix deployed
+2024-03-01 03:18,RateLimiterSaturation,billing-worker,critical,95,sam.o,scaled up replicas
+2024-03-01 13:32,RateLimiterSaturation,reporting-api,critical,30,sam.o,escalated to secondary
+2024-03-04 07:58,HighP95Latency,payments-api,warning,3,sam.o,partner notified
+2024-03-05 08:16,DiskPressure,billing-worker,warning,30,huy.n,ticket filed
+2024-03-06 13:25,RateLimiterSaturation,cron-runner,critical,5,huy.n,false positive - tuned threshold
+2024-03-07 19:08,DiskPressure,auth-svc,warning,12,marcus.t,runbook applied
+2024-03-07 22:43,RedisMemoryHigh,payments-api,warning,5,marcus.t,config fix deployed
+2024-03-08 00:28,SyntheticCheckFailing,feature-flags,warning,8,dana.r,deploy rolled back
+2024-03-09 05:47,OOMKilled,feature-flags,critical,41,priya.k,silenced during maintenance
+2024-03-09 07:29,PodCrashLooping,feature-flags,critical,95,sam.o,escalated to secondary
+2024-03-09 13:32,SyntheticCheckFailing,auth-svc,warning,70,sam.o,auto-resolved
+2024-03-10 07:37,RedisMemoryHigh,search-indexer,warning,30,lena.v,ticket filed
+2024-03-10 16:55,ReplicationLagHigh,partner-gateway,warning,22,dana.r,ticket filed
+2024-03-11 01:56,CertExpiresSoon,notification-svc,info,3,lena.v,escalated to secondary
+2024-03-11 08:05,OOMKilled,webhook-dispatch,critical,12,sam.o,partner notified
+2024-03-12 09:09,PodCrashLooping,partner-gateway,critical,12,marcus.t,partner notified
+2024-03-12 18:08,RateLimiterSaturation,webhook-dispatch,critical,130,dana.r,ticket filed
+2024-03-13 06:38,SyntheticCheckFailing,edge-proxy,warning,55,huy.n,escalated to secondary
+2024-03-13 08:19,DiskPressure,partner-gateway,warning,30,sam.o,config fix deployed
+2024-03-13 15:54,PodCrashLooping,search-indexer,critical,130,lena.v,false positive - tuned threshold
+2024-03-14 04:04,RedisMemoryHigh,cron-runner,warning,41,marcus.t,config fix deployed
+2024-03-14 12:34,RateLimiterSaturation,feature-flags,critical,41,sam.o,ticket filed
+2024-03-14 16:47,RedisMemoryHigh,webhook-dispatch,warning,55,dana.r,scaled up replicas
+2024-03-15 16:32,BackupMissed,auth-svc,critical,41,sam.o,silenced during maintenance
+2024-03-15 17:07,SyntheticCheckFailing,webhook-dispatch,warning,12,dana.r,scaled up replicas
+2024-03-16 12:01,OOMKilled,payments-api,critical,15,lena.v,runbook applied
+2024-03-16 17:39,DiskPressure,webhook-dispatch,warning,41,sam.o,deploy rolled back
+2024-03-17 01:55,QueueDepthGrowing,partner-gateway,warning,30,marcus.t,escalated to secondary
+2024-03-19 07:50,RedisMemoryHigh,reporting-api,warning,3,priya.k,runbook applied
+2024-03-19 15:04,DiskPressure,webhook-dispatch,warning,30,priya.k,runbook applied
+2024-03-20 08:43,RateLimiterSaturation,search-indexer,critical,8,priya.k,partner notified
+2024-03-20 16:20,RedisMemoryHigh,partner-gateway,warning,30,huy.n,false positive - tuned threshold
+2024-03-21 17:17,RateLimiterSaturation,webhook-dispatch,critical,41,sam.o,runbook applied
+2024-03-21 18:13,ErrorRateAboveSLO,partner-gateway,critical,130,marcus.t,escalated to secondary
+2024-03-22 07:05,ErrorRateAboveSLO,partner-gateway,critical,30,lena.v,auto-resolved
+2024-03-23 07:27,RateLimiterSaturation,webhook-dispatch,critical,12,huy.n,deploy rolled back
+2024-03-24 13:28,RedisMemoryHigh,billing-worker,warning,30,huy.n,escalated to secondary
+2024-03-24 14:32,PodCrashLooping,feature-flags,critical,95,sam.o,auto-resolved
+2024-03-24 14:35,CertExpiresSoon,payments-api,info,70,lena.v,deploy rolled back
+2024-03-25 14:00,DiskPressure,billing-worker,warning,15,huy.n,ticket filed
+2024-03-25 20:12,RateLimiterSaturation,reporting-api,critical,130,priya.k,deploy rolled back
+2024-03-26 05:13,ReplicationLagHigh,feature-flags,warning,130,huy.n,config fix deployed
+2024-03-26 23:44,ErrorRateAboveSLO,feature-flags,critical,8,lena.v,false positive - tuned threshold
+2024-03-27 05:16,RedisMemoryHigh,payments-api,warning,130,huy.n,false positive - tuned threshold
+2024-03-27 06:06,QueueDepthGrowing,partner-gateway,warning,12,marcus.t,runbook applied
+2024-03-29 01:11,QueueDepthGrowing,payments-api,warning,70,lena.v,auto-resolved
+2024-03-29 02:18,BackupMissed,billing-worker,critical,41,dana.r,deploy rolled back
+2024-03-29 19:34,CertExpiresSoon,cron-runner,info,12,lena.v,auto-resolved
+2024-03-30 04:46,OOMKilled,payments-api,critical,5,marcus.t,false positive - tuned threshold
+2024-03-30 18:08,PodCrashLooping,billing-worker,critical,12,huy.n,deploy rolled back
+2024-03-31 08:55,OOMKilled,partner-gateway,critical,3,huy.n,runbook applied
+2024-03-31 22:17,CertExpiresSoon,webhook-dispatch,info,22,priya.k,runbook applied
+2024-04-01 14:02,HighP95Latency,search-indexer,warning,41,dana.r,false positive - tuned threshold
+2024-04-02 16:15,OOMKilled,cron-runner,critical,5,sam.o,config fix deployed
+2024-04-03 00:01,PodCrashLooping,billing-worker,critical,41,marcus.t,false positive - tuned threshold
+2024-04-03 09:20,HighP95Latency,webhook-dispatch,warning,3,marcus.t,false positive - tuned threshold
+2024-04-03 12:07,RedisMemoryHigh,notification-svc,warning,8,marcus.t,scaled up replicas
+2024-04-04 16:22,SyntheticCheckFailing,webhook-dispatch,warning,70,lena.v,silenced during maintenance
+2024-04-04 18:30,QueueDepthGrowing,search-indexer,warning,3,lena.v,silenced during maintenance
+2024-04-05 06:52,CertExpiresSoon,rate-limiter,info,41,huy.n,runbook applied
+2024-04-05 20:35,CertExpiresSoon,partner-gateway,info,30,sam.o,escalated to secondary
+2024-04-06 14:06,RedisMemoryHigh,edge-proxy,warning,3,lena.v,ticket filed
+2024-04-06 21:48,DiskPressure,search-indexer,warning,15,dana.r,deploy rolled back
+2024-04-07 11:33,OOMKilled,notification-svc,critical,3,huy.n,auto-resolved
+2024-04-08 08:03,SyntheticCheckFailing,payments-api,warning,30,marcus.t,deploy rolled back
+2024-04-08 18:03,QueueDepthGrowing,auth-svc,warning,8,huy.n,scaled up replicas
+2024-04-12 10:24,BackupMissed,payments-api,critical,5,sam.o,ticket filed
+2024-04-12 22:56,BackupMissed,search-indexer,critical,22,huy.n,silenced during maintenance
+2024-04-13 05:50,ErrorRateAboveSLO,feature-flags,critical,30,priya.k,deploy rolled back
+2024-04-13 14:18,CertExpiresSoon,reporting-api,info,3,sam.o,scaled up replicas
+2024-04-14 00:54,ReplicationLagHigh,search-indexer,warning,130,marcus.t,scaled up replicas
+2024-04-14 16:06,CertExpiresSoon,partner-gateway,info,41,lena.v,auto-resolved
+2024-04-16 08:57,RedisMemoryHigh,notification-svc,warning,70,dana.r,silenced during maintenance
+2024-04-16 19:48,ReplicationLagHigh,payments-api,warning,15,huy.n,false positive - tuned threshold
+2024-04-18 07:10,ReplicationLagHigh,edge-proxy,warning,8,sam.o,false positive - tuned threshold
+2024-04-18 14:12,PodCrashLooping,billing-worker,critical,22,huy.n,runbook applied
+2024-04-18 17:55,HighP95Latency,feature-flags,warning,22,dana.r,config fix deployed
+2024-04-19 12:55,PodCrashLooping,billing-worker,critical,15,priya.k,scaled up replicas
+2024-04-19 22:52,ReplicationLagHigh,search-indexer,warning,70,dana.r,silenced during maintenance
+2024-04-20 16:45,OOMKilled,edge-proxy,critical,95,dana.r,silenced during maintenance
+2024-04-20 17:17,DiskPressure,feature-flags,warning,15,priya.k,silenced during maintenance
+2024-04-21 01:14,DiskPressure,edge-proxy,warning,55,sam.o,scaled up replicas
+2024-04-21 04:49,RedisMemoryHigh,search-indexer,warning,8,marcus.t,runbook applied
+2024-04-21 22:36,CertExpiresSoon,rate-limiter,info,41,marcus.t,ticket filed
+2024-04-22 23:18,PodCrashLooping,notification-svc,critical,22,marcus.t,auto-resolved
+2024-04-23 14:02,ReplicationLagHigh,rate-limiter,warning,15,dana.r,partner notified
+2024-04-23 16:07,OOMKilled,auth-svc,critical,70,lena.v,false positive - tuned threshold
+2024-04-23 21:23,ErrorRateAboveSLO,reporting-api,critical,12,dana.r,false positive - tuned threshold
+2024-04-24 04:32,BackupMissed,partner-gateway,critical,55,marcus.t,scaled up replicas
+2024-04-24 12:39,OOMKilled,webhook-dispatch,critical,22,priya.k,false positive - tuned threshold
+2024-04-25 04:08,QueueDepthGrowing,cron-runner,warning,70,huy.n,scaled up replicas
+2024-04-25 07:56,DiskPressure,rate-limiter,warning,41,dana.r,deploy rolled back
+2024-04-25 08:54,PodCrashLooping,rate-limiter,critical,95,sam.o,partner notified
+2024-04-26 04:25,PodCrashLooping,webhook-dispatch,critical,55,dana.r,runbook applied
+2024-04-26 16:20,ErrorRateAboveSLO,cron-runner,critical,5,sam.o,deploy rolled back
+2024-04-27 03:37,RateLimiterSaturation,cron-runner,critical,15,sam.o,false positive - tuned threshold
+2024-04-28 16:53,ErrorRateAboveSLO,auth-svc,critical,30,dana.r,scaled up replicas
+2024-04-28 23:08,ErrorRateAboveSLO,billing-worker,critical,3,marcus.t,partner notified
+2024-04-30 09:38,ReplicationLagHigh,reporting-api,warning,5,lena.v,scaled up replicas
+2024-04-30 10:26,HighP95Latency,reporting-api,warning,5,priya.k,partner notified
+2024-05-01 06:45,QueueDepthGrowing,edge-proxy,warning,15,priya.k,auto-resolved
+2024-05-01 13:56,HighP95Latency,cron-runner,warning,5,priya.k,runbook applied
+2024-05-02 01:01,DiskPressure,webhook-dispatch,warning,95,dana.r,runbook applied
+2024-05-03 10:26,RedisMemoryHigh,partner-gateway,warning,55,lena.v,ticket filed
+2024-05-04 02:32,RateLimiterSaturation,payments-api,critical,8,priya.k,escalated to secondary
+2024-05-04 22:52,CertExpiresSoon,feature-flags,info,130,dana.r,auto-resolved
+2024-05-06 02:40,QueueDepthGrowing,search-indexer,warning,15,marcus.t,auto-resolved
+2024-05-06 06:54,OOMKilled,webhook-dispatch,critical,55,lena.v,false positive - tuned threshold
+2024-05-07 04:49,HighP95Latency,partner-gateway,warning,130,priya.k,silenced during maintenance
+2024-05-07 09:58,OOMKilled,billing-worker,critical,12,marcus.t,runbook applied
+2024-05-08 00:28,ErrorRateAboveSLO,notification-svc,critical,30,huy.n,runbook applied
+2024-05-08 15:37,ErrorRateAboveSLO,notification-svc,critical,30,huy.n,false positive - tuned threshold
+2024-05-10 14:00,OOMKilled,search-indexer,critical,8,dana.r,auto-resolved
+2024-05-11 11:59,PodCrashLooping,auth-svc,critical,95,dana.r,deploy rolled back
+2024-05-11 21:41,SyntheticCheckFailing,webhook-dispatch,warning,130,marcus.t,silenced during maintenance
+2024-05-12 17:46,ErrorRateAboveSLO,edge-proxy,critical,8,lena.v,deploy rolled back
+2024-05-13 00:41,DiskPressure,partner-gateway,warning,95,sam.o,auto-resolved
+2024-05-13 21:06,QueueDepthGrowing,feature-flags,warning,70,lena.v,config fix deployed
+2024-05-15 06:12,OOMKilled,webhook-dispatch,critical,55,lena.v,runbook applied
+2024-05-15 23:04,SyntheticCheckFailing,rate-limiter,warning,70,huy.n,ticket filed
+2024-05-16 11:21,QueueDepthGrowing,search-indexer,warning,70,huy.n,escalated to secondary
+2024-05-18 06:20,ErrorRateAboveSLO,notification-svc,critical,12,priya.k,silenced during maintenance
+2024-05-18 13:27,OOMKilled,reporting-api,critical,70,sam.o,auto-resolved
+2024-05-19 17:12,CertExpiresSoon,feature-flags,info,55,dana.r,ticket filed
+2024-05-20 10:00,BackupMissed,auth-svc,critical,22,sam.o,false positive - tuned threshold
+2024-05-20 14:16,RateLimiterSaturation,cron-runner,critical,3,lena.v,runbook applied
+2024-05-21 06:53,CertExpiresSoon,reporting-api,info,70,marcus.t,auto-resolved
+2024-05-21 15:25,ErrorRateAboveSLO,payments-api,critical,8,marcus.t,deploy rolled back
+2024-05-22 03:17,CertExpiresSoon,auth-svc,info,8,dana.r,silenced during maintenance
+2024-05-22 13:27,RateLimiterSaturation,search-indexer,critical,95,sam.o,config fix deployed
+2024-05-22 16:25,RedisMemoryHigh,edge-proxy,warning,12,marcus.t,ticket filed
+2024-05-24 11:28,BackupMissed,notification-svc,critical,55,dana.r,partner notified
+2024-05-24 19:48,RateLimiterSaturation,billing-worker,critical,8,huy.n,runbook applied
+2024-05-26 21:17,QueueDepthGrowing,cron-runner,warning,55,lena.v,partner notified
+2024-05-28 03:35,ReplicationLagHigh,webhook-dispatch,warning,22,priya.k,runbook applied
+2024-05-28 20:03,SyntheticCheckFailing,edge-proxy,warning,70,lena.v,partner notified
+2024-05-29 05:45,HighP95Latency,reporting-api,warning,15,dana.r,runbook applied
+2024-05-29 12:33,HighP95Latency,payments-api,warning,8,huy.n,false positive - tuned threshold
+2024-05-29 19:11,DiskPressure,edge-proxy,warning,12,priya.k,scaled up replicas
+2024-05-30 06:26,RateLimiterSaturation,feature-flags,critical,3,dana.r,silenced during maintenance
+2024-05-30 08:11,RedisMemoryHigh,edge-proxy,warning,3,priya.k,silenced during maintenance
+2024-05-31 08:42,PodCrashLooping,billing-worker,critical,30,huy.n,escalated to secondary
+2024-05-31 16:31,BackupMissed,billing-worker,critical,70,huy.n,ticket filed
+2024-05-31 20:13,QueueDepthGrowing,feature-flags,warning,5,dana.r,scaled up replicas
+2024-06-01 03:41,BackupMissed,payments-api,critical,8,priya.k,ticket filed
+2024-06-01 06:31,BackupMissed,feature-flags,critical,22,huy.n,ticket filed
+2024-06-01 22:28,HighP95Latency,payments-api,warning,5,priya.k,ticket filed
+2024-06-02 00:51,ReplicationLagHigh,search-indexer,warning,22,huy.n,ticket filed
+2024-06-02 05:17,ErrorRateAboveSLO,feature-flags,critical,30,dana.r,scaled up replicas
+2024-06-02 06:12,QueueDepthGrowing,partner-gateway,warning,130,lena.v,scaled up replicas
+2024-06-03 02:40,CertExpiresSoon,notification-svc,info,3,lena.v,auto-resolved
+2024-06-03 07:12,DiskPressure,payments-api,warning,41,huy.n,escalated to secondary
+2024-06-03 10:09,PodCrashLooping,edge-proxy,critical,8,marcus.t,auto-resolved
+2024-06-04 21:51,BackupMissed,cron-runner,critical,130,priya.k,partner notified
+2024-06-06 22:15,BackupMissed,reporting-api,critical,12,sam.o,partner notified
+2024-06-07 19:55,RateLimiterSaturation,cron-runner,critical,30,priya.k,scaled up replicas
+2024-06-08 07:45,BackupMissed,rate-limiter,critical,41,marcus.t,scaled up replicas
+2024-06-09 02:55,DiskPressure,rate-limiter,warning,55,lena.v,ticket filed
+2024-06-09 18:11,HighP95Latency,search-indexer,warning,8,priya.k,scaled up replicas
+2024-06-09 20:18,ErrorRateAboveSLO,partner-gateway,critical,55,huy.n,escalated to secondary
+2024-06-10 04:24,CertExpiresSoon,cron-runner,info,12,lena.v,ticket filed
+2024-06-10 12:00,RedisMemoryHigh,search-indexer,warning,95,priya.k,runbook applied
+2024-06-11 03:30,ErrorRateAboveSLO,payments-api,critical,12,marcus.t,scaled up replicas
+2024-06-11 19:26,BackupMissed,cron-runner,critical,95,dana.r,escalated to secondary
+2024-06-13 03:19,ErrorRateAboveSLO,auth-svc,critical,41,sam.o,deploy rolled back
+2024-06-13 03:38,RateLimiterSaturation,feature-flags,critical,22,dana.r,false positive - tuned threshold
+2024-06-13 09:34,SyntheticCheckFailing,auth-svc,warning,8,lena.v,config fix deployed
+2024-06-14 20:35,DiskPressure,edge-proxy,warning,130,lena.v,ticket filed
+2024-06-15 18:59,OOMKilled,notification-svc,critical,95,marcus.t,escalated to secondary
+2024-06-15 21:09,RedisMemoryHigh,auth-svc,warning,41,priya.k,deploy rolled back
+2024-06-16 02:31,BackupMissed,auth-svc,critical,41,sam.o,scaled up replicas
+2024-06-16 03:53,QueueDepthGrowing,cron-runner,warning,30,lena.v,ticket filed
+2024-06-17 04:50,CertExpiresSoon,auth-svc,info,70,lena.v,scaled up replicas
+2024-06-17 15:01,ReplicationLagHigh,edge-proxy,warning,8,huy.n,escalated to secondary
+2024-06-18 08:19,ReplicationLagHigh,feature-flags,warning,8,huy.n,ticket filed
+2024-06-18 12:35,HighP95Latency,partner-gateway,warning,30,marcus.t,silenced during maintenance
+2024-06-20 18:24,PodCrashLooping,feature-flags,critical,130,sam.o,config fix deployed
+2024-06-20 19:43,QueueDepthGrowing,auth-svc,warning,95,marcus.t,deploy rolled back
+2024-06-20 22:57,RedisMemoryHigh,billing-worker,warning,12,marcus.t,deploy rolled back
+2024-06-21 02:48,CertExpiresSoon,auth-svc,info,8,huy.n,runbook applied
+2024-06-22 03:20,OOMKilled,webhook-dispatch,critical,12,sam.o,partner notified
+2024-06-22 08:48,ReplicationLagHigh,cron-runner,warning,30,lena.v,ticket filed
+2024-06-23 03:51,RateLimiterSaturation,billing-worker,critical,41,sam.o,ticket filed
+2024-06-24 01:48,RedisMemoryHigh,auth-svc,warning,95,sam.o,false positive - tuned threshold
+2024-06-25 04:54,HighP95Latency,notification-svc,warning,55,lena.v,runbook applied
+2024-06-26 18:29,CertExpiresSoon,reporting-api,info,30,huy.n,deploy rolled back
+2024-06-27 15:49,HighP95Latency,reporting-api,warning,3,marcus.t,scaled up replicas
+2024-06-28 12:47,RateLimiterSaturation,payments-api,critical,30,sam.o,deploy rolled back
+2024-06-28 19:20,SyntheticCheckFailing,rate-limiter,warning,12,huy.n,runbook applied
+2024-06-28 22:43,OOMKilled,payments-api,critical,41,sam.o,silenced during maintenance
+2024-06-29 21:20,RedisMemoryHigh,rate-limiter,warning,70,priya.k,auto-resolved
+2024-06-29 21:55,HighP95Latency,webhook-dispatch,warning,55,marcus.t,runbook applied
+2024-06-30 02:13,CertExpiresSoon,notification-svc,info,8,huy.n,deploy rolled back
+2024-06-30 04:53,QueueDepthGrowing,reporting-api,warning,5,priya.k,partner notified
+2024-07-02 08:09,OOMKilled,edge-proxy,critical,55,dana.r,runbook applied
+2024-07-02 08:59,OOMKilled,webhook-dispatch,critical,130,dana.r,scaled up replicas
+2024-07-03 02:13,QueueDepthGrowing,edge-proxy,warning,95,huy.n,config fix deployed
+2024-07-03 02:16,SyntheticCheckFailing,webhook-dispatch,warning,41,marcus.t,ticket filed
+2024-07-04 10:28,ReplicationLagHigh,cron-runner,warning,8,lena.v,partner notified
+2024-07-04 13:57,OOMKilled,edge-proxy,critical,30,dana.r,false positive - tuned threshold
+2024-07-06 09:24,QueueDepthGrowing,edge-proxy,warning,70,huy.n,ticket filed
+2024-07-06 23:07,ErrorRateAboveSLO,rate-limiter,critical,95,priya.k,deploy rolled back
+2024-07-07 15:51,ReplicationLagHigh,billing-worker,warning,95,lena.v,silenced during maintenance
+2024-07-07 22:57,QueueDepthGrowing,reporting-api,warning,70,dana.r,false positive - tuned threshold
+2024-07-08 07:03,ErrorRateAboveSLO,billing-worker,critical,22,priya.k,config fix deployed
+2024-07-08 08:10,RateLimiterSaturation,reporting-api,critical,8,marcus.t,deploy rolled back
+2024-07-09 06:30,RateLimiterSaturation,partner-gateway,critical,15,sam.o,false positive - tuned threshold
+2024-07-10 14:51,SyntheticCheckFailing,feature-flags,warning,95,lena.v,false positive - tuned threshold
+2024-07-10 18:11,ErrorRateAboveSLO,notification-svc,critical,22,dana.r,partner notified
+2024-07-10 18:25,DiskPressure,reporting-api,warning,41,huy.n,silenced during maintenance
+2024-07-11 01:15,OOMKilled,feature-flags,critical,30,sam.o,deploy rolled back
+2024-07-11 16:24,DiskPressure,webhook-dispatch,warning,130,sam.o,config fix deployed
+2024-07-12 03:18,CertExpiresSoon,reporting-api,info,41,priya.k,silenced during maintenance
+2024-07-12 17:39,OOMKilled,webhook-dispatch,critical,30,sam.o,runbook applied
+2024-07-12 21:07,OOMKilled,reporting-api,critical,22,lena.v,ticket filed
+2024-07-13 09:32,SyntheticCheckFailing,search-indexer,warning,70,huy.n,config fix deployed
+2024-07-13 16:18,BackupMissed,auth-svc,critical,70,sam.o,false positive - tuned threshold
+2024-07-13 20:29,BackupMissed,partner-gateway,critical,8,dana.r,false positive - tuned threshold
+2024-07-16 07:13,DiskPressure,payments-api,warning,41,huy.n,ticket filed
+2024-07-17 13:47,OOMKilled,reporting-api,critical,8,sam.o,scaled up replicas
+2024-07-18 12:51,SyntheticCheckFailing,auth-svc,warning,5,priya.k,runbook applied
+2024-07-18 14:23,PodCrashLooping,payments-api,critical,30,priya.k,false positive - tuned threshold
+2024-07-19 23:53,RedisMemoryHigh,rate-limiter,warning,8,lena.v,runbook applied
+2024-07-20 02:53,QueueDepthGrowing,feature-flags,warning,15,huy.n,auto-resolved
+2024-07-21 00:13,OOMKilled,billing-worker,critical,55,lena.v,silenced during maintenance
+2024-07-21 15:26,RedisMemoryHigh,edge-proxy,warning,22,huy.n,auto-resolved
+2024-07-21 17:02,RedisMemoryHigh,auth-svc,warning,130,sam.o,silenced during maintenance
+2024-07-22 08:57,CertExpiresSoon,cron-runner,info,41,huy.n,silenced during maintenance
+2024-07-22 14:24,RateLimiterSaturation,payments-api,critical,70,huy.n,deploy rolled back
+2024-07-23 06:44,BackupMissed,webhook-dispatch,critical,3,huy.n,escalated to secondary
+2024-07-23 09:54,HighP95Latency,partner-gateway,warning,3,priya.k,deploy rolled back
+2024-07-24 02:41,OOMKilled,feature-flags,critical,3,dana.r,scaled up replicas
+2024-07-24 23:16,RateLimiterSaturation,rate-limiter,critical,22,dana.r,false positive - tuned threshold
+2024-07-25 01:10,ReplicationLagHigh,reporting-api,warning,95,marcus.t,ticket filed
+2024-07-26 00:20,DiskPressure,edge-proxy,warning,30,lena.v,partner notified
+2024-07-27 10:21,RateLimiterSaturation,rate-limiter,critical,8,priya.k,silenced during maintenance
+2024-07-27 23:07,ReplicationLagHigh,search-indexer,warning,8,marcus.t,silenced during maintenance
+2024-07-28 04:40,RateLimiterSaturation,partner-gateway,critical,22,priya.k,runbook applied
+2024-07-28 12:39,OOMKilled,search-indexer,critical,41,huy.n,partner notified
+2024-07-29 01:45,ErrorRateAboveSLO,partner-gateway,critical,3,dana.r,partner notified
+2024-07-29 23:26,ErrorRateAboveSLO,billing-worker,critical,130,priya.k,config fix deployed
+2024-07-30 03:27,PodCrashLooping,billing-worker,critical,95,lena.v,ticket filed
+2024-07-30 17:45,RateLimiterSaturation,search-indexer,critical,130,marcus.t,scaled up replicas
+2024-07-31 05:21,PodCrashLooping,cron-runner,critical,12,dana.r,runbook applied
+2024-07-31 12:43,DiskPressure,notification-svc,warning,15,huy.n,runbook applied
+2024-07-31 20:30,RedisMemoryHigh,search-indexer,warning,15,sam.o,deploy rolled back
+2024-08-01 03:28,CertExpiresSoon,search-indexer,info,5,huy.n,deploy rolled back
+2024-08-01 22:35,SyntheticCheckFailing,notification-svc,warning,130,dana.r,false positive - tuned threshold
+2024-08-03 09:38,DiskPressure,cron-runner,warning,55,priya.k,partner notified
+2024-08-03 10:31,SyntheticCheckFailing,edge-proxy,warning,41,sam.o,auto-resolved
+2024-08-04 19:32,RedisMemoryHigh,webhook-dispatch,warning,5,lena.v,auto-resolved
+2024-08-05 06:28,ReplicationLagHigh,billing-worker,warning,41,priya.k,scaled up replicas
+2024-08-05 21:27,RateLimiterSaturation,search-indexer,critical,3,dana.r,scaled up replicas
+2024-08-06 13:40,DiskPressure,billing-worker,warning,30,marcus.t,auto-resolved
+2024-08-06 16:27,PodCrashLooping,cron-runner,critical,5,huy.n,false positive - tuned threshold
+2024-08-06 17:07,HighP95Latency,cron-runner,warning,55,huy.n,silenced during maintenance
+2024-08-07 13:08,OOMKilled,edge-proxy,critical,70,lena.v,runbook applied
+2024-08-08 12:43,RateLimiterSaturation,billing-worker,critical,95,huy.n,config fix deployed
+2024-08-08 16:32,CertExpiresSoon,auth-svc,info,12,priya.k,ticket filed
+2024-08-09 19:17,ErrorRateAboveSLO,edge-proxy,critical,5,lena.v,runbook applied
+2024-08-10 16:27,DiskPressure,rate-limiter,warning,41,dana.r,config fix deployed
+2024-08-11 14:13,SyntheticCheckFailing,edge-proxy,warning,55,priya.k,false positive - tuned threshold
+2024-08-11 15:46,QueueDepthGrowing,feature-flags,warning,55,sam.o,auto-resolved
+2024-08-12 09:31,BackupMissed,search-indexer,critical,8,huy.n,config fix deployed
+2024-08-12 11:52,RedisMemoryHigh,notification-svc,warning,95,lena.v,escalated to secondary
+2024-08-14 09:12,ReplicationLagHigh,rate-limiter,warning,5,sam.o,partner notified
+2024-08-14 15:39,BackupMissed,feature-flags,critical,95,sam.o,partner notified
+2024-08-14 20:06,ErrorRateAboveSLO,rate-limiter,critical,15,dana.r,partner notified
+2024-08-15 04:16,RateLimiterSaturation,notification-svc,critical,22,priya.k,scaled up replicas
+2024-08-16 14:31,ReplicationLagHigh,billing-worker,warning,3,dana.r,config fix deployed
+2024-08-16 21:26,SyntheticCheckFailing,search-indexer,warning,30,dana.r,config fix deployed
+2024-08-16 22:05,QueueDepthGrowing,cron-runner,warning,8,priya.k,ticket filed
+2024-08-17 09:01,ErrorRateAboveSLO,feature-flags,critical,130,priya.k,false positive - tuned threshold
+2024-08-18 07:14,RedisMemoryHigh,cron-runner,warning,70,priya.k,scaled up replicas
+2024-08-19 05:00,OOMKilled,reporting-api,critical,30,huy.n,runbook applied
+2024-08-19 21:34,ReplicationLagHigh,feature-flags,warning,5,marcus.t,ticket filed
+2024-08-20 03:47,SyntheticCheckFailing,auth-svc,warning,12,huy.n,scaled up replicas
+2024-08-21 10:04,OOMKilled,auth-svc,critical,55,priya.k,auto-resolved
+2024-08-21 10:16,RedisMemoryHigh,cron-runner,warning,3,lena.v,config fix deployed
+2024-08-22 06:42,QueueDepthGrowing,auth-svc,warning,130,lena.v,partner notified
+2024-08-22 08:05,PodCrashLooping,notification-svc,critical,5,lena.v,auto-resolved
+2024-08-23 03:37,CertExpiresSoon,search-indexer,info,55,marcus.t,ticket filed
+2024-08-23 10:16,ErrorRateAboveSLO,rate-limiter,critical,55,huy.n,escalated to secondary
+2024-08-24 15:11,OOMKilled,reporting-api,critical,5,priya.k,deploy rolled back
+2024-08-24 19:29,RedisMemoryHigh,partner-gateway,warning,41,sam.o,escalated to secondary
+2024-08-25 08:28,PodCrashLooping,search-indexer,critical,30,priya.k,ticket filed
+2024-08-27 06:17,SyntheticCheckFailing,auth-svc,warning,22,marcus.t,false positive - tuned threshold
+2024-08-27 11:08,OOMKilled,notification-svc,critical,12,marcus.t,config fix deployed
+2024-08-27 16:39,RedisMemoryHigh,rate-limiter,warning,3,marcus.t,silenced during maintenance
+2024-08-30 14:51,QueueDepthGrowing,webhook-dispatch,warning,12,priya.k,auto-resolved
+2024-08-31 01:28,DiskPressure,payments-api,warning,5,sam.o,partner notified
+2024-08-31 01:37,CertExpiresSoon,rate-limiter,info,95,huy.n,scaled up replicas
+2024-08-31 23:02,RateLimiterSaturation,billing-worker,critical,55,dana.r,auto-resolved
+2024-09-01 01:40,SyntheticCheckFailing,reporting-api,warning,3,priya.k,scaled up replicas
+2024-09-01 13:53,RedisMemoryHigh,reporting-api,warning,15,priya.k,scaled up replicas
+2024-09-01 18:43,HighP95Latency,webhook-dispatch,warning,3,huy.n,auto-resolved
+2024-09-02 02:12,RedisMemoryHigh,billing-worker,warning,3,lena.v,false positive - tuned threshold
+2024-09-02 10:07,ErrorRateAboveSLO,auth-svc,critical,15,priya.k,escalated to secondary
+2024-09-03 06:35,HighP95Latency,auth-svc,warning,41,marcus.t,false positive - tuned threshold
+2024-09-04 14:03,OOMKilled,reporting-api,critical,70,sam.o,config fix deployed
+2024-09-07 10:00,CertExpiresSoon,auth-svc,info,41,marcus.t,escalated to secondary
+2024-09-08 02:14,ReplicationLagHigh,auth-svc,warning,41,lena.v,config fix deployed
+2024-09-08 19:31,PodCrashLooping,payments-api,critical,130,sam.o,partner notified
+2024-09-09 11:21,HighP95Latency,partner-gateway,warning,12,lena.v,ticket filed
+2024-09-09 19:50,DiskPressure,notification-svc,warning,12,priya.k,config fix deployed
+2024-09-10 07:13,RedisMemoryHigh,webhook-dispatch,warning,30,marcus.t,deploy rolled back
+2024-09-10 20:56,DiskPressure,notification-svc,warning,12,dana.r,silenced during maintenance
+2024-09-11 01:03,RedisMemoryHigh,cron-runner,warning,95,priya.k,silenced during maintenance
+2024-09-11 22:19,ErrorRateAboveSLO,auth-svc,critical,41,huy.n,escalated to secondary
+2024-09-12 23:13,DiskPressure,payments-api,warning,3,lena.v,scaled up replicas
+2024-09-13 00:17,CertExpiresSoon,webhook-dispatch,info,5,huy.n,config fix deployed
+2024-09-13 05:17,HighP95Latency,rate-limiter,warning,95,priya.k,silenced during maintenance
+2024-09-13 05:38,BackupMissed,cron-runner,critical,41,lena.v,partner notified
+2024-09-14 03:02,RedisMemoryHigh,search-indexer,warning,8,dana.r,ticket filed
+2024-09-14 13:24,BackupMissed,cron-runner,critical,55,marcus.t,ticket filed
+2024-09-15 15:28,RedisMemoryHigh,partner-gateway,warning,55,sam.o,ticket filed
+2024-09-15 22:59,PodCrashLooping,feature-flags,critical,41,dana.r,ticket filed
+2024-09-16 17:20,PodCrashLooping,reporting-api,critical,22,dana.r,escalated to secondary
+2024-09-17 06:52,PodCrashLooping,auth-svc,critical,70,sam.o,partner notified
+2024-09-17 11:16,OOMKilled,auth-svc,critical,22,dana.r,escalated to secondary
+2024-09-17 20:39,BackupMissed,billing-worker,critical,70,marcus.t,partner notified
+2024-09-18 02:54,QueueDepthGrowing,billing-worker,warning,15,sam.o,scaled up replicas
+2024-09-18 18:58,CertExpiresSoon,billing-worker,info,8,huy.n,config fix deployed
+2024-09-19 09:43,RateLimiterSaturation,partner-gateway,critical,12,marcus.t,deploy rolled back
+2024-09-19 15:07,RateLimiterSaturation,reporting-api,critical,12,marcus.t,deploy rolled back
+2024-09-20 00:21,QueueDepthGrowing,search-indexer,warning,95,dana.r,false positive - tuned threshold
+2024-09-21 21:25,RedisMemoryHigh,partner-gateway,warning,130,dana.r,silenced during maintenance
+2024-09-22 08:50,RateLimiterSaturation,payments-api,critical,3,marcus.t,ticket filed
+2024-09-23 04:19,BackupMissed,partner-gateway,critical,41,dana.r,silenced during maintenance
+2024-09-23 20:25,CertExpiresSoon,billing-worker,info,12,marcus.t,silenced during maintenance
+2024-09-25 02:30,BackupMissed,search-indexer,critical,5,lena.v,silenced during maintenance
+2024-09-25 03:06,SyntheticCheckFailing,reporting-api,warning,22,sam.o,escalated to secondary
+2024-09-25 07:57,QueueDepthGrowing,edge-proxy,warning,22,priya.k,scaled up replicas
+2024-09-26 06:10,ErrorRateAboveSLO,billing-worker,critical,22,huy.n,runbook applied
+2024-09-27 23:09,RedisMemoryHigh,cron-runner,warning,30,sam.o,ticket filed
+2024-09-28 12:22,HighP95Latency,auth-svc,warning,95,priya.k,auto-resolved
+2024-09-29 23:27,DiskPressure,reporting-api,warning,41,huy.n,auto-resolved
+2024-10-01 18:24,ErrorRateAboveSLO,notification-svc,critical,12,priya.k,escalated to secondary
+2024-10-02 00:45,DiskPressure,reporting-api,warning,5,marcus.t,runbook applied
+2024-10-02 01:49,OOMKilled,search-indexer,critical,130,huy.n,false positive - tuned threshold
+2024-10-02 19:06,RedisMemoryHigh,auth-svc,warning,12,lena.v,silenced during maintenance
+2024-10-03 00:14,ReplicationLagHigh,rate-limiter,warning,22,sam.o,silenced during maintenance
+2024-10-03 13:52,ErrorRateAboveSLO,webhook-dispatch,critical,8,dana.r,silenced during maintenance
+2024-10-03 15:55,OOMKilled,notification-svc,critical,8,marcus.t,false positive - tuned threshold
+2024-10-04 14:06,SyntheticCheckFailing,feature-flags,warning,12,marcus.t,auto-resolved
+2024-10-05 00:35,DiskPressure,cron-runner,warning,30,huy.n,ticket filed
+2024-10-05 07:26,ReplicationLagHigh,search-indexer,warning,15,lena.v,escalated to secondary
+2024-10-06 13:32,RateLimiterSaturation,auth-svc,critical,12,marcus.t,ticket filed
+2024-10-07 08:57,DiskPressure,feature-flags,warning,3,lena.v,runbook applied
+2024-10-07 13:28,ErrorRateAboveSLO,partner-gateway,critical,22,dana.r,auto-resolved
+2024-10-07 20:48,PodCrashLooping,reporting-api,critical,30,dana.r,partner notified
+2024-10-08 03:50,HighP95Latency,webhook-dispatch,warning,22,priya.k,scaled up replicas
+2024-10-09 01:20,HighP95Latency,search-indexer,warning,130,marcus.t,silenced during maintenance
+2024-10-09 08:40,RateLimiterSaturation,payments-api,critical,22,dana.r,partner notified
+2024-10-09 23:19,ErrorRateAboveSLO,auth-svc,critical,3,dana.r,ticket filed
+2024-10-10 00:39,PodCrashLooping,feature-flags,critical,130,priya.k,config fix deployed
+2024-10-10 07:10,ErrorRateAboveSLO,auth-svc,critical,70,sam.o,deploy rolled back
+2024-10-10 16:21,RedisMemoryHigh,auth-svc,warning,130,lena.v,config fix deployed
+2024-10-11 00:59,RateLimiterSaturation,reporting-api,critical,55,priya.k,false positive - tuned threshold
+2024-10-11 01:05,CertExpiresSoon,search-indexer,info,3,sam.o,false positive - tuned threshold
+2024-10-11 09:18,PodCrashLooping,payments-api,critical,12,sam.o,false positive - tuned threshold
+2024-10-12 04:04,ReplicationLagHigh,reporting-api,warning,95,huy.n,partner notified
+2024-10-12 16:28,ReplicationLagHigh,search-indexer,warning,12,sam.o,scaled up replicas
+2024-10-13 15:59,PodCrashLooping,notification-svc,critical,22,huy.n,deploy rolled back
+2024-10-13 18:13,OOMKilled,rate-limiter,critical,95,priya.k,config fix deployed
+2024-10-14 05:06,DiskPressure,auth-svc,warning,55,marcus.t,scaled up replicas
+2024-10-15 19:56,DiskPressure,search-indexer,warning,3,huy.n,silenced during maintenance
+2024-10-16 02:24,RedisMemoryHigh,notification-svc,warning,41,priya.k,partner notified
+2024-10-16 05:29,QueueDepthGrowing,cron-runner,warning,130,lena.v,deploy rolled back
+2024-10-16 15:27,CertExpiresSoon,reporting-api,info,130,priya.k,runbook applied
+2024-10-17 02:22,RedisMemoryHigh,reporting-api,warning,8,priya.k,partner notified
+2024-10-17 02:46,ReplicationLagHigh,cron-runner,warning,30,huy.n,silenced during maintenance
+2024-10-18 09:45,DiskPressure,payments-api,warning,12,priya.k,escalated to secondary
+2024-10-18 10:48,QueueDepthGrowing,notification-svc,warning,41,marcus.t,silenced during maintenance
+2024-10-18 22:06,PodCrashLooping,rate-limiter,critical,30,priya.k,auto-resolved
+2024-10-20 00:14,QueueDepthGrowing,rate-limiter,warning,15,huy.n,false positive - tuned threshold
+2024-10-21 09:01,DiskPressure,partner-gateway,warning,8,marcus.t,false positive - tuned threshold
+2024-10-21 09:33,HighP95Latency,webhook-dispatch,warning,70,priya.k,false positive - tuned threshold
+2024-10-22 00:24,ErrorRateAboveSLO,billing-worker,critical,12,dana.r,ticket filed
+2024-10-22 09:01,OOMKilled,payments-api,critical,30,huy.n,partner notified
+2024-10-22 11:05,HighP95Latency,feature-flags,warning,55,dana.r,partner notified
+2024-10-23 06:51,OOMKilled,feature-flags,critical,30,dana.r,escalated to secondary
+2024-10-23 07:28,BackupMissed,edge-proxy,critical,12,lena.v,false positive - tuned threshold
+2024-10-24 01:39,HighP95Latency,auth-svc,warning,12,marcus.t,escalated to secondary
+2024-10-24 07:54,SyntheticCheckFailing,search-indexer,warning,12,sam.o,partner notified
+2024-10-25 12:19,OOMKilled,cron-runner,critical,8,lena.v,partner notified
+2024-10-26 13:05,RateLimiterSaturation,search-indexer,critical,55,huy.n,deploy rolled back
+2024-10-27 12:37,CertExpiresSoon,webhook-dispatch,info,70,sam.o,partner notified
+2024-10-27 16:09,HighP95Latency,feature-flags,warning,22,huy.n,escalated to secondary
+2024-10-28 00:02,PodCrashLooping,payments-api,critical,15,sam.o,silenced during maintenance
+2024-10-28 01:32,SyntheticCheckFailing,partner-gateway,warning,55,sam.o,ticket filed
+2024-10-29 00:59,ReplicationLagHigh,feature-flags,warning,41,huy.n,auto-resolved
+2024-10-29 11:53,HighP95Latency,reporting-api,warning,70,lena.v,auto-resolved
+2024-10-29 18:39,BackupMissed,reporting-api,critical,41,dana.r,false positive - tuned threshold
+2024-10-30 16:46,BackupMissed,auth-svc,critical,5,marcus.t,silenced during maintenance
+2024-10-30 17:02,OOMKilled,search-indexer,critical,95,marcus.t,escalated to secondary
+2024-11-02 02:51,ErrorRateAboveSLO,billing-worker,critical,130,sam.o,ticket filed
+2024-11-04 00:48,RateLimiterSaturation,payments-api,critical,41,lena.v,config fix deployed
+2024-11-04 17:33,SyntheticCheckFailing,feature-flags,warning,3,dana.r,deploy rolled back
+2024-11-06 03:30,HighP95Latency,billing-worker,warning,55,sam.o,config fix deployed
+2024-11-06 13:16,ErrorRateAboveSLO,search-indexer,critical,55,priya.k,false positive - tuned threshold
+2024-11-06 22:48,OOMKilled,auth-svc,critical,22,marcus.t,config fix deployed
+2024-11-07 08:59,CertExpiresSoon,reporting-api,info,55,marcus.t,deploy rolled back
+2024-11-08 02:03,BackupMissed,notification-svc,critical,95,sam.o,auto-resolved
+2024-11-08 09:36,ReplicationLagHigh,rate-limiter,warning,5,dana.r,auto-resolved
+2024-11-09 03:29,ErrorRateAboveSLO,cron-runner,critical,41,huy.n,false positive - tuned threshold
+2024-11-09 05:53,RedisMemoryHigh,search-indexer,warning,22,marcus.t,deploy rolled back
+2024-11-09 14:34,QueueDepthGrowing,notification-svc,warning,15,dana.r,escalated to secondary
+2024-11-10 09:21,ReplicationLagHigh,edge-proxy,warning,5,dana.r,scaled up replicas
+2024-11-11 01:43,RedisMemoryHigh,notification-svc,warning,95,huy.n,silenced during maintenance
+2024-11-11 14:57,PodCrashLooping,feature-flags,critical,3,priya.k,deploy rolled back
+2024-11-12 06:22,QueueDepthGrowing,search-indexer,warning,55,marcus.t,deploy rolled back
+2024-11-12 07:02,DiskPressure,reporting-api,warning,70,priya.k,escalated to secondary
+2024-11-12 12:32,RateLimiterSaturation,webhook-dispatch,critical,5,dana.r,auto-resolved
+2024-11-13 05:10,HighP95Latency,reporting-api,warning,8,huy.n,false positive - tuned threshold
+2024-11-14 01:19,RateLimiterSaturation,billing-worker,critical,22,sam.o,config fix deployed
+2024-11-14 15:39,CertExpiresSoon,notification-svc,info,22,dana.r,runbook applied
+2024-11-14 19:07,OOMKilled,billing-worker,critical,70,priya.k,false positive - tuned threshold
+2024-11-15 01:23,OOMKilled,search-indexer,critical,22,priya.k,runbook applied
+2024-11-16 06:17,SyntheticCheckFailing,partner-gateway,warning,130,priya.k,partner notified
+2024-11-17 12:59,RedisMemoryHigh,auth-svc,warning,5,dana.r,scaled up replicas
+2024-11-18 16:06,BackupMissed,partner-gateway,critical,55,huy.n,deploy rolled back
+2024-11-19 03:23,ErrorRateAboveSLO,reporting-api,critical,5,huy.n,config fix deployed
+2024-11-19 04:56,RedisMemoryHigh,billing-worker,warning,15,marcus.t,config fix deployed
+2024-11-20 17:27,QueueDepthGrowing,notification-svc,warning,55,huy.n,false positive - tuned threshold
+2024-11-22 02:42,RedisMemoryHigh,reporting-api,warning,22,dana.r,escalated to secondary
+2024-11-22 03:45,CertExpiresSoon,edge-proxy,info,8,priya.k,partner notified
+2024-11-22 06:45,ReplicationLagHigh,rate-limiter,warning,15,sam.o,config fix deployed
+2024-11-23 21:27,BackupMissed,feature-flags,critical,15,sam.o,deploy rolled back
+2024-11-25 09:58,RedisMemoryHigh,rate-limiter,warning,22,huy.n,runbook applied
+2024-11-26 09:59,SyntheticCheckFailing,notification-svc,warning,95,sam.o,config fix deployed
+2024-11-27 08:11,PodCrashLooping,rate-limiter,critical,15,marcus.t,false positive - tuned threshold
+2024-11-28 18:01,RedisMemoryHigh,rate-limiter,warning,30,marcus.t,partner notified
+2024-11-29 00:09,RateLimiterSaturation,payments-api,critical,15,huy.n,ticket filed
+2024-11-29 20:47,QueueDepthGrowing,edge-proxy,warning,22,marcus.t,deploy rolled back
+2024-11-29 23:41,SyntheticCheckFailing,billing-worker,warning,5,marcus.t,scaled up replicas
+2024-11-30 06:51,BackupMissed,webhook-dispatch,critical,30,marcus.t,ticket filed
+2024-12-01 06:58,CertExpiresSoon,payments-api,info,3,sam.o,false positive - tuned threshold
+2024-12-01 20:27,QueueDepthGrowing,payments-api,warning,30,huy.n,partner notified
+2024-12-02 08:23,RateLimiterSaturation,reporting-api,critical,70,lena.v,deploy rolled back
+2024-12-02 15:13,SyntheticCheckFailing,auth-svc,warning,15,huy.n,deploy rolled back
+2024-12-04 02:47,PodCrashLooping,feature-flags,critical,95,lena.v,false positive - tuned threshold
+2024-12-04 14:33,DiskPressure,cron-runner,warning,8,priya.k,silenced during maintenance
+2024-12-05 10:53,CertExpiresSoon,partner-gateway,info,95,marcus.t,auto-resolved
+2024-12-05 16:47,QueueDepthGrowing,search-indexer,warning,5,dana.r,deploy rolled back
+2024-12-06 02:56,RedisMemoryHigh,webhook-dispatch,warning,5,dana.r,escalated to secondary
+2024-12-06 11:35,PodCrashLooping,auth-svc,critical,130,marcus.t,false positive - tuned threshold
+2024-12-06 19:16,CertExpiresSoon,edge-proxy,info,22,sam.o,config fix deployed
+2024-12-07 08:26,ReplicationLagHigh,auth-svc,warning,5,priya.k,partner notified
+2024-12-07 19:14,QueueDepthGrowing,notification-svc,warning,130,dana.r,scaled up replicas
+2024-12-08 11:20,RedisMemoryHigh,billing-worker,warning,41,sam.o,silenced during maintenance
+2024-12-09 00:21,RedisMemoryHigh,edge-proxy,warning,55,priya.k,runbook applied
+2024-12-10 21:00,OOMKilled,notification-svc,critical,30,lena.v,auto-resolved
+2024-12-12 01:21,BackupMissed,auth-svc,critical,130,priya.k,runbook applied
+2024-12-12 17:20,ErrorRateAboveSLO,payments-api,critical,12,marcus.t,escalated to secondary
+2024-12-12 19:30,CertExpiresSoon,reporting-api,info,30,sam.o,runbook applied
+2024-12-13 03:11,CertExpiresSoon,notification-svc,info,95,dana.r,escalated to secondary
+2024-12-13 06:56,SyntheticCheckFailing,edge-proxy,warning,15,priya.k,silenced during maintenance
+2024-12-14 12:55,OOMKilled,search-indexer,critical,130,huy.n,partner notified
+2024-12-15 14:37,CertExpiresSoon,notification-svc,info,5,dana.r,silenced during maintenance
+2024-12-16 06:29,OOMKilled,reporting-api,critical,12,huy.n,scaled up replicas
+2024-12-16 11:21,RateLimiterSaturation,cron-runner,critical,30,sam.o,partner notified
+2024-12-19 07:44,HighP95Latency,payments-api,warning,15,lena.v,runbook applied
+2024-12-19 17:07,ErrorRateAboveSLO,edge-proxy,critical,3,priya.k,silenced during maintenance
+2024-12-21 11:14,CertExpiresSoon,billing-worker,info,15,priya.k,partner notified
+2024-12-21 14:21,ErrorRateAboveSLO,reporting-api,critical,12,marcus.t,partner notified
+2024-12-22 06:20,PodCrashLooping,webhook-dispatch,critical,55,priya.k,auto-resolved
+2024-12-22 21:07,RedisMemoryHigh,feature-flags,warning,70,priya.k,scaled up replicas
+2024-12-23 06:39,HighP95Latency,feature-flags,warning,95,sam.o,escalated to secondary
+2024-12-23 10:04,CertExpiresSoon,search-indexer,info,15,huy.n,partner notified
+2024-12-24 00:36,SyntheticCheckFailing,search-indexer,warning,5,huy.n,deploy rolled back
+2024-12-24 03:19,ErrorRateAboveSLO,rate-limiter,critical,15,dana.r,silenced during maintenance
+2024-12-24 09:00,RedisMemoryHigh,reporting-api,warning,8,dana.r,false positive - tuned threshold
+2024-12-26 00:00,RedisMemoryHigh,partner-gateway,warning,41,lena.v,false positive - tuned threshold
+2024-12-27 09:07,HighP95Latency,feature-flags,warning,22,sam.o,escalated to secondary
+2024-12-27 17:06,ErrorRateAboveSLO,search-indexer,critical,5,sam.o,auto-resolved
+2024-12-28 20:26,ErrorRateAboveSLO,reporting-api,critical,8,lena.v,deploy rolled back
+2024-12-30 07:16,OOMKilled,auth-svc,critical,30,huy.n,silenced during maintenance
+2024-12-30 07:23,PodCrashLooping,rate-limiter,critical,5,sam.o,auto-resolved
+2024-12-31 10:15,QueueDepthGrowing,edge-proxy,warning,22,dana.r,partner notified
