@@ -105,14 +105,18 @@
           <div class="exp-main">
             <h3>Churn Radar</h3>
             <p class="exp-role">Telecom customer churn prediction</p>
-            <p class="exp-meta">Machine learning · UNT · 2022</p>
-            <p class="exp-desc">A model that flags the telecom customers most likely to cancel before they actually do, trained on real subscriber data and tuned to surface the handful of churn signals that genuinely move the needle. Built at the University of North Texas.</p>
+            <p class="exp-meta">Machine learning · 2026</p>
+            <p class="exp-desc">A model that flags the telecom customers most likely to cancel before they actually do — trained on 7,043 real customer records from the public IBM Telco dataset, then exported to score customers live in your browser, with the exact reasons behind every prediction.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, NumPy, Jupyter"></ul>
+              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, Matplotlib"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>I cleaned and explored the subscriber data in pandas, engineered the contract and usage features that carried the most signal, then put logistic regression up against gradient-boosted trees. The feature importances doubled as a story about <em>why</em> people leave.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>I cleaned the data in pandas, built an explicit one-hot feature matrix, and put logistic regression up against gradient boosting — and the readable model wins (AUC 0.845 vs 0.830). Every prediction is a sum of named coefficients, so the live demo can show exactly why each customer scores the way they do — the model's own arithmetic, not a post-hoc explainer.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/churn/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/churn-radar" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
             </div></div>
           </div>
         </div>

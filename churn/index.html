@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Churn Radar — who's about to cancel, and why</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23b8463a'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --blue: #3f5aa0; --gold: #8f6f1d;
+    --green: #2f8a58; --coral: #b8463a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/1.6 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    min-height: 100vh; padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1.4rem; }
+  h1 { font-size: 1.9rem; letter-spacing: .4em; padding-left: .4em; }
+  h1 .dot { color: var(--coral); }
+  .tagline { color: var(--dim); font-size: .84rem; margin-top: .3rem; }
+  .badges { display: flex; gap: .5rem; justify-content: center; margin-top: .8rem; flex-wrap: wrap; }
+  .badge {
+    font-size: .7rem; padding: .15rem .55rem; border: 1px solid var(--line);
+    border-radius: 999px; color: var(--dim); background: var(--panel);
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+    box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
+  }
+  .card h2 {
+    font-size: .78rem; color: var(--dim); text-transform: uppercase;
+    letter-spacing: .12em; margin-bottom: .8rem;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .presets { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .chip {
+    font-size: .74rem; color: var(--dim); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: .28rem .7rem; cursor: pointer;
+  }
+  .chip:hover { color: var(--blue); border-color: var(--blue); }
+  .ctl { margin-bottom: .75rem; }
+  .ctl label { display: block; font-size: .68rem; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .25rem; }
+  .ctl select, .ctl input[type=range] { width: 100%; font: inherit; }
+  .ctl select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: .35rem .5rem; font-size: .8rem;
+  }
+  .ctl .val { color: var(--text); font-size: .78rem; font-weight: 700; }
+  input[type=range] { accent-color: var(--blue); }
+  .verdict { text-align: center; padding: .6rem 0 1rem; }
+  .prob { font-size: 3.4rem; font-weight: 800; line-height: 1.1; }
+  .prob.low { color: var(--green); } .prob.mid { color: var(--gold); } .prob.high { color: var(--coral); }
+  .band { font-size: .78rem; color: var(--dim); }
+  .band b.low { color: var(--green); } .band b.mid { color: var(--gold); } .band b.high { color: var(--coral); }
+  .meter { height: 10px; border: 1px solid var(--line); border-radius: 999px; margin: .7rem auto 0; max-width: 420px; overflow: hidden; background: var(--panel-2); position: relative; }
+  .meter i { display: block; height: 100%; background: var(--coral); transition: width .25s; }
+  .meter .base { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--dim); }
+  .meter-label { font-size: .64rem; color: var(--dim); margin-top: .3rem; }
+  .contrib { margin-top: .4rem; }
+  .crow { display: grid; grid-template-columns: 200px 1fr 60px; gap: .6rem; align-items: center; font-size: .74rem; padding: .18rem 0; }
+  .crow .name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cbar { position: relative; height: 12px; }
+  .cbar .zero { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line); }
+  .cbar i { position: absolute; top: 1px; height: 10px; border-radius: 3px; }
+  .crow .num { text-align: right; color: var(--dim); font-size: .7rem; }
+  .note { font-size: .7rem; color: var(--dim); margin-top: .8rem; line-height: 1.5; }
+  .model-card table { border-collapse: collapse; font-size: .76rem; width: 100%; }
+  .model-card td, .model-card th { border: 1px solid var(--line); padding: .3rem .6rem; text-align: left; }
+  .model-card th { background: var(--panel-2); font-size: .64rem; text-transform: uppercase; letter-spacing: .06em; }
+  .charts img { width: 100%; border: 1px solid var(--line); border-radius: 8px; margin-top: .6rem; }
+  footer { text-align: center; color: var(--dim); font-size: .72rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>CHURN RADAR<span class="dot">_</span></h1>
+    <p class="tagline">who's about to cancel, and why — scored live in your browser</p>
+    <div class="badges" id="badges"></div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>The customer</h2>
+      <div class="presets" id="presets"></div>
+      <div id="controls"></div>
+      <p class="note" id="fixed-note"></p>
+    </section>
+
+    <section class="card">
+      <h2>The prediction</h2>
+      <div class="verdict">
+        <div class="prob" id="prob">—</div>
+        <div class="band" id="band"></div>
+        <div class="meter"><i id="meter-fill"></i><span class="base" id="meter-base"></span></div>
+        <div class="meter-label">marker = dataset base rate</div>
+      </div>
+      <h2>Why — top signals for this customer</h2>
+      <div class="contrib" id="contrib"></div>
+      <p class="note">Bars are each input's contribution to the log-odds:
+        <b style="color:var(--gold)">gold pushes toward churn</b>,
+        <b style="color:var(--blue)">blue pulls away</b>. This is the actual
+        model arithmetic, not a post-hoc explainer.</p>
+    </section>
+  </div>
+
+  <section class="card model-card">
+    <h2>Model card — honest numbers on held-out data</h2>
+    <table id="metrics-table"></table>
+    <p class="note">The shipped model is plain logistic regression — on this
+      dataset it <b>beats</b> gradient boosting while staying fully readable.
+      Trained on the public IBM Telco dataset: 7,043 real customer records,
+      25% held out, stratified. No synthetic data, no leakage
+      (TotalCharges dropped as collinear with tenure × monthly charges).</p>
+  </section>
+
+  <section class="card charts">
+    <h2>The analysis</h2>
+    <img src="assets/churn-by-contract.png" alt="Churn rate by contract type">
+    <img src="assets/top-drivers.png" alt="Top model drivers">
+    <img src="assets/roc.png" alt="ROC curves, logistic regression vs gradient boosting">
+  </section>
+
+  <footer>churn radar · the whole model ships as coefficients — audit it in model.json</footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const CONTROLS = [
+    "Contract", "InternetService", "OnlineSecurity", "TechSupport",
+    "PaymentMethod", "PaperlessBilling", "SeniorCitizen", "Dependents",
+  ];
+  const SLIDERS = { tenure: [0, 72, "months"], MonthlyCharges: [18, 119, "$ / month"] };
+  const PRESETS = [
+    ["Two-year veteran", { Contract: "Two year", tenure: 64, MonthlyCharges: 84,
+      InternetService: "DSL", OnlineSecurity: "Yes", TechSupport: "Yes",
+      PaymentMethod: "Credit card (automatic)", PaperlessBilling: "No",
+      SeniorCitizen: "No", Dependents: "Yes" }],
+    ["Brand-new fiber", { Contract: "Month-to-month", tenure: 2, MonthlyCharges: 95,
+      InternetService: "Fiber optic", OnlineSecurity: "No", TechSupport: "No",
+      PaymentMethod: "Electronic check", PaperlessBilling: "Yes",
+      SeniorCitizen: "No", Dependents: "No" }],
+    ["Typical month-to-month", null],
+  ];
+
+  let MODEL = null;
+  const state = {};
+
+  const sigmoid = (z) => 1 / (1 + Math.exp(-z));
+
+  function defaults() {
+    for (const f of MODEL.features) {
+      if (f.kind === "numeric") state[f.name] = Math.round(f.mean);
+      else state[f.name] = f.mode;
+    }
+  }
+
+  function score() {
+    let z = MODEL.intercept;
+    const contribs = [];
+    for (const f of MODEL.features) {
+      let c = 0, label = "";
+      if (f.kind === "numeric") {
+        c = f.coef * ((state[f.name] - f.mean) / f.std);
+        label = `${f.name} = ${state[f.name]}`;
+      } else {
+        const entry = f.values.find((v) => v.value === state[f.name]) || f.values[0];
+        c = entry.coef;
+        label = `${f.name}: ${entry.value}`;
+      }
+      z += c;
+      contribs.push([label, c, f.name]);
+    }
+    return { p: sigmoid(z), contribs };
+  }
+
+  function render() {
+    const { p, contribs } = score();
+    const pct = (p * 100).toFixed(1);
+    const base = MODEL.metrics.churn_rate;
+    const band = p < 0.15 ? "low" : p < 0.4 ? "mid" : "high";
+    const bandText = { low: "low risk", mid: "elevated", high: "high risk" }[band];
+    const prob = $("prob");
+    prob.textContent = pct + "%";
+    prob.className = "prob " + band;
+    $("band").innerHTML = `churn probability — <b class="${band}">${bandText}</b> (dataset base rate ${(base * 100).toFixed(0)}%)`;
+    $("meter-fill").style.width = pct + "%";
+    $("meter-base").style.left = (base * 100) + "%";
+
+    const box = $("contrib");
+    box.replaceChildren();
+    const top = contribs.filter((c) => Math.abs(c[1]) > 0.001)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 8);
+    const maxAbs = Math.max(...top.map((c) => Math.abs(c[1])), 0.01);
+    for (const [label, c] of top) {
+      const row = document.createElement("div"); row.className = "crow";
+      const name = document.createElement("span"); name.className = "name"; name.textContent = label;
+      const bar = document.createElement("div"); bar.className = "cbar";
+      const zero = document.createElement("span"); zero.className = "zero";
+      const fill = document.createElement("i");
+      const w = Math.abs(c) / maxAbs * 50;
+      fill.style.width = w + "%";
+      fill.style.background = c > 0 ? "var(--gold)" : "var(--blue)";
+      if (c > 0) fill.style.left = "50%"; else fill.style.right = "50%";
+      bar.append(zero, fill);
+      const num = document.createElement("span"); num.className = "num";
+      num.textContent = (c > 0 ? "+" : "") + c.toFixed(2);
+      row.append(name, bar, num);
+      box.appendChild(row);
+    }
+  }
+
+  function buildControls() {
+    const box = $("controls");
+    box.replaceChildren();
+    for (const [name, [lo, hi, unit]] of Object.entries(SLIDERS)) {
+      const f = MODEL.features.find((x) => x.name === name);
+      const div = document.createElement("div"); div.className = "ctl";
+      const label = document.createElement("label");
+      const valSpan = document.createElement("span"); valSpan.className = "val";
+      valSpan.textContent = ` ${state[name]} ${unit}`;
+      label.append(name + " —", valSpan);
+      const input = document.createElement("input");
+      input.type = "range"; input.min = lo; input.max = hi; input.value = state[name];
+      input.addEventListener("input", () => {
+        state[name] = Number(input.value);
+        valSpan.textContent = ` ${state[name]} ${unit}`;
+        render();
+      });
+      div.append(label, input);
+      box.appendChild(div);
+      div.dataset.for = name;
+    }
+    for (const name of CONTROLS) {
+      const f = MODEL.features.find((x) => x.name === name);
+      const div = document.createElement("div"); div.className = "ctl";
+      const label = document.createElement("label"); label.textContent = name;
+      const sel = document.createElement("select");
+      for (const v of f.values) {
+        const o = document.createElement("option");
+        o.value = v.value; o.textContent = v.value;
+        sel.appendChild(o);
+      }
+      sel.value = state[name];
+      sel.addEventListener("change", () => { state[name] = sel.value; render(); });
+      div.append(label, sel);
+      div.dataset.for = name;
+      box.appendChild(div);
+    }
+    const fixed = MODEL.features
+      .filter((f) => f.kind === "categorical" && !CONTROLS.includes(f.name))
+      .map((f) => `${f.name}=${f.mode}`);
+    $("fixed-note").textContent =
+      "Held at dataset-typical values: " + fixed.join(", ") + ".";
+  }
+
+  function syncControls() {
+    document.querySelectorAll("#controls .ctl").forEach((div) => {
+      const name = div.dataset.for;
+      const input = div.querySelector("input, select");
+      if (!input || state[name] === undefined) return;
+      input.value = state[name];
+      const valSpan = div.querySelector(".val");
+      if (valSpan) valSpan.textContent = ` ${state[name]} ${SLIDERS[name][2]}`;
+    });
+  }
+
+  function buildPresets() {
+    const box = $("presets");
+    for (const [name, preset] of PRESETS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = name;
+      b.addEventListener("click", () => {
+        defaults();
+        if (preset) Object.assign(state, preset);
+        syncControls(); render();
+      });
+      box.appendChild(b);
+    }
+  }
+
+  fetch("model.json").then((r) => r.json()).then((m) => {
+    MODEL = m;
+    const met = m.metrics;
+    const badges = $("badges");
+    for (const [k, v] of [
+      ["data", "7,043 real customers"], ["model", "logistic regression"],
+      ["AUC", met.lr.auc.toFixed(3)], ["runs", "in your browser"],
+    ]) {
+      const el = document.createElement("span"); el.className = "badge";
+      const b = document.createElement("b"); b.textContent = v;
+      el.append(k + ": ", b); badges.appendChild(el);
+    }
+    const t = $("metrics-table");
+    t.innerHTML = `
+      <tr><th>model</th><th>ROC AUC</th><th>avg precision</th><th>Brier</th><th>5-fold CV AUC</th></tr>
+      <tr><td>logistic regression (shipped)</td><td><b>${met.lr.auc.toFixed(3)}</b></td>
+          <td>${met.lr.avg_precision.toFixed(3)}</td><td>${met.lr.brier.toFixed(3)}</td>
+          <td>${met.lr.auc_cv_mean.toFixed(3)} ± ${met.lr.auc_cv_std.toFixed(3)}</td></tr>
+      <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
+          <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
+    defaults();
+    buildPresets();
+    buildControls();
+    render();
+  });
+</script>
+</body>
+</html>
