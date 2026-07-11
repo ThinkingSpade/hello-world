@@ -135,6 +135,40 @@
   #corpus .t.dataset { color: var(--map-dataset); }
   #corpus .t.reference { color: var(--map-reference); }
   #corpus .t.diagram { color: var(--map-diagram); }
+  #corpus li { cursor: pointer; }
+  #corpus li:hover span:last-child { color: var(--accent); }
+  .cite .where { cursor: pointer; }
+  .cite .where:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* raw-source viewer */
+  #raw-modal {
+    position: fixed; inset: 0; background: rgba(4, 7, 12, .72); display: none;
+    z-index: 40; padding: 4vh 4vw; backdrop-filter: blur(2px);
+  }
+  #raw-modal.open { display: flex; align-items: flex-start; justify-content: center; }
+  .raw-window {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    width: min(860px, 100%); max-height: 90vh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .raw-bar {
+    display: flex; align-items: center; gap: .7rem; padding: .55rem .9rem;
+    background: var(--panel-2); border-bottom: 1px solid var(--line); font-size: .74rem;
+  }
+  #raw-kind { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; }
+  #raw-title { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #raw-open { color: var(--accent); text-decoration: none; font-size: .7rem; white-space: nowrap; }
+  #raw-close {
+    background: none; border: 1px solid var(--line); border-radius: 4px; color: var(--dim);
+    cursor: pointer; font: inherit; font-size: .68rem; padding: .08rem .5rem;
+  }
+  #raw-close:hover { color: var(--text); border-color: var(--dim); }
+  #raw-body { overflow: auto; padding: .9rem 1.1rem; }
+  #raw-body pre {
+    white-space: pre-wrap; word-wrap: break-word; font-size: .78rem;
+    line-height: 1.55; color: var(--text);
+  }
+  #raw-body img { max-width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-bottom: .8rem; }
+  #raw-body iframe { width: 100%; height: 70vh; border: 0; background: #fff; border-radius: 6px; }
   .err { color: var(--coral); }
   footer { text-align: center; color: var(--dim); font-size: .72rem; margin-top: 2.4rem; }
   .hide { display: none; }
@@ -186,11 +220,23 @@
   </section>
 
   <section class="card" id="corpus">
-    <h2>Corpus</h2>
+    <h2>Corpus — click any doc to read its raw source</h2>
     <ul id="corpus-list"><li class="spin">loading…</li></ul>
   </section>
 
   <footer>atlas · cited answers only — if it isn't in the corpus, it says so</footer>
+</div>
+
+<div id="raw-modal" role="dialog" aria-modal="true" aria-labelledby="raw-title">
+  <div class="raw-window">
+    <div class="raw-bar">
+      <span id="raw-kind" class="t"></span>
+      <span id="raw-title"></span>
+      <a id="raw-open" target="_blank" rel="noopener">open file&nbsp;↗</a>
+      <button id="raw-close" type="button">✕ close</button>
+    </div>
+    <div id="raw-body"></div>
+  </div>
 </div>
 
 <script src="engine.js"></script>
@@ -257,12 +303,15 @@
       const ul = $("corpus-list");
       ul.replaceChildren();
       for (const doc of d.docs) {
+        docsById[doc.id] = doc;
         const li = document.createElement("li");
+        li.title = "view raw source";
         const t = document.createElement("span");
         t.className = "t " + doc.type; t.textContent = doc.type;
         const title = document.createElement("span");
         title.textContent = doc.title;
         li.append(t, title);
+        li.addEventListener("click", () => openRaw(doc));
         ul.appendChild(li);
       }
     } catch {
@@ -310,6 +359,10 @@
         const where = document.createElement("span");
         where.className = "where";
         where.textContent = c.doc_title + " — " + c.section;
+        where.title = "view raw source";
+        where.addEventListener("click", () => {
+          if (docsById[c.doc_id]) openRaw(docsById[c.doc_id]);
+        });
         const kind = document.createElement("span");
         kind.className = "kind " + c.doc_type; kind.textContent = c.doc_type;
         head.append(n, where, kind);
@@ -340,6 +393,56 @@
 
   $("ask-form").addEventListener("submit", (ev) => { ev.preventDefault(); askNow(); });
   loadMeta();
+
+  /* ---------------- raw-source viewer ---------------- */
+  const docsById = {};
+
+  async function openRaw(doc) {
+    if (!doc || !doc.source) return;
+    const url = FILES_BASE + doc.source;
+    $("raw-kind").textContent = (doc.format || doc.type || "").toUpperCase();
+    $("raw-kind").className = "t " + doc.type;
+    $("raw-title").textContent = doc.title + " — " + doc.source;
+    $("raw-open").href = url;
+    const body = $("raw-body");
+    body.replaceChildren();
+    $("raw-modal").classList.add("open");
+    const showText = async (u) => {
+      const res = await fetch(u);
+      if (!res.ok) throw new Error(res.statusText);
+      const el = document.createElement("pre");
+      el.textContent = await res.text();
+      body.appendChild(el);
+    };
+    try {
+      if (doc.format === "image") {
+        const img = document.createElement("img");
+        img.src = url; img.alt = doc.title;
+        body.appendChild(img);
+        await showText(url + ".md").catch(() => {});  // its sidecar description
+      } else if (doc.format === "pdf") {
+        const frame = document.createElement("iframe");
+        frame.src = url; frame.title = doc.title;
+        body.appendChild(frame);
+      } else {
+        await showText(url);
+      }
+    } catch {
+      const el = document.createElement("div");
+      el.className = "err";
+      el.textContent = "failed to load raw source (" + doc.source + ")";
+      body.appendChild(el);
+    }
+  }
+
+  function closeRaw() { $("raw-modal").classList.remove("open"); }
+  $("raw-close").addEventListener("click", closeRaw);
+  $("raw-modal").addEventListener("click", (ev) => {
+    if (ev.target === $("raw-modal")) closeRaw();
+  });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") closeRaw();
+  });
 
   /* ---------------- embedding-space map ---------------- */
   const MAP = {

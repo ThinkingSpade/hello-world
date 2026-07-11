@@ -1,0 +1,15 @@
+date,incident_id,severity,service,duration_min,summary
+2024-01-09,INC-2401,SEV3,search-indexer,38,reindex backlog after schema change
+2024-02-02,INC-2402,SEV2,notification-svc,55,queue consumer stuck on poison message
+2024-03-14,INC-2403,SEV2,auth-svc,72,redis maxmemory evicted session keys
+2024-03-29,INC-2404,SEV3,reporting-api,25,replica lag delayed morning reports
+2024-04-18,INC-2405,SEV2,billing-worker,63,vault token expiry stopped invoice run
+2024-05-06,INC-2406,SEV3,feature-flags,19,flag cache stampede on deploy
+2024-06-11,INC-2407,SEV2,partner-gateway,47,upstream cert pinning broke after vendor rotation
+2024-07-22,INC-2408,SEV1,payments-api,43,global rate limiter tripped by partner retry storm
+2024-08-15,INC-2409,SEV3,cron-runner,31,overlapping cron runs double-sent digests
+2024-09-04,INC-2410,SEV2,edge-proxy,58,config reload dropped keepalive connections
+2024-09-27,INC-2411,SEV3,search-indexer,22,crashloop after bad env var in deploy
+2024-10-30,INC-2412,SEV2,webhook-dispatch,66,retry amplification against slow partner
+2024-11-05,INC-2413,SEV2,status-page,121,wildcard cert expiry took down internal tooling
+2024-12-12,INC-2414,SEV3,audit-writer,17,disk pressure from unpartitioned audit_log
