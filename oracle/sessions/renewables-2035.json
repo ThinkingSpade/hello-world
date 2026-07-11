@@ -1,0 +1,114 @@
+{
+  "question": "Will renewables generate more than half of the world's electricity by 2035?",
+  "recorded": "scripted-sample",
+  "topic_tag": "energy",
+  "agents": [
+    {"id": "gpt", "name": "GPT-5.5", "role": "The Optimist", "color": "gold"},
+    {"id": "claude", "name": "Claude Opus 4.8", "role": "The Fact-Checker", "color": "blue"},
+    {"id": "gemini", "name": "Gemini 3.1 Pro", "role": "The Skeptic", "color": "violet"}
+  ],
+  "rounds": [
+    {
+      "phase": "Opening positions",
+      "events": [
+        {
+          "agent": "gpt",
+          "think": 2400,
+          "confidence": 85,
+          "text": "Yes, and I would argue the question is closer to settled than it looks. The IEA has called solar the cheapest electricity in history, and cost curves like that do not politely stop. Every doubling of installed solar capacity has cut costs by roughly twenty percent, and deployment keeps compounding: global additions break records year after year, with China alone now installing more solar in a single year than the entire world managed a decade ago. Wind rides a similar, if gentler, curve. Meanwhile EVs are dragging battery prices down the same learning curve, which means storage, the classic objection, is riding shotgun on the same exponential. Once the cheapest marginal kilowatt-hour is renewable, capital reallocates on its own; no treaty required. From roughly thirty percent of global generation today, one more decade of compounding carries us past half with room to spare. I am at 85."
+        },
+        {
+          "agent": "claude",
+          "think": 3600,
+          "confidence": 62,
+          "text": "Let me anchor the numbers before anyone extrapolates them. Renewables supplied roughly thirty percent of global electricity in 2023, per the IEA, with hydro the largest slice and wind plus solar growing fastest. Solar is the fastest-growing power source in history: installed capacity has roughly doubled about every three years recently. The IEA's main projections have renewables approaching forty-six to fifty percent of generation by 2030, driven overwhelmingly by China's buildout. So the trend line genuinely favors the optimists. Two caveats keep me cautious. First, those projections are scenarios, sensitive to policy and grid investment, not forecasts of destiny. Second, the binding constraint has shifted from panel prices to interconnection queues, transmission buildout, and storage; in several major markets, years' worth of projects sit waiting for a grid connection. Crossing fifty percent by 2035 requires the 2030 trajectory to hold for five more years without those bottlenecks biting hard. Plausible, not guaranteed. I am at 62."
+        },
+        {
+          "agent": "gemini",
+          "think": 3100,
+          "confidence": 38,
+          "text": "I will take the other side, because capacity is not generation and press releases are not electrons. Solar runs at roughly a fifteen to twenty-five percent capacity factor; a gigawatt of panels displaces far less coal than a gigawatt of anything dispatchable. Grids are the real story. Interconnection queues in the United States and Europe stretch for years, major transmission lines can take a decade to permit, and storage beyond about four hours is still expensive at scale. Meanwhile the denominator is moving: electricity demand in India, Southeast Asia, and now data centers is growing quickly, and much of that growth is still met by coal and gas because they are what today's grid can absorb. Renewables can smash records on additions and still barely gain share. Going from thirty percent to above fifty in twelve years means rebuilding grids at wartime speed on every continent at once, and I see no evidence we are doing that. I am at 38."
+        }
+      ]
+    },
+    {
+      "phase": "Cross-examination",
+      "events": [
+        {
+          "agent": "gemini",
+          "target": "gpt",
+          "think": 2200,
+          "text": "Cost curves do not build transmission lines. Panels could be free tomorrow and it would change nothing for a project stuck five years in an interconnection queue. You also quietly slid from capacity to generation: the doubling you cite is installed gigawatts, and at solar's capacity factors, actual share of electricity moves far more slowly. And 'capital reallocates on its own' skips the part where the grid operator says no. Show me permitting reform and transmission buildout at global scale, not a learning curve."
+        },
+        {
+          "agent": "claude",
+          "target": "gpt",
+          "think": 3400,
+          "text": "Two corrections. First, 'one more decade of compounding carries us past half' overstates what the data supports: capacity doublings do not translate one-for-one into generation share, because solar's capacity factor is a fraction of the fossil plants it displaces, and growth rates mathematically slow as the base gets large. Second, the IEA's figures show renewables approaching forty-six to fifty percent by 2030 in its main case; that supports 'likely,' not 'settled,' and the same reports flag grid and storage investment as the gating factor. Your direction is right. Your certainty is not. The honest read is a strong trend running into a real integration constraint."
+        },
+        {
+          "agent": "gpt",
+          "target": "gemini",
+          "think": 2600,
+          "text": "You are describing Western permitting and projecting it onto the planet. Most of this buildout is happening in China, which constructs ultra-high-voltage transmission on timelines Europe can only envy, and it is exporting that model along with the panels. Battery pack prices have fallen on the order of ninety percent in a decade, and grid-scale storage is now winning open capacity auctions on cost. As for demand growth: new demand in sunny, fast-growing markets is precisely where solar plus storage is already the cheapest new build. Your bottleneck is real in Brussels and Sacramento. It is not the world."
+        },
+        {
+          "agent": "gemini",
+          "target": "claude",
+          "think": 2900,
+          "text": "On the data, I concede the point. Solar additions really have roughly doubled every three years, 2024 set another record, and I was underweighting how much of the thirty-to-fifty gap hydro and existing wind already cover: new wind and solar need to add perhaps twenty points of share, not the whole distance. That moves me. But my objection was never the panels. It is whether grids and storage let those electrons reach the meter, and your own IEA citations name exactly that bottleneck. I am updating upward, not surrendering."
+        },
+        {
+          "agent": "claude",
+          "target": "gemini",
+          "think": 3000,
+          "text": "A fair concession, so let me size your remaining objection: it is real but bounded. With hydro and today's wind and solar as the base, the gap to fifty percent is roughly twenty points of share over twelve years, under two points per year, against a recent pace of roughly a point per year and accelerating. Grid queues are a genuine drag, but China and India are building transmission alongside generation, and storage additions are setting records too. On the evidence, the bottleneck slows the date; I do not see it pushing the central case past 2035."
+        }
+      ]
+    },
+    {
+      "phase": "Final votes",
+      "events": [
+        {
+          "agent": "gpt",
+          "think": 1900,
+          "confidence": 78,
+          "vote": "Yes",
+          "text": "I will trade a little certainty for the fact-checker's precision: the constraint is integration, not economics, and integration moves slower than cost curves. Fine. But the cost curve remains undefeated, and every bottleneck named tonight is a permitting and engineering problem, not physics. Twenty points of share in twelve years, on an accelerating base, with storage getting cheap. Yes before 2035. I am at 78."
+        },
+        {
+          "agent": "claude",
+          "think": 2700,
+          "confidence": 72,
+          "vote": "Probably yes",
+          "text": "The debate narrowed to the right question: not whether renewables win, but whether grids and storage keep pace with record additions. The IEA trajectory toward forty-six to fifty percent by 2030 leaves five years to close the remainder, and the required pace is close to what we already observe. The skeptic's grid concern trims my confidence; it no longer flips the answer. Probably yes. I am at 72."
+        },
+        {
+          "agent": "gemini",
+          "think": 2300,
+          "confidence": 62,
+          "vote": "Lean yes",
+          "text": "I came in at 38 and I am leaving at 62, and the solar deployment data earned every point of that. The arithmetic is tighter than I assumed: twenty points of share, not fifty. My residual doubt is storage duration and grid buildout outside China, which could stretch the crossing into the late 2030s. Lean yes, with the date as the honest uncertainty. 62."
+        }
+      ]
+    }
+  ],
+  "moderator": {
+    "name": "The Moderator",
+    "think": 3200,
+    "text": "This session converged, and it converged on evidence. The agents opened forty-seven points apart and closed within sixteen. The Fact-Checker's anchors did the work: renewables at roughly thirty percent of global generation in 2023, solar capacity doubling about every three years, and IEA projections approaching forty-six to fifty percent by 2030. The Optimist ceded certainty once corrected on the capacity-versus-generation distinction; the Skeptic conceded the deployment data outright and reframed the dispute as arithmetic on the remaining twenty points of share. What survived contact from all three is the same residual risk: interconnection queues, transmission buildout, and storage duration set the pace, and they are policy and construction problems rather than cost problems. All three now lean yes. The disagreement that remains is about the date, not the direction."
+  },
+  "result": {
+    "answer": "Probably yes. Deployment data and cost trajectories make renewables crossing half of global electricity generation by 2035 the most likely outcome, with the IEA already projecting roughly 46-50 percent by 2030. The timing, however, hinges on grid buildout and storage keeping pace with record solar and wind additions, and a slip into the late 2030s remains a live possibility.",
+    "confidence": 74,
+    "consensus": "3 of 3 leaning yes",
+    "votes": {"gpt": "Yes", "claude": "Probably yes", "gemini": "Lean yes"},
+    "confidence_by_round": {
+      "gpt": [85, 80, 78],
+      "claude": [62, 68, 72],
+      "gemini": [38, 52, 62]
+    },
+    "dissent": "All three agents flag grid interconnection and storage buildout pace, not panel economics, as the factor that could push the crossing past 2035.",
+    "how_scored": "consensus 100% · mean self-confidence 71% · convergence +3% → 74%"
+  }
+}

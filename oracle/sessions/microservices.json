@@ -1,0 +1,48 @@
+{
+  "question": "Should we rewrite our monolith as microservices?",
+  "recorded": "scripted-sample",
+  "topic_tag": "engineering",
+  "agents": [
+    {"id": "gpt", "name": "GPT-5.5", "role": "The Optimist", "color": "gold"},
+    {"id": "claude", "name": "Claude Opus 4.8", "role": "The Fact-Checker", "color": "blue"},
+    {"id": "gemini", "name": "Gemini 3.1 Pro", "role": "The Skeptic", "color": "violet"}
+  ],
+  "rounds": [
+    {
+      "phase": "Opening positions",
+      "events": [
+        {"agent": "gpt", "think": 2600, "confidence": 72, "text": "Yes — and the best evidence is what the monolith is already costing you. Every team ships through one release train, so your fastest team moves at the speed of your slowest. Deploys are all-or-nothing events with company-wide blast radius, which is why they happen weekly instead of hourly. Microservices fix the organizational physics: teams own services, deploy independently, scale hot paths without scaling everything, and pick the right tool per job. The industry didn't adopt this pattern for fashion — Amazon, Netflix, and basically every company that outgrew a monolith landed here because ownership boundaries beat coordination meetings. Yes, you take on network complexity and operational overhead. But that cost is front-loaded and finite, while coordination costs compound forever. If the team is already tripping over itself in one codebase, the rewrite pays for itself in release velocity alone."},
+        {"agent": "claude", "think": 3400, "confidence": 55, "text": "The data here is less romantic than either camp admits. What we know: the famous successes — Amazon, Netflix — decomposed at hundreds-to-thousands of engineers, not dozens. DORA research correlates deploy frequency with loose coupling, but loose coupling is achievable inside a monolith; the correlation is with architecture discipline, not service count. We also have well-documented reversals — Segment consolidated microservices back into a monolith and wrote up why; Amazon Prime Video's own engineering blog described merging a serverless microservice pipeline into a monolith for an order-of-magnitude cost win. And 'rewrite' specifically carries its own base rate: big-bang rewrites are notorious for multi-year overruns. The honest framing is conditional: microservices trade coordination cost for operational cost. That trade pays off at some team size — commonly cited around several independent teams — and drowns you below it. The question as posed doesn't state team size, which is the single variable that decides it."},
+        {"agent": "gemini", "think": 2100, "confidence": 28, "text": "No — and I'll be blunt about why this question keeps getting answered wrong. Teams don't adopt microservices because their monolith failed; they adopt them because the monolith became embarrassing. The actual failure mode you're signing up for: a distributed system where every function call becomes a network call that can time out, retry, or partially fail; where debugging means correlating traces across a dozen services; where your two-pizza team now operates twenty deployment pipelines, a service mesh, and an on-call rotation that pages for infrastructure instead of features. You will spend eighteen months rebuilding features you already have, shipping nothing customers notice. The monolith's problems are real but they're mostly discipline problems — tangled modules, no ownership boundaries, slow CI. Those follow you into microservices and get worse, because now the tangle has latency. Fix the modularity where you stand. A modular monolith gives you eighty percent of the benefit for five percent of the migration risk."}
+      ]
+    },
+    {
+      "phase": "Cross-examination",
+      "events": [
+        {"agent": "gemini", "target": "gpt", "think": 2800, "text": "GPT-5.5, your 'organizational physics' argument assumes the org exists. Amazon had thousands of engineers when it decomposed; you're prescribing their medicine without checking the patient's size. Independent deploys are a property of good module boundaries plus decent CI — both achievable without a single network hop. What you called 'front-loaded and finite' cost is neither: distributed tracing, service meshes, and cross-service migrations are forever."},
+        {"agent": "gpt", "target": "gemini", "think": 2400, "text": "Fair hit on team size — I'll concede this is a poor prescription for a ten-person team. But your 'just have discipline' alternative has its own base rate problem: every monolith I've seen promised modularity and delivered a tangle, because nothing *enforces* the boundary. A network boundary is a boundary someone has to consciously violate. The modular monolith works exactly until the first deadline, and then it's one import statement away from spaghetti again."},
+        {"agent": "claude", "target": "gpt", "think": 3100, "text": "One correction and one confirmation. Correction: 'the rewrite pays for itself in release velocity alone' isn't supported — rewrites historically *pause* velocity for quarters, and Segment's writeup documents velocity going backward under microservices for a small team. Confirmation: GPT-5.5 is right that unenforced boundaries decay; that's why the middle path that actually has evidence behind it is incremental extraction — strangler-fig style — which gets enforced boundaries service by service without betting the company on a big bang."},
+        {"agent": "gemini", "target": "claude", "think": 1900, "text": "I'll take the fact-checker's amendment: strangler-fig extraction is the defensible version of the optimist's position, and I'd rather concede to that than pretend modular discipline always holds — it doesn't, I've watched it fail too. But note what we just did: 'rewrite as microservices' quietly became 'extract incrementally where boundaries prove themselves.' That's a different, smaller, better question — and it's a no to the question as asked."},
+        {"agent": "gpt", "target": "claude", "think": 2200, "text": "Accepting the strangler-fig framing gladly — that's still microservices as the destination, just an honest migration path instead of a cliff dive. Where I hold my ground: the destination matters. If you extract two services and stop, you've bought complexity without the payoff. The bet only makes sense if the org is growing into the architecture — which loops back to the fact-checker's team-size condition, and I think that's now common ground."}
+      ]
+    },
+    {
+      "phase": "Final votes",
+      "events": [
+        {"agent": "gpt", "think": 1800, "confidence": 64, "vote": "qualified yes", "text": "Qualified yes: yes to microservices as the destination for a growing org, no to a big-bang rewrite. Extract incrementally along boundaries that have proven they need independence — deploy cadence, scaling profile, or team ownership. If the team is small and staying small, my yes evaporates. VOTE: qualified yes CONFIDENCE: 64"},
+        {"agent": "claude", "think": 2300, "confidence": 62, "vote": "qualified yes", "text": "Qualified yes, conditional on the variables the question omitted: multiple teams blocked on each other, an incremental strangler-fig path, and honest accounting for two quarters of slowed features. Absent those conditions the evidence favors staying. The word 'rewrite' in the question remains the red flag — the successful version of this is never a rewrite. VOTE: qualified yes CONFIDENCE: 62"},
+        {"agent": "gemini", "think": 1600, "confidence": 45, "vote": "no", "text": "Still no — to the question as asked. 'Rewrite as microservices' is the version that fails: eighteen dark months and a distributed tangle. What my colleagues just voted for is a different proposal wearing the same name. If you re-ask me about incremental extraction at proven boundaries with multiple teams, I'm persuadable — which is exactly why I won't launder that nuance into a yes here. VOTE: no CONFIDENCE: 45"}
+      ]
+    }
+  ],
+  "moderator": {"name": "The Moderator", "think": 3600, "text": "The council converged more than the vote count shows. All three agents ended in the same place on substance: big-bang rewrites are indefensible; incremental, strangler-fig extraction along proven boundaries is the only version with evidence behind it; and team size is the deciding variable the question failed to state. The remaining split is genuinely about the question's wording — the Skeptic refuses to bless 'rewrite' as asked, while the Optimist and Fact-Checker vote for the charitable reading. The confidence spread narrowed from 44 points to 19 across the debate, which is substantial convergence. Verdict below reflects a real but conditional yes. ANSWER: Not as a rewrite. If multiple teams are genuinely blocked on one release train, extract services incrementally at boundaries that prove themselves — otherwise invest in a modular monolith and revisit when the org outgrows it."},
+  "result": {
+    "answer": "Not as a rewrite. If multiple teams are genuinely blocked on one release train, extract services incrementally at boundaries that prove themselves — otherwise invest in a modular monolith and revisit when the org outgrows it.",
+    "confidence": 51,
+    "consensus": "2 of 3 leaning yes",
+    "votes": {"gpt": "qualified yes", "claude": "qualified yes", "gemini": "no"},
+    "confidence_by_round": {"gpt": [72, 66, 64], "claude": [55, 60, 62], "gemini": [28, 38, 45]},
+    "dissent": "Whether 'rewrite as microservices' can honestly be answered as anything but no when the defensible plan is incremental extraction, not a rewrite.",
+    "how_scored": "consensus 33% · mean self-confidence 57% · convergence +57% → 51%"
+  }
+}

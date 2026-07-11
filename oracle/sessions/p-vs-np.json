@@ -1,0 +1,118 @@
+{
+  "question": "Will P vs NP be resolved this century?",
+  "recorded": "scripted-sample",
+  "topic_tag": "computer science",
+  "agents": [
+    {"id": "gpt", "name": "GPT-5.5", "role": "The Optimist", "color": "gold"},
+    {"id": "claude", "name": "Claude Opus 4.8", "role": "The Fact-Checker", "color": "blue"},
+    {"id": "gemini", "name": "Gemini 3.1 Pro", "role": "The Skeptic", "color": "violet"}
+  ],
+  "rounds": [
+    {
+      "phase": "Opening positions",
+      "events": [
+        {
+          "agent": "gpt",
+          "think": 2600,
+          "confidence": 55,
+          "text": "I'll take the affirmative, and not out of blind cheer. History keeps embarrassing pessimists about famous problems. Fermat's Last Theorem sat open for 358 years and looked hopeless right up until Wiles closed it in 1995, using machinery — modularity, elliptic curves — that nobody in Fermat's era could have imagined. The Poincaré conjecture stood for a century before Perelman resolved it in 2003 with Ricci flow. In both cases the breakthrough came from an adjacent field maturing, not from grinding on the problem directly. Now look at the tooling curve we are on: proof assistants like Lean formalizing frontier mathematics, AI systems doing serious work in premise selection and proof search, and a growing pipeline of humans and machines collaborating on formal proofs. We have seventy-plus years of runway left this century. Betting against a resolution means betting that nothing adjacent matures for three more generations. I put it modestly above even."
+        },
+        {
+          "agent": "claude",
+          "think": 3400,
+          "confidence": 35,
+          "text": "Let me anchor us in what is verifiable. P vs NP has been open since Cook's 1971 paper — Levin found it independently in the USSR — and it is one of the seven Clay Millennium Prize Problems, with one million dollars waiting since 2000. Nobody has collected. Three formal barrier results explain why. Baker, Gill, and Solovay showed in 1975 that relativizing techniques cannot settle it. Razborov and Rudich showed in 1994 that 'natural proofs' cannot break the relevant circuit lower bounds under standard cryptographic assumptions. And Aaronson and Wigderson's 2008 algebrization result closed off the hybrid route that had cracked IP = PSPACE. Meanwhile, Woeginger's public list catalogued over a hundred claimed proofs, split between 'P = NP' and 'P ≠ NP', every one of them wrong or unverifiable. Aaronson's survey frames the honest position: we believe P ≠ NP, but we cannot currently even articulate what a proof would look like. That is the factual terrain."
+        },
+        {
+          "agent": "gemini",
+          "think": 3100,
+          "confidence": 15,
+          "text": "The barriers my colleague just listed are not potholes; they are theorems about our own methods. Any successful proof must simultaneously be non-relativizing, non-naturalizing, and non-algebrizing, and we know almost nothing that clears all three. The one research program explicitly designed to — Mulmuley's geometric complexity theory — was pitched by its own founder as a plan measured in decades, possibly a century, and its intermediate milestones have gone badly: key GCT hopes about occurrence obstructions were refuted in 2016. As for base rates: predicting that a specific open conjecture falls within a specific century is a coin flip at best, and P vs NP is not a random draw — it is selected precisely for resisting everything thrown at it for fifty-five years. Optimism by analogy to Fermat is survivorship bias. For every Fermat there is a Riemann hypothesis, open since 1859, or Goldbach, open since 1742. I am at fifteen percent, and that feels generous."
+        }
+      ]
+    },
+    {
+      "phase": "Cross-examination",
+      "events": [
+        {
+          "agent": "gemini",
+          "target": "gpt",
+          "think": 2200,
+          "text": "You said 'betting against a resolution means betting that nothing adjacent matures.' No — Wiles had a target: the modularity conjecture, a known bridge. Where is the bridge for P vs NP? Name the adjacent field whose maturation plausibly yields a non-algebrizing lower bound. You cannot, because none is known. Fermat in 1985 had Frey, Serre, and Ribet drawing the map. We have no map, only three signs reading 'not this way.' Your analogy is not evidence; it is a hope wearing history as a costume."
+        },
+        {
+          "agent": "gpt",
+          "target": "gemini",
+          "think": 2800,
+          "text": "'No map' overstates it. Ryan Williams proved NEXP is not contained in ACC0 by marrying satisfiability algorithms to diagonalization — a genuinely new technique that evades both relativization and natural proofs. That is a bridge under construction, even if it is far from the destination. The barrier theorems say the old tools fail; they do not say new tools cannot exist. Relativization did not stop IP = PSPACE, and algebrization did not stop Williams. Barriers are maps of where not to dig, and mapmaking is progress."
+        },
+        {
+          "agent": "claude",
+          "target": "gpt",
+          "think": 3000,
+          "text": "One correction to your opening. Proof assistants and current AI systems verify and search within human-scale proofs; they have not produced a single resolution of a significant open conjecture in mathematics. AlphaProof-style systems reached olympiad level — problems with known solutions and short certificates. That is a real trend, but extrapolating from 'formalizes known math' to 'discovers a non-naturalizing circuit lower bound' skips every hard step in between. As stated, your tooling argument is unfalsifiable enthusiasm, not evidence."
+        },
+        {
+          "agent": "gpt",
+          "target": "claude",
+          "think": 2400,
+          "text": "That is fair, and I concede it: today's provers are verifiers and tactical assistants, not discoverers, and nothing yet demonstrates machine discovery of genuinely new proof techniques. Where I hold my ground is the horizon. You are extrapolating from 2026 capabilities across seventy-four more years. In 1950 nobody would have credited computer-checked proofs of the four color theorem or the Kepler conjecture, yet both happened within decades. I am lowering my number a notch, not folding."
+        },
+        {
+          "agent": "gemini",
+          "target": "claude",
+          "think": 2600,
+          "text": "Even your careful framing smuggles in optimism, Claude. You grant that we 'cannot articulate what a proof would look like' — agreed — yet you let Williams' ACC0 result, which GPT leaned on, stand as encouraging. Scale matters: ACC0 is an almost comically weak circuit class, and that single step took three decades of setup. At that rate the distance to P ≠ NP is measured in centuries, not one. The honest reading of your own evidence is my position, not the middle."
+        }
+      ]
+    },
+    {
+      "phase": "Final votes",
+      "events": [
+        {
+          "agent": "gpt",
+          "think": 2100,
+          "confidence": 52,
+          "vote": "yes, barely",
+          "text": "I concede the tooling point, and I cannot name the bridge Gemini demands. But a century is long, the incentives are unprecedented, and Williams showed the barrier walls have doors. Surprises of the Wiles kind arrive roughly once a generation, and we have three generations left on the clock. I will stand marginally above even — a coin flip I would still take. Yes, barely."
+        },
+        {
+          "agent": "claude",
+          "think": 2700,
+          "confidence": 28,
+          "vote": "leaning no",
+          "text": "The verifiable record: fifty-five years open, three formal barrier theorems, a hundred-plus failed claimed proofs, and one dedicated program whose intermediate hopes were refuted. Nothing in evidence today points toward resolution on any timetable, and seventy-four years is a timetable. I weight the documented barriers over the base-rate hope. Leaning no, with genuine uncertainty about what decades of compute and formalization might yet produce."
+        },
+        {
+          "agent": "gemini",
+          "think": 1900,
+          "confidence": 10,
+          "vote": "no",
+          "text": "Cross-examination moved me only toward confirmation. The optimist's case reduced to 'a lot can happen in seventy-four years' — that is not an argument, it is a horizon. The one concrete technique offered, Williams', measures progress in decades per epsilon against a comically weak circuit class. The barriers are principled, the serious programs number one, and its predictions failed. No."
+        }
+      ]
+    }
+  ],
+  "moderator": {
+    "name": "The Moderator",
+    "think": 3600,
+    "text": "Three positions, and they did not converge. All agree on the record: open since Cook in 1971, a million-dollar Clay prize unclaimed, and three barrier theorems — relativization, natural proofs, algebrization — that rule out every classical technique. All agree, after GPT-5.5's concession, that today's AI and formal tools verify rather than discover. The disagreement is over what an open horizon is worth. GPT-5.5 reads seventy-four remaining years plus historical surprises as slightly better than even odds; Gemini 3.1 Pro reads the same barriers as principled walls and the Fermat analogy as survivorship bias; Claude sits between, weighting documented failure over undocumented hope. The lone concession narrowed nothing, because the crux is unfalsifiable in both directions: whether a Wiles-shaped breakthrough is due. When the spread stays this wide, confidence must stay low."
+  },
+  "result": {
+    "answer": "Probably not, but nobody can rule it out. The known barrier theorems make a proof with anything resembling current techniques impossible, and the one dedicated program has stumbled; yet seventy-four years is long enough that history counsels humility. The panel split three ways, and the split itself is the finding.",
+    "confidence": 34,
+    "consensus": "1 of 3 leaning yes",
+    "votes": {
+      "gpt": "yes, barely",
+      "claude": "leaning no",
+      "gemini": "no"
+    },
+    "confidence_by_round": {
+      "gpt": [55, 50, 52],
+      "claude": [35, 30, 28],
+      "gemini": [15, 12, 10]
+    },
+    "dissent": "Whether the barrier theorems are principled walls or merely maps of exhausted terrain that some future, currently unimaginable technique will route around.",
+    "how_scored": "consensus 33% · mean self-confidence 30% · convergence −5% → 34%"
+  }
+}

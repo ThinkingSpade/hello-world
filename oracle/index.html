@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oracle — a council of debating agents</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%236a47a0'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51;
+    --blue: #3f5aa0; --gold: #8f6f1d; --violet: #6a47a0; --green: #2f8a58; --coral: #b8463a;
+    --blue-bg: #e3e9f5; --gold-bg: #f3ecd9; --violet-bg: #ece4f4; --green-bg: #e0efe6;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    background-image: radial-gradient(rgba(28,26,23,.055) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color: var(--text);
+    font: 14px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    min-height: 100vh; padding: 1.8rem 1rem 4rem;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1rem; }
+  h1 { font-size: 1.9rem; letter-spacing: .42em; padding-left: .42em; }
+  h1 .dot { color: var(--violet); }
+  .tagline { color: var(--dim); font-size: .82rem; margin-top: .3rem; }
+  .honesty {
+    display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim);
+    background: var(--panel); border: 1px dashed var(--line); border-radius: 999px;
+    padding: .3rem .9rem;
+  }
+  .honesty b { color: var(--violet); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1rem 1.2rem; margin-bottom: .9rem;
+    box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
+  }
+  .card h2 { font-size: .7rem; color: var(--dim); text-transform: uppercase; letter-spacing: .11em; margin-bottom: .6rem; }
+  /* session picker */
+  .picker { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
+  .sess {
+    font: inherit; font-size: .74rem; cursor: pointer; text-align: left;
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: .5rem .8rem; max-width: 300px;
+    box-shadow: 3px 3px 0 rgba(28,26,23,.05);
+  }
+  .sess small { display: block; color: var(--dim); font-size: .64rem; margin-top: .15rem; }
+  .sess.active { border-color: var(--violet); outline: 1px solid var(--violet); }
+  .sess:hover { border-color: var(--violet); }
+  /* question + phase rail */
+  .question { text-align: center; font-size: 1.02rem; font-weight: 700; margin: .2rem 0 .9rem; }
+  .rail { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
+  .ph {
+    font-size: .64rem; text-transform: uppercase; letter-spacing: .07em;
+    border: 1px solid var(--line); border-radius: 999px; padding: .22rem .7rem;
+    color: var(--dim); background: var(--panel); transition: all .3s;
+  }
+  .ph.now { color: #fff; background: var(--violet); border-color: var(--violet); font-weight: 700; }
+  .ph.done { color: var(--green); border-color: var(--green); }
+  .ph.done:before { content: "✓ "; }
+  /* council */
+  .council { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .9rem; }
+  @media (max-width: 700px) { .council { grid-template-columns: 1fr; } }
+  .agent {
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: .8rem; text-align: center; position: relative; transition: border-color .3s;
+    box-shadow: 3px 3px 0 rgba(28,26,23,.05);
+  }
+  .agent.speaking { border-color: var(--ac); }
+  .agent .ava { width: 74px; height: 74px; margin: 0 auto .35rem; position: relative; }
+  .agent .ava svg { width: 100%; height: 100%; }
+  .agent.thinking .ava { animation: bob 1.1s ease-in-out infinite; }
+  .agent.speaking .ava { animation: talk .5s ease-in-out infinite; }
+  .agent.poked .ava { animation: shake .45s ease-in-out 1; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-6px) rotate(1.5deg); } }
+  @keyframes talk { 0%,100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 75% { transform: translateX(5px) rotate(2deg); } }
+  .agent .ring {
+    position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ac);
+    opacity: 0; pointer-events: none;
+  }
+  .agent.speaking .ring { animation: ring 1s ease-out infinite; }
+  @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.25); opacity: 0; } }
+  .agent .nm { font-weight: 800; font-size: .84rem; }
+  .agent .rl { font-size: .68rem; color: var(--ac); font-weight: 700; }
+  .agent .st { font-size: .64rem; color: var(--dim); min-height: 1.1em; margin-top: .2rem; }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  .conf { margin-top: .45rem; height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .conf i { display: block; height: 100%; width: 0; background: var(--ac); transition: width .8s cubic-bezier(.34,1.3,.64,1); }
+  .conf-n { font-size: .64rem; color: var(--dim); margin-top: .2rem; }
+  .conf-n b { color: var(--ac); }
+  /* eyes blink */
+  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
+  /* transcript */
+  #feed { display: flex; flex-direction: column; gap: .6rem; min-height: 120px; }
+  .bub {
+    max-width: 86%; border: 1.5px solid var(--ac); background: var(--panel);
+    border-radius: 12px; padding: .6rem .85rem; position: relative;
+    animation: pop .28s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 3px 3px 0 rgba(28,26,23,.05); font-size: .8rem;
+  }
+  @keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .bub .who { font-size: .66rem; font-weight: 800; color: var(--ac); margin-bottom: .25rem; }
+  .bub .who .at { color: var(--dim); font-weight: 400; }
+  .bub .who .vt {
+    float: right; font-size: .62rem; color: #fff; background: var(--ac);
+    border-radius: 999px; padding: .06rem .5rem;
+  }
+  .bub.right { align-self: flex-end; }
+  .bub .tx { white-space: pre-wrap; word-wrap: break-word; }
+  .bub .tx .caret { display: inline-block; width: .5em; background: var(--ac); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .bub.mod { align-self: center; max-width: 94%; background: var(--green-bg); }
+  /* controls */
+  .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .btn {
+    font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer;
+    background: var(--violet); color: #fff; border: 0; border-radius: 8px; padding: .45rem 1rem;
+  }
+  .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
+  .btn.ghost:hover { color: var(--violet); border-color: var(--violet); }
+  .spd { display: flex; gap: .25rem; }
+  .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
+  .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
+  #scrub { flex: 1; accent-color: var(--violet); min-width: 140px; }
+  .tclock { font-size: .7rem; color: var(--dim); min-width: 4.5rem; text-align: right; }
+  /* verdict */
+  #verdict { display: none; }
+  #verdict.show { display: block; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+  .v-grid { display: grid; grid-template-columns: 220px 1fr; gap: 1.2rem; align-items: center; }
+  @media (max-width: 760px) { .v-grid { grid-template-columns: 1fr; } }
+  .dial { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+  .dial svg { transform: rotate(-90deg); }
+  .dial .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dial .num b { font-size: 2.6rem; line-height: 1; }
+  .dial .num span { font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .v-answer { font-size: .95rem; font-weight: 700; line-height: 1.5; }
+  .v-meta { margin-top: .6rem; font-size: .74rem; color: var(--dim); }
+  .v-votes { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
+  .v-vote { font-size: .7rem; border-radius: 999px; padding: .2rem .7rem; color: #fff; }
+  .v-formula { margin-top: .7rem; font-size: .72rem; background: var(--panel-2); border: 1px dashed var(--line); border-radius: 8px; padding: .45rem .7rem; }
+  .v-dissent { margin-top: .55rem; font-size: .74rem; color: var(--coral); }
+  #arc-chart { width: 100%; height: auto; margin-top: 1rem; }
+  .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
+  @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  @media (prefers-reduced-motion: reduce) {
+    .agent .ava, .bub, .ring, .eye, #verdict.show { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ORACLE<span class="dot">_</span></h1>
+    <p class="tagline">a skeptic, an optimist and a fact-checker walk into a debate — confidence is scored from where they disagree</p>
+    <span class="honesty"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
+  </header>
+
+  <div class="picker" id="picker"></div>
+
+  <div class="card">
+    <div class="question" id="q">—</div>
+    <div class="rail" id="rail"></div>
+    <div class="council" id="council"></div>
+    <div class="controls">
+      <button class="btn" id="play">▶ play</button>
+      <button class="btn ghost" id="restart">↺ restart</button>
+      <div class="spd" id="spd"></div>
+      <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
+      <span class="tclock" id="clock">0:00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>The debate</h2>
+    <div id="feed"></div>
+  </div>
+
+  <div class="card" id="verdict">
+    <h2>The verdict — disagreement is the metric</h2>
+    <div class="v-grid">
+      <div class="dial">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="#f1eee6" stroke-width="14"/>
+          <circle id="dial-arc" cx="100" cy="100" r="86" fill="none" stroke="#6a47a0" stroke-width="14"
+                  stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"
+                  style="transition: stroke-dashoffset 1.4s cubic-bezier(.34,1.2,.64,1)"/>
+        </svg>
+        <div class="num"><b id="v-conf">—</b><span>oracle confidence</span></div>
+      </div>
+      <div>
+        <div class="v-answer" id="v-answer"></div>
+        <div class="v-meta" id="v-consensus"></div>
+        <div class="v-votes" id="v-votes"></div>
+        <div class="v-formula" id="v-formula"></div>
+        <div class="v-dissent" id="v-dissent"></div>
+      </div>
+    </div>
+    <svg id="arc-chart" viewBox="0 0 720 190" role="img" aria-label="Each agent's confidence per round"></svg>
+  </div>
+
+  <footer>oracle · three models, three temperaments, one confidence score ·
+    <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/oracle" target="_blank" rel="noopener">engine source ↗</a></footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58" };
+  const SESSIONS = [
+    ["microservices.json", "Should we rewrite our monolith as microservices?", "engineering"],
+    ["p-vs-np.json", "Will P vs NP be resolved this century?", "computer science"],
+    ["renewables-2035.json", "Renewables > 50% of electricity by 2035?", "energy"],
+  ];
+  const CPS = 110;                 // typing speed at 1×
+  const THINK_MIN = 800, THINK_MAX = 2600;
+
+  let S = null;                    // session
+  let steps = [], idx = 0, playing = false, speed = 1, timer = null, typerStop = null;
+  let elapsedBase = 0;
+
+  const robot = (color) => `
+    <svg viewBox="0 0 74 74">
+      <line x1="37" y1="8" x2="37" y2="16" stroke="${color}" stroke-width="2.5"/>
+      <circle cx="37" cy="6" r="3.4" fill="${color}"/>
+      <rect x="12" y="16" width="50" height="42" rx="12" fill="#fff" stroke="${color}" stroke-width="2.5"/>
+      <g class="eye"><circle cx="27" cy="34" r="4.2" fill="${color}"/></g>
+      <g class="eye"><circle cx="47" cy="34" r="4.2" fill="${color}"/></g>
+      <path class="mouth" d="M28 46 Q37 51 46 46" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="24" y="60" width="26" height="8" rx="4" fill="${color}" opacity=".25"/>
+    </svg>`;
+
+  /* ---------------- build the step timeline from a session ---------------- */
+  function think(ms) { return Math.max(THINK_MIN, Math.min(THINK_MAX, ms || 1500)); }
+  function typeDur(text) { return (text.length / CPS) * 1000; }
+
+  function buildSteps() {
+    steps = [];
+    S.rounds.forEach((r, ri) => {
+      steps.push({ t: "phase", ri, name: r.phase });
+      for (const ev of r.events) {
+        steps.push({ t: "think", agent: ev.agent, ms: think(ev.think) });
+        steps.push({ t: "speak", ev, ri });
+      }
+    });
+    steps.push({ t: "phase", ri: 3, name: "Verdict" });
+    steps.push({ t: "think", agent: "mod", ms: think(S.moderator.think) });
+    steps.push({ t: "speak", ev: { agent: "mod", text: S.moderator.text }, ri: 3 });
+    steps.push({ t: "verdict" });
+    $("scrub").max = steps.length;
+    const total = steps.reduce((a, s) =>
+      a + (s.t === "think" ? s.ms : s.t === "speak" ? typeDur(s.ev.text) : 400), 0);
+    $("clock").dataset.total = total;
+  }
+
+  /* ---------------- rendering ---------------- */
+  const agentById = (id) => S.agents.find((a) => a.id === id);
+
+  function renderShell() {
+    $("q").textContent = "“" + S.question + "”";
+    const rail = $("rail");
+    rail.replaceChildren();
+    [...S.rounds.map((r) => r.phase), "Verdict"].forEach((p, i) => {
+      const el = document.createElement("span");
+      el.className = "ph"; el.id = "ph-" + i; el.textContent = p;
+      rail.appendChild(el);
+    });
+    const council = $("council");
+    council.replaceChildren();
+    for (const a of S.agents) {
+      const c = COLORS[a.color] || COLORS.blue;
+      const div = document.createElement("div");
+      div.className = "agent"; div.id = "ag-" + a.id;
+      div.style.setProperty("--ac", c);
+      div.innerHTML = `
+        <div class="ava"><span class="ring"></span>${robot(c)}</div>
+        <div class="nm">${a.name}</div>
+        <div class="rl">${a.role}</div>
+        <div class="st" id="st-${a.id}">waiting</div>
+        <div class="conf"><i id="cf-${a.id}"></i></div>
+        <div class="conf-n" id="cn-${a.id}">self-confidence —</div>`;
+      council.appendChild(div);
+    }
+    $("feed").replaceChildren();
+    $("verdict").classList.remove("show");
+    $("verdict").style.display = "none";
+    idx = 0; elapsedBase = 0;
+    $("scrub").value = 0;
+    tickClock(0);
+  }
+
+  function setStatus(id, cls, text) {
+    for (const a of S.agents) {
+      const el = $("ag-" + a.id);
+      if (a.id === id) {
+        el.className = "agent " + cls;
+        $("st-" + a.id).innerHTML = text;
+      }
+    }
+  }
+  function allIdle(label) {
+    for (const a of S.agents) {
+      $("ag-" + a.id).className = "agent";
+      $("st-" + a.id).textContent = label || "listening";
+    }
+  }
+  function setConf(id, v) {
+    if (id === "mod") return;
+    $("cf-" + id).style.width = v + "%";
+    $("cn-" + id).innerHTML = `self-confidence <b>${v}%</b>`;
+  }
+
+  function bubble(ev) {
+    const isMod = ev.agent === "mod";
+    const a = isMod ? { name: S.moderator.name || "The Moderator", color: "green" } : agentById(ev.agent);
+    const c = COLORS[a.color] || COLORS.green;
+    const div = document.createElement("div");
+    div.className = "bub" + (isMod ? " mod" : (S.agents.indexOf(a) % 2 ? " right" : ""));
+    div.style.setProperty("--ac", c);
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = a.name + (isMod ? "" : " · " + a.role);
+    if (ev.target) {
+      const at = document.createElement("span");
+      at.className = "at";
+      at.textContent = "  → rebutting " + agentById(ev.target).name;
+      who.appendChild(at);
+    }
+    if (ev.vote) {
+      const vt = document.createElement("span");
+      vt.className = "vt"; vt.textContent = "votes: " + ev.vote;
+      who.appendChild(vt);
+    }
+    const tx = document.createElement("div");
+    tx.className = "tx";
+    div.append(who, tx);
+    $("feed").appendChild(div);
+    div.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+    return tx;
+  }
+
+  function typeInto(tx, text, dur, done) {
+    if (REDUCED || speed >= 8) { tx.textContent = text; done(); return; }
+    const caret = document.createElement("span");
+    caret.className = "caret";
+    let i = 0, cancelled = false;
+    const perTick = Math.max(1, Math.round(text.length / (dur / 30)));
+    const iv = setInterval(() => {
+      i = Math.min(text.length, i + perTick);
+      tx.textContent = text.slice(0, i);
+      tx.appendChild(caret);
+      if (i >= text.length) { clearInterval(iv); caret.remove(); done(); }
+    }, 30);
+    typerStop = () => { cancelled = true; clearInterval(iv); caret.remove(); tx.textContent = text; };
+  }
+
+  function markPhase(ri) {
+    for (let i = 0; i < 4; i++) {
+      const el = $("ph-" + i);
+      if (!el) continue;
+      el.className = "ph" + (i < ri ? " done" : i === ri ? " now" : "");
+    }
+  }
+
+  function showVerdict(animate) {
+    const r = S.result;
+    const v = $("verdict");
+    v.style.display = "block";
+    if (animate) v.classList.add("show");
+    $("v-conf").textContent = r.confidence + "%";
+    const off = 540.35 * (1 - r.confidence / 100);
+    if (animate && !REDUCED) {
+      requestAnimationFrame(() => requestAnimationFrame(() => { $("dial-arc").style.strokeDashoffset = off; }));
+    } else {
+      $("dial-arc").style.transition = "none";
+      $("dial-arc").style.strokeDashoffset = off;
+    }
+    $("v-answer").textContent = r.answer;
+    $("v-consensus").textContent = "consensus: " + r.consensus;
+    const votes = $("v-votes");
+    votes.replaceChildren();
+    for (const [id, vote] of Object.entries(r.votes)) {
+      const a = agentById(id);
+      const chip = document.createElement("span");
+      chip.className = "v-vote";
+      chip.style.background = COLORS[a.color];
+      chip.textContent = `${a.name}: ${vote}`;
+      votes.appendChild(chip);
+    }
+    $("v-formula").textContent = "how it's scored → " + r.how_scored;
+    $("v-dissent").textContent = "unresolved: " + r.dissent;
+    drawArcChart(r.confidence_by_round, animate);
+    if (animate && !REDUCED) sparkle();
+  }
+
+  function drawArcChart(cbr, animate) {
+    const svg = $("arc-chart");
+    const W = 720, H = 190, L = 46, R = 130, T = 16, B = 30;
+    const xs = [0, 1, 2].map((i) => L + (i * (W - L - R)) / 2);
+    const Y = (v) => T + (1 - v / 100) * (H - T - B);
+    let out = "";
+    for (let g = 0; g <= 4; g++) {
+      const y = Y(g * 25);
+      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#e5e1d6" stroke-width="0.8"/>
+              <text x="${L - 7}" y="${y + 3}" font-size="9" fill="#5f5a51" text-anchor="end">${g * 25}</text>`;
+    }
+    ["openings", "after cross-exam", "final"].forEach((lb, i) => {
+      out += `<text x="${xs[i]}" y="${H - 10}" font-size="9.5" fill="#5f5a51" text-anchor="middle">${lb}</text>`;
+    });
+    // nudge end labels apart when final confidences are close
+    const ends = S.agents.map((a) => ({ a, y: Y(cbr[a.id][2]) }))
+      .sort((p, q) => p.y - q.y);
+    for (let i = 1; i < ends.length; i++)
+      if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
+    const labelY = Object.fromEntries(ends.map((e) => [e.a.id, e.y]));
+    for (const a of S.agents) {
+      const c = COLORS[a.color];
+      const pts = cbr[a.id].map((v, i) => `${xs[i]},${Y(v)}`).join(" ");
+      out += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.4"
+                ${animate && !REDUCED ? 'stroke-dasharray="600" stroke-dashoffset="600"><animate attributeName="stroke-dashoffset" from="600" to="0" dur="1.2s" fill="freeze"/></polyline>' : "/>"}`;
+      cbr[a.id].forEach((v, i) => {
+        out += `<circle cx="${xs[i]}" cy="${Y(v)}" r="3.6" fill="${c}"/>`;
+      });
+      out += `<text x="${W - R + 8}" y="${labelY[a.id] + 3}" font-size="10.5" font-weight="bold" fill="${c}">${a.role.replace("The ", "")} · ${cbr[a.id][2]}%</text>`;
+    }
+    out += `<text x="${L}" y="${12}" font-size="9.5" fill="#5f5a51">self-confidence per round — converging lines mean a trustworthy verdict</text>`;
+    svg.innerHTML = out;
+  }
+
+  function sparkle() {
+    const rect = $("v-conf").getBoundingClientRect();
+    for (let i = 0; i < 7; i++) {
+      const s = document.createElement("span");
+      s.className = "spark";
+      s.textContent = ["✦", "✧", "◆"][i % 3];
+      s.style.color = [COLORS.violet, COLORS.gold, COLORS.blue][i % 3];
+      s.style.left = rect.left + rect.width / 2 + (Math.random() * 120 - 60) + "px";
+      s.style.top = rect.top + (Math.random() * 40 - 10) + "px";
+      s.style.animationDelay = (Math.random() * 0.4) + "s";
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1900);
+    }
+  }
+
+  /* ---------------- the player loop ---------------- */
+  function tickClock(ms) {
+    const sec = Math.round(ms / 1000);
+    $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  }
+
+  function runStep() {
+    if (!playing) return;
+    if (idx >= steps.length) { playing = false; $("play").textContent = "▶ replay"; return; }
+    const s = steps[idx];
+    $("scrub").value = idx;
+    if (s.t === "phase") {
+      markPhase(s.ri);
+      allIdle(s.ri === 0 ? "preparing" : "listening");
+      idx++; timer = setTimeout(runStep, 500 / speed);
+    } else if (s.t === "think") {
+      if (s.agent !== "mod") setStatus(s.agent, "agent thinking", 'thinking<span class="dots"></span>');
+      idx++; timer = setTimeout(runStep, s.ms / speed);
+      elapsedBase += s.ms;
+      tickClock(elapsedBase);
+    } else if (s.t === "speak") {
+      const ev = s.ev;
+      if (ev.agent !== "mod") setStatus(ev.agent, "agent speaking", "speaking…");
+      if (ev.target && !REDUCED) {
+        const t = $("ag-" + ev.target);
+        t.classList.add("poked");
+        setTimeout(() => t.classList.remove("poked"), 600);
+      }
+      const tx = bubble(ev);
+      const dur = typeDur(ev.text) / speed;
+      elapsedBase += typeDur(ev.text);
+      typeInto(tx, ev.text, dur, () => {
+        typerStop = null;
+        if (ev.agent !== "mod") {
+          setStatus(ev.agent, "agent", "done ✓");
+          if (ev.confidence !== undefined) setConf(ev.agent, ev.confidence);
+        }
+        tickClock(elapsedBase);
+        idx++;
+        if (playing) timer = setTimeout(runStep, 350 / speed);
+      });
+    } else if (s.t === "verdict") {
+      markPhase(4);
+      for (let i = 0; i < 4; i++) $("ph-" + i).className = "ph done";
+      allIdle("adjourned ☕");
+      showVerdict(true);
+      idx++;
+      playing = false;
+      $("play").textContent = "▶ replay";
+    }
+  }
+
+  function seek(to) {
+    pause();
+    renderShell();
+    // instantly apply everything before `to`
+    for (let i = 0; i < to && i < steps.length; i++) {
+      const s = steps[i];
+      if (s.t === "phase") markPhase(s.ri);
+      else if (s.t === "speak") {
+        const tx = bubble(s.ev);
+        tx.textContent = s.ev.text;
+        if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
+        elapsedBase += typeDur(s.ev.text);
+      } else if (s.t === "think") elapsedBase += s.ms;
+      else if (s.t === "verdict") {
+        showVerdict(false); markPhase(4);
+        for (let k = 0; k < 4; k++) $("ph-" + k).className = "ph done";
+        allIdle("adjourned ☕");
+      }
+    }
+    idx = to;
+    tickClock(elapsedBase);
+    $("scrub").value = to;
+  }
+
+  function play() {
+    if (idx >= steps.length) { seek(0); }
+    playing = true;
+    $("play").textContent = "⏸ pause";
+    runStep();
+  }
+  function pause() {
+    playing = false;
+    clearTimeout(timer);
+    if (typerStop) { typerStop(); typerStop = null; idx++; }
+    $("play").textContent = "▶ play";
+  }
+
+  $("play").addEventListener("click", () => (playing ? pause() : play()));
+  $("restart").addEventListener("click", () => { seek(0); play(); });
+  $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
+
+  const spd = $("spd");
+  for (const s of [1, 2, 4]) {
+    const b = document.createElement("button");
+    b.textContent = s + "×";
+    if (s === 1) b.className = "on";
+    b.addEventListener("click", () => {
+      speed = s;
+      [...spd.children].forEach((x) => x.classList.remove("on"));
+      b.classList.add("on");
+    });
+    spd.appendChild(b);
+  }
+
+  /* ---------------- sessions ---------------- */
+  async function loadSession(file) {
+    S = await (await fetch("sessions/" + file)).json();
+    [...$("picker").children].forEach((el) => el.classList.toggle("active", el.dataset.f === file));
+    renderShell();
+    buildSteps();
+    play();
+  }
+
+  for (const [file, label, tag] of SESSIONS) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "sess"; b.dataset.f = file;
+    b.innerHTML = `${label}<small>${tag} · scripted sample</small>`;
+    b.addEventListener("click", () => loadSession(file));
+    $("picker").appendChild(b);
+  }
+  loadSession(SESSIONS[0][0]);
+</script>
+</body>
+</html>
