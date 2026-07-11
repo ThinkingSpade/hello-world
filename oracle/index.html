@@ -61,8 +61,9 @@
   .ph.done { color: var(--green); border-color: var(--green); }
   .ph.done:before { content: "✓ "; }
   /* council */
-  .council { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .9rem; }
-  @media (max-width: 700px) { .council { grid-template-columns: 1fr; } }
+  .council { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: .9rem; }
+  @media (max-width: 1000px) { .council { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .council { grid-template-columns: 1fr; } }
   .agent {
     background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px;
     padding: .8rem; text-align: center; position: relative; transition: border-color .3s;
@@ -274,6 +275,14 @@
   .bub .tx { white-space: pre-wrap; word-wrap: break-word; }
   .bub .tx .caret { display: inline-block; width: .5em; background: var(--ac); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
+  /* citation chips — the receipts, stapled to the message */
+  .bub .srcs { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; animation: pop .3s ease-out; }
+  .bub .srcs span {
+    font-size: .6rem; font-weight: 700; color: var(--dim);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: .06rem .5rem;
+  }
+  .bub .srcs span:before { content: "📎 "; }
   .bub.mod { align-self: center; max-width: 94%; background: var(--green-bg); }
   /* controls */
   .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
@@ -318,7 +327,7 @@
 <div class="wrap">
   <header>
     <h1>ORACLE<span class="dot">_</span></h1>
-    <p class="tagline">a skeptic, an optimist and a fact-checker walk into a debate — confidence is scored from where they disagree</p>
+    <p class="tagline">a skeptic, an optimist, a fact-checker and a wildcard walk into a debate — confidence is scored from where they disagree</p>
     <span class="honesty"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
   </header>
 
@@ -378,7 +387,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58" };
+  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58", coral: "#b8463a" };
   const SESSIONS = [
     ["microservices.json", "Should we rewrite our monolith as microservices?", "engineering"],
     ["p-vs-np.json", "Will P vs NP be resolved this century?", "computer science"],
@@ -402,6 +411,9 @@
     gemini: { skin: "#c98f66", hair: "#4a3d63", style: "beanie", chart: "down",
               tagline: "has questions. so many questions.", glyph: "?", bub: "objection?",
               think: "sharpening objections", speak: "objecting…", done: "objection noted ✓" },
+    grok:   { skin: "#dfa77e", hair: "#1c1a17", style: "mohawk", phones: true, chart: "zig",
+              tagline: "argues with the premise", glyph: "⚡", bub: "hot take:",
+              think: "cooking a take", speak: "dropping the take…", done: "take shipped 🔥" },
     mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
               tagline: "keeps the peace, scores the war", glyph: "⚖", bub: "order, order",
               think: "weighing the arguments", speak: "synthesizing…", done: "gavel down" },
@@ -465,6 +477,10 @@
       hair = `<rect x="50" y="12" width="32" height="9" fill="${color}"/>
               <rect x="76" y="19" width="14" height="4" fill="${color}"/>
               <rect x="62" y="8" width="8" height="6" fill="${color}"/>`;
+    else if (p.style === "mohawk")
+      hair = `<rect x="50" y="17" width="32" height="5" fill="${p.hair}" opacity=".3"/>
+              <rect x="60" y="4" width="12" height="18" fill="${color}"/>
+              <rect x="63" y="1" width="6" height="4" fill="${color}"/>`;
     else
       hair = `<rect x="50" y="14" width="32" height="7" fill="${p.hair}"/>
               <rect x="48" y="19" width="5" height="8" fill="${p.hair}"/>`;
@@ -472,6 +488,11 @@
       <rect x="54" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
       <rect x="68" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
       <rect x="64" y="33" width="4" height="2" fill="${ink}"/>` : "";
+    const phones = p.phones ? `
+      <rect x="46" y="27" width="5" height="11" fill="${ink}"/>
+      <rect x="81" y="27" width="5" height="11" fill="${ink}"/>
+      <rect x="47" y="38" width="3" height="7" fill="${ink}"/>
+      <rect x="47" y="45" width="9" height="3" fill="${ink}"/>` : "";
     const mustache = p.mustache ? `<rect x="58" y="44" width="16" height="3" fill="${p.hair}"/>` : "";
     let chart = "";
     if (p.chart === "up") chart = `<polyline class="mchart" points="14,64 20,58 25,60 31,52 38,48" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
@@ -479,6 +500,7 @@
     else if (p.chart === "bars") chart = `<g class="mchart"><rect x="16" y="58" width="4" height="8" fill="#8fa7d9"/><rect x="23" y="54" width="4" height="12" fill="#8fa7d9"/><rect x="30" y="50" width="4" height="16" fill="#8fa7d9"/></g>`;
     else if (p.chart === "lines") chart = `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`;
     else if (p.chart === "odds") chart = `<g class="mchart"><rect x="15" y="50" width="8" height="4" fill="#e0c36a"/><rect x="26" y="50" width="12" height="4" fill="#7fbf6a"/><rect x="15" y="58" width="12" height="4" fill="#e07a6a"/><rect x="30" y="58" width="8" height="4" fill="#e0c36a"/></g>`;
+    else if (p.chart === "zig") chart = `<polyline class="mchart" points="14,60 19,50 24,62 29,48 34,60 38,52" fill="none" stroke="#e0c36a" stroke-width="2"/>`;
     else if (p.chart === "off") chart = ``;
     else chart = `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
     const bubTxt = (p.bub || "…").split("").map((ch, i) =>
@@ -496,6 +518,7 @@
         <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
         <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
         ${glasses}
+        ${phones}
         <rect class="mouth-closed" x="59" y="43" width="14" height="3" fill="${ink}"/>
         <rect class="mouth-open" x="61" y="41" width="10" height="7" fill="${ink}"/>
         ${mustache}
@@ -648,8 +671,8 @@
   let STATS = null;
   function resetStats() {
     STATS = { gpt: { conv: null }, claude: { fixes: 0, cites: 0 },
-              gemini: { obj: 0, conceded: 0 }, mod: { done: false },
-              words: 0, coffees: 0, odds: {} };
+              gemini: { obj: 0, conceded: 0 }, grok: { takes: 0, conceded: 0 },
+              mod: { done: false }, words: 0, coffees: 0, odds: {} };
     updateStatChips();
   }
   function addWords(n) {
@@ -693,16 +716,19 @@
       setStatus("intern", "agent", PERSONA.intern.done);
     }, 3100);
   }
-  const CONCEDE_RE = /concede|fair hit|i'll take|accepting|granted|updating upward|persuadable/i;
+  const CONCEDE_RE = /concede|fair hit|i'll take|i'll move|the math checks|accepting|granted|updating upward|persuadable/i;
   function applySpeakStats(ev) {
     if (!STATS) return;
     if (ev.confidence !== undefined && ev.agent !== "mod") STATS.odds[ev.agent] = ev.confidence;
     if (ev.agent === "gpt" && ev.confidence !== undefined) STATS.gpt.conv = ev.confidence;
     if (ev.agent === "claude" && ev.target) STATS.claude.fixes++;
     const RECEIPT_RE = /\b(19|20)\d\d\b|DORA|IEA|Segment|Razborov|Baker|Aaronson|Clay|documented|survey|writeup|blog|the data shows/i;
-    if (ev.agent === "claude" && RECEIPT_RE.test(ev.text)) STATS.claude.cites++;
+    if (ev.agent === "claude")
+      STATS.claude.cites += ev.sources ? ev.sources.length : (RECEIPT_RE.test(ev.text) ? 1 : 0);
     if (ev.agent === "gemini" && ev.target) STATS.gemini.obj++;
     if (ev.agent === "gemini" && CONCEDE_RE.test(ev.text)) STATS.gemini.conceded++;
+    if (ev.agent === "grok") STATS.grok.takes++;
+    if (ev.agent === "grok" && CONCEDE_RE.test(ev.text)) STATS.grok.conceded++;
     updateStatChips();
   }
   function updateStatChips() {
@@ -710,6 +736,7 @@
     set("gpt", STATS.gpt.conv === null ? "CONVICTION —" : "CONVICTION " + STATS.gpt.conv + "%");
     set("claude", STATS.claude.cites + " RECEIPTS · " + STATS.claude.fixes + " CORRECTIONS");
     set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
+    set("grok", STATS.grok.takes + " HOT TAKES" + (STATS.grok.conceded ? " · " + STATS.grok.conceded + " WALKED BACK" : ""));
     set("mod", STATS.mod.done ? "SCORE: " + S.result.confidence + "%" : "SCORE PENDING");
   }
 
@@ -775,6 +802,18 @@
     $("feed").appendChild(div);
     div.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
     return tx;
+  }
+
+  function addSources(tx, ev) {
+    if (!ev.sources || !ev.sources.length) return;
+    const d = document.createElement("div");
+    d.className = "srcs";
+    for (const s of ev.sources) {
+      const c = document.createElement("span");
+      c.textContent = s;
+      d.appendChild(c);
+    }
+    tx.parentElement.appendChild(d);
   }
 
   function typeInto(tx, text, dur, done) {
@@ -885,6 +924,7 @@
     gpt:    ["sip", "stretch", "wiggle", "glance", "mumble", "bounce"],
     claude: ["sip", "glance", "wiggle", "shufflep", "mumble", "yawn"],
     gemini: ["sip", "stretch", "glance", "mumble", "yawn", "wiggle"],
+    grok:   ["wiggle", "bounce", "sip", "glance", "mumble", "stretch"],
     mod:    ["sip", "yawn", "glance", "shufflep", "mumble"],
     steno:  ["knuckles", "sip", "glance", "stretch", "mumble"],
     book:   ["shufflep", "sip", "glance", "mumble", "wiggle"],
@@ -939,7 +979,7 @@
       const ev = s.ev;
       setStatus(ev.agent, "agent speaking", (PERSONA[ev.agent] || PERSONA.mod).speak);
       // everyone else looks at the speaker; the stenographer gets typing
-      const order = ["gpt", "claude", "gemini"];
+      const order = S.agents.map((a) => a.id);
       const si = order.indexOf(ev.agent);
       for (const a of S.agents) {
         if (a.id === ev.agent) continue;
@@ -960,6 +1000,7 @@
       applySpeakStats(ev);
       typeInto(tx, ev.text, dur, () => {
         typerStop = null;
+        addSources(tx, ev);
         setStatus(ev.agent, "agent", (PERSONA[ev.agent] || PERSONA.mod).done);
         if (ev.agent !== "mod" && ev.confidence !== undefined) { setConf(ev.agent, ev.confidence); setOdds(ev.agent, ev.confidence); }
         addWords(ev.text.split(/\s+/).length);
@@ -1001,6 +1042,7 @@
         elapsedBase += typeDur(s.ev.text);
         const tx = bubble(s.ev);
         tx.textContent = s.ev.text;
+        addSources(tx, s.ev);
         applySpeakStats(s.ev);
         addWords(s.ev.text.split(/\s+/).length);
         if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
