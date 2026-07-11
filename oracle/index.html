@@ -69,14 +69,72 @@
     box-shadow: 3px 3px 0 rgba(28,26,23,.05);
   }
   .agent.speaking { border-color: var(--ac); }
-  .agent .ava { width: 74px; height: 74px; margin: 0 auto .35rem; position: relative; }
-  .agent .ava svg { width: 100%; height: 100%; }
-  .agent.thinking .ava { animation: bob 1.1s ease-in-out infinite; }
-  .agent.speaking .ava { animation: talk .5s ease-in-out infinite; }
+  .agent .ava { width: 132px; height: 116px; margin: 0 auto .3rem; position: relative; }
+  .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  .agent .person { transform-origin: 66px 80px; }
+  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
+  .agent.speaking .person { animation: lean .6s ease-in-out infinite alternate; }
   .agent.poked .ava { animation: shake .45s ease-in-out 1; }
-  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-6px) rotate(1.5deg); } }
-  @keyframes talk { 0%,100% { transform: scale(1); } 50% { transform: scale(1.045); } }
-  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 75% { transform: translateX(5px) rotate(2deg); } }
+  @keyframes ponder { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1.5deg); } 75% { transform: translateX(5px) rotate(1.5deg); } }
+  /* pixel mouth: closed by default, chews while speaking */
+  .agent .mouth-open { opacity: 0; }
+  .agent.speaking .mouth-open { animation: chew .34s steps(1) infinite; }
+  .agent.speaking .mouth-closed { animation: chew2 .34s steps(1) infinite; }
+  @keyframes chew { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes chew2 { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
+  /* monitor charts idle-animate forever */
+  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  @keyframes mflow { to { stroke-dashoffset: -120; } }
+  /* thought bubble */
+  .thought {
+    position: absolute; top: -14px; right: 0px; display: none;
+    background: #fff; border: 1.5px solid var(--ac); border-radius: 8px;
+    padding: .12rem .45rem; font-size: .78rem; color: var(--ac); font-weight: 700;
+    box-shadow: 2px 2px 0 rgba(28,26,23,.12);
+  }
+  .thought:after {
+    content: ""; position: absolute; left: 8px; bottom: -9px; width: 6px; height: 6px;
+    background: #fff; border: 1.5px solid var(--ac); border-radius: 50%;
+  }
+  .agent.thinking .thought { display: block; animation: ponder 1.6s ease-in-out infinite; }
+  .thought .td { display: inline-block; animation: tdb 1s ease-in-out infinite; }
+  .thought .td:nth-child(2) { animation-delay: .15s; }
+  .thought .td:nth-child(3) { animation-delay: .3s; }
+  @keyframes tdb { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-3px); } }
+  .thought .glyph { margin-left: .25rem; }
+  /* exclaim on being rebutted */
+  .exclaim {
+    position: absolute; top: -10px; left: 4px; display: none; font-weight: 800;
+    color: var(--coral); font-size: 1.1rem; text-shadow: 1.5px 1.5px 0 rgba(28,26,23,.15);
+  }
+  .agent.poked .exclaim { display: block; animation: exup .6s ease-out 1; }
+  @keyframes exup { 0% { transform: translateY(6px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+  /* persona tagline + stat chip */
+  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; margin-top: .05rem; }
+  .agent .chipstat {
+    display: inline-block; margin-top: .35rem; font-size: .6rem; font-weight: 700;
+    letter-spacing: .05em; color: var(--ac); border: 1.5px solid var(--ac);
+    border-radius: 999px; padding: .1rem .55rem; background: #fff;
+  }
+  /* phase toast */
+  #toast {
+    position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(.8);
+    background: var(--text); color: #fff; font-size: .8rem; font-weight: 800;
+    letter-spacing: .14em; text-transform: uppercase; padding: .55rem 1.3rem;
+    border-radius: 10px; opacity: 0; pointer-events: none; z-index: 10;
+    box-shadow: 5px 5px 0 rgba(28,26,23,.2);
+  }
+  #toast.show { animation: toast 1.4s cubic-bezier(.34,1.3,.64,1) 1; }
+  @keyframes toast { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.7); }
+    18% { opacity: 1; transform: translate(-50%,-50%) scale(1.04); }
+    30% { transform: translate(-50%,-50%) scale(1); }
+    80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1); } }
+  .stagewrap { position: relative; }
+  /* moderator desk */
+  .modrow { display: flex; justify-content: center; margin-bottom: .9rem; }
+  .modrow .agent { width: min(320px, 100%); }
   .agent .ring {
     position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ac);
     opacity: 0; pointer-events: none;
@@ -108,8 +166,9 @@
   .bub .who .at { color: var(--dim); font-weight: 400; }
   .bub .who .vt {
     float: right; font-size: .62rem; color: #fff; background: var(--ac);
-    border-radius: 999px; padding: .06rem .5rem;
+    border-radius: 999px; padding: .06rem .5rem; margin-left: .5rem;
   }
+  .bub .who .ts { float: right; font-size: .62rem; color: var(--dim); font-weight: 400; }
   .bub.right { align-self: flex-end; }
   .bub .tx { white-space: pre-wrap; word-wrap: break-word; }
   .bub .tx .caret { display: inline-block; width: .5em; background: var(--ac); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
@@ -167,7 +226,11 @@
   <div class="card">
     <div class="question" id="q">—</div>
     <div class="rail" id="rail"></div>
-    <div class="council" id="council"></div>
+    <div class="stagewrap">
+      <div id="toast"></div>
+      <div class="council" id="council"></div>
+      <div class="modrow" id="modrow"></div>
+    </div>
     <div class="controls">
       <button class="btn" id="play">▶ play</button>
       <button class="btn ghost" id="restart">↺ restart</button>
@@ -225,16 +288,86 @@
   let steps = [], idx = 0, playing = false, speed = 1, timer = null, typerStop = null;
   let elapsedBase = 0;
 
-  const robot = (color) => `
-    <svg viewBox="0 0 74 74">
-      <line x1="37" y1="8" x2="37" y2="16" stroke="${color}" stroke-width="2.5"/>
-      <circle cx="37" cy="6" r="3.4" fill="${color}"/>
-      <rect x="12" y="16" width="50" height="42" rx="12" fill="#fff" stroke="${color}" stroke-width="2.5"/>
-      <g class="eye"><circle cx="27" cy="34" r="4.2" fill="${color}"/></g>
-      <g class="eye"><circle cx="47" cy="34" r="4.2" fill="${color}"/></g>
-      <path class="mouth" d="M28 46 Q37 51 46 46" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
-      <rect x="24" y="60" width="26" height="8" rx="4" fill="${color}" opacity=".25"/>
+  // -------- pixel desk characters (inspired by tiny trading desks) --------
+  const PERSONA = {
+    gpt:    { skin: "#e8b98a", hair: "#a9743a", style: "spiky",  chart: "up",
+              tagline: "ships first, doubts later", glyph: "↑",
+              think: "compounding optimism", speak: "making the case…", done: "rests case, beaming" },
+    claude: { skin: "#d9a06b", hair: "#2a2622", style: "neat",   chart: "bars", glasses: true,
+              tagline: "brings receipts", glyph: "✎",
+              think: "checking sources", speak: "citing the record…", done: "receipts filed ✓" },
+    gemini: { skin: "#c98f66", hair: "#4a3d63", style: "beanie", chart: "down",
+              tagline: "has questions. so many questions.", glyph: "?",
+              think: "sharpening objections", speak: "objecting…", done: "objection noted ✓" },
+    mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
+              tagline: "keeps the peace, scores the war", glyph: "⚖",
+              think: "weighing the arguments", speak: "synthesizing…", done: "gavel down" },
+  };
+
+  function pixelChar(id, color) {
+    const p = PERSONA[id] || PERSONA.mod;
+    const suit = "#2e3442", shirt = "#ffffff", ink = "#1c1a17";
+    const desk = "#3a3f4d", deskTop = color;
+    let hair = "";
+    if (p.style === "spiky")
+      hair = `<rect x="50" y="16" width="32" height="8" fill="${p.hair}"/>
+              <rect x="48" y="10" width="6" height="8" fill="${p.hair}"/>
+              <rect x="60" y="8" width="6" height="10" fill="${p.hair}"/>
+              <rect x="72" y="10" width="6" height="8" fill="${p.hair}"/>`;
+    else if (p.style === "neat")
+      hair = `<rect x="50" y="14" width="32" height="8" fill="${p.hair}"/>
+              <rect x="50" y="20" width="6" height="10" fill="${p.hair}"/>
+              <rect x="78" y="20" width="4" height="6" fill="${p.hair}"/>`;
+    else if (p.style === "beanie")
+      hair = `<rect x="48" y="12" width="36" height="10" fill="${color}"/>
+              <rect x="48" y="20" width="36" height="3" fill="${ink}" opacity=".25"/>
+              <rect x="62" y="6" width="8" height="8" fill="${color}"/>`;
+    else
+      hair = `<rect x="50" y="14" width="32" height="7" fill="${p.hair}"/>
+              <rect x="48" y="19" width="5" height="8" fill="${p.hair}"/>`;
+    const glasses = p.glasses ? `
+      <rect x="54" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="68" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="64" y="33" width="4" height="2" fill="${ink}"/>` : "";
+    const mustache = p.mustache ? `<rect x="58" y="44" width="16" height="3" fill="${p.hair}"/>` : "";
+    let chart = "";
+    if (p.chart === "up") chart = `<polyline class="mchart" points="14,64 20,58 25,60 31,52 38,48" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
+    else if (p.chart === "down") chart = `<polyline class="mchart" points="14,50 20,56 25,54 31,60 38,63" fill="none" stroke="#e07a6a" stroke-width="2"/>`;
+    else if (p.chart === "bars") chart = `<g class="mchart"><rect x="16" y="58" width="4" height="8" fill="#8fa7d9"/><rect x="23" y="54" width="4" height="12" fill="#8fa7d9"/><rect x="30" y="50" width="4" height="16" fill="#8fa7d9"/></g>`;
+    else chart = `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
+    return `
+    <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span><span class="glyph">${p.glyph}</span></span>
+    <span class="exclaim">!!</span>
+    <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
+      <g class="person">
+        ${hair}
+        <rect x="50" y="20" width="32" height="30" fill="${p.skin}"/>
+        <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
+        <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
+        ${glasses}
+        <rect class="mouth-closed" x="59" y="43" width="14" height="3" fill="${ink}"/>
+        <rect class="mouth-open" x="61" y="41" width="10" height="7" fill="${ink}"/>
+        ${mustache}
+        <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
+        <rect x="58" y="50" width="16" height="10" fill="${shirt}"/>
+        <rect x="62" y="52" width="8" height="16" fill="${color}"/>
+        <rect x="34" y="64" width="14" height="9" fill="${suit}"/>
+        <rect x="84" y="64" width="14" height="9" fill="${suit}"/>
+      </g>
+      <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
+      <rect x="13" y="47" width="28" height="20" fill="#161a20"/>
+      ${chart}
+      <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
+      <rect x="4" y="76" width="124" height="9" fill="${deskTop}"/>
+      <rect x="4" y="85" width="124" height="14" fill="${desk}"/>
+      <rect x="12" y="99" width="10" height="12" fill="${desk}"/>
+      <rect x="110" y="99" width="10" height="12" fill="${desk}"/>
+      <rect x="98" y="66" width="9" height="10" fill="#fff"/>
+      <rect x="107" y="68" width="3" height="5" fill="#fff"/>
+      <rect x="99" y="64" width="7" height="2" fill="${color}"/>
+      <rect x="52" y="72" width="18" height="4" fill="#e8e4d8"/>
     </svg>`;
+  }
 
   /* ---------------- build the step timeline from a session ---------------- */
   function think(ms) { return Math.max(THINK_MIN, Math.min(THINK_MAX, ms || 1500)); }
@@ -279,14 +412,30 @@
       div.className = "agent"; div.id = "ag-" + a.id;
       div.style.setProperty("--ac", c);
       div.innerHTML = `
-        <div class="ava"><span class="ring"></span>${robot(c)}</div>
+        <div class="ava">${pixelChar(a.id, c)}</div>
         <div class="nm">${a.name}</div>
         <div class="rl">${a.role}</div>
-        <div class="st" id="st-${a.id}">waiting</div>
+        <div class="tg">${(PERSONA[a.id] || {}).tagline || ""}</div>
+        <span class="chipstat" id="sc-${a.id}">—</span>
+        <div class="st" id="st-${a.id}">waiting for the gavel</div>
         <div class="conf"><i id="cf-${a.id}"></i></div>
         <div class="conf-n" id="cn-${a.id}">self-confidence —</div>`;
       council.appendChild(div);
     }
+    const modrow = $("modrow");
+    modrow.replaceChildren();
+    const modDiv = document.createElement("div");
+    modDiv.className = "agent"; modDiv.id = "ag-mod";
+    modDiv.style.setProperty("--ac", COLORS.green);
+    modDiv.innerHTML = `
+      <div class="ava">${pixelChar("mod", COLORS.green)}</div>
+      <div class="nm">The Moderator</div>
+      <div class="rl">Keeper of the score</div>
+      <div class="tg">${PERSONA.mod.tagline}</div>
+      <span class="chipstat" id="sc-mod">SCORE PENDING</span>
+      <div class="st" id="st-mod">observing quietly</div>`;
+    modrow.appendChild(modDiv);
+    resetStats();
     $("feed").replaceChildren();
     $("verdict").classList.remove("show");
     $("verdict").style.display = "none";
@@ -296,19 +445,53 @@
   }
 
   function setStatus(id, cls, text) {
-    for (const a of S.agents) {
-      const el = $("ag-" + a.id);
-      if (a.id === id) {
-        el.className = "agent " + cls;
-        $("st-" + a.id).innerHTML = text;
-      }
-    }
+    const el = $("ag-" + id);
+    if (!el) return;
+    el.className = "agent " + cls + (id === "mod" ? "" : "");
+    $("st-" + id).innerHTML = text;
   }
   function allIdle(label) {
     for (const a of S.agents) {
       $("ag-" + a.id).className = "agent";
       $("st-" + a.id).textContent = label || "listening";
     }
+    const m = $("ag-mod");
+    if (m && !m.classList.contains("thinking")) $("st-mod").textContent =
+      label === "adjourned ☕" ? "gavel down ⚖" : "taking notes";
+  }
+
+  /* -------- live personality stats (like tiny desk badges) -------- */
+  let STATS = null;
+  function resetStats() {
+    STATS = { gpt: { conv: null }, claude: { fixes: 0, cites: 0 },
+              gemini: { obj: 0, conceded: 0 }, mod: { done: false } };
+    updateStatChips();
+  }
+  const CONCEDE_RE = /concede|fair hit|i'll take|accepting|granted|updating upward|persuadable/i;
+  function applySpeakStats(ev) {
+    if (!STATS) return;
+    if (ev.agent === "gpt" && ev.confidence !== undefined) STATS.gpt.conv = ev.confidence;
+    if (ev.agent === "claude" && ev.target) STATS.claude.fixes++;
+    const RECEIPT_RE = /\b(19|20)\d\d\b|DORA|IEA|Segment|Razborov|Baker|Aaronson|Clay|documented|survey|writeup|blog|the data shows/i;
+    if (ev.agent === "claude" && RECEIPT_RE.test(ev.text)) STATS.claude.cites++;
+    if (ev.agent === "gemini" && ev.target) STATS.gemini.obj++;
+    if (ev.agent === "gemini" && CONCEDE_RE.test(ev.text)) STATS.gemini.conceded++;
+    updateStatChips();
+  }
+  function updateStatChips() {
+    const set = (id, t) => { const el = $("sc-" + id); if (el) el.textContent = t; };
+    set("gpt", STATS.gpt.conv === null ? "CONVICTION —" : "CONVICTION " + STATS.gpt.conv + "%");
+    set("claude", STATS.claude.cites + " RECEIPTS · " + STATS.claude.fixes + " CORRECTIONS");
+    set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
+    set("mod", STATS.mod.done ? "SCORE: " + S.result.confidence + "%" : "SCORE PENDING");
+  }
+
+  function phaseToast(name, ri) {
+    const t = $("toast");
+    t.textContent = (ri < 3 ? "round " + (ri + 1) + " — " : "") + name;
+    t.classList.remove("show");
+    void t.offsetWidth;   // restart the animation
+    if (!REDUCED) t.classList.add("show");
   }
   function setConf(id, v) {
     if (id === "mod") return;
@@ -337,6 +520,11 @@
       vt.className = "vt"; vt.textContent = "votes: " + ev.vote;
       who.appendChild(vt);
     }
+    const ts = document.createElement("span");
+    ts.className = "ts";
+    const sec = Math.round(elapsedBase / 1000);
+    ts.textContent = "⏱ " + Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+    who.appendChild(ts);
     const tx = document.createElement("div");
     tx.className = "tx";
     div.append(who, tx);
@@ -461,16 +649,18 @@
     $("scrub").value = idx;
     if (s.t === "phase") {
       markPhase(s.ri);
-      allIdle(s.ri === 0 ? "preparing" : "listening");
-      idx++; timer = setTimeout(runStep, 500 / speed);
+      phaseToast(s.name, s.ri);
+      allIdle(s.ri === 0 ? "shuffling notes" : "listening");
+      idx++; timer = setTimeout(runStep, (REDUCED ? 300 : 1100) / speed);
     } else if (s.t === "think") {
-      if (s.agent !== "mod") setStatus(s.agent, "agent thinking", 'thinking<span class="dots"></span>');
+      const p = PERSONA[s.agent] || PERSONA.mod;
+      setStatus(s.agent, "agent thinking", p.think + '<span class="dots"></span>');
       idx++; timer = setTimeout(runStep, s.ms / speed);
       elapsedBase += s.ms;
       tickClock(elapsedBase);
     } else if (s.t === "speak") {
       const ev = s.ev;
-      if (ev.agent !== "mod") setStatus(ev.agent, "agent speaking", "speaking…");
+      setStatus(ev.agent, "agent speaking", (PERSONA[ev.agent] || PERSONA.mod).speak);
       if (ev.target && !REDUCED) {
         const t = $("ag-" + ev.target);
         t.classList.add("poked");
@@ -479,12 +669,11 @@
       const tx = bubble(ev);
       const dur = typeDur(ev.text) / speed;
       elapsedBase += typeDur(ev.text);
+      applySpeakStats(ev);
       typeInto(tx, ev.text, dur, () => {
         typerStop = null;
-        if (ev.agent !== "mod") {
-          setStatus(ev.agent, "agent", "done ✓");
-          if (ev.confidence !== undefined) setConf(ev.agent, ev.confidence);
-        }
+        setStatus(ev.agent, "agent", (PERSONA[ev.agent] || PERSONA.mod).done);
+        if (ev.agent !== "mod" && ev.confidence !== undefined) setConf(ev.agent, ev.confidence);
         tickClock(elapsedBase);
         idx++;
         if (playing) timer = setTimeout(runStep, 350 / speed);
@@ -492,7 +681,9 @@
     } else if (s.t === "verdict") {
       markPhase(4);
       for (let i = 0; i < 4; i++) $("ph-" + i).className = "ph done";
+      STATS.mod.done = true; updateStatChips();
       allIdle("adjourned ☕");
+      setStatus("mod", "agent", "gavel down ⚖");
       showVerdict(true);
       idx++;
       playing = false;
@@ -508,15 +699,18 @@
       const s = steps[i];
       if (s.t === "phase") markPhase(s.ri);
       else if (s.t === "speak") {
+        elapsedBase += typeDur(s.ev.text);
         const tx = bubble(s.ev);
         tx.textContent = s.ev.text;
+        applySpeakStats(s.ev);
         if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
-        elapsedBase += typeDur(s.ev.text);
       } else if (s.t === "think") elapsedBase += s.ms;
       else if (s.t === "verdict") {
         showVerdict(false); markPhase(4);
         for (let k = 0; k < 4; k++) $("ph-" + k).className = "ph done";
+        STATS.mod.done = true; updateStatChips();
         allIdle("adjourned ☕");
+        setStatus("mod", "agent", "gavel down ⚖");
       }
     }
     idx = to;
