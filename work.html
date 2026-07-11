@@ -193,17 +193,17 @@
           <div class="exp-main">
             <h3>Atlas</h3>
             <p class="exp-role">Knowledge agent for ops</p>
-            <p class="exp-meta">RAG · 2024</p>
+            <p class="exp-meta">RAG · 2026</p>
             <p class="exp-desc">Ask &ldquo;how do we rotate the API keys?&rdquo; and Atlas answers from your runbooks, past incidents, and live system state — with citations — instead of digging through a wiki at 2&nbsp;a.m.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, LangChain, Postgres, Redis, Docker, Groq"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Runbooks and incident notes are embedded into Postgres with pgvector; LangChain retrieves the relevant chunks, Groq drafts the answer fast, and Redis caches hot queries for instant repeats.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>Runbooks, incidents, PDFs, CSVs, and diagram notes are chunked with LangChain splitters and embedded into Postgres with pgvector; a hand-rolled hybrid ranker (cosine + keywords, behind a relevance floor) retrieves, Groq drafts the cited answer fast, and Redis caches hot queries for instant repeats. The live demo runs the same pipeline entirely in your browser — real embeddings, no server.</p>
               <div class="exp-cta">
-                <a class="btn primary" href="#">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="#">Case Study&nbsp;🔒</a>
+                <a class="btn primary" href="/atlas/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/atlas" target="_blank" rel="noopener">Source&nbsp;↗</a>
               </div>
             </div></div>
           </div>

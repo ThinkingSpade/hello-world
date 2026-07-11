@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas — ops knowledge agent</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234c8fe0'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel-2: #1c2330; --line: #2d3646;
+    --text: #e6edf3; --dim: #8b98a9; --accent: #58a6ff; --green: #3fb950;
+    --gold: #d29922; --coral: #ff7b72; --violet: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/1.6 "SF Mono", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    min-height: 100vh; padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1.6rem; }
+  h1 { font-size: 2rem; letter-spacing: .45em; padding-left: .45em; }
+  h1 .dot { color: var(--accent); }
+  .tagline { color: var(--dim); font-size: .85rem; margin-top: .35rem; }
+  .badges { display: flex; gap: .5rem; justify-content: center; margin-top: .8rem; flex-wrap: wrap; }
+  .badge {
+    font-size: .7rem; padding: .15rem .55rem; border: 1px solid var(--line);
+    border-radius: 999px; color: var(--dim); background: var(--panel);
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+  .ask { display: flex; gap: .6rem; margin: 1.4rem 0 .8rem; }
+  .ask input {
+    flex: 1; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: .8rem 1rem; font: inherit; outline: none;
+  }
+  .ask input:focus { border-color: var(--accent); }
+  .ask button {
+    background: var(--accent); color: #0b1524; border: 0; border-radius: 8px;
+    padding: 0 1.3rem; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .ask button:disabled { opacity: .5; cursor: wait; }
+  .samples { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+  .chip {
+    font-size: .74rem; color: var(--dim); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: .28rem .7rem;
+    cursor: pointer; transition: color .15s, border-color .15s;
+  }
+  .chip:hover { color: var(--accent); border-color: var(--accent); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+  }
+  .card h2 {
+    font-size: .78rem; color: var(--dim); text-transform: uppercase;
+    letter-spacing: .12em; margin-bottom: .7rem;
+  }
+  #answer-text { white-space: pre-wrap; word-wrap: break-word; }
+  #answer-meta { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
+  .meta-badge {
+    font-size: .68rem; padding: .12rem .5rem; border-radius: 4px;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--dim);
+  }
+  .meta-badge.hit { color: var(--green); border-color: var(--green); }
+  .cite {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 6px; background: var(--panel-2); padding: .7rem .9rem;
+    margin-top: .6rem;
+  }
+  .cite .n { color: var(--accent); font-weight: 700; margin-right: .45rem; }
+  .cite .where { color: var(--text); font-weight: 600; font-size: .84rem; }
+  .cite .kind { color: var(--dim); font-size: .72rem; margin-left: .4rem; }
+  .cite .kind.runbook { color: var(--map-runbook); }
+  .cite .kind.incident { color: var(--map-incident); }
+  .cite .kind.dataset { color: var(--map-dataset); }
+  .cite .kind.reference { color: var(--map-reference); }
+  .cite .kind.diagram { color: var(--map-diagram); }
+  .cite-thumb {
+    display: block; max-width: 320px; width: 100%; margin-top: .55rem;
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+  .cite .snip { color: var(--dim); font-size: .78rem; margin-top: .3rem; }
+  /* embedding-space map */
+  :root {
+    --map-runbook: #4c8fe0; --map-incident: #bd821d; --map-dataset: #3f9d63;
+    --map-reference: #9e74e0; --map-diagram: #c25e6e; --map-query: #e6edf3;
+  }
+  #map-wrap { position: relative; }
+  #map-canvas { width: 100%; height: 340px; display: block; cursor: crosshair; }
+  @media (max-width: 600px) { #map-canvas { height: 260px; } }
+  .map-legend {
+    display: flex; gap: 1.1rem; flex-wrap: wrap; margin-top: .55rem;
+    font-size: .72rem; color: var(--dim); align-items: center;
+  }
+  .map-legend .sw { display: inline-block; width: 10px; height: 10px; margin-right: .4rem; vertical-align: -1px; }
+  .sw-runbook { background: var(--map-runbook); border-radius: 50%; }
+  .sw-incident { background: var(--map-incident); transform: rotate(45deg); }
+  .sw-dataset { background: var(--map-dataset); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .sw-reference { background: var(--map-reference); }
+  .sw-diagram { background: var(--map-diagram); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .sw-query { background: var(--map-query); border-radius: 50%; box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--map-query); }
+  .map-hint { font-size: .7rem; color: var(--dim); margin-top: .35rem; }
+  .map-head { display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; }
+  #map-replay {
+    font: inherit; font-size: .68rem; color: var(--dim); background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 999px; padding: .18rem .65rem;
+    cursor: pointer; white-space: nowrap;
+  }
+  #map-replay:hover { color: var(--accent); border-color: var(--accent); }
+  #map-tip {
+    position: absolute; pointer-events: none; display: none; z-index: 5;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
+    padding: .5rem .65rem; max-width: 260px; font-size: .72rem; line-height: 1.4;
+  }
+  #map-tip .tt-type { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; }
+  #map-tip .tt-type.runbook { color: var(--map-runbook); }
+  #map-tip .tt-type.incident { color: var(--map-incident); }
+  #map-tip .tt-type.dataset { color: var(--map-dataset); }
+  #map-tip .tt-type.reference { color: var(--map-reference); }
+  #map-tip .tt-type.diagram { color: var(--map-diagram); }
+  #map-tip .tt-title { color: var(--text); font-weight: 600; margin: .15rem 0 .3rem; }
+  #map-tip .tt-sig { display: flex; align-items: flex-end; gap: 1px; height: 22px; margin-top: .3rem; }
+  #map-tip .tt-sig i {
+    flex: 1; background: var(--accent); opacity: .75; border-radius: 1px 1px 0 0; min-height: 1px;
+  }
+  #map-tip .tt-sig-label { font-size: .6rem; color: var(--dim); margin-top: .2rem; }
+  #corpus ul { list-style: none; }
+  #corpus li {
+    display: flex; gap: .6rem; padding: .32rem 0; font-size: .82rem;
+    border-bottom: 1px dashed var(--line); align-items: baseline;
+  }
+  #corpus li:last-child { border-bottom: 0; }
+  #corpus .t { color: var(--dim); font-size: .68rem; min-width: 4.6rem; }
+  #corpus .t.incident { color: var(--map-incident); }
+  #corpus .t.runbook { color: var(--map-runbook); }
+  #corpus .t.dataset { color: var(--map-dataset); }
+  #corpus .t.reference { color: var(--map-reference); }
+  #corpus .t.diagram { color: var(--map-diagram); }
+  .err { color: var(--coral); }
+  footer { text-align: center; color: var(--dim); font-size: .72rem; margin-top: 2.4rem; }
+  .hide { display: none; }
+  .spin { color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ATLAS<span class="dot">_</span></h1>
+    <p class="tagline">knowledge agent for ops — runbooks · incidents · live system state</p>
+    <div class="badges" id="health-badges"></div>
+  </header>
+
+  <form class="ask" id="ask-form">
+    <input id="q" type="text" autocomplete="off" spellcheck="false"
+           placeholder="How do we rotate the API keys?" aria-label="Question">
+    <button id="go" type="submit">ask</button>
+  </form>
+  <div class="samples" id="samples"></div>
+
+  <section class="card hide" id="answer-card">
+    <h2>Answer</h2>
+    <div id="answer-text"></div>
+    <div id="answer-meta"></div>
+    <div id="citations"></div>
+  </section>
+
+  <section class="card" id="map-card">
+    <div class="map-head">
+      <h2>Embedding space — the real vectors, projected to 2D</h2>
+      <button type="button" id="map-replay" title="Replay the ingest sequence">⟳ replay ingest</button>
+    </div>
+    <div id="map-wrap">
+      <canvas id="map-canvas" aria-label="2D map of corpus chunk embeddings"></canvas>
+      <div id="map-tip"></div>
+    </div>
+    <div class="map-legend">
+      <span><i class="sw sw-runbook"></i>runbook</span>
+      <span><i class="sw sw-incident"></i>incident</span>
+      <span><i class="sw sw-dataset"></i>dataset (csv)</span>
+      <span><i class="sw sw-reference"></i>reference (pdf)</span>
+      <span><i class="sw sw-diagram"></i>diagram (image)</span>
+      <span><i class="sw sw-query"></i>your question</span>
+    </div>
+    <p class="map-hint">Each dot is one chunk of a real doc, embedded and PCA-projected —
+      hover to see its vector fingerprint. Ask a question and watch it land among
+      its nearest chunks; lines connect to what got cited.</p>
+  </section>
+
+  <section class="card" id="corpus">
+    <h2>Corpus</h2>
+    <ul id="corpus-list"><li class="spin">loading…</li></ul>
+  </section>
+
+  <footer>atlas · cited answers only — if it isn't in the corpus, it says so</footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  // API layer — the static in-browser build (see engine.js) injects
+  // window.AtlasStaticApi with the same four methods and response shapes.
+  const api = window.AtlasStaticApi || {
+    health: () => fetch("/api/health").then((r) => r.json()),
+    docs: () => fetch("/api/docs").then((r) => r.json()),
+    map: () => fetch("/api/map").then((r) => r.json()),
+    ask: async (question) => {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok) {
+        const detail = (await res.json().catch(() => ({}))).detail || res.statusText;
+        throw new Error(detail);
+      }
+      return res.json();
+    },
+  };
+  const FILES_BASE = window.ATLAS_FILES_BASE || "/corpus-files/";
+  const SAMPLES = [
+    "How do we rotate the API keys?",
+    "Postgres primary is unhealthy — how do I fail over?",
+    "What caused the July rate-limit outage?",
+    "Who is on call right now?",
+    "A pod is in CrashLoopBackOff, what do I check first?",
+  ];
+
+  const samplesBox = $("samples");
+  for (const s of SAMPLES) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = s;
+    b.addEventListener("click", () => { $("q").value = s; askNow(); });
+    samplesBox.appendChild(b);
+  }
+
+  async function loadMeta() {
+    try {
+      const h = await api.health();
+      const badges = $("health-badges");
+      badges.replaceChildren();
+      const items = [
+        ["store", h.components.store], ["llm", h.components.llm],
+        ["cache", h.components.cache], ["embeddings", h.components.embedder],
+        ["docs", String(h.docs)], ["chunks", String(h.chunks)],
+      ];
+      for (const [k, v] of items) {
+        const el = document.createElement("span");
+        el.className = "badge";
+        const b = document.createElement("b");
+        b.textContent = v;
+        el.append(k + ": ", b);
+        badges.appendChild(el);
+      }
+    } catch { /* health is cosmetic */ }
+    try {
+      const d = await api.docs();
+      const ul = $("corpus-list");
+      ul.replaceChildren();
+      for (const doc of d.docs) {
+        const li = document.createElement("li");
+        const t = document.createElement("span");
+        t.className = "t " + doc.type; t.textContent = doc.type;
+        const title = document.createElement("span");
+        title.textContent = doc.title;
+        li.append(t, title);
+        ul.appendChild(li);
+      }
+    } catch {
+      $("corpus-list").replaceChildren();
+      const li = document.createElement("li");
+      li.className = "err"; li.textContent = "failed to load corpus list";
+      $("corpus-list").appendChild(li);
+    }
+  }
+
+  async function askNow() {
+    const q = $("q").value.trim();
+    if (q.length < 3) return;
+    const btn = $("go");
+    btn.disabled = true; btn.textContent = "…";
+    $("answer-card").classList.remove("hide");
+    $("answer-text").textContent = "thinking…";
+    $("answer-text").classList.add("spin");
+    $("answer-meta").replaceChildren();
+    $("citations").replaceChildren();
+    try {
+      const a = await api.ask(q);
+      $("answer-text").classList.remove("spin");
+      $("answer-text").textContent = a.answer;
+
+      const meta = $("answer-meta");
+      const mk = (text, cls) => {
+        const el = document.createElement("span");
+        el.className = "meta-badge" + (cls ? " " + cls : "");
+        el.textContent = text;
+        meta.appendChild(el);
+      };
+      mk(a.latency_ms + " ms");
+      mk(a.cached ? "cache hit" : "fresh", a.cached ? "hit" : "");
+      mk("llm: " + a.mode.llm);
+      mk(a.retrieved + " sources");
+
+      const cites = $("citations");
+      for (const c of a.citations) {
+        const box = document.createElement("div");
+        box.className = "cite";
+        const head = document.createElement("div");
+        const n = document.createElement("span");
+        n.className = "n"; n.textContent = "[" + c.n + "]";
+        const where = document.createElement("span");
+        where.className = "where";
+        where.textContent = c.doc_title + " — " + c.section;
+        const kind = document.createElement("span");
+        kind.className = "kind " + c.doc_type; kind.textContent = c.doc_type;
+        head.append(n, where, kind);
+        const snip = document.createElement("div");
+        snip.className = "snip"; snip.textContent = c.snippet;
+        box.append(head, snip);
+        if (c.media) {
+          const img = document.createElement("img");
+          img.className = "cite-thumb";
+          img.src = FILES_BASE + c.media;
+          img.alt = c.doc_title;
+          img.loading = "lazy";
+          box.appendChild(img);
+        }
+        cites.appendChild(box);
+      }
+      if (typeof updateMapFromAnswer === "function") updateMapFromAnswer(a);
+    } catch (err) {
+      $("answer-text").classList.remove("spin");
+      $("answer-text").textContent = "";
+      const e = document.createElement("span");
+      e.className = "err"; e.textContent = "error: " + err.message;
+      $("answer-text").appendChild(e);
+    } finally {
+      btn.disabled = false; btn.textContent = "ask";
+    }
+  }
+
+  $("ask-form").addEventListener("submit", (ev) => { ev.preventDefault(); askNow(); });
+  loadMeta();
+
+  /* ---------------- embedding-space map ---------------- */
+  const MAP = {
+    pts: [], bounds: null, docCount: 0, words: 0, dims: 0,
+    query: null, retrieved: new Set(),
+    replayT0: 0, queryT0: 0, hover: null, raf: 0,
+    reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  };
+  window.__ATLAS_MAP = MAP;  // debug/testing hook
+  const mapCanvas = $("map-canvas");
+  const mapCtx = mapCanvas.getContext("2d");
+  const css = (name) =>
+    getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const COLORS = () => ({
+    runbook: css("--map-runbook"), incident: css("--map-incident"),
+    dataset: css("--map-dataset"), reference: css("--map-reference"),
+    diagram: css("--map-diagram"), query: css("--map-query"),
+    dim: css("--dim"), line: css("--line"),
+  });
+  // ingest sequence timing: raw-data flood → per-chunk vectorize → flight
+  const FLOOD_MS = 2600, APPEAR_MS = 1900, VEC_MS = 520, FLY_MS = 680;
+  const DOC_STAGGER = 150, CHUNK_STAGGER = 55, QUERY_ANIM = 900;
+  const jitter = (i, salt) => ((((i + salt) * 2654435761) >>> 0) % 1000) / 1000;
+
+  function seqTimes(p) {
+    const vecAt = FLOOD_MS + p._docIdx * DOC_STAGGER + (p._i % 5) * CHUNK_STAGGER;
+    return { appearAt: (p._i / MAP.pts.length) * APPEAR_MS, vecAt, flyAt: vecAt + VEC_MS };
+  }
+  function seqEnd() {
+    const docs = MAP.docCount || 1;
+    return FLOOD_MS + (docs - 1) * DOC_STAGGER + 4 * CHUNK_STAGGER + VEC_MS + FLY_MS;
+  }
+  const seqActive = (now) =>
+    !MAP.reduced && MAP.replayT0 && now - MAP.replayT0 < seqEnd();
+
+  function sizeMap() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = mapCanvas.getBoundingClientRect();
+    mapCanvas.width = Math.round(rect.width * dpr);
+    mapCanvas.height = Math.round(rect.height * dpr);
+    mapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function computeBounds() {
+    const xs = MAP.pts.map((p) => p.x), ys = MAP.pts.map((p) => p.y);
+    let minX = Math.min(...xs), maxX = Math.max(...xs);
+    let minY = Math.min(...ys), maxY = Math.max(...ys);
+    const padX = (maxX - minX || 1) * 0.12, padY = (maxY - minY || 1) * 0.12;
+    MAP.bounds = { minX: minX - padX, maxX: maxX + padX, minY: minY - padY, maxY: maxY + padY };
+  }
+
+  function toPx(x, y) {
+    const rect = mapCanvas.getBoundingClientRect();
+    const b = MAP.bounds;
+    const cx = Math.min(Math.max(x, b.minX), b.maxX);
+    const cy = Math.min(Math.max(y, b.minY), b.maxY);
+    return [
+      ((cx - b.minX) / (b.maxX - b.minX)) * (rect.width - 24) + 12,
+      ((cy - b.minY) / (b.maxY - b.minY)) * (rect.height - 24) + 12,
+    ];
+  }
+
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+  const TYPE_COLOR = (c, type) => (
+    { runbook: c.runbook, incident: c.incident, dataset: c.dataset,
+      reference: c.reference, diagram: c.diagram }[type] || c.runbook);
+
+  function drawShape(x, y, type, r, alpha) {
+    const c = COLORS();
+    mapCtx.globalAlpha = alpha;
+    mapCtx.fillStyle = TYPE_COLOR(c, type);
+    mapCtx.beginPath();
+    if (type === "incident") {          // diamond
+      mapCtx.moveTo(x, y - r * 1.25); mapCtx.lineTo(x + r * 1.25, y);
+      mapCtx.lineTo(x, y + r * 1.25); mapCtx.lineTo(x - r * 1.25, y);
+      mapCtx.closePath();
+    } else if (type === "dataset") {    // triangle
+      mapCtx.moveTo(x, y - r * 1.3); mapCtx.lineTo(x + r * 1.2, y + r);
+      mapCtx.lineTo(x - r * 1.2, y + r); mapCtx.closePath();
+    } else if (type === "reference") {  // square
+      mapCtx.rect(x - r, y - r, r * 2, r * 2);
+    } else if (type === "diagram") {    // hexagon
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 6 + (i * Math.PI) / 3;
+        const hx = x + Math.cos(a) * r * 1.2, hy = y + Math.sin(a) * r * 1.2;
+        i ? mapCtx.lineTo(hx, hy) : mapCtx.moveTo(hx, hy);
+      }
+      mapCtx.closePath();
+    } else {                            // runbook: circle
+      mapCtx.arc(x, y, r, 0, Math.PI * 2);
+    }
+    mapCtx.fill();
+    mapCtx.globalAlpha = 1;
+  }
+
+  // wall-grid cell for the raw-data flood: cells wrap into overlapping
+  // layers on purpose — the point is that raw docs don't fit
+  function wallCell(p, rect) {
+    const cols = Math.max(2, Math.floor(rect.width / 195));
+    const cellW = rect.width / cols;
+    const rowH = 54;
+    const rowsFit = Math.max(2, Math.floor((rect.height - 34) / rowH));
+    const perLayer = cols * rowsFit;
+    const layer = Math.floor(p._i / perLayer);
+    const idx = p._i % perLayer;
+    const col = idx % cols, row = Math.floor(idx / cols);
+    return {
+      x: col * cellW + 6 + layer * 16 + jitter(p._i, 7) * 12,
+      y: 10 + row * rowH + layer * 11 + jitter(p._i, 13) * 10,
+      w: cellW - 14,
+    };
+  }
+
+  function drawRawBlock(p, cell, alpha) {
+    const c = COLORS();
+    mapCtx.globalAlpha = alpha * 0.92;
+    mapCtx.fillStyle = "#1c2330";
+    mapCtx.fillRect(cell.x, cell.y, cell.w, 46);
+    mapCtx.strokeStyle = c.line; mapCtx.lineWidth = 1;
+    mapCtx.strokeRect(cell.x, cell.y, cell.w, 46);
+    const chars = Math.max(18, Math.floor((cell.w - 10) / 4.9));
+    mapCtx.font = "7px ui-monospace, monospace";
+    mapCtx.fillStyle = TYPE_COLOR(c, p.type);
+    const tag = p.format === "md" ? "" : "[" + p.format + "] ";
+    mapCtx.fillText((tag + p.doc_id + " · " + p.section).slice(0, chars), cell.x + 5, cell.y + 9);
+    if (p.media) {
+      const gx = cell.x + cell.w - 22, gy = cell.y + 28;
+      mapCtx.strokeStyle = TYPE_COLOR(c, p.type); mapCtx.lineWidth = 1;
+      mapCtx.strokeRect(gx, gy - 9, 16, 12);
+      mapCtx.beginPath(); mapCtx.moveTo(gx + 2, gy + 1);
+      mapCtx.lineTo(gx + 6, gy - 4); mapCtx.lineTo(gx + 9, gy - 1);
+      mapCtx.lineTo(gx + 11, gy - 3); mapCtx.lineTo(gx + 14, gy + 1);
+      mapCtx.stroke();
+    }
+    mapCtx.font = "8px ui-monospace, monospace";
+    mapCtx.fillStyle = c.dim;
+    for (let l = 0; l < 3; l++) {
+      const line = p.raw.slice(l * chars, (l + 1) * chars);
+      if (!line) break;
+      mapCtx.fillText(line, cell.x + 5, cell.y + 20 + l * 10);
+    }
+    mapCtx.globalAlpha = 1;
+  }
+
+  function drawBarcode(p, cx, cy, scale, alpha) {
+    const c = COLORS();
+    const barW = 2.4, gap = 0.8, h = 20 * scale;
+    const total = p.sig.length * (barW + gap);
+    mapCtx.globalAlpha = alpha;
+    mapCtx.fillStyle = TYPE_COLOR(c, p.type);
+    p.sig.forEach((v, bi) => {
+      const bh = Math.max(1.5, v * h);
+      mapCtx.fillRect(cx - total / 2 + bi * (barW + gap), cy - bh / 2, barW * scale + 0.4, bh);
+    });
+    mapCtx.globalAlpha = 1;
+  }
+
+  function drawMap(now) {
+    const rect = mapCanvas.getBoundingClientRect();
+    mapCtx.clearRect(0, 0, rect.width, rect.height);
+    if (!MAP.pts.length) return false;
+    const c = COLORS();
+    let animating = false;
+    const seq = seqActive(now);
+    const el = MAP.replayT0 ? now - MAP.replayT0 : Infinity;
+
+    // stats ticker for the flood stage — real numbers, counting up
+    if (seq && el < FLOOD_MS + 500) {
+      animating = true;
+      const k = Math.min(el / APPEAR_MS, 1);
+      const fade = el > FLOOD_MS ? 1 - (el - FLOOD_MS) / 500 : 1;
+      mapCtx.globalAlpha = Math.max(0, fade);
+      mapCtx.font = "11px ui-monospace, monospace";
+      mapCtx.fillStyle = c.dim;
+      const words = Math.round((MAP.words || 0) * k);
+      const fmts = MAP.formats
+        ? " (" + Object.entries(MAP.formats).sort()
+            .map(([f, n]) => n + " " + f).join(" · ") + ")"
+        : "";
+      const msg = `ingesting… ${MAP.docCount} docs${fmts} · ${MAP.pts.length} chunks · ` +
+        `${words.toLocaleString()} words · ${MAP.dims || 768} dims each`;
+      mapCtx.fillText(msg, 10, rect.height - 10);
+      mapCtx.globalAlpha = 1;
+    }
+
+    for (const p of MAP.pts) {
+      const [tx, ty] = toPx(p.x, p.y);
+      let px = tx, py = ty, alpha = 0.9;
+
+      if (seq) {
+        const t = seqTimes(p);
+        const cell = wallCell(p, rect);
+        const ccx = cell.x + cell.w / 2, ccy = cell.y + 23;
+        if (el < t.appearAt) { animating = true; continue; }
+        if (el < t.vecAt) {
+          // stage 1 — the raw text wall piles up
+          animating = true;
+          const a = Math.min((el - t.appearAt) / 220, 1);
+          drawRawBlock(p, cell, a);
+          continue;
+        }
+        if (el < t.flyAt) {
+          // stage 2 — text dissolves into its vector barcode
+          animating = true;
+          const k = (el - t.vecAt) / VEC_MS;
+          if (k < 0.5) drawRawBlock(p, cell, 1 - k * 2);
+          drawBarcode(p, ccx, ccy, Math.min(k * 1.6, 1), Math.min(k * 2, 1));
+          continue;
+        }
+        const fk = Math.min((el - t.flyAt) / FLY_MS, 1);
+        if (fk < 1) {
+          // stage 3 — the vector collapses to a point and takes its place
+          animating = true;
+          const k = easeOut(fk);
+          px = ccx + (tx - ccx) * k; py = ccy + (ty - ccy) * k;
+          if (fk < 0.35) drawBarcode(p, px, py, 1 - fk / 0.35, 0.6 * (1 - fk / 0.35));
+          alpha = 0.35 + 0.55 * k;
+        }
+      }
+
+      const isHit = MAP.retrieved.has(p.id);
+      const isHover = MAP.hover === p;
+      drawShape(px, py, p.type, isHit ? 5 : 3.5, isHover ? 1 : alpha);
+
+      // beat 3 — retrieved chunks pulse and link to the query
+      if (isHit && MAP.query) {
+        const [qx, qy] = toPx(MAP.query[0], MAP.query[1]);
+        const qt = Math.min((now - MAP.queryT0) / QUERY_ANIM, 1);
+        if (qt < 1) animating = true;
+        mapCtx.globalAlpha = 0.35 * (MAP.reduced ? 1 : qt);
+        mapCtx.strokeStyle = c.query;
+        mapCtx.lineWidth = 1;
+        mapCtx.beginPath(); mapCtx.moveTo(qx, qy); mapCtx.lineTo(px, py); mapCtx.stroke();
+        mapCtx.globalAlpha = 1;
+        if (!MAP.reduced && qt < 1) {
+          mapCtx.strokeStyle = c.query;
+          mapCtx.globalAlpha = 0.5 * (1 - qt);
+          mapCtx.beginPath(); mapCtx.arc(px, py, 6 + 10 * qt, 0, Math.PI * 2); mapCtx.stroke();
+          mapCtx.globalAlpha = 1;
+        }
+      }
+    }
+
+    // the question itself — dropped into the map
+    if (MAP.query) {
+      const [qx, qy] = toPx(MAP.query[0], MAP.query[1]);
+      const qt = MAP.reduced ? 1 : Math.min((now - MAP.queryT0) / QUERY_ANIM, 1);
+      if (qt < 1) animating = true;
+      const drop = easeOut(qt);
+      const y = qy - (1 - drop) * 40;
+      mapCtx.fillStyle = c.query;
+      mapCtx.beginPath(); mapCtx.arc(qx, y, 5, 0, Math.PI * 2); mapCtx.fill();
+      mapCtx.strokeStyle = c.query; mapCtx.lineWidth = 1.5;
+      mapCtx.beginPath(); mapCtx.arc(qx, y, 9, 0, Math.PI * 2); mapCtx.stroke();
+    }
+    return animating;
+  }
+
+  function loop(now) {
+    const animating = drawMap(now);
+    if (animating && !MAP.reduced) MAP.raf = requestAnimationFrame(loop);
+    else MAP.raf = 0;
+  }
+  function kick() {
+    if (MAP.reduced) { drawMap(performance.now()); return; }
+    if (!MAP.raf) MAP.raf = requestAnimationFrame(loop);
+  }
+
+  async function loadMapData() {
+    try {
+      const d = await api.map();
+      MAP.pts = d.points;
+      if (!MAP.pts.length) { $("map-card").classList.add("hide"); return; }
+      MAP.words = d.words; MAP.dims = d.dims; MAP.docCount = d.docs; MAP.formats = d.formats;
+      computeBounds();
+      const docs = [...new Set(MAP.pts.map((p) => p.doc_id))];
+      MAP.pts.forEach((p, i) => {
+        p._i = i;
+        p._docIdx = docs.indexOf(p.doc_id);
+      });
+      sizeMap();
+      MAP.replayT0 = performance.now();
+      kick();
+    } catch { $("map-card").classList.add("hide"); }
+  }
+
+  mapCanvas.addEventListener("click", () => {
+    // click during the ingest sequence skips to the finished map
+    if (seqActive(performance.now())) {
+      MAP.replayT0 = performance.now() - seqEnd();
+      kick();
+    }
+  });
+
+  mapCanvas.addEventListener("mousemove", (ev) => {
+    if (seqActive(performance.now())) return;  // no hover mid-sequence
+    const rect = mapCanvas.getBoundingClientRect();
+    const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+    let best = null, bestD = 14 * 14;
+    for (const p of MAP.pts) {
+      const [px, py] = toPx(p.x, p.y);
+      const d = (px - mx) ** 2 + (py - my) ** 2;
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    MAP.hover = best;
+    const tip = $("map-tip");
+    if (best) {
+      tip.replaceChildren();
+      const type = document.createElement("div");
+      type.className = "tt-type " + best.type; type.textContent = best.type;
+      const title = document.createElement("div");
+      title.className = "tt-title"; title.textContent = best.title + " — " + best.section;
+      const sig = document.createElement("div"); sig.className = "tt-sig";
+      for (const v of best.sig) {
+        const bar = document.createElement("i");
+        bar.style.height = Math.max(1, v * 22) + "px";
+        sig.appendChild(bar);
+      }
+      const lbl = document.createElement("div");
+      lbl.className = "tt-sig-label";
+      lbl.textContent = "vector fingerprint (768-dim → 24 bins)";
+      tip.append(type, title, sig, lbl);
+      tip.style.display = "block";
+      const tipW = 260;
+      tip.style.left = Math.min(mx + 14, rect.width - tipW) + "px";
+      tip.style.top = my + 14 + "px";
+    } else {
+      tip.style.display = "none";
+    }
+    kick();
+  });
+  mapCanvas.addEventListener("mouseleave", () => {
+    MAP.hover = null; $("map-tip").style.display = "none"; kick();
+  });
+
+  window.addEventListener("resize", () => { sizeMap(); kick(); });
+
+  $("map-replay").addEventListener("click", () => {
+    if (MAP.reduced || !MAP.pts.length) return;
+    MAP.hover = null; $("map-tip").style.display = "none";
+    MAP.replayT0 = performance.now();
+    kick();
+  });
+
+  // hook: askNow() calls this with the /api/ask response
+  function updateMapFromAnswer(a) {
+    if (!a.query_xy) return;
+    MAP.query = a.query_xy;
+    MAP.retrieved = new Set(a.citations.map((c) => c.chunk_id).filter(Boolean));
+    MAP.queryT0 = performance.now();
+    kick();
+  }
+
+  loadMapData();
+</script>
+</body>
+</html>
