@@ -1,0 +1,26 @@
+supplier,country,categories,lead_time_days,otif_pct,defect_ppm,payment_terms,risk_flag
+Brightway Electronics,CN,electronics,41,93.1,310,NET45,
+Guadalajara Metalworks,MX,hardware,18,84.2,520,NET30,financial restructuring 2024-05
+Meko Textiles,VN,textiles,47,91.7,240,NET60,
+Cascade Ridge Outdoor,US,outdoor,9,97.4,90,NET30,
+Willamette Kitchenworks,US,kitchen,7,96.2,130,NET30,
+Tundra Fresh Foods,US,cold-chain foods,4,94.8,610,NET15,single cold-chain source
+Shenzhen Corelight,CN,electronics,39,88.9,450,NET45,new supplier - probation
+Monterrey Fasteners,MX,hardware,15,95.5,180,NET30,
+Alt Supplier A,US,cold-chain foods,23,85.7,157,NET45,
+Alt Supplier B,MX,kitchen,40,91.7,269,NET45,
+Alt Supplier C,MX,hardware,25,95.3,464,NET60,
+Alt Supplier D,VN,hardware,23,96.2,374,NET45,
+Alt Supplier E,MX,outdoor,24,82.9,371,NET30,
+Alt Supplier F,TW,electronics,46,93.4,352,NET60,qualification pending
+Alt Supplier G,VN,outdoor,25,88.2,690,NET45,
+Alt Supplier H,TW,textiles,31,86.7,306,NET30,
+Alt Supplier I,VN,textiles,31,95.5,402,NET30,
+Alt Supplier J,US,hardware,7,95.2,325,NET60,
+Alt Supplier K,CN,cold-chain foods,45,86.6,510,NET45,
+Alt Supplier L,CN,cold-chain foods,29,90.7,295,NET60,
+Alt Supplier M,TW,cold-chain foods,48,97.4,172,NET60,
+Alt Supplier N,US,hardware,44,94.8,405,NET45,
+Alt Supplier O,US,hardware,46,82.6,542,NET45,
+Alt Supplier P,MX,electronics,28,84.1,632,NET45,
+Alt Supplier Q,VN,textiles,48,96.7,80,NET45,

@@ -23,6 +23,16 @@
   h1 { font-size: 2rem; letter-spacing: .45em; padding-left: .45em; }
   h1 .dot { color: var(--accent); }
   .tagline { color: var(--dim); font-size: .85rem; margin-top: .35rem; }
+  .dataset-bar { display: flex; gap: .5rem; justify-content: center; margin-top: .75rem; flex-wrap: wrap; }
+  .dataset-bar .ds {
+    font: inherit; font-size: .72rem; cursor: pointer; padding: .3rem .85rem;
+    background: var(--panel); color: var(--dim); border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .dataset-bar .ds.active {
+    color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 700;
+  }
+  .dataset-bar .ds:not(.active):hover { color: var(--accent); border-color: var(--accent); }
   .badges { display: flex; gap: .5rem; justify-content: center; margin-top: .8rem; flex-wrap: wrap; }
   .badge {
     font-size: .7rem; padding: .15rem .55rem; border: 1px solid var(--line);
@@ -196,6 +206,7 @@
     <h1>ATLAS<span class="dot">_</span></h1>
     <p class="tagline">knowledge agent for ops — runbooks · incidents · live system state</p>
     <div class="badges" id="health-badges"></div>
+    <div class="dataset-bar hide" id="dataset-bar"></div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Atlas views">
@@ -287,8 +298,8 @@
       return res.json();
     },
   };
-  const FILES_BASE = window.ATLAS_FILES_BASE || "/corpus-files/";
-  const SAMPLES = [
+  const filesBase = () => window.ATLAS_FILES_BASE || "/corpus-files/";
+  const DEFAULT_SAMPLES = [
     "How do we rotate the API keys?",
     "Who approved the rollback during the July outage?",
     "What was our compute cost in June 2024?",
@@ -297,13 +308,17 @@
     "A pod is in CrashLoopBackOff, what do I check first?",
   ];
 
-  const samplesBox = $("samples");
-  for (const s of SAMPLES) {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "chip"; b.textContent = s;
-    b.addEventListener("click", () => { $("q").value = s; askNow(); });
-    samplesBox.appendChild(b);
+  function renderSamples(list) {
+    const samplesBox = $("samples");
+    samplesBox.replaceChildren();
+    for (const s of list && list.length ? list : DEFAULT_SAMPLES) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = s;
+      b.addEventListener("click", () => { $("q").value = s; askNow(); });
+      samplesBox.appendChild(b);
+    }
   }
+  renderSamples(null);
 
   async function loadMeta() {
     try {
@@ -385,7 +400,7 @@
         if (c.media) {
           const img = document.createElement("img");
           img.className = "cite-thumb";
-          img.src = FILES_BASE + c.media;
+          img.src = filesBase() + c.media;
           img.alt = c.doc_title;
           img.loading = "lazy";
           box.appendChild(img);
@@ -431,6 +446,49 @@
   $("tab-data").addEventListener("click", () => showTab("data"));
   $("tab-ask").addEventListener("click", () => showTab("ask"));
 
+  /* ---------------- dataset switcher (static build only) ---------------- */
+  async function initDatasets() {
+    if (!api.datasets) return;
+    try {
+      const { list, current } = await api.datasets();
+      if (!list || list.length < 2) return;
+      const bar = $("dataset-bar");
+      bar.classList.remove("hide");
+      const render = (activeSlug) => {
+        bar.replaceChildren();
+        for (const ds of list) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "ds" + (ds.slug === activeSlug ? " active" : "");
+          b.textContent = ds.name;
+          b.addEventListener("click", () => switchDataset(ds.slug));
+          bar.appendChild(b);
+        }
+      };
+      render(current);
+      window.__renderDatasetBar = render;
+    } catch { /* single-dataset builds have no manifest switcher */ }
+  }
+
+  async function switchDataset(slug) {
+    if (!(await api.setDataset(slug))) return;
+    if (window.__renderDatasetBar) window.__renderDatasetBar(slug);
+    // reset everything the old dataset touched
+    for (const k of Object.keys(docsById)) delete docsById[k];
+    selectedRow = null;
+    $("answer-card").classList.add("hide");
+    $("answer-text").replaceChildren();
+    $("citations").replaceChildren();
+    $("answer-meta").replaceChildren();
+    $("q").value = "";
+    MAP.query = null; MAP.retrieved = new Set();
+    MAP.replayT0 = 0; askArmed = false;
+    showTab("data");   // land back on the raw data — the story restarts
+    await loadMeta();
+    await loadMapData();
+  }
+  initDatasets();
+
   /* ---------------- data explorer ---------------- */
   const docsById = {};
   let selectedRow = null;
@@ -465,8 +523,9 @@
       li.addEventListener("click", () => selectDoc(doc));
       ul.appendChild(li);
     }
-    // land on the biggest spreadsheet — the "excel sheet" first impression
-    const first = docsById["ds-alert-history-2024"] || docs[0];
+    // land on a spreadsheet — the "excel sheet" first impression
+    const first = docsById["ds-alert-history-2024"]
+      || docs.find((d) => d.format === "csv") || docs[0];
     if (first) selectDoc(first);
   }
 
@@ -497,7 +556,7 @@
     selectedRow = document.querySelector(`#file-list .doc[data-doc-id="${doc.id}"]`);
     if (selectedRow) { selectedRow.classList.add("sel"); selectedRow.scrollIntoView({ block: "nearest" }); }
 
-    const url = FILES_BASE + doc.source;
+    const url = filesBase() + doc.source;
     $("preview-head").classList.remove("hide");
     $("preview-kind").textContent = (doc.format || doc.type || "").toUpperCase();
     $("preview-kind").className = "t " + doc.type;
@@ -838,6 +897,7 @@
         p._i = i;
         p._docIdx = docs.indexOf(p.doc_id);
       });
+      renderSamples(d.samples);
       const fmts = Object.entries(MAP.formats || {}).sort()
         .map(([f, n]) => `${n} ${f}`).join(" · ");
       const s = $("data-stats");

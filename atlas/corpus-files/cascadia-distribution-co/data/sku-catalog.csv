@@ -1,0 +1,61 @@
+sku,description,category,unit_cost_usd,weight_kg,supplier,velocity_class,reorder_point,lot_controlled
+SKU-1013,electronics item 1 (std),electronics,20.32,6.22,Shenzhen Corelight,B,96,no
+SKU-1026,electronics item 2 (std),electronics,34.8,3.04,Shenzhen Corelight,B,60,no
+SKU-1039,electronics item 3 (mini),electronics,18.45,0.8,Guadalajara Metalworks,C,150,no
+SKU-1046,electronics item 4 (mini),electronics,20.12,3.03,Guadalajara Metalworks,A,60,no
+SKU-1057,electronics item 5 (pro),electronics,28.77,3.06,Tundra Fresh Foods,A,24,no
+SKU-1068,electronics item 6 (pro),electronics,39.06,8.99,Willamette Kitchenworks,B,240,no
+SKU-1081,electronics item 7 (std),electronics,50.77,5.43,Willamette Kitchenworks,B,96,no
+SKU-1088,electronics item 8 (mini),electronics,52.72,5.13,Guadalajara Metalworks,C,60,no
+SKU-1099,electronics item 9 (mini),electronics,51.8,2.19,Monterrey Fasteners,B,240,no
+SKU-1112,electronics item 10 (pro),electronics,57.23,5.56,Monterrey Fasteners,B,24,no
+SKU-1119,hardware item 1 (mini),hardware,4.2,1.61,Brightway Electronics,B,40,no
+SKU-1132,hardware item 2 (mini),hardware,8.73,5.2,Tundra Fresh Foods,A,60,no
+SKU-1139,hardware item 3 (xl),hardware,4.26,5.93,Guadalajara Metalworks,A,150,no
+SKU-1152,hardware item 4 (xl),hardware,3.75,9.31,Brightway Electronics,B,240,no
+SKU-1165,hardware item 5 (pro),hardware,7.17,5.0,Shenzhen Corelight,B,150,no
+SKU-1172,hardware item 6 (mini),hardware,7.68,5.01,Willamette Kitchenworks,A,240,no
+SKU-1183,hardware item 7 (xl),hardware,5.11,5.87,Willamette Kitchenworks,C,240,no
+SKU-1194,hardware item 8 (std),hardware,3.09,3.07,Monterrey Fasteners,B,96,no
+SKU-1207,hardware item 9 (mini),hardware,13.86,4.77,Meko Textiles,B,60,no
+SKU-1214,hardware item 10 (xl),hardware,3.04,3.1,Monterrey Fasteners,C,150,no
+SKU-1227,textiles item 1 (pro),textiles,17.06,0.81,Shenzhen Corelight,B,150,no
+SKU-1240,textiles item 2 (pro),textiles,18.21,5.12,Monterrey Fasteners,C,96,no
+SKU-1247,textiles item 3 (mini),textiles,19.18,5.9,Guadalajara Metalworks,A,150,no
+SKU-1254,textiles item 4 (xl),textiles,10.73,8.49,Meko Textiles,C,240,no
+SKU-1265,textiles item 5 (std),textiles,15.78,1.08,Willamette Kitchenworks,B,240,no
+SKU-1276,textiles item 6 (mini),textiles,10.87,7.38,Brightway Electronics,C,96,no
+SKU-1289,textiles item 7 (xl),textiles,18.37,1.11,Tundra Fresh Foods,B,96,no
+SKU-1300,textiles item 8 (pro),textiles,9.21,8.05,Brightway Electronics,B,40,no
+SKU-1313,textiles item 9 (mini),textiles,10.42,3.19,Brightway Electronics,B,96,no
+SKU-1324,textiles item 10 (xl),textiles,10.68,6.56,Shenzhen Corelight,C,240,no
+SKU-1331,outdoor item 1 (xl),outdoor,16.02,1.99,Monterrey Fasteners,B,40,no
+SKU-1342,outdoor item 2 (xl),outdoor,31.51,4.88,Cascade Ridge Outdoor,B,240,no
+SKU-1353,outdoor item 3 (pro),outdoor,31.34,7.09,Meko Textiles,A,40,no
+SKU-1360,outdoor item 4 (pro),outdoor,34.75,8.23,Tundra Fresh Foods,C,60,no
+SKU-1367,outdoor item 5 (mini),outdoor,43.76,1.72,Brightway Electronics,B,24,no
+SKU-1374,outdoor item 6 (mini),outdoor,38.87,9.5,Guadalajara Metalworks,B,40,no
+SKU-1385,outdoor item 7 (xl),outdoor,34.08,8.67,Meko Textiles,C,24,no
+SKU-1392,outdoor item 8 (std),outdoor,19.48,7.5,Brightway Electronics,B,60,no
+SKU-1405,outdoor item 9 (xl),outdoor,44.01,2.61,Guadalajara Metalworks,B,96,no
+SKU-1416,outdoor item 10 (xl),outdoor,45.07,7.16,Monterrey Fasteners,C,24,no
+SKU-1423,kitchen item 1 (pro),kitchen,19.97,7.79,Meko Textiles,C,60,no
+SKU-1430,kitchen item 2 (xl),kitchen,25.68,1.97,Cascade Ridge Outdoor,C,240,no
+SKU-1441,kitchen item 3 (mini),kitchen,27.81,7.84,Meko Textiles,C,96,no
+SKU-1454,kitchen item 4 (mini),kitchen,13.81,6.11,Shenzhen Corelight,A,40,no
+SKU-1467,kitchen item 5 (mini),kitchen,10.94,6.59,Monterrey Fasteners,B,60,no
+SKU-1478,kitchen item 6 (mini),kitchen,29.57,6.85,Meko Textiles,A,24,no
+SKU-1485,kitchen item 7 (std),kitchen,23.35,4.73,Brightway Electronics,B,40,no
+SKU-1492,kitchen item 8 (pro),kitchen,9.63,6.44,Brightway Electronics,C,24,no
+SKU-1503,kitchen item 9 (std),kitchen,19.06,1.8,Monterrey Fasteners,A,240,no
+SKU-1510,kitchen item 10 (mini),kitchen,18.0,3.65,Tundra Fresh Foods,B,150,no
+SKU-1517,cold-chain item 1 (std),cold-chain foods,7.89,9.19,Cascade Ridge Outdoor,C,150,yes
+SKU-1524,cold-chain item 2 (std),cold-chain foods,4.09,9.28,Cascade Ridge Outdoor,C,24,yes
+SKU-1537,cold-chain item 3 (std),cold-chain foods,9.32,0.43,Monterrey Fasteners,B,24,yes
+SKU-1548,cold-chain item 4 (xl),cold-chain foods,5.79,0.78,Meko Textiles,C,60,yes
+SKU-1559,cold-chain item 5 (mini),cold-chain foods,4.16,9.01,Monterrey Fasteners,B,150,yes
+SKU-1572,cold-chain item 6 (xl),cold-chain foods,7.36,2.57,Tundra Fresh Foods,B,24,yes
+SKU-1579,cold-chain item 7 (pro),cold-chain foods,9.71,1.81,Brightway Electronics,B,24,yes
+SKU-1586,cold-chain item 8 (mini),cold-chain foods,5.89,1.5,Tundra Fresh Foods,B,40,yes
+SKU-1597,cold-chain item 9 (std),cold-chain foods,9.73,1.11,Guadalajara Metalworks,A,96,yes
+SKU-1604,cold-chain item 10 (mini),cold-chain foods,4.04,5.38,Cascade Ridge Outdoor,A,96,yes

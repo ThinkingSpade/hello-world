@@ -51,7 +51,7 @@
 
   // ---- retrieval (port of AtlasEngine.retrieve) --------------------------
   const VECTOR_W = 0.7, KEYWORD_W = 0.3, TITLE_W = 0.15;
-  const TOP_K = 5, PER_DOC_CAP = 2, MIN_SCORE = 0.28;  // sync: atlas/config.py
+  const TOP_K = 5, PER_DOC_CAP = 2, DEFAULT_MIN_SCORE = 0.28;  // sync: atlas/config.py
 
   const searchable = (p) => `${p.title} — ${p.section}\n${p.text}`;
 
@@ -70,20 +70,34 @@
 
   function retrieve(data, question, qv) {
     const qWords = contentWords(question);
+    // IDF-weighted overlap: rare corpus words dominate, common ones barely count
+    const idf = (w) => Math.log(1 + data.points.length / (1 + (data._df.get(w) || 0)));
+    let qIdfTotal = 0;
+    for (const w of qWords) qIdfTotal += idf(w);
+    qIdfTotal = qIdfTotal || 1;
     const scored = [];
     for (const p of data.points) {
       let cos = 0;
       for (let i = 0; i < qv.length; i++) cos += qv[i] * p._vec[i];
-      const overlap = qWords.size
-        ? [...qWords].filter((w) => p._words.has(w)).length / qWords.size
-        : 0;
+      let matchedIdf = 0, matchedN = 0;
+      for (const w of qWords) {
+        if (p._words.has(w)) { matchedIdf += idf(w); matchedN++; continue; }
+        if (w.length >= 5) {
+          for (const t of p._words)
+            if (t.length >= 5 && w.slice(0, 5) === t.slice(0, 5)) {
+              matchedIdf += 0.7 * idf(w); matchedN++; break;
+            }
+        }
+      }
+      const overlap = matchedIdf / qIdfTotal;
       const title = fuzzyOverlap(qWords, p._titleWords);
       scored.push([p, VECTOR_W * cos + KEYWORD_W * Math.min(overlap, 1) + TITLE_W * title]);
     }
     scored.sort((a, b) => b[1] - a[1]);
     const picked = [], perDoc = {};
+    const minScore = data.min_score || DEFAULT_MIN_SCORE;
     for (const [p, s] of scored) {
-      if (s < MIN_SCORE) break;
+      if (s < minScore) break;
       if ((perDoc[p.doc_id] || 0) >= PER_DOC_CAP) continue;
       picked.push([p, s]);
       perDoc[p.doc_id] = (perDoc[p.doc_id] || 0) + 1;
@@ -127,13 +141,17 @@
   }
 
   function generate(question, sources, state) {
-    if (!sources.length)
+    const qWords = contentWords(question);
+    const stateLines = matchingStateLines(qWords, state);
+    if (!sources.length) {
+      if (stateLines.length)
+        return "Nothing in the corpus matches that, but the live system state does:\n" +
+          stateLines.join("\n");
       return (
         "I couldn't find anything relevant in the corpus for that. " +
         "Try rephrasing, or check that the corpus is ingested (/api/health)."
       );
-    const qWords = contentWords(question);
-    const stateLines = matchingStateLines(qWords, state);
+    }
     const lines = [];
     for (const [n, p] of sources) {
       const scoredSents = sentences(p.text)
@@ -158,12 +176,24 @@
   };
 
   // ---- data loading + the api implementation ----------------------------
-  const DATA_URL = (window.ATLAS_DATA_URL || "atlas-data.json");
+  // atlas-manifest.json lists the exported datasets; the first is default.
+  let manifest = null;
+  let current = null;      // active dataset entry
   let dataPromise = null;
+
+  async function loadManifest() {
+    if (!manifest) {
+      manifest = (await (await fetch("atlas-manifest.json")).json()).datasets;
+      current = manifest[0];
+      window.ATLAS_FILES_BASE = current.files;
+    }
+    return manifest;
+  }
 
   function loadData() {
     if (!dataPromise)
-      dataPromise = fetch(DATA_URL)
+      dataPromise = loadManifest()
+        .then(() => fetch(current.data))
         .then((r) => r.json())
         .then((d) => {
           for (const p of d.points) {
@@ -180,6 +210,9 @@
             p._titleWords = contentWords(p.title);
             delete p.vq;
           }
+          d._df = new Map();
+          for (const p of d.points)
+            for (const w of p._words) d._df.set(w, (d._df.get(w) || 0) + 1);
           return d;
         });
     return dataPromise;
@@ -187,6 +220,19 @@
 
   window.ATLAS_FILES_BASE = "corpus-files/";
   window.AtlasStaticApi = {
+    datasets: async () => {
+      await loadManifest();
+      return { list: manifest, current: current.slug };
+    },
+    setDataset: async (slug) => {
+      await loadManifest();
+      const entry = manifest.find((m) => m.slug === slug);
+      if (!entry || entry === current) return false;
+      current = entry;
+      window.ATLAS_FILES_BASE = entry.files;
+      dataPromise = null;  // next loadData() fetches the new dataset
+      return true;
+    },
     health: async () => {
       const d = await loadData();
       return {
