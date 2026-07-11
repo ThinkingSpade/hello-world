@@ -133,9 +133,9 @@
     30% { transform: translate(-50%,-50%) scale(1); }
     80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1); } }
   .stagewrap { position: relative; }
-  /* moderator desk */
-  .modrow { display: flex; justify-content: center; margin-bottom: .9rem; }
-  .modrow .agent { width: min(320px, 100%); }
+  /* the neutral desks: researcher + moderator */
+  .modrow { display: flex; justify-content: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .9rem; }
+  .modrow .agent { width: min(300px, 100%); }
   /* back office — the support cast */
   .backoffice { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .2rem; }
   @media (max-width: 700px) { .backoffice { grid-template-columns: 1fr; } }
@@ -284,6 +284,7 @@
   }
   .bub .srcs span:before { content: "📎 "; }
   .bub.mod { align-self: center; max-width: 94%; background: var(--green-bg); }
+  .bub.scout { align-self: center; max-width: 94%; background: var(--panel-2); border-style: dashed; }
   /* controls */
   .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
   .btn {
@@ -387,7 +388,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58", coral: "#b8463a" };
+  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58", coral: "#b8463a", navy: "#20416b" };
   const SESSIONS = [
     ["microservices.json", "Should we rewrite our monolith as microservices?", "engineering"],
     ["p-vs-np.json", "Will P vs NP be resolved this century?", "computer science"],
@@ -417,6 +418,9 @@
     mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
               tagline: "keeps the peace, scores the war", glyph: "⚖", bub: "order, order",
               think: "weighing the arguments", speak: "synthesizing…", done: "gavel down" },
+    scout:  { skin: "#e2b088", hair: "#6b4a2f", style: "curly",  chart: "docs", glasses: true,
+              tagline: "reads everything, believes half of it", glyph: "⌕", bub: "hm, source?",
+              think: "pulling the file", speak: "circulating the dossier…", done: "dossier filed ✓" },
     steno:  { skin: "#d59a72", hair: "#3a2f28", style: "bun",    chart: "lines",
               tagline: "types faster than they think", glyph: "⌨", bub: "tk tk tk",
               think: "flexing fingers", speak: "transcribing…", done: "caught up ✓" },
@@ -481,6 +485,12 @@
       hair = `<rect x="50" y="17" width="32" height="5" fill="${p.hair}" opacity=".3"/>
               <rect x="60" y="4" width="12" height="18" fill="${color}"/>
               <rect x="63" y="1" width="6" height="4" fill="${color}"/>`;
+    else if (p.style === "curly")
+      hair = `<rect x="48" y="12" width="36" height="10" fill="${p.hair}"/>
+              <rect x="46" y="18" width="6" height="14" fill="${p.hair}"/>
+              <rect x="80" y="18" width="6" height="14" fill="${p.hair}"/>
+              <rect x="52" y="8" width="8" height="6" fill="${p.hair}"/>
+              <rect x="66" y="7" width="9" height="6" fill="${p.hair}"/>`;
     else
       hair = `<rect x="50" y="14" width="32" height="7" fill="${p.hair}"/>
               <rect x="48" y="19" width="5" height="8" fill="${p.hair}"/>`;
@@ -501,6 +511,7 @@
     else if (p.chart === "lines") chart = `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`;
     else if (p.chart === "odds") chart = `<g class="mchart"><rect x="15" y="50" width="8" height="4" fill="#e0c36a"/><rect x="26" y="50" width="12" height="4" fill="#7fbf6a"/><rect x="15" y="58" width="12" height="4" fill="#e07a6a"/><rect x="30" y="58" width="8" height="4" fill="#e0c36a"/></g>`;
     else if (p.chart === "zig") chart = `<polyline class="mchart" points="14,60 19,50 24,62 29,48 34,60 38,52" fill="none" stroke="#e0c36a" stroke-width="2"/>`;
+    else if (p.chart === "docs") chart = `<g class="mchart"><rect x="16" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="27" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="18" y="53" width="4" height="1.5" fill="#5a6478"/><rect x="18" y="56" width="4" height="1.5" fill="#5a6478"/><rect x="29" y="53" width="4" height="1.5" fill="#5a6478"/><rect x="29" y="56" width="4" height="1.5" fill="#5a6478"/></g>`;
     else if (p.chart === "off") chart = ``;
     else chart = `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
     const bubTxt = (p.bub || "…").split("").map((ch, i) =>
@@ -563,9 +574,10 @@
         steps.push({ t: "speak", ev, ri });
       }
     });
-    steps.push({ t: "phase", ri: 3, name: "Verdict" });
+    const vri = S.rounds.length;   // the verdict rail sits after the last round
+    steps.push({ t: "phase", ri: vri, name: "Verdict" });
     steps.push({ t: "think", agent: "mod", ms: think(S.moderator.think) });
-    steps.push({ t: "speak", ev: { agent: "mod", text: S.moderator.text }, ri: 3 });
+    steps.push({ t: "speak", ev: { agent: "mod", text: S.moderator.text }, ri: vri });
     steps.push({ t: "verdict" });
     $("scrub").max = steps.length;
     const total = steps.reduce((a, s) =>
@@ -605,6 +617,17 @@
     }
     const modrow = $("modrow");
     modrow.replaceChildren();
+    const scoutDiv = document.createElement("div");
+    scoutDiv.className = "agent"; scoutDiv.id = "ag-scout";
+    scoutDiv.style.setProperty("--ac", COLORS.navy);
+    scoutDiv.innerHTML = `
+      <div class="ava">${pixelChar("scout", COLORS.navy)}</div>
+      <div class="nm">The Researcher</div>
+      <div class="rl">Compiles the dossier</div>
+      <div class="tg">${PERSONA.scout.tagline}</div>
+      <span class="chipstat" id="sc-scout">DOSSIER PENDING</span>
+      <div class="st" id="st-scout">sharpening pencils</div>`;
+    modrow.appendChild(scoutDiv);
     const modDiv = document.createElement("div");
     modDiv.className = "agent"; modDiv.id = "ag-mod";
     modDiv.style.setProperty("--ac", COLORS.green);
@@ -672,7 +695,8 @@
   function resetStats() {
     STATS = { gpt: { conv: null }, claude: { fixes: 0, cites: 0 },
               gemini: { obj: 0, conceded: 0 }, grok: { takes: 0, conceded: 0 },
-              mod: { done: false }, words: 0, coffees: 0, odds: {} };
+              scout: { pulled: 0 }, mod: { done: false },
+              words: 0, coffees: 0, odds: {} };
     updateStatChips();
   }
   function addWords(n) {
@@ -729,6 +753,7 @@
     if (ev.agent === "gemini" && CONCEDE_RE.test(ev.text)) STATS.gemini.conceded++;
     if (ev.agent === "grok") STATS.grok.takes++;
     if (ev.agent === "grok" && CONCEDE_RE.test(ev.text)) STATS.grok.conceded++;
+    if (ev.agent === "scout" && ev.sources) STATS.scout.pulled += ev.sources.length;
     updateStatChips();
   }
   function updateStatChips() {
@@ -737,6 +762,7 @@
     set("claude", STATS.claude.cites + " RECEIPTS · " + STATS.claude.fixes + " CORRECTIONS");
     set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
     set("grok", STATS.grok.takes + " HOT TAKES" + (STATS.grok.conceded ? " · " + STATS.grok.conceded + " WALKED BACK" : ""));
+    set("scout", STATS.scout.pulled ? STATS.scout.pulled + " SOURCES PULLED" : "DOSSIER PENDING");
     set("mod", STATS.mod.done ? "SCORE: " + S.result.confidence + "%" : "SCORE PENDING");
   }
 
@@ -755,11 +781,13 @@
     setStatus("steno", "agent", "transcript sealed ✓");
     setStatus("book", "agent", "paying out at " + S.result.confidence + "%");
     setStatus("intern", "agent", "victory espresso round ☕");
+    setStatus("scout", "agent", "sources archived ✓");
   }
 
   function phaseToast(name, ri) {
     const t = $("toast");
-    t.textContent = (ri < 3 ? "round " + (ri + 1) + " — " : "") + name;
+    // the briefing and the verdict are acts, not rounds — no number
+    t.textContent = (ri > 0 && ri < S.rounds.length ? "round " + ri + " — " : "") + name;
     t.classList.remove("show");
     void t.offsetWidth;   // restart the animation
     if (!REDUCED) t.classList.add("show");
@@ -771,15 +799,20 @@
   }
 
   function bubble(ev) {
+    const FIXED = {
+      mod: { name: (S.moderator && S.moderator.name) || "The Moderator", color: "green" },
+      scout: { name: "The Researcher", color: "navy" },
+    };
     const isMod = ev.agent === "mod";
-    const a = isMod ? { name: S.moderator.name || "The Moderator", color: "green" } : agentById(ev.agent);
+    const a = FIXED[ev.agent] || agentById(ev.agent);
     const c = COLORS[a.color] || COLORS.green;
     const div = document.createElement("div");
-    div.className = "bub" + (isMod ? " mod" : (S.agents.indexOf(a) % 2 ? " right" : ""));
+    div.className = "bub" + (isMod ? " mod" : ev.agent === "scout" ? " scout"
+      : (S.agents.indexOf(a) % 2 ? " right" : ""));
     div.style.setProperty("--ac", c);
     const who = document.createElement("div");
     who.className = "who";
-    who.textContent = a.name + (isMod ? "" : " · " + a.role);
+    who.textContent = a.name + (a.role ? " · " + a.role : ev.agent === "scout" ? " · shared briefing" : "");
     if (ev.target) {
       const at = document.createElement("span");
       at.className = "at";
@@ -832,7 +865,7 @@
   }
 
   function markPhase(ri) {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i <= S.rounds.length; i++) {
       const el = $("ph-" + i);
       if (!el) continue;
       el.className = "ph" + (i < ri ? " done" : i === ri ? " now" : "");
@@ -925,6 +958,7 @@
     claude: ["sip", "glance", "wiggle", "shufflep", "mumble", "yawn"],
     gemini: ["sip", "stretch", "glance", "mumble", "yawn", "wiggle"],
     grok:   ["wiggle", "bounce", "sip", "glance", "mumble", "stretch"],
+    scout:  ["shufflep", "glance", "sip", "mumble", "yawn"],
     mod:    ["sip", "yawn", "glance", "shufflep", "mumble"],
     steno:  ["knuckles", "sip", "glance", "stretch", "mumble"],
     book:   ["shufflep", "sip", "glance", "mumble", "wiggle"],
@@ -967,7 +1001,8 @@
       markPhase(s.ri);
       phaseToast(s.name, s.ri);
       if (s.ri > 0) coffeeRun();
-      allIdle(s.ri === 0 ? "shuffling notes" : "listening");
+      allIdle(s.ri === 0 ? "waiting for the brief"
+        : s.name === "Opening positions" ? "reading the brief" : "listening");
       idx++; timer = setTimeout(runStep, (REDUCED ? 300 : 1100) / speed);
     } else if (s.t === "think") {
       const p = PERSONA[s.agent] || PERSONA.mod;
@@ -1012,8 +1047,7 @@
         if (playing) timer = setTimeout(runStep, 350 / speed);
       });
     } else if (s.t === "verdict") {
-      markPhase(4);
-      for (let i = 0; i < 4; i++) $("ph-" + i).className = "ph done";
+      for (let i = 0; i <= S.rounds.length; i++) $("ph-" + i).className = "ph done";
       STATS.mod.done = true; updateStatChips();
       allIdle("adjourned ☕");
       setStatus("mod", "agent", "gavel down ⚖");
@@ -1033,7 +1067,7 @@
       const s = steps[i];
       if (s.t === "phase") {
         markPhase(s.ri);
-        if (s.ri > 0 && s.ri < 4) {
+        if (s.ri > 0) {   // no coffee during the briefing; every act after gets one
           STATS.coffees++;
           $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees;
         }
@@ -1048,8 +1082,8 @@
         if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
       } else if (s.t === "think") elapsedBase += s.ms;
       else if (s.t === "verdict") {
-        showVerdict(false); markPhase(4);
-        for (let k = 0; k < 4; k++) $("ph-" + k).className = "ph done";
+        showVerdict(false);
+        for (let k = 0; k <= S.rounds.length; k++) $("ph-" + k).className = "ph done";
         STATS.mod.done = true; updateStatChips();
         allIdle("adjourned ☕");
         setStatus("mod", "agent", "gavel down ⚖");
