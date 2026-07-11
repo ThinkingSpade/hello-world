@@ -1,0 +1,167 @@
+{
+ "namespace": "prod",
+ "selector": "app=payments",
+ "victim": "payments-6c9d8e7f5-nn4kq",
+ "resolved": true,
+ "duration_s": 0.0,
+ "timeline": [
+  {
+   "t": "page",
+   "text": "Argo CD — prod/payments: rollout stalled 11m, 2 new pods ImagePullBackOff (old replicas still serving)",
+   "sev": "P2"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get pods -n prod -l app=payments",
+   "out": "NAME                        READY   STATUS             RESTARTS   AGE\npayments-5f6d8b7c9-ee3rp   1/1     Running            0          6d\npayments-5f6d8b7c9-tt8vk   1/1     Running            0          6d\npayments-6c9d8e7f5-nn4kq   0/1     ImagePullBackOff   0          11m\npayments-6c9d8e7f5-x8w2j   0/1     ImagePullBackOff   0          11m",
+   "note": "triage: how wide is the blast radius?"
+  },
+  {
+   "t": "think",
+   "ms": 1600,
+   "status": "reading the blast radius"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl describe pod payments-6c9d8e7f5-nn4kq -n prod",
+   "out": "Name:             payments-6c9d8e7f5-nn4kq\nNamespace:        prod\nNode:             node-a/10.0.1.42\nStart Time:       Tue, 07 Jul 2026 15:31:22 -0500\nLabels:           app=payments\n                  pod-template-hash=6c9d8e7f5\nStatus:           Pending\nControlled By:    ReplicaSet/payments-6c9d8e7f5\nContainers:\n  payments:\n    Image:          registry.internal/payments:v2.4.11\n    State:          Waiting\n      Reason:       ImagePullBackOff\n    Ready:          False\n    Restart Count:  0\n    Limits:\n      cpu:     500m\n      memory:  384Mi\n    Requests:\n      cpu:     250m\n      memory:  384Mi\nConditions:\n  Type              Status\n  Initialized       True\n  Ready             False\n  ContainersReady   False\nQoS Class:          Guaranteed",
+   "note": "what does kubelet say about the victim?"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl logs payments-6c9d8e7f5-nn4kq -n prod --previous --tail=40",
+   "out": "Error from server (BadRequest): previous terminated container \"payments\" in pod \"payments-6c9d8e7f5-nn4kq\" not found",
+   "note": "last words of the previous container"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get events -n prod --field-selector involvedObject.name=payments-6c9d8e7f5-nn4kq --sort-by=.lastTimestamp",
+   "out": "LAST SEEN   TYPE      REASON      OBJECT                          MESSAGE\n11m         Normal    Scheduled   pod/payments-6c9d8e7f5-nn4kq    Successfully assigned prod/payments-6c9d8e7f5-nn4kq to node-a\n9m41s       Normal    Pulling     pod/payments-6c9d8e7f5-nn4kq    Pulling image \"registry.internal/payments:v2.4.11\"\n9m39s       Warning   Failed      pod/payments-6c9d8e7f5-nn4kq    Failed to pull image \"registry.internal/payments:v2.4.11\": manifest for registry.internal/payments:v2.4.11 not found: manifest unknown\n9m39s       Warning   Failed      pod/payments-6c9d8e7f5-nn4kq    Error: ErrImagePull\n74s         Normal    BackOff     pod/payments-6c9d8e7f5-nn4kq    Back-off pulling image \"registry.internal/payments:v2.4.11\"\n74s         Warning   Failed      pod/payments-6c9d8e7f5-nn4kq    Error: ImagePullBackOff",
+   "note": "the event stream never lies"
+  },
+  {
+   "t": "think",
+   "ms": 2200,
+   "status": "matching against known failure signatures"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "image-pull",
+   "cause": "The rollout is pulling an image tag that doesn't exist (registry.internal/payments:v2.4.11): the registry answers 'manifest not found', so new pods can never start. Old replicas are still serving — this is a bad deploy, not an outage yet.",
+   "receipts": [
+    "payments-6c9d8e7f5-nn4kq   0/1     ImagePullBackOff   0          11m",
+    "payments-6c9d8e7f5-x8w2j   0/1     ImagePullBackOff   0          11mName:             payments-6c9d8e7f5-nn4kq",
+    "Image:          registry.internal/payments:v2.4.11",
+    "Reason:       ImagePullBackOff"
+   ],
+   "confidence": 95
+  },
+  {
+   "t": "proposal",
+   "command": "kubectl -n prod rollout undo deploy/payments",
+   "explain": "Roll back to the previous ReplicaSet, which is the last image that actually exists. Zero-downtime: the old pods are still up.",
+   "risk": "low",
+   "rollback": "kubectl -n prod rollout undo deploy/payments --to-revision=<failed-revision>  # to retry the new tag",
+   "followup": "Fix the tag in the pipeline (looks like a typo) and re-deploy."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "operator"
+  },
+  {
+   "t": "apply",
+   "cmd": "kubectl -n prod rollout undo deploy/payments",
+   "out": "deployment.apps/payments rolled back"
+  },
+  {
+   "t": "think",
+   "ms": 2000,
+   "status": "watching the rollout"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get pods -n prod -l app=payments",
+   "out": "NAME                        READY   STATUS    RESTARTS   AGE\npayments-5f6d8b7c9-ee3rp   1/1     Running   0          6d\npayments-5f6d8b7c9-tt8vk   1/1     Running   0          6d\npayments-5f6d8b7c9-vv7hn   1/1     Running   0          2m18s",
+   "note": "verify: did the fix actually take?"
+  },
+  {
+   "t": "verify",
+   "result": "green",
+   "text": "All replicas Running and Ready — restarts flat. Standing down."
+  }
+ ],
+ "id": "image-pull",
+ "title": "payments rollout stuck on a tag that doesn't exist",
+ "tag": "prod · P3 · ImagePullBackOff",
+ "recorded": "fixture-replay",
+ "board": {
+  "nodes": [
+   {
+    "name": "node-a",
+    "pods": [
+     {
+      "name": "payments-6c9d8e7f5-nn4kq",
+      "app": "payments",
+      "victim": true
+     },
+     {
+      "name": "cart-api-6d8f7c9b4-lm2xp",
+      "app": "cart-api"
+     },
+     {
+      "name": "web-frontend-5b7d9f6c8-qk4tz",
+      "app": "web"
+     },
+     {
+      "name": "redis-0",
+      "app": "redis"
+     }
+    ]
+   },
+   {
+    "name": "node-b",
+    "pods": [
+     {
+      "name": "payments-6c9d8e7f5-x8w2j",
+      "app": "payments",
+      "victim": true
+     },
+     {
+      "name": "payments-5f6d8b7c9-tt8vk",
+      "app": "payments"
+     },
+     {
+      "name": "checkout-api-5d8e7f9a6-fh3km",
+      "app": "checkout-api"
+     },
+     {
+      "name": "kafka-1",
+      "app": "kafka"
+     }
+    ]
+   },
+   {
+    "name": "node-c",
+    "pods": [
+     {
+      "name": "payments-5f6d8b7c9-ee3rp",
+      "app": "payments"
+     },
+     {
+      "name": "search-7c8d9e6f5-p2n8w",
+      "app": "search"
+     },
+     {
+      "name": "web-frontend-5b7d9f6c8-8xj2m",
+      "app": "web"
+     },
+     {
+      "name": "kafka-2",
+      "app": "kafka"
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -129,17 +129,17 @@
           <div class="exp-main">
             <h3>Helmsman</h3>
             <p class="exp-role">Agentic DevOps copilot</p>
-            <p class="exp-meta">DevOps · 2025</p>
-            <p class="exp-desc">A side project I built with my girlfriend to make her DevOps job less painful. It keeps an eye on her clusters, and when something breaks it reads the logs, explains the likely cause in plain English, and drafts the kubectl or Helm fix for her to approve before anything touches production.</p>
+            <p class="exp-meta">DevOps · 2026</p>
+            <p class="exp-desc">A side project to make DevOps on-call less painful. It keeps an eye on the cluster, and when something breaks it reads the logs, explains the likely cause in plain English, and drafts the kubectl fix — rollback staged up front — for a human to approve before anything touches production.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Python, Kubernetes, Docker, Linux, Bash, LangGraph"></ul>
+              <ul class="chips-tech" data-stack="Python, Kubernetes, kubectl, Linux, Bash, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>It pulls pod logs and events straight from the Kubernetes API, reasons over the cluster state with a LangGraph agent, and writes the fix in plain language. Nothing actually runs until she hits <em>approve</em>.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>It shells out to kubectl for pods, logs, and events, matches the evidence against vetted failure signatures, and drafts the fix from templates with a risk grade and a staged rollback. The approval gate is code, not convention — mutating commands are refused at the subprocess layer until a human hits <em>approve</em>.</p>
               <div class="exp-cta">
-                <a class="btn primary" href="#">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="#">Case Study&nbsp;🔒</a>
+                <a class="btn primary" href="/helmsman/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/helmsman" target="_blank" rel="noopener">Source&nbsp;↗</a>
               </div>
             </div></div>
           </div>

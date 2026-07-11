@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helmsman — agentic DevOps copilot</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⎈</text></svg>">
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51;
+    --navy: #20416b; --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58;
+    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
+    --term: #161a20; --term-text: #c9d4e4;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Courier New", ui-monospace, monospace;
+    line-height: 1.55; padding: 1.2rem .9rem 3rem;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1.1rem; }
+  h1 { font-size: 1.7rem; letter-spacing: .06em; }
+  h1 .dot { color: var(--navy); animation: caret .9s steps(2) infinite; }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
+  .honesty {
+    display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim);
+    border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem;
+    background: var(--panel);
+  }
+  .honesty b { color: var(--green); }
+  .honesty code { background: var(--panel-2); padding: 0 .3rem; border-radius: 4px; }
+  /* picker */
+  .picker { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
+  .sess {
+    font: inherit; font-size: .74rem; text-align: left; cursor: pointer;
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px;
+    padding: .5rem .8rem; color: var(--text); max-width: 300px;
+  }
+  .sess small { display: block; color: var(--dim); font-size: .64rem; margin-top: .1rem; }
+  .sess.active { border-color: var(--navy); box-shadow: 3px 3px 0 rgba(32,65,107,.18); }
+  .card {
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(28,26,23,.05);
+  }
+  .card h2 { font-size: .95rem; letter-spacing: .04em; margin-bottom: .6rem; }
+  .incident-title { font-size: .95rem; font-weight: 700; margin-bottom: .55rem; }
+  .incident-title .tag { color: var(--dim); font-weight: 400; font-size: .72rem; margin-left: .5rem; }
+  /* bridge */
+  .bridge { display: grid; grid-template-columns: 250px 250px 1fr; gap: .8rem; align-items: stretch; margin-bottom: .9rem; }
+  @media (max-width: 900px) { .bridge { grid-template-columns: 1fr 1fr; } .boardcard { grid-column: 1 / -1; } }
+  @media (max-width: 560px) { .bridge { grid-template-columns: 1fr; } }
+  .agent {
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: .7rem; text-align: center; position: relative;
+    box-shadow: 3px 3px 0 rgba(28,26,23,.05); transition: border-color .3s;
+  }
+  .agent.speaking, .agent.working { border-color: var(--ac); }
+  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; position: relative; }
+  .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
+  .agent .nm { font-weight: 800; font-size: .84rem; }
+  .agent .rl { font-size: .66rem; color: var(--ac); font-weight: 700; }
+  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
+  .agent .chipstat {
+    display: inline-block; margin-top: .3rem; font-size: .6rem; font-weight: 700;
+    letter-spacing: .05em; color: var(--ac); border: 1.5px solid var(--ac);
+    border-radius: 999px; padding: .08rem .5rem; background: #fff;
+  }
+  .agent .st { font-size: .62rem; color: var(--dim); min-height: 1.1em; margin-top: .18rem; }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+  @keyframes caret { 50% { opacity: 0; } }
+  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
+  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
+  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
+  @keyframes ponder { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
+  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
+  @keyframes cheer { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-9px); } }
+  .agent.sip .person { animation: sipping 1s ease-in-out 1; }
+  @keyframes sipping { 0%,100% { transform: rotate(0); } 35%,65% { transform: rotate(-3.5deg) translateY(-2px); } }
+  .agent.sip .sipsteam { opacity: 1; }
+  .sipsteam { opacity: 0; transition: opacity .3s; }
+  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect:nth-child(2) { animation-delay: 1.3s; }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
+  .thought {
+    position: absolute; top: -12px; right: 2px; display: none;
+    background: #fff; border: 1.5px solid var(--ac); border-radius: 8px;
+    padding: .1rem .45rem; font-size: .74rem; color: var(--ac); font-weight: 700;
+    box-shadow: 2px 2px 0 rgba(28,26,23,.12); z-index: 5;
+  }
+  .thought:after { content: ""; position: absolute; left: 8px; bottom: -9px; width: 6px;
+    height: 6px; background: #fff; border: 1.5px solid var(--ac); border-radius: 50%; }
+  .agent.thinking .thought { display: block; animation: ponder 1.6s ease-in-out infinite; }
+  .thought .td { display: inline-block; animation: tdb 1s ease-in-out infinite; }
+  .thought .td:nth-child(2) { animation-delay: .15s; }
+  .thought .td:nth-child(3) { animation-delay: .3s; }
+  @keyframes tdb { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-3px); } }
+  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  @keyframes mflow { to { stroke-dashoffset: -120; } }
+  .scr { animation: flick 7.3s steps(1) infinite; }
+  @keyframes flick { 0%, 93%, 100% { opacity: 1; } 94%, 96% { opacity: .72; } }
+  /* klaxon */
+  .klaxon {
+    position: absolute; top: .5rem; left: .6rem; width: 16px; height: 16px;
+    border-radius: 50%; background: #d9d4c8; border: 2px solid var(--line);
+  }
+  .klaxon.on { background: var(--coral); border-color: var(--coral); animation: klax .5s steps(2) infinite; box-shadow: 0 0 12px rgba(184,70,58,.8); }
+  @keyframes klax { 50% { opacity: .35; } }
+  /* cluster board */
+  .boardcard { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem .8rem; box-shadow: 3px 3px 0 rgba(28,26,23,.05); }
+  .boardcard h3 { font-size: .68rem; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; margin-bottom: .5rem; }
+  .node { margin-bottom: .55rem; }
+  .node .nl { font-size: .6rem; color: var(--dim); margin-bottom: .2rem; }
+  .pods { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .pod {
+    width: 46px; height: 34px; border: 1.5px solid var(--line); border-radius: 6px;
+    background: var(--panel-2); position: relative; padding: 3px 4px;
+    font-size: .5rem; color: var(--dim); overflow: hidden; white-space: nowrap;
+  }
+  .pod .led { position: absolute; top: 3px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: ledok 3s ease-in-out infinite; }
+  @keyframes ledok { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .pod.bad { border-color: var(--coral); background: var(--coral-bg); }
+  .pod.bad .led { background: var(--coral); animation: ledbad .45s steps(2) infinite; }
+  @keyframes ledbad { 50% { opacity: .2; } }
+  .pod.fixing { border-color: var(--gold); background: #f5efdc; }
+  .pod.fixing .led { background: var(--gold); animation: ledbad 1s steps(2) infinite; }
+  .pod.ok2 { border-color: var(--green); background: var(--green-bg); }
+  .pod.ok2 .led { background: var(--green); animation: ledok 3s ease-in-out infinite; }
+  /* terminal */
+  .term {
+    background: var(--term); color: var(--term-text); border-radius: 10px;
+    border: 1.5px solid #0d1014; padding: .7rem .9rem; font-size: .72rem;
+    max-height: 340px; overflow-y: auto; line-height: 1.5;
+  }
+  .term .bar { display: flex; gap: .3rem; margin-bottom: .5rem; }
+  .term .bar i { width: 9px; height: 9px; border-radius: 50%; background: #2c3442; }
+  .term .bar i:nth-child(1) { background: #b8463a; } .term .bar i:nth-child(2) { background: #8f6f1d; } .term .bar i:nth-child(3) { background: #2f8a58; }
+  .term .ln { white-space: pre-wrap; word-break: break-all; }
+  .term .p { color: #7fbf6a; }
+  .term .cmdtxt { color: #e8e4d8; font-weight: 700; }
+  .term .note { color: #5a6478; font-style: italic; }
+  .term .out { color: #9fb0c8; }
+  .term .out .warn { color: #e0c36a; }
+  .term .out .err { color: #e07a6a; }
+  .term .caret { display: inline-block; width: .55em; height: .9em; background: #7fbf6a; vertical-align: -1px; animation: caret .8s steps(2) infinite; }
+  /* feed cards */
+  #feed { display: flex; flex-direction: column; gap: .7rem; margin-top: .9rem; }
+  .ev { border: 1.5px solid var(--line); border-radius: 12px; padding: .65rem .85rem; background: var(--panel); animation: pop .28s cubic-bezier(.34,1.56,.64,1); font-size: .78rem; position: relative; }
+  @keyframes pop { 0% { transform: scale(.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .ev .hd { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: .3rem; }
+  .ev.page { border-color: var(--coral); background: var(--coral-bg); }
+  .ev.page .hd { color: var(--coral); }
+  .ev.diag .hd { color: var(--navy); }
+  .ev.diag { border-color: var(--navy); }
+  .ev .receipts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; }
+  .ev .receipts span { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; }
+  .ev .receipts span:before { content: "⌕ "; }
+  .ev .confbadge { float: right; font-size: .62rem; color: var(--navy); font-weight: 700; }
+  .ev.prop { border-color: var(--gold); }
+  .ev.prop .hd { color: var(--gold); }
+  .ev.prop.approved { border-color: var(--green); }
+  .risk { display: inline-block; font-size: .6rem; font-weight: 800; border-radius: 999px; padding: .05rem .55rem; color: #fff; margin-left: .45rem; vertical-align: 1px; }
+  .risk.low { background: var(--green); } .risk.medium { background: var(--gold); } .risk.high { background: var(--coral); }
+  .ev .code { background: var(--term); color: #e8e4d8; border-radius: 8px; padding: .45rem .6rem; font-size: .68rem; margin: .4rem 0; white-space: pre-wrap; word-break: break-all; }
+  .ev .sub { font-size: .7rem; color: var(--dim); margin-top: .25rem; }
+  .ev .sub b { color: var(--text); }
+  .stamp {
+    position: absolute; top: .4rem; right: .8rem; transform: rotate(-12deg) scale(0);
+    border: 3px solid var(--green); color: var(--green); font-weight: 800;
+    font-size: .8rem; letter-spacing: .12em; padding: .1rem .5rem; border-radius: 6px;
+    text-transform: uppercase; opacity: .9;
+  }
+  .stamp.show { animation: stampin .45s cubic-bezier(.34,1.8,.64,1) forwards; }
+  .stamp.held { border-color: var(--coral); color: var(--coral); }
+  @keyframes stampin { 0% { transform: rotate(-12deg) scale(2.2); opacity: 0; } 100% { transform: rotate(-12deg) scale(1); opacity: .9; } }
+  .ev.verify.green { border-color: var(--green); background: var(--green-bg); }
+  .ev.verify.green .hd { color: var(--green); }
+  .ev.verify.held { border-color: var(--coral); background: var(--coral-bg); }
+  .postm { font-size: .68rem; color: var(--dim); margin-top: .35rem; }
+  .postm b { color: var(--text); }
+  /* controls */
+  .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .9rem; }
+  .btn { font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; background: var(--navy); color: #fff; border: 0; border-radius: 8px; padding: .45rem 1rem; }
+  .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
+  .btn.ghost:hover { color: var(--navy); border-color: var(--navy); }
+  .spd { display: flex; gap: .25rem; }
+  .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
+  .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
+  #scrub { flex: 1; accent-color: var(--navy); min-width: 140px; }
+  .tclock { font-size: .7rem; color: var(--dim); min-width: 4.5rem; text-align: right; }
+  #toast {
+    position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%) scale(.8);
+    background: var(--text); color: #fff; font-size: .8rem; font-weight: 800;
+    letter-spacing: .14em; text-transform: uppercase; padding: .55rem 1.3rem;
+    border-radius: 10px; opacity: 0; pointer-events: none; z-index: 10;
+    box-shadow: 5px 5px 0 rgba(28,26,23,.2);
+  }
+  #toast.show { animation: toast 1.4s cubic-bezier(.34,1.3,.64,1) 1; }
+  @keyframes toast { 0% { opacity: 0; } 18% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+  .stagewrap { position: relative; }
+  .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
+  @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>HELMSMAN<span class="dot">_</span></h1>
+    <p class="tagline">kubernetes is greek for helmsman — this one reads the logs before it touches the wheel</p>
+    <span class="honesty"><b>replay of a real engine run</b> — the pipeline below actually executed against a canned cluster fixture (<code>helmsman record</code>), and nothing mutates without the captain's stamp. Point it at a kubeconfig and it does this on a live cluster.</span>
+  </header>
+
+  <div class="picker" id="picker"></div>
+
+  <div class="card">
+    <div class="incident-title" id="ititle">—</div>
+    <div class="stagewrap">
+      <div id="toast"></div>
+      <div class="bridge">
+        <div class="agent" id="ag-helm">
+          <span class="klaxon" id="klaxon"></span>
+          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⌕</span>
+          <div class="ava" id="av-helm"></div>
+          <div class="nm">The Helmsman</div>
+          <div class="rl">Agent on watch</div>
+          <div class="tg">reads the logs so she doesn't have to</div>
+          <span class="chipstat" id="sc-helm">0 COMMANDS RUN</span>
+          <div class="st" id="st-helm">watching the gauges</div>
+        </div>
+        <div class="agent" id="ag-capt">
+          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⚓</span>
+          <div class="ava" id="av-capt"></div>
+          <div class="nm">The Captain</div>
+          <div class="rl">Holds the only pen</div>
+          <div class="tg">nothing ships without the stamp</div>
+          <span class="chipstat" id="sc-capt">STAMPS 0</span>
+          <div class="st" id="st-capt">coffee in hand</div>
+        </div>
+        <div class="boardcard">
+          <h3>cluster — <span id="board-ns">prod</span></h3>
+          <div id="board"></div>
+        </div>
+      </div>
+      <div class="term" id="term"><div class="bar"><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="play">▶ play</button>
+      <button class="btn ghost" id="restart">↺ restart</button>
+      <div class="spd" id="spd"></div>
+      <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
+      <span class="tclock" id="clock">0:00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Incident log</h2>
+    <div id="feed"></div>
+  </div>
+
+  <footer>
+    HELMSMAN · pipeline: page → triage → diagnose → propose → <b>human gate</b> → apply → verify ·
+    engine + fixtures on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/helmsman" target="_blank" rel="noopener">the branch</a> ·
+    part of <a href="/">hnguyen.dev</a>
+  </footer>
+</div>
+
+<script>
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SESSIONS = [
+    ["oom-crashloop.json"],
+    ["image-pull.json"],
+    ["readiness-probe.json"],
+  ];
+  const CPS = 60;             // terminal typing speed at 1×
+
+  let S = null, steps = [], idx = 0, playing = false, speed = 1, timer = null, typerStop = null;
+  let elapsed = 0, cmdCount = 0;
+
+  /* ---------- pixel characters ---------- */
+  function pixelChar(kind) {
+    const ink = "#1c1a17", suit = "#2e3442", skin = kind === "helm" ? "#dfa77e" : "#e0aa7d";
+    const ac = kind === "helm" ? "#20416b" : "#2f8a58";
+    const cap = kind === "helm"
+      ? `<rect x="50" y="12" width="32" height="8" fill="#fff"/>
+         <rect x="48" y="19" width="36" height="4" fill="${ac}"/>
+         <rect x="62" y="8" width="8" height="5" fill="#fff"/>`
+      : `<rect x="48" y="10" width="36" height="9" fill="${ac}"/>
+         <rect x="46" y="18" width="40" height="4" fill="#1c2a40"/>
+         <rect x="60" y="6" width="12" height="5" fill="${ac}"/>
+         <rect x="62" y="12" width="8" height="4" fill="#e0c36a"/>`;
+    const mustache = kind === "capt" ? `<rect x="58" y="44" width="16" height="3" fill="#9a938a"/>` : "";
+    const chart = kind === "helm"
+      ? `<g class="mchart"><rect x="16" y="50" width="4" height="14" fill="#7fbf6a"/><rect x="23" y="54" width="4" height="10" fill="#e0c36a"/><rect x="30" y="49" width="4" height="15" fill="#7fbf6a"/></g>`
+      : `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
+    const wheel = kind === "helm" ? `
+      <g>
+        <circle cx="104" cy="58" r="9" fill="none" stroke="#6b4a2f" stroke-width="3"/>
+        <rect x="102.5" y="46" width="3" height="8" fill="#6b4a2f"/>
+        <rect x="102.5" y="62" width="3" height="8" fill="#6b4a2f"/>
+        <rect x="92" y="56.5" width="8" height="3" fill="#6b4a2f"/>
+        <rect x="108" y="56.5" width="8" height="3" fill="#6b4a2f"/>
+      </g>` : "";
+    return `<svg viewBox="0 0 132 116" shape-rendering="crispEdges">
+      <g class="person">
+        ${cap}
+        <rect x="50" y="20" width="32" height="30" fill="${skin}"/>
+        <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
+        <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
+        <rect x="59" y="43" width="14" height="3" fill="${ink}"/>
+        ${mustache}
+        <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
+        <rect x="58" y="50" width="16" height="10" fill="#fff"/>
+        <rect x="62" y="52" width="8" height="16" fill="${ac}"/>
+        <rect x="34" y="64" width="14" height="9" fill="${suit}"/>
+        <rect x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <g class="sipsteam"><rect x="70" y="34" width="2" height="4" fill="#c9c2b4"/><rect x="75" y="31" width="2" height="4" fill="#c9c2b4"/></g>
+      </g>
+      ${kind === "helm" ? `<g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
+      <rect x="48" y="75" width="26" height="4" fill="#23272f"/>` : ""}
+      <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>
+      ${chart}
+      <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
+      ${wheel}
+      <rect x="4" y="76" width="124" height="9" fill="${ac}"/>
+      <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
+      <rect x="12" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <rect x="110" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <g class="deskstuff">
+        <rect x="98" y="66" width="9" height="10" fill="#fff"/>
+        <rect x="107" y="68" width="3" height="5" fill="#fff"/>
+        <rect x="99" y="64" width="7" height="2" fill="${ac}"/>
+        <g class="steam"><rect x="100" y="56" width="2" height="5" fill="#b8b2a4"/><rect x="104" y="54" width="2" height="5" fill="#b8b2a4"/></g>
+      </g>
+    </svg>`;
+  }
+
+  /* ---------- board ---------- */
+  function renderBoard() {
+    $("board-ns").textContent = S.namespace;
+    const b = $("board");
+    b.replaceChildren();
+    for (const node of S.board.nodes) {
+      const nd = document.createElement("div");
+      nd.className = "node";
+      nd.innerHTML = `<div class="nl">▣ ${node.name}</div>`;
+      const pods = document.createElement("div");
+      pods.className = "pods";
+      for (const p of node.pods) {
+        const el = document.createElement("div");
+        el.className = "pod" + (p.victim ? " victim" : "");
+        el.dataset.victim = p.victim ? "1" : "";
+        el.title = p.name;
+        el.innerHTML = `<span class="led"></span>${p.app}`;
+        pods.appendChild(el);
+      }
+      nd.appendChild(pods);
+      b.appendChild(nd);
+    }
+  }
+  function boardState(state) {   // "bad" | "fixing" | "ok2" | ""
+    for (const el of document.querySelectorAll(".pod[data-victim='1']")) {
+      el.classList.remove("bad", "fixing", "ok2");
+      if (state) el.classList.add(state);
+    }
+  }
+
+  /* ---------- terminal ---------- */
+  function termLine(html, cls) {
+    const d = document.createElement("div");
+    d.className = "ln " + (cls || "");
+    d.innerHTML = html;
+    $("term").appendChild(d);
+    $("term").scrollTop = $("term").scrollHeight;
+    return d;
+  }
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  function colorOut(s) {
+    return esc(s).split("\n").map((l) => {
+      if (/CrashLoopBackOff|ImagePullBackOff|ErrImagePull|OOMKilled|Warning|Failed|refused|Error/.test(l))
+        return `<span class="err">${l}</span>`;
+      if (/WARN|Back-off|0\/1/.test(l)) return `<span class="warn">${l}</span>`;
+      return l;
+    }).join("\n");
+  }
+
+  /* ---------- feed cards ---------- */
+  function card(cls, html) {
+    const d = document.createElement("div");
+    d.className = "ev " + cls;
+    d.innerHTML = html;
+    $("feed").appendChild(d);
+    d.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+    return d;
+  }
+
+  function setStatus(id, cls, text) {
+    $("ag-" + id).className = "agent " + cls;
+    $("st-" + id).innerHTML = text;
+  }
+
+  /* ---------- steps ---------- */
+  function buildSteps() {
+    steps = [];
+    for (const ev of S.timeline) {
+      if (ev.t === "proposal") { steps.push({ t: "proposal", ev }); steps.push({ t: "gate" }); }
+      else steps.push({ t: ev.t, ev });
+    }
+    $("scrub").max = steps.length;
+  }
+
+  function typeCmd(ev, done) {
+    const note = ev.ev.note ? `<span class="note"># ${esc(ev.ev.note)}</span>\n` : "";
+    const line = termLine(note + `<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt"></span><span class="caret"></span>`);
+    const target = line.querySelector(".cmdtxt");
+    const caret = line.querySelector(".caret");
+    const text = ev.ev.cmd;
+    if (REDUCED) {
+      target.textContent = text; caret.remove();
+      termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`);
+      done(); return;
+    }
+    let i = 0;
+    const perTick = Math.max(1, Math.round((CPS * speed) * 0.03));
+    const iv = setInterval(() => {
+      i = Math.min(text.length, i + perTick);
+      target.textContent = text.slice(0, i);
+      $("term").scrollTop = $("term").scrollHeight;
+      if (i >= text.length) {
+        clearInterval(iv); caret.remove();
+        setTimeout(() => {
+          termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`);
+          done();
+        }, 220 / speed);
+      }
+    }, 30);
+    typerStop = () => { clearInterval(iv); caret.remove(); target.textContent = text;
+                        termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`); };
+  }
+
+  function riskBadge(r) { return `<span class="risk ${r}">${r} risk</span>`; }
+
+  function proposalCard(ev, instant) {
+    const d = card("prop", `
+      <div class="hd">proposed fix ${riskBadge(ev.risk)}</div>
+      <span class="stamp" id="stamp">approved ✓</span>
+      <div class="code">$ ${esc(ev.command)}</div>
+      <div class="sub">${esc(ev.explain)}</div>
+      <div class="sub"><b>rollback, staged:</b> ${esc(ev.rollback)}</div>
+      ${ev.followup ? `<div class="sub"><b>after the fire:</b> ${esc(ev.followup)}</div>` : ""}`);
+    return d;
+  }
+
+  function applyStamp(decision, instant) {
+    const st = document.querySelector(".ev.prop:last-of-type .stamp");
+    const pc = document.querySelector(".ev.prop:last-of-type");
+    if (!st) return;
+    st.textContent = decision === "approved" ? "approved ✓" : "held ✗";
+    if (decision !== "approved") st.classList.add("held");
+    if (pc && decision === "approved") pc.classList.add("approved");
+    st.classList.add("show");
+    if (instant) st.style.animation = "none", st.style.transform = "rotate(-12deg) scale(1)";
+  }
+
+  function sparkle() {
+    if (REDUCED) return;
+    const rect = $("board").getBoundingClientRect();
+    for (let i = 0; i < 6; i++) {
+      const s = document.createElement("span");
+      s.className = "spark";
+      s.textContent = ["✦", "✧", "◆"][i % 3];
+      s.style.color = ["#2f8a58", "#8f6f1d", "#20416b"][i % 3];
+      s.style.left = rect.left + Math.random() * rect.width + "px";
+      s.style.top = rect.top + Math.random() * rect.height * 0.6 + "px";
+      s.style.animationDelay = (Math.random() * 0.3) + "s";
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1700);
+    }
+  }
+
+  function toast(text) {
+    const t = $("toast");
+    t.textContent = text;
+    t.classList.remove("show");
+    void t.offsetWidth;
+    if (!REDUCED) t.classList.add("show");
+  }
+
+  function bumpCmds() {
+    cmdCount++;
+    $("sc-helm").textContent = cmdCount + " COMMANDS RUN";
+  }
+
+  function tickClock(ms) {
+    const sec = Math.round(ms / 1000);
+    $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  }
+
+  /* ---------- the player ---------- */
+  function applyStep(s, instant, done) {
+    const ev = s.ev || {};
+    const fin = () => { if (done) done(); };
+    switch (s.t) {
+      case "page":
+        $("klaxon").classList.add("on");
+        boardState("bad");
+        card("page", `<div class="hd">🔔 incident paged</div>${esc(ev.text)}`);
+        if (!instant) toast("incident paged");
+        setStatus("helm", "agent thinking", "acknowledging the page");
+        setStatus("capt", "agent", "watching over her shoulder");
+        return fin();
+      case "cmd":
+        bumpCmds();
+        if (instant) {
+          if (ev.note) termLine(`<span class="note"># ${esc(ev.note)}</span>`);
+          termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
+          termLine(`<span class="out">${colorOut(ev.out)}</span>`);
+          return fin();
+        }
+        setStatus("helm", "agent working", "running kubectl…");
+        return typeCmd(s, () => { typerStop = null; setStatus("helm", "agent", "reading the output"); fin(); });
+      case "think":
+        if (!instant) setStatus("helm", "agent thinking", esc(ev.status) + '<span class="dots"></span>');
+        return fin();
+      case "diagnosis": {
+        const known = ev.signature !== "unknown";
+        card("diag", `
+          <div class="hd">diagnosis — ${esc(ev.signature)}${known ? `<span class="confbadge">${ev.confidence}% confident</span>` : ""}</div>
+          ${esc(ev.cause)}
+          ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span>${esc(r)}</span>`).join("")}</div>` : ""}`);
+        setStatus("helm", "agent", "diagnosis on the table");
+        return fin();
+      }
+      case "proposal":
+        proposalCard(ev, instant);
+        setStatus("helm", "agent", "fix drafted — over to the captain");
+        setStatus("capt", "agent thinking", "reading the proposal");
+        return fin();
+      case "gate":
+        if (!instant) { setStatus("capt", "agent thinking", 'weighing the risk<span class="dots"></span>'); toast("awaiting the captain's stamp"); }
+        return fin();
+      case "approval": {
+        const ok = ev.decision === "approved";
+        applyStamp(ev.decision, instant);
+        $("sc-capt").textContent = "STAMPS 1";
+        setStatus("capt", ok ? "agent cheer" : "agent", ok ? "stamped it ✓" : "holding the line ✗");
+        setStatus("helm", "agent", ok ? "cleared to apply" : "standing down — read-only");
+        return fin();
+      }
+      case "apply":
+        boardState("fixing");
+        if (instant) {
+          termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
+          termLine(`<span class="out">${colorOut(ev.out)}</span>`);
+          return fin();
+        }
+        setStatus("helm", "agent working", "applying the fix…");
+        return typeCmd({ ev: { cmd: ev.cmd, out: ev.out, note: "approved — hands on the wheel" } },
+                       () => { typerStop = null; fin(); });
+      case "verify": {
+        const green = ev.result === "green";
+        $("klaxon").classList.remove("on");
+        boardState(green ? "ok2" : ev.result === "held" ? "bad" : "bad");
+        const cmds = S.timeline.filter((x) => x.t === "cmd" || x.t === "apply").length;
+        card("verify " + (green ? "green" : "held"), `
+          <div class="hd">${green ? "✓ verified — all clear" : ev.result === "held" ? "✗ held at the gate" : "✗ not recovered"}</div>
+          ${esc(ev.text)}
+          <div class="postm">postmortem: <b>${cmds} commands</b> · <b>1 human decision</b> · diagnosis receipts above · rollback stayed staged the whole time</div>`);
+        if (green) {
+          setStatus("helm", "agent cheer", "steady as she goes ✓");
+          setStatus("capt", "agent", "back to the coffee");
+          if (!instant) { toast("all clear"); sparkle(); }
+        } else {
+          setStatus("helm", "agent", "read-only — human has the wheel");
+          setStatus("capt", "agent", "reviewing the bundle");
+        }
+        return fin();
+      }
+    }
+    fin();
+  }
+
+  function stepDur(s) {
+    if (s.t === "think") return s.ev.ms;
+    if (s.t === "cmd" || s.t === "apply") return ((s.ev.cmd || "").length / CPS) * 1000 + 700;
+    if (s.t === "gate") return 1700;
+    if (s.t === "page") return 1400;
+    if (s.t === "diagnosis") return 2400;
+    if (s.t === "proposal") return 2200;
+    if (s.t === "approval") return 1100;
+    return 900;
+  }
+
+  function runStep() {
+    if (!playing) return;
+    if (idx >= steps.length) { playing = false; $("play").textContent = "▶ replay"; return; }
+    const s = steps[idx];
+    $("scrub").value = idx;
+    const dur = stepDur(s) / speed;
+    elapsed += stepDur(s);
+    if (s.t === "cmd" || s.t === "apply") {
+      applyStep(s, false, () => {
+        tickClock(elapsed); idx++;
+        if (playing) timer = setTimeout(runStep, 250 / speed);
+      });
+    } else {
+      applyStep(s, false);
+      tickClock(elapsed); idx++;
+      timer = setTimeout(runStep, dur);
+    }
+  }
+
+  function resetStage() {
+    $("av-helm").innerHTML = pixelChar("helm");
+    $("av-capt").innerHTML = pixelChar("capt");
+    $("ag-helm").style.setProperty("--ac", "#20416b");
+    $("ag-capt").style.setProperty("--ac", "#2f8a58");
+    $("sc-helm").textContent = "0 COMMANDS RUN";
+    $("sc-capt").textContent = "STAMPS 0";
+    setStatus("helm", "agent", "watching the gauges");
+    setStatus("capt", "agent", "coffee in hand");
+    $("klaxon").classList.remove("on");
+    $("term").innerHTML = '<div class="bar"><i></i><i></i><i></i></div>';
+    $("feed").replaceChildren();
+    renderBoard();
+    idx = 0; elapsed = 0; cmdCount = 0;
+    $("scrub").value = 0;
+    tickClock(0);
+  }
+
+  function seek(to) {
+    pause();
+    resetStage();
+    for (let i = 0; i < to && i < steps.length; i++) {
+      const s = steps[i];
+      if (s.t === "think" || s.t === "gate") { elapsed += stepDur(s); continue; }
+      elapsed += stepDur(s);
+      applyStep(s, true);
+    }
+    idx = to;
+    tickClock(elapsed);
+    $("scrub").value = to;
+  }
+
+  function play() {
+    if (idx >= steps.length) seek(0);
+    playing = true;
+    $("play").textContent = "⏸ pause";
+    runStep();
+  }
+  function pause() {
+    playing = false;
+    clearTimeout(timer);
+    if (typerStop) { typerStop(); typerStop = null; idx++; }
+    $("play").textContent = "▶ play";
+  }
+
+  $("play").addEventListener("click", () => (playing ? pause() : play()));
+  $("restart").addEventListener("click", () => { seek(0); play(); });
+  $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
+  const spd = $("spd");
+  for (const s of [1, 2, 4]) {
+    const b = document.createElement("button");
+    b.textContent = s + "×";
+    if (s === 1) b.className = "on";
+    b.addEventListener("click", () => {
+      speed = s;
+      [...spd.children].forEach((x) => x.classList.remove("on"));
+      b.classList.add("on");
+    });
+    spd.appendChild(b);
+  }
+
+  /* idle fidgets — the bridge is never fully still */
+  setInterval(() => {
+    if (REDUCED || !S) return;
+    const pick = Math.random() < 0.5 ? "ag-helm" : "ag-capt";
+    const el = $(pick);
+    if (!el || el.className !== "agent") return;
+    el.classList.add("sip");
+    setTimeout(() => el.classList.remove("sip"), 1100);
+  }, 4600);
+
+  /* ---------- sessions ---------- */
+  async function loadSession(file) {
+    S = await (await fetch("sessions/" + file)).json();
+    [...$("picker").children].forEach((el) => el.classList.toggle("active", el.dataset.f === file));
+    $("ititle").innerHTML = `“${S.title}” <span class="tag">${S.tag} · fixture-replay</span>`;
+    resetStage();
+    buildSteps();
+    play();
+  }
+
+  (async () => {
+    for (const [file] of SESSIONS) {
+      const meta = await (await fetch("sessions/" + file)).json();
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "sess"; b.dataset.f = file;
+      b.innerHTML = `${meta.title}<small>${meta.tag} · fixture-replay</small>`;
+      b.addEventListener("click", () => loadSession(file));
+      $("picker").appendChild(b);
+    }
+    loadSession(SESSIONS[0][0]);
+  })();
+</script>
+</body>
+</html>
