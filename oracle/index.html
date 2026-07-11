@@ -135,6 +135,57 @@
   /* moderator desk */
   .modrow { display: flex; justify-content: center; margin-bottom: .9rem; }
   .modrow .agent { width: min(320px, 100%); }
+  /* back office — the support cast */
+  .backoffice { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .2rem; }
+  @media (max-width: 700px) { .backoffice { grid-template-columns: 1fr; } }
+  .backoffice .agent { padding: .55rem; }
+  .backoffice .ava { width: 104px; height: 92px; }
+  .backoffice .nm { font-size: .76rem; }
+  .backoffice .rl { font-size: .62rem; }
+  .bo-label { grid-column: 1 / -1; font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .12em; text-align: center; margin: .1rem 0 -.2rem; }
+  /* coffee steam */
+  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect:nth-child(2) { animation-delay: 1.3s; }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
+  /* stenographer typing hands */
+  .hands rect { animation: none; }
+  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
+  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
+  /* listeners' eyes track the speaker */
+  .agent.look-left .eye rect { transform: translateX(-1.6px); }
+  .agent.look-right .eye rect { transform: translateX(1.6px); }
+  .agent .eye rect { transition: transform .25s; }
+  /* idle fidget: a quiet coffee sip */
+  .agent.sip .person { animation: sipping 1s ease-in-out 1; }
+  @keyframes sipping { 0%,100% { transform: rotate(0); } 35%,65% { transform: rotate(-3.5deg) translateY(-2px); } }
+  .agent.sip .sipsteam { opacity: 1; }
+  .sipsteam { opacity: 0; transition: opacity .3s; }
+  /* speaking gesture: right arm bounces */
+  .agent.speaking .arm-r { animation: gesture .5s ease-in-out infinite alternate; transform-origin: left center; }
+  @keyframes gesture { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  /* verdict reactions */
+  .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
+  @keyframes cheer { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-9px); } }
+  .agent.cheer .star { display: block; animation: exup 1s ease-out 2; color: var(--gold); }
+  .agent.slump .person { animation: slump 1.4s ease-out 1 forwards; }
+  @keyframes slump { to { transform: translateY(3px) rotate(-2deg); } }
+  .star { display: none; position: absolute; top: -8px; right: 10px; font-size: 1rem; font-weight: 800; }
+  /* the intern's coffee run */
+  #intern-sprite {
+    position: absolute; bottom: -6px; left: -70px; width: 54px; height: 60px;
+    z-index: 8; pointer-events: none; display: none;
+  }
+  #intern-sprite.run { display: block; animation: coffeerun 3s linear 1 forwards; }
+  @keyframes coffeerun { from { left: -70px; } to { left: calc(100% + 20px); } }
+  #intern-sprite svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  #intern-sprite .legA { animation: step1 .28s steps(1) infinite; }
+  #intern-sprite .legB { animation: step2 .28s steps(1) infinite; }
+  @keyframes step1 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes step2 { 0%,100% { transform: translateY(-3px); } 50% { transform: translateY(0); } }
+  .agent.away .person { opacity: .18; }
+  .agent.away .deskstuff { opacity: .5; }
   .agent .ring {
     position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ac);
     opacity: 0; pointer-events: none;
@@ -230,6 +281,8 @@
       <div id="toast"></div>
       <div class="council" id="council"></div>
       <div class="modrow" id="modrow"></div>
+      <div class="backoffice" id="backoffice"></div>
+      <span id="intern-sprite"></span>
     </div>
     <div class="controls">
       <button class="btn" id="play">▶ play</button>
@@ -302,7 +355,35 @@
     mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
               tagline: "keeps the peace, scores the war", glyph: "⚖",
               think: "weighing the arguments", speak: "synthesizing…", done: "gavel down" },
+    steno:  { skin: "#d59a72", hair: "#3a2f28", style: "bun",    chart: "lines",
+              tagline: "types faster than they think", glyph: "⌨",
+              think: "flexing fingers", speak: "transcribing…", done: "caught up ✓" },
+    book:   { skin: "#e5b184", hair: "#20416b", style: "visor",  chart: "odds",
+              tagline: "will quote you a price on anything", glyph: "%",
+              think: "reading the room", speak: "adjusting the line…", done: "line set" },
+    intern: { skin: "#caa27e", hair: "#5a4632", style: "cap",    chart: "off",
+              tagline: "powered by errands", glyph: "☕",
+              think: "waiting for orders", speak: "on a coffee run!", done: "back at desk" },
   };
+
+  function pixelSprite() {
+    const p = PERSONA.intern, ink = "#1c1a17";
+    return `<svg viewBox="0 0 54 60" shape-rendering="crispEdges">
+      <rect x="16" y="2" width="20" height="6" fill="#8f6f1d"/>
+      <rect x="32" y="6" width="9" height="3" fill="#8f6f1d"/>
+      <rect x="16" y="8" width="20" height="16" fill="${p.skin}"/>
+      <rect x="21" y="13" width="3" height="3" fill="${ink}"/>
+      <rect x="29" y="13" width="3" height="3" fill="${ink}"/>
+      <rect x="23" y="19" width="7" height="2" fill="${ink}"/>
+      <rect x="14" y="24" width="24" height="16" fill="#2e3442"/>
+      <rect x="36" y="26" width="12" height="4" fill="${p.skin}"/>
+      <rect x="44" y="22" width="8" height="3" fill="#e8e4d8"/>
+      <rect x="45" y="17" width="6" height="6" fill="#fff"/>
+      <rect x="46" y="15" width="4" height="2" fill="#8f6f1d"/>
+      <rect class="legA" x="17" y="40" width="7" height="14" fill="${ink}"/>
+      <rect class="legB" x="28" y="40" width="7" height="14" fill="${ink}"/>
+    </svg>`;
+  }
 
   function pixelChar(id, color) {
     const p = PERSONA[id] || PERSONA.mod;
@@ -322,6 +403,18 @@
       hair = `<rect x="48" y="12" width="36" height="10" fill="${color}"/>
               <rect x="48" y="20" width="36" height="3" fill="${ink}" opacity=".25"/>
               <rect x="62" y="6" width="8" height="8" fill="${color}"/>`;
+    else if (p.style === "bun")
+      hair = `<rect x="50" y="14" width="32" height="8" fill="${p.hair}"/>
+              <rect x="82" y="18" width="9" height="9" fill="${p.hair}"/>
+              <rect x="50" y="20" width="5" height="12" fill="${p.hair}"/>`;
+    else if (p.style === "visor")
+      hair = `<rect x="50" y="14" width="32" height="7" fill="${p.hair}"/>
+              <rect x="46" y="24" width="40" height="5" fill="${color}"/>
+              <rect x="46" y="24" width="40" height="2" fill="${ink}" opacity=".25"/>`;
+    else if (p.style === "cap")
+      hair = `<rect x="50" y="12" width="32" height="9" fill="${color}"/>
+              <rect x="76" y="19" width="14" height="4" fill="${color}"/>
+              <rect x="62" y="8" width="8" height="6" fill="${color}"/>`;
     else
       hair = `<rect x="50" y="14" width="32" height="7" fill="${p.hair}"/>
               <rect x="48" y="19" width="5" height="8" fill="${p.hair}"/>`;
@@ -334,10 +427,14 @@
     if (p.chart === "up") chart = `<polyline class="mchart" points="14,64 20,58 25,60 31,52 38,48" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
     else if (p.chart === "down") chart = `<polyline class="mchart" points="14,50 20,56 25,54 31,60 38,63" fill="none" stroke="#e07a6a" stroke-width="2"/>`;
     else if (p.chart === "bars") chart = `<g class="mchart"><rect x="16" y="58" width="4" height="8" fill="#8fa7d9"/><rect x="23" y="54" width="4" height="12" fill="#8fa7d9"/><rect x="30" y="50" width="4" height="16" fill="#8fa7d9"/></g>`;
+    else if (p.chart === "lines") chart = `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`;
+    else if (p.chart === "odds") chart = `<g class="mchart"><rect x="15" y="50" width="8" height="4" fill="#e0c36a"/><rect x="26" y="50" width="12" height="4" fill="#7fbf6a"/><rect x="15" y="58" width="12" height="4" fill="#e07a6a"/><rect x="30" y="58" width="8" height="4" fill="#e0c36a"/></g>`;
+    else if (p.chart === "off") chart = ``;
     else chart = `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#7fbf6a" stroke-width="2"/>`;
     return `
     <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span><span class="glyph">${p.glyph}</span></span>
     <span class="exclaim">!!</span>
+    <span class="star">★</span>
     <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         ${hair}
@@ -352,8 +449,12 @@
         <rect x="58" y="50" width="16" height="10" fill="${shirt}"/>
         <rect x="62" y="52" width="8" height="16" fill="${color}"/>
         <rect x="34" y="64" width="14" height="9" fill="${suit}"/>
-        <rect x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <rect class="arm-r" x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <g class="sipsteam"><rect x="70" y="34" width="2" height="4" fill="#c9c2b4"/><rect x="75" y="31" width="2" height="4" fill="#c9c2b4"/></g>
       </g>
+      ${id === "steno" ? `<g class="hands"><rect x="52" y="70" width="7" height="5" fill="${p.skin}"/><rect x="63" y="70" width="7" height="5" fill="${p.skin}"/></g>
+        <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
+        <g class="stack"><rect id="stack-rect" x="98" y="62" width="16" height="4" fill="#e8e4d8"/><rect x="98" y="60" width="16" height="1.5" fill="${ink}" opacity=".2"/></g>` : ""}
       <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
       <rect x="13" y="47" width="28" height="20" fill="#161a20"/>
       ${chart}
@@ -362,10 +463,13 @@
       <rect x="4" y="85" width="124" height="14" fill="${desk}"/>
       <rect x="12" y="99" width="10" height="12" fill="${desk}"/>
       <rect x="110" y="99" width="10" height="12" fill="${desk}"/>
+      <g class="deskstuff">
       <rect x="98" y="66" width="9" height="10" fill="#fff"/>
       <rect x="107" y="68" width="3" height="5" fill="#fff"/>
       <rect x="99" y="64" width="7" height="2" fill="${color}"/>
-      <rect x="52" y="72" width="18" height="4" fill="#e8e4d8"/>
+      <g class="steam"><rect x="100" y="56" width="2" height="5" fill="#b8b2a4"/><rect x="104" y="54" width="2" height="5" fill="#b8b2a4"/></g>
+      ${id === "steno" ? "" : `<rect x="52" y="72" width="18" height="4" fill="#e8e4d8"/>`}
+      </g>
     </svg>`;
   }
 
@@ -435,6 +539,32 @@
       <span class="chipstat" id="sc-mod">SCORE PENDING</span>
       <div class="st" id="st-mod">observing quietly</div>`;
     modrow.appendChild(modDiv);
+    const bo = $("backoffice");
+    bo.replaceChildren();
+    const label = document.createElement("div");
+    label.className = "bo-label";
+    label.textContent = "— the back office —";
+    bo.appendChild(label);
+    const BO = [
+      ["steno", "The Stenographer", "Records office", "#b8463a", "WORDS TYPED 0"],
+      ["book", "The Bookmaker", "Odds desk", "#20416b", "LIVE ODDS —"],
+      ["intern", "The Intern", "Coffee logistics", "#8f6f1d", "COFFEES SERVED 0"],
+    ];
+    for (const [id, nm, rl, c, chip] of BO) {
+      const div = document.createElement("div");
+      div.className = "agent"; div.id = "ag-" + id;
+      div.style.setProperty("--ac", c);
+      div.innerHTML = `
+        <div class="ava">${pixelChar(id, c)}</div>
+        <div class="nm">${nm}</div>
+        <div class="rl">${rl}</div>
+        <div class="tg">${PERSONA[id].tagline}</div>
+        <span class="chipstat" id="sc-${id}">${chip}</span>
+        <div class="st" id="st-${id}">settling in</div>`;
+      bo.appendChild(div);
+    }
+    $("intern-sprite").innerHTML = pixelSprite();
+    $("intern-sprite").classList.remove("run");
     resetStats();
     $("feed").replaceChildren();
     $("verdict").classList.remove("show");
@@ -464,12 +594,53 @@
   let STATS = null;
   function resetStats() {
     STATS = { gpt: { conv: null }, claude: { fixes: 0, cites: 0 },
-              gemini: { obj: 0, conceded: 0 }, mod: { done: false } };
+              gemini: { obj: 0, conceded: 0 }, mod: { done: false },
+              words: 0, coffees: 0, odds: {} };
     updateStatChips();
+  }
+  function addWords(n) {
+    STATS.words += n;
+    const el = $("sc-steno");
+    if (el) el.textContent = "WORDS TYPED " + STATS.words.toLocaleString();
+    const stack = document.querySelector("#ag-steno #stack-rect");
+    if (stack) {
+      const h = Math.min(14, 4 + STATS.words / 220);
+      stack.setAttribute("height", h);
+      stack.setAttribute("y", 66 - h);
+    }
+  }
+  function setOdds(agent, conf) {
+    STATS.odds[agent] = conf;
+    const vals = Object.values(STATS.odds);
+    if (!vals.length) return;
+    const line = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    const el = $("sc-book");
+    if (el) el.textContent = "LIVE ODDS " + line + "%";
+    setStatus("book", "agent speaking", PERSONA.book.speak);
+    setTimeout(() => setStatus("book", "agent", "line: " + line + "% yes"), 900 / speed);
+  }
+  function coffeeRun() {
+    if (REDUCED) { STATS.coffees++; $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees; return; }
+    const sp = $("intern-sprite");
+    const desk = $("ag-intern");
+    desk.classList.add("away");
+    setStatus("intern", "agent speaking", PERSONA.intern.speak);
+    sp.classList.remove("run"); void sp.offsetWidth; sp.classList.add("run");
+    setTimeout(() => {
+      STATS.coffees++;
+      const el = $("sc-intern");
+      if (el) el.textContent = "COFFEES SERVED " + STATS.coffees;
+    }, 1500);
+    setTimeout(() => {
+      sp.classList.remove("run");
+      desk.classList.remove("away");
+      setStatus("intern", "agent", PERSONA.intern.done);
+    }, 3100);
   }
   const CONCEDE_RE = /concede|fair hit|i'll take|accepting|granted|updating upward|persuadable/i;
   function applySpeakStats(ev) {
     if (!STATS) return;
+    if (ev.confidence !== undefined && ev.agent !== "mod") STATS.odds[ev.agent] = ev.confidence;
     if (ev.agent === "gpt" && ev.confidence !== undefined) STATS.gpt.conv = ev.confidence;
     if (ev.agent === "claude" && ev.target) STATS.claude.fixes++;
     const RECEIPT_RE = /\b(19|20)\d\d\b|DORA|IEA|Segment|Razborov|Baker|Aaronson|Clay|documented|survey|writeup|blog|the data shows/i;
@@ -484,6 +655,19 @@
     set("claude", STATS.claude.cites + " RECEIPTS · " + STATS.claude.fixes + " CORRECTIONS");
     set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
     set("mod", STATS.mod.done ? "SCORE: " + S.result.confidence + "%" : "SCORE PENDING");
+  }
+
+  function applyVerdictReactions(animate) {
+    const leaningYes = S.result.confidence >= 50;
+    for (const [aid, vote] of Object.entries(S.result.votes)) {
+      const won = /yes/i.test(vote) === leaningYes;
+      const el = $("ag-" + aid);
+      if (animate && !REDUCED) el.classList.add(won ? "cheer" : "slump");
+      $("st-" + aid).textContent = won ? "called it ★" : "demands a rematch";
+    }
+    setStatus("steno", "agent", "transcript sealed ✓");
+    setStatus("book", "agent", "paying out at " + S.result.confidence + "%");
+    setStatus("intern", "agent", "victory espresso round ☕");
   }
 
   function phaseToast(name, ri) {
@@ -637,6 +821,16 @@
   }
 
   /* ---------------- the player loop ---------------- */
+  setInterval(() => {
+    if (REDUCED || !S) return;
+    const ids = ["gpt", "claude", "gemini", "mod", "book", "intern"];
+    const pick = ids[Math.floor(Math.random() * ids.length)];
+    const el = $("ag-" + pick);
+    if (!el || el.className !== "agent") return;   // only fidget when idle
+    el.classList.add("sip");
+    setTimeout(() => el.classList.remove("sip"), 1100);
+  }, 5200);
+
   function tickClock(ms) {
     const sec = Math.round(ms / 1000);
     $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
@@ -650,6 +844,7 @@
     if (s.t === "phase") {
       markPhase(s.ri);
       phaseToast(s.name, s.ri);
+      if (s.ri > 0) coffeeRun();
       allIdle(s.ri === 0 ? "shuffling notes" : "listening");
       idx++; timer = setTimeout(runStep, (REDUCED ? 300 : 1100) / speed);
     } else if (s.t === "think") {
@@ -661,6 +856,17 @@
     } else if (s.t === "speak") {
       const ev = s.ev;
       setStatus(ev.agent, "agent speaking", (PERSONA[ev.agent] || PERSONA.mod).speak);
+      // everyone else looks at the speaker; the stenographer gets typing
+      const order = ["gpt", "claude", "gemini"];
+      const si = order.indexOf(ev.agent);
+      for (const a of S.agents) {
+        if (a.id === ev.agent) continue;
+        const el = $("ag-" + a.id);
+        el.classList.remove("look-left", "look-right");
+        if (si >= 0) el.classList.add(order.indexOf(a.id) < si ? "look-right" : "look-left");
+      }
+      $("ag-steno").classList.add("working");
+      setStatus("steno", "agent working", PERSONA.steno.speak);
       if (ev.target && !REDUCED) {
         const t = $("ag-" + ev.target);
         t.classList.add("poked");
@@ -673,7 +879,11 @@
       typeInto(tx, ev.text, dur, () => {
         typerStop = null;
         setStatus(ev.agent, "agent", (PERSONA[ev.agent] || PERSONA.mod).done);
-        if (ev.agent !== "mod" && ev.confidence !== undefined) setConf(ev.agent, ev.confidence);
+        if (ev.agent !== "mod" && ev.confidence !== undefined) { setConf(ev.agent, ev.confidence); setOdds(ev.agent, ev.confidence); }
+        addWords(ev.text.split(/\s+/).length);
+        $("ag-steno").classList.remove("working");
+        setStatus("steno", "agent", PERSONA.steno.done);
+        for (const a of S.agents) $("ag-" + a.id).classList.remove("look-left", "look-right");
         tickClock(elapsedBase);
         idx++;
         if (playing) timer = setTimeout(runStep, 350 / speed);
@@ -684,6 +894,7 @@
       STATS.mod.done = true; updateStatChips();
       allIdle("adjourned ☕");
       setStatus("mod", "agent", "gavel down ⚖");
+      applyVerdictReactions(true);
       showVerdict(true);
       idx++;
       playing = false;
@@ -697,12 +908,19 @@
     // instantly apply everything before `to`
     for (let i = 0; i < to && i < steps.length; i++) {
       const s = steps[i];
-      if (s.t === "phase") markPhase(s.ri);
+      if (s.t === "phase") {
+        markPhase(s.ri);
+        if (s.ri > 0 && s.ri < 4) {
+          STATS.coffees++;
+          $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees;
+        }
+      }
       else if (s.t === "speak") {
         elapsedBase += typeDur(s.ev.text);
         const tx = bubble(s.ev);
         tx.textContent = s.ev.text;
         applySpeakStats(s.ev);
+        addWords(s.ev.text.split(/\s+/).length);
         if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
       } else if (s.t === "think") elapsedBase += s.ms;
       else if (s.t === "verdict") {
@@ -711,8 +929,12 @@
         STATS.mod.done = true; updateStatChips();
         allIdle("adjourned ☕");
         setStatus("mod", "agent", "gavel down ⚖");
+        applyVerdictReactions(false);
       }
     }
+    const vals = Object.values(STATS.odds);
+    if (vals.length) $("sc-book").textContent =
+      "LIVE ODDS " + Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) + "%";
     idx = to;
     tickClock(elapsedBase);
     $("scrub").value = to;
