@@ -100,6 +100,7 @@
       for (let line of block.split("\n")) {
         line = line.trim().replace(/^#+/, "").trim();
         if (!line) continue;
+        if (line.startsWith("**")) { parts.push(line); continue; }  // transcript line: keep speaker
         for (const s of line.split(/(?<=[.!?])\s+/)) if (s.trim()) parts.push(s.trim());
       }
     }

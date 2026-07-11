@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atlas — ops knowledge agent</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234c8fe0'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%233f5aa0'/%3E%3C/svg%3E">
 <style>
   :root {
-    --bg: #0d1117; --panel: #161b22; --panel-2: #1c2330; --line: #2d3646;
-    --text: #e6edf3; --dim: #8b98a9; --accent: #58a6ff; --green: #3fb950;
-    --gold: #d29922; --coral: #ff7b72; --violet: #bc8cff;
+    /* white-dominant theme, echoing the hnguyen.dev paper-and-ink palette */
+    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --accent: #3f5aa0; --green: #2f8a58;
+    --gold: #8f6f1d; --coral: #b8463a; --violet: #6a47a0;
   }
   * { box-sizing: border-box; margin: 0; }
   body {
@@ -35,7 +36,7 @@
   }
   .ask input:focus { border-color: var(--accent); }
   .ask button {
-    background: var(--accent); color: #0b1524; border: 0; border-radius: 8px;
+    background: var(--accent); color: #ffffff; border: 0; border-radius: 8px;
     padding: 0 1.3rem; font: inherit; font-weight: 700; cursor: pointer;
   }
   .ask button:disabled { opacity: .5; cursor: wait; }
@@ -49,6 +50,7 @@
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
     padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+    box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
   }
   .card h2 {
     font-size: .78rem; color: var(--dim); text-transform: uppercase;
@@ -81,8 +83,8 @@
   .cite .snip { color: var(--dim); font-size: .78rem; margin-top: .3rem; }
   /* embedding-space map */
   :root {
-    --map-runbook: #4c8fe0; --map-incident: #bd821d; --map-dataset: #3f9d63;
-    --map-reference: #9e74e0; --map-diagram: #c25e6e; --map-query: #e6edf3;
+    --map-runbook: #3f5aa0; --map-incident: #8f6f1d; --map-dataset: #2f8a58;
+    --map-reference: #6a47a0; --map-diagram: #b8463a; --map-query: #1c1a17;
   }
   #map-wrap { position: relative; }
   #map-canvas { width: 100%; height: 340px; display: block; cursor: crosshair; }
@@ -123,52 +125,65 @@
     flex: 1; background: var(--accent); opacity: .75; border-radius: 1px 1px 0 0; min-height: 1px;
   }
   #map-tip .tt-sig-label { font-size: .6rem; color: var(--dim); margin-top: .2rem; }
-  #corpus ul { list-style: none; }
-  #corpus li {
-    display: flex; gap: .6rem; padding: .32rem 0; font-size: .82rem;
-    border-bottom: 1px dashed var(--line); align-items: baseline;
-  }
-  #corpus li:last-child { border-bottom: 0; }
-  #corpus .t { color: var(--dim); font-size: .68rem; min-width: 4.6rem; }
-  #corpus .t.incident { color: var(--map-incident); }
-  #corpus .t.runbook { color: var(--map-runbook); }
-  #corpus .t.dataset { color: var(--map-dataset); }
-  #corpus .t.reference { color: var(--map-reference); }
-  #corpus .t.diagram { color: var(--map-diagram); }
-  #corpus li { cursor: pointer; }
-  #corpus li:hover span:last-child { color: var(--accent); }
   .cite .where { cursor: pointer; }
   .cite .where:hover { text-decoration: underline; text-underline-offset: 3px; }
-  /* raw-source viewer */
-  #raw-modal {
-    position: fixed; inset: 0; background: rgba(4, 7, 12, .72); display: none;
-    z-index: 40; padding: 4vh 4vw; backdrop-filter: blur(2px);
+  /* tabs */
+  .tabs { display: flex; gap: .5rem; margin: 1.3rem 0 1rem; }
+  .tab {
+    font: inherit; font-size: .78rem; letter-spacing: .06em; cursor: pointer;
+    background: var(--panel-2); color: var(--dim); border: 1px solid var(--line);
+    border-radius: 8px 8px 0 0; padding: .55rem 1.1rem; border-bottom: 2px solid transparent;
   }
-  #raw-modal.open { display: flex; align-items: flex-start; justify-content: center; }
-  .raw-window {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    width: min(860px, 100%); max-height: 90vh; display: flex; flex-direction: column;
-    overflow: hidden;
+  .tab.active {
+    background: var(--panel); color: var(--text); font-weight: 700;
+    border-bottom: 2px solid var(--accent);
   }
-  .raw-bar {
-    display: flex; align-items: center; gap: .7rem; padding: .55rem .9rem;
+  .tab:hover { color: var(--accent); }
+  /* data explorer */
+  .data-stats { font-size: .76rem; color: var(--dim); margin-bottom: .8rem; }
+  .data-stats b { color: var(--text); }
+  .explorer { display: grid; grid-template-columns: 250px 1fr; gap: 1rem; min-height: 460px; }
+  @media (max-width: 700px) { .explorer { grid-template-columns: 1fr; } }
+  #file-list {
+    list-style: none; overflow: auto; max-height: 560px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--panel-2); padding: .4rem;
+  }
+  #file-list .grp {
+    font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em;
+    padding: .55rem .5rem .25rem; cursor: default;
+  }
+  #file-list .doc {
+    display: flex; gap: .45rem; align-items: baseline; padding: .3rem .5rem;
+    border-radius: 6px; cursor: pointer; font-size: .76rem;
+  }
+  #file-list .doc:hover { background: var(--panel); }
+  #file-list .doc.sel { background: var(--panel); outline: 1px solid var(--accent); }
+  #file-list .doc .t { font-size: .6rem; min-width: 3.9rem; }
+  #preview { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .preview-head {
+    display: flex; align-items: center; gap: .7rem; padding: .5rem .8rem;
     background: var(--panel-2); border-bottom: 1px solid var(--line); font-size: .74rem;
   }
-  #raw-kind { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; }
-  #raw-title { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #raw-open { color: var(--accent); text-decoration: none; font-size: .7rem; white-space: nowrap; }
-  #raw-close {
-    background: none; border: 1px solid var(--line); border-radius: 4px; color: var(--dim);
-    cursor: pointer; font: inherit; font-size: .68rem; padding: .08rem .5rem;
+  #preview-kind { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; }
+  #preview-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #preview-open { color: var(--accent); text-decoration: none; font-size: .7rem; white-space: nowrap; }
+  #preview-body { overflow: auto; padding: .8rem 1rem; max-height: 560px; }
+  .preview-empty { color: var(--dim); font-size: .8rem; padding: 2rem; text-align: center; }
+  #preview-body pre { white-space: pre-wrap; word-wrap: break-word; font-size: .76rem; line-height: 1.55; }
+  #preview-body img { max-width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-bottom: .8rem; }
+  #preview-body iframe { width: 100%; height: 62vh; border: 0; background: #fff; border-radius: 6px; }
+  table.sheet { border-collapse: collapse; font-size: .72rem; width: 100%; }
+  table.sheet th {
+    position: sticky; top: -0.8rem; background: var(--panel-2); color: var(--text);
+    text-align: left; padding: .35rem .55rem; border: 1px solid var(--line);
+    text-transform: uppercase; font-size: .62rem; letter-spacing: .06em;
   }
-  #raw-close:hover { color: var(--text); border-color: var(--dim); }
-  #raw-body { overflow: auto; padding: .9rem 1.1rem; }
-  #raw-body pre {
-    white-space: pre-wrap; word-wrap: break-word; font-size: .78rem;
-    line-height: 1.55; color: var(--text);
-  }
-  #raw-body img { max-width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-bottom: .8rem; }
-  #raw-body iframe { width: 100%; height: 70vh; border: 0; background: #fff; border-radius: 6px; }
+  table.sheet td { padding: .28rem .55rem; border: 1px solid var(--line); color: var(--text); white-space: nowrap; }
+  table.sheet tr:nth-child(even) td { background: var(--panel-2); }
+  .sheet-count { color: var(--dim); font-size: .68rem; margin: .4rem 0 .6rem; }
+  .t.runbook { color: var(--map-runbook); } .t.incident { color: var(--map-incident); }
+  .t.dataset { color: var(--map-dataset); } .t.reference { color: var(--map-reference); }
+  .t.diagram { color: var(--map-diagram); }
   .err { color: var(--coral); }
   footer { text-align: center; color: var(--dim); font-size: .72rem; margin-top: 2.4rem; }
   .hide { display: none; }
@@ -183,6 +198,29 @@
     <div class="badges" id="health-badges"></div>
   </header>
 
+  <nav class="tabs" role="tablist" aria-label="Atlas views">
+    <button id="tab-data" class="tab active" role="tab" aria-selected="true">▤ THE DATA</button>
+    <button id="tab-ask" class="tab" role="tab" aria-selected="false">? ASK ATLAS</button>
+  </nav>
+
+  <section id="view-data" class="view">
+    <div class="card">
+      <div id="data-stats" class="data-stats">loading corpus…</div>
+      <div class="explorer">
+        <ul id="file-list" aria-label="Corpus files"></ul>
+        <div id="preview">
+          <div class="preview-head hide" id="preview-head">
+            <span id="preview-kind" class="t"></span>
+            <span id="preview-name"></span>
+            <a id="preview-open" target="_blank" rel="noopener">open file&nbsp;↗</a>
+          </div>
+          <div id="preview-body"><div class="preview-empty">← pick a file</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-ask" class="view hide">
   <form class="ask" id="ask-form">
     <input id="q" type="text" autocomplete="off" spellcheck="false"
            placeholder="How do we rotate the API keys?" aria-label="Question">
@@ -218,25 +256,12 @@
       hover to see its vector fingerprint. Ask a question and watch it land among
       its nearest chunks; lines connect to what got cited.</p>
   </section>
+  </section><!-- /view-ask -->
 
-  <section class="card" id="corpus">
-    <h2>Corpus — click any doc to read its raw source</h2>
-    <ul id="corpus-list"><li class="spin">loading…</li></ul>
-  </section>
 
   <footer>atlas · cited answers only — if it isn't in the corpus, it says so</footer>
 </div>
 
-<div id="raw-modal" role="dialog" aria-modal="true" aria-labelledby="raw-title">
-  <div class="raw-window">
-    <div class="raw-bar">
-      <span id="raw-kind" class="t"></span>
-      <span id="raw-title"></span>
-      <a id="raw-open" target="_blank" rel="noopener">open file&nbsp;↗</a>
-      <button id="raw-close" type="button">✕ close</button>
-    </div>
-    <div id="raw-body"></div>
-  </div>
 </div>
 
 <script src="engine.js"></script>
@@ -265,9 +290,10 @@
   const FILES_BASE = window.ATLAS_FILES_BASE || "/corpus-files/";
   const SAMPLES = [
     "How do we rotate the API keys?",
+    "Who approved the rollback during the July outage?",
+    "What was our compute cost in June 2024?",
+    "Who is on call the week of 2025-03?",
     "Postgres primary is unhealthy — how do I fail over?",
-    "What caused the July rate-limit outage?",
-    "Who is on call right now?",
     "A pod is in CrashLoopBackOff, what do I check first?",
   ];
 
@@ -300,25 +326,12 @@
     } catch { /* health is cosmetic */ }
     try {
       const d = await api.docs();
-      const ul = $("corpus-list");
-      ul.replaceChildren();
-      for (const doc of d.docs) {
-        docsById[doc.id] = doc;
-        const li = document.createElement("li");
-        li.title = "view raw source";
-        const t = document.createElement("span");
-        t.className = "t " + doc.type; t.textContent = doc.type;
-        const title = document.createElement("span");
-        title.textContent = doc.title;
-        li.append(t, title);
-        li.addEventListener("click", () => openRaw(doc));
-        ul.appendChild(li);
-      }
+      buildExplorer(d.docs);
     } catch {
-      $("corpus-list").replaceChildren();
+      $("file-list").replaceChildren();
       const li = document.createElement("li");
-      li.className = "err"; li.textContent = "failed to load corpus list";
-      $("corpus-list").appendChild(li);
+      li.className = "err"; li.textContent = "failed to load corpus";
+      $("file-list").appendChild(li);
     }
   }
 
@@ -359,9 +372,9 @@
         const where = document.createElement("span");
         where.className = "where";
         where.textContent = c.doc_title + " — " + c.section;
-        where.title = "view raw source";
+        where.title = "view raw source in the DATA tab";
         where.addEventListener("click", () => {
-          if (docsById[c.doc_id]) openRaw(docsById[c.doc_id]);
+          if (docsById[c.doc_id]) { showTab("data"); selectDoc(docsById[c.doc_id]); }
         });
         const kind = document.createElement("span");
         kind.className = "kind " + c.doc_type; kind.textContent = c.doc_type;
@@ -394,19 +407,105 @@
   $("ask-form").addEventListener("submit", (ev) => { ev.preventDefault(); askNow(); });
   loadMeta();
 
-  /* ---------------- raw-source viewer ---------------- */
-  const docsById = {};
+  /* ---------------- tabs ---------------- */
+  let askArmed = false;
+  function showTab(which) {
+    const data = which === "data";
+    $("view-data").classList.toggle("hide", !data);
+    $("view-ask").classList.toggle("hide", data);
+    $("tab-data").classList.toggle("active", data);
+    $("tab-ask").classList.toggle("active", !data);
+    $("tab-data").setAttribute("aria-selected", String(data));
+    $("tab-ask").setAttribute("aria-selected", String(!data));
+    if (!data) {
+      sizeMap();
+      if (!askArmed) {
+        // first visit: the data you just browsed vectorizes into the map
+        askArmed = true;
+        if (!MAP.reduced && MAP.pts.length) MAP.replayT0 = performance.now();
+        $("q").focus();
+      }
+      kick();
+    }
+  }
+  $("tab-data").addEventListener("click", () => showTab("data"));
+  $("tab-ask").addEventListener("click", () => showTab("ask"));
 
-  async function openRaw(doc) {
+  /* ---------------- data explorer ---------------- */
+  const docsById = {};
+  let selectedRow = null;
+
+  const GROUP_LABEL = {
+    runbooks: "runbooks (md)", incidents: "incidents (md)",
+    data: "data (csv)", references: "references (pdf)", diagrams: "diagrams (png)",
+  };
+
+  function buildExplorer(docs) {
+    const ul = $("file-list");
+    ul.replaceChildren();
+    let currentGroup = null;
+    for (const doc of docs) {
+      docsById[doc.id] = doc;
+      const group = (doc.source || "").split("/")[0] || "other";
+      if (group !== currentGroup) {
+        currentGroup = group;
+        const g = document.createElement("li");
+        g.className = "grp";
+        g.textContent = GROUP_LABEL[group] || group;
+        ul.appendChild(g);
+      }
+      const li = document.createElement("li");
+      li.className = "doc";
+      li.dataset.docId = doc.id;
+      const t = document.createElement("span");
+      t.className = "t " + doc.type; t.textContent = doc.type;
+      const title = document.createElement("span");
+      title.textContent = doc.title;
+      li.append(t, title);
+      li.addEventListener("click", () => selectDoc(doc));
+      ul.appendChild(li);
+    }
+    // land on the biggest spreadsheet — the "excel sheet" first impression
+    const first = docsById["ds-alert-history-2024"] || docs[0];
+    if (first) selectDoc(first);
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], field = "", quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (quoted) {
+        if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (ch === '"') quoted = false;
+        else field += ch;
+      } else if (ch === '"') quoted = true;
+      else if (ch === ",") { row.push(field); field = ""; }
+      else if (ch === "\n") {
+        row.push(field); field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+      } else if (ch !== "\r") field += ch;
+    }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  async function selectDoc(doc) {
     if (!doc || !doc.source) return;
+    if (selectedRow) selectedRow.classList.remove("sel");
+    selectedRow = document.querySelector(`#file-list .doc[data-doc-id="${doc.id}"]`);
+    if (selectedRow) { selectedRow.classList.add("sel"); selectedRow.scrollIntoView({ block: "nearest" }); }
+
     const url = FILES_BASE + doc.source;
-    $("raw-kind").textContent = (doc.format || doc.type || "").toUpperCase();
-    $("raw-kind").className = "t " + doc.type;
-    $("raw-title").textContent = doc.title + " — " + doc.source;
-    $("raw-open").href = url;
-    const body = $("raw-body");
+    $("preview-head").classList.remove("hide");
+    $("preview-kind").textContent = (doc.format || doc.type || "").toUpperCase();
+    $("preview-kind").className = "t " + doc.type;
+    $("preview-name").textContent = doc.title + " — " + doc.source;
+    $("preview-open").href = url;
+    const body = $("preview-body");
     body.replaceChildren();
-    $("raw-modal").classList.add("open");
+
     const showText = async (u) => {
       const res = await fetch(u);
       if (!res.ok) throw new Error(res.statusText);
@@ -415,11 +514,35 @@
       body.appendChild(el);
     };
     try {
-      if (doc.format === "image") {
+      if (doc.format === "csv") {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.statusText);
+        const rows = parseCSV(await res.text());
+        const count = document.createElement("div");
+        count.className = "sheet-count";
+        count.textContent = `${Math.max(0, rows.length - 1)} rows × ${rows[0] ? rows[0].length : 0} columns`;
+        body.appendChild(count);
+        const table = document.createElement("table");
+        table.className = "sheet";
+        const thead = document.createElement("thead");
+        const hr = document.createElement("tr");
+        for (const h of rows[0] || []) {
+          const th = document.createElement("th"); th.textContent = h; hr.appendChild(th);
+        }
+        thead.appendChild(hr); table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        for (const r of rows.slice(1)) {
+          const tr = document.createElement("tr");
+          for (const c of r) { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); }
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        body.appendChild(table);
+      } else if (doc.format === "image") {
         const img = document.createElement("img");
         img.src = url; img.alt = doc.title;
         body.appendChild(img);
-        await showText(url + ".md").catch(() => {});  // its sidecar description
+        await showText(url + ".md").catch(() => {});
       } else if (doc.format === "pdf") {
         const frame = document.createElement("iframe");
         frame.src = url; frame.title = doc.title;
@@ -434,15 +557,6 @@
       body.appendChild(el);
     }
   }
-
-  function closeRaw() { $("raw-modal").classList.remove("open"); }
-  $("raw-close").addEventListener("click", closeRaw);
-  $("raw-modal").addEventListener("click", (ev) => {
-    if (ev.target === $("raw-modal")) closeRaw();
-  });
-  document.addEventListener("keydown", (ev) => {
-    if (ev.key === "Escape") closeRaw();
-  });
 
   /* ---------------- embedding-space map ---------------- */
   const MAP = {
@@ -560,7 +674,7 @@
   function drawRawBlock(p, cell, alpha) {
     const c = COLORS();
     mapCtx.globalAlpha = alpha * 0.92;
-    mapCtx.fillStyle = "#1c2330";
+    mapCtx.fillStyle = "#ffffff";
     mapCtx.fillRect(cell.x, cell.y, cell.w, 46);
     mapCtx.strokeStyle = c.line; mapCtx.lineWidth = 1;
     mapCtx.strokeRect(cell.x, cell.y, cell.w, 46);
@@ -724,9 +838,18 @@
         p._i = i;
         p._docIdx = docs.indexOf(p.doc_id);
       });
-      sizeMap();
-      MAP.replayT0 = performance.now();
-      kick();
+      const fmts = Object.entries(MAP.formats || {}).sort()
+        .map(([f, n]) => `${n} ${f}`).join(" · ");
+      const s = $("data-stats");
+      s.replaceChildren();
+      const b = (t) => { const el = document.createElement("b"); el.textContent = t; return el; };
+      s.append(
+        b(`${MAP.docCount} documents`), ` (${fmts}) · `,
+        b(`${MAP.words.toLocaleString()} words`), ` · `,
+        b(`${MAP.pts.length} chunks`),
+        ` — nobody reads all this. The `, b("ASK ATLAS"), ` tab turns it into cited answers →`
+      );
+      // the ingest sequence arms when the ASK tab is first opened
     } catch { $("map-card").classList.add("hide"); }
   }
 
