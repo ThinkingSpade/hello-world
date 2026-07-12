@@ -120,10 +120,33 @@ const Abacus = (() => {
     return hits;
   }
 
+  const INVESTIGATE_RE = /^why\b|\bwhy did\b|\bwhy is\b|\bwhat (?:drove|caused)\b|\bexplain the (?:change|drop|dip|spike|jump|move)\b/;
+  const RETENTION_RE = /\bretention\b|\bcohorts?\b/;
+  const ANOMALY_RE = /\banomal|\boutlier|\bunusual\b|\bweird\b|\bscan\b|\bwhat changed\b/;
+
   function parse(question) {
     const q = question.toLowerCase().trim();
     const [time, compare0] = parseTime(q);
     let compare = compare0;
+
+    // ---- analyst kinds outrank plain aggregation (mirrors parser.py) ----
+    if (RETENTION_RE.test(q))
+      return { kind: "retention", metric: null, dims: [], filters: [], time, top: null, compare: null };
+    if (ANOMALY_RE.test(q))
+      return { kind: "anomalies", metric: null, dims: [], filters: [], time, top: null, compare: null };
+    if (INVESTIGATE_RE.test(q)) {
+      const mh = find(q, MAN.metrics);
+      mh.sort((a, b) => (b[2] - a[2]) || (a[1] - b[1]));
+      const metric = mh.length ? mh[0][0] : "revenue";
+      const qd0 = stripTime(q);
+      const filters = [];
+      for (const [dim, vals] of Object.entries(MAN.values))
+        for (const v of vals)
+          if (new RegExp(`(?<![a-z])${esc(v.toLowerCase())}(?![a-z])`).test(qd0))
+            filters.push({ dim, value: v });
+      if (!compare) compare = prevPeriod(time);
+      return { kind: "investigate", metric, dims: [], filters, time, top: null, compare };
+    }
 
     const mhits = find(q, MAN.metrics);
     if (!mhits.length) {
@@ -162,7 +185,7 @@ const Abacus = (() => {
     if (dims.length > 2) dims.length = 2;
     if (compare && dims.some((d) => !MAN.dimensions[d].time)) compare = null;
 
-    return { metric, dims, filters, time, top, compare };
+    return { kind: "aggregate", metric, dims, filters, time, top, compare };
   }
 
   /* ---------------- compiler (mirrors semantics.py) ---------------- */
@@ -361,7 +384,219 @@ Question: ${question}`;
     return { manifest: MAN };
   }
 
-  return { init, parse, compilePlan, runPlan, narrate, fmt, llmPlan, llmPrompt,
+  /* ============ the analyst brain (mirrors abacus/analyst.py) ============ */
+  const DRIVER_DIMS = ["category", "region", "channel", "segment"];
+  const ADDITIVE = new Set(["revenue", "gross_margin", "orders", "units"]);
+  const lastCell = (r) => r[r.length - 1];
+
+  function totalOf(metric, time, filters) {
+    const r = runPlan({ metric, dims: [], filters, time, top: null });
+    return (r.rows.length ? lastCell(r.rows[0]) : 0) || 0;
+  }
+  function byDim(metric, dim, time, filters) {
+    const r = runPlan({ metric, dims: [dim], filters, time, top: null });
+    return Object.fromEntries(r.rows.map((row) => [row[0], lastCell(row) || 0]));
+  }
+
+  function investigate(plan) {
+    const { metric } = plan, curT = plan.time, priT = plan.compare;
+    const filters = plan.filters || [];
+    let queries = 0;
+    const cur = totalOf(metric, curT, filters); queries++;
+    const pri = totalOf(metric, priT, filters); queries++;
+    const delta = cur - pri;
+    const additive = ADDITIVE.has(metric);
+
+    const drivers = [], by_dim = {};
+    for (const dim of DRIVER_DIMS) {
+      const a = byDim(metric, dim, curT, filters); queries++;
+      const b = byDim(metric, dim, priT, filters); queries++;
+      const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+      const rows = keys.map((k) => ({ value: k, cur: a[k] || 0, prior: b[k] || 0,
+                                      delta: (a[k] || 0) - (b[k] || 0) }));
+      by_dim[dim] = rows;
+      if (additive) for (const r of rows) drivers.push({ dim, value: r.value, delta: r.delta });
+    }
+    drivers.sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta));
+    const top_drivers = drivers.slice(0, 6);
+
+    let vol_price = null;
+    if (metric === "revenue" && additive) {
+      const o1 = totalOf("orders", curT, filters); queries++;
+      const o0 = totalOf("orders", priT, filters); queries++;
+      const a1 = o1 ? cur / o1 : 0, a0 = o0 ? pri / o0 : 0;
+      const vol = (o1 - o0) * a0, price = o0 * (a1 - a0);
+      vol_price = { orders_cur: o1, orders_prior: o0, aov_cur: a1, aov_prior: a0,
+                    volume_effect: vol, price_effect: price, interaction: delta - vol - price };
+    }
+
+    let waterfall = null;
+    if (additive && delta !== 0 && top_drivers.length) {
+      const wdim = top_drivers[0].dim;
+      const rows = [...by_dim[wdim]].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta));
+      const shown = rows.slice(0, 6);
+      const other = delta - shown.reduce((s, r) => s + r.delta, 0);
+      waterfall = { dim: wdim, start: pri, end: cur,
+        steps: [...shown.map((r) => ({ label: r.value, delta: r.delta })),
+                ...(Math.abs(other) > 1e-9 ? [{ label: "everything else", delta: other }] : [])] };
+    }
+    return { kind: "investigate", metric, cur, prior: pri, delta, additive,
+             drivers: top_drivers, by_dim, vol_price, waterfall, queries };
+  }
+
+  function narrateInvestigation(plan, inv) {
+    const m = MAN.metrics[plan.metric], kind = m.fmt;
+    const pct = inv.prior ? 100 * inv.delta / Math.abs(inv.prior) : 0;
+    const verb = inv.delta > 0 ? "rose" : "fell";
+    let line = `${m.label} ${verb} ${nf(Math.abs(pct), 1, 1)}% in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`;
+    if (inv.additive && inv.drivers.length) {
+      const d0 = inv.drivers[0];
+      const share = inv.delta ? 100 * d0.delta / inv.delta : 0;
+      line += ` The move concentrates in ${d0.dim}: ${d0.value} ${d0.delta >= 0 ? "+" : "−"}${fmt(Math.abs(d0.delta), kind)} (${Math.round(share)}% of the change)`;
+      const offs = inv.drivers.filter((d) => (d.delta > 0) !== (inv.delta > 0));
+      if (offs.length) line += `; biggest offset ${offs[0].value} ${offs[0].delta >= 0 ? "+" : "−"}${fmt(Math.abs(offs[0].delta), kind)}`;
+      line += ".";
+    }
+    const vp = inv.vol_price;
+    if (vp && inv.delta) {
+      line += ` Volume vs price: order count explains ${Math.round(100 * vp.volume_effect / inv.delta)}% of it (orders ${vp.orders_prior.toLocaleString("en-US")} → ${vp.orders_cur.toLocaleString("en-US")}), basket size ${Math.round(100 * vp.price_effect / inv.delta)}% (AOV ${fmt(vp.aov_prior, "money2")} → ${fmt(vp.aov_cur, "money2")}).`;
+    }
+    if (!inv.additive) line += " (Rate metric — showing level shifts per dimension rather than additive contributions.)";
+    return line;
+  }
+
+  function retention() {
+    const firsts = exec("SELECT customer_id, first_order_date FROM dim_customer WHERE first_order_date IS NOT NULL").rows;
+    const active = exec("SELECT DISTINCT customer_id, CAST(strftime('%Y', order_date) AS INTEGER) * 4 + (CAST(strftime('%m', order_date) AS INTEGER) + 2) / 3 - 1 FROM fact_orders").rows;
+    const qidx = (d) => (+d.slice(0, 4)) * 4 + Math.floor((+d.slice(5, 7) + 2) / 3) - 1;
+    const qlabel = (i) => `${Math.floor(i / 4)}-Q${i % 4 + 1}`;
+    const cohorts = new Map();
+    for (const [cid, f] of firsts) {
+      const k = qidx(f);
+      if (!cohorts.has(k)) cohorts.set(k, new Set());
+      cohorts.get(k).add(cid);
+    }
+    const actBy = new Map();
+    let maxper = 0;
+    for (const [cid, per] of active) {
+      if (!actBy.has(per)) actBy.set(per, new Set());
+      actBy.get(per).add(cid);
+      if (per > maxper) maxper = per;
+    }
+    const matrix = [];
+    for (const c of [...cohorts.keys()].sort((a, b) => a - b)) {
+      const members = cohorts.get(c), size = members.size;
+      const row = { cohort: qlabel(c), size, cells: [] };
+      for (let k = 0; c + k <= maxper; k++) {
+        const act = actBy.get(c + k) || new Set();
+        let hit = 0;
+        for (const cid of members) if (act.has(cid)) hit++;
+        row.cells.push(size ? Math.round(1000 * hit / size) / 10 : 0);
+      }
+      matrix.push(row);
+    }
+    return { kind: "retention", matrix };
+  }
+
+  function narrateRetention(ret) {
+    const rows = ret.matrix.filter((r) => r.cells.length >= 2 && r.size >= 50);
+    if (!rows.length) return "Cohort retention computed — matrix below.";
+    const q1 = rows.map((r) => r.cells[1]);
+    const best = rows.reduce((a, b) => a.cells[1] >= b.cells[1] ? a : b);
+    const worst = rows.reduce((a, b) => a.cells[1] <= b.cells[1] ? a : b);
+    return `Behavioral cohorts (quarter of first purchase): next-quarter retention averages ${Math.round(q1.reduce((a, b) => a + b, 0) / q1.length)}% across ${rows.length} cohorts — best ${best.cohort} at ${Math.round(best.cells[1])}%, softest ${worst.cohort} at ${Math.round(worst.cells[1])}%. Every row starts at 100% by construction (the first purchase defines the cohort).`;
+  }
+
+  const WATCHLIST = [["revenue", null], ["revenue", "category"], ["revenue", "channel"],
+                     ["aov", null], ["return_rate", null], ["discount_rate", null],
+                     ["new_customers", null]];
+
+  function anomalyScan(time, zFloor = 2.0) {
+    const flags = [];
+    let queries = 0;
+    for (const [metric, dim] of WATCHLIST) {
+      const dims = dim ? ["month", dim] : ["month"];
+      const rows = runPlan({ metric, dims, filters: [], time, top: null }).rows; queries++;
+      const series = new Map();
+      for (const r of rows) {
+        const key = dim ? r[1] : "overall";
+        if (!series.has(key)) series.set(key, []);
+        series.get(key).push([r[0], lastCell(r) || 0]);
+      }
+      for (const [key, pts] of series) {
+        pts.sort((a, b) => a[0] < b[0] ? -1 : 1);
+        if (pts.length < 8) continue;
+        const moms = [];
+        for (let i = 1; i < pts.length; i++) {
+          const prev = pts[i - 1][1];
+          if (prev) moms.push([pts[i][0], 100 * (pts[i][1] - prev) / Math.abs(prev), pts[i][1]]);
+        }
+        if (moms.length < 6) continue;
+        const vals = moms.map((m) => m[1]);
+        const mu = vals.reduce((a, b) => a + b, 0) / vals.length;
+        const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mu) ** 2, 0) / vals.length);
+        if (!sd) continue;
+        for (const [month, mom, level] of moms) {
+          const z = (mom - mu) / sd;
+          if (Math.abs(z) >= zFloor) {
+            flags.push({ series: MAN.metrics[metric].label + (key !== "overall" ? ` · ${key}` : ""),
+                         metric, month, mom_pct: Math.round(mom * 10) / 10,
+                         z: Math.round(z * 100) / 100, level,
+                         points: pts.map((p) => p[1]) });
+          }
+        }
+      }
+    }
+    flags.sort((a, b) => Math.abs(b.z) - Math.abs(a.z));
+    return { kind: "anomalies", flags: flags.slice(0, 10), queries,
+             method: `z-score on month-over-month changes, |z| ≥ ${zFloor}`,
+             window: time.label };
+  }
+
+  function narrateAnomalies(an) {
+    if (!an.flags.length)
+      return `Scanned ${an.queries} series over ${an.window} — nothing beats the ${an.method} bar. A quiet warehouse is a finding too.`;
+    const f0 = an.flags[0];
+    return `Scanned ${an.queries} metric series over ${an.window} (${an.method}): ${an.flags.length} months flagged. Loudest: ${f0.series} in ${f0.month}, ${f0.mom_pct >= 0 ? "+" : ""}${nf(f0.mom_pct, 1, 1)}% month-over-month (z ${f0.z >= 0 ? "+" : ""}${nf(f0.z, 1, 1)}).`;
+  }
+
+  function runAny(plan) {
+    const kind = plan.kind || "aggregate";
+    if (kind === "aggregate") {
+      const r = runPlan(plan);
+      return { result: r, story: narrate(plan, r) };
+    }
+    if (kind === "investigate") {
+      const inv = investigate(plan);
+      return { result: inv, story: narrateInvestigation(plan, inv) };
+    }
+    if (kind === "retention") {
+      const ret = retention();
+      return { result: ret, story: narrateRetention(ret) };
+    }
+    if (kind === "anomalies") {
+      const an = anomalyScan(plan.time);
+      return { result: an, story: narrateAnomalies(an) };
+    }
+    throw new Error("unknown plan kind " + kind);
+  }
+
+  function canonicalCheck(plan, result) {
+    const kind = plan.kind || "aggregate";
+    const r4 = (x) => Math.round(x * 10000) / 10000;
+    if (kind === "aggregate") return result.rows;
+    if (kind === "investigate")
+      return [["_total", r4(result.cur), r4(result.prior)],
+              ...result.drivers.map((d) => [d.dim, d.value, r4(d.delta)])];
+    if (kind === "retention")
+      return result.matrix.map((r) => [r.cohort, r.size, ...r.cells]);
+    if (kind === "anomalies")
+      return result.flags.map((f) => [f.series, f.month, f.z]);
+    throw new Error(kind);
+  }
+
+  return { init, parse, compilePlan, runPlan, runAny, canonicalCheck,
+           narrate, fmt, llmPlan, llmPrompt,
            exec, get manifest() { return MAN; } };
 })();
 window.Abacus = Abacus;

@@ -138,7 +138,7 @@
 <div class="wrap">
   <header>
     <h1>ABACUS<span class="dot">_</span></h1>
-    <p class="tagline">a data analyst you can interrogate — semantic layer · query compiler · a real warehouse, all in your browser</p>
+    <p class="tagline">a data analyst you can interrogate — it aggregates, but it also investigates: why-decompositions, cohorts, anomaly scans · all in your browser</p>
     <span class="honesty"><b>the SQL engine and every query are real</b> — a <b id="hdr-rows">125k</b>-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) is loaded into SQLite-in-WebAssembly on this page. Keyless mode plans queries deterministically; paste your own API key and a live LLM plans them instead — <b>your key stays in this tab</b> and the model only ever picks from the semantic layer. Nobody, human or model, writes raw SQL.</span>
   </header>
 
@@ -170,10 +170,10 @@
   <div class="card">
     <h2>The parity eval — run it yourself</h2>
     <div style="font-size:.72rem;color:var(--dim);margin-bottom:.5rem">
-      30 golden questions were frozen by the Python engine (plans, SQL, and results committed to the repo).
-      This button replays all 30 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
+      35 golden questions — aggregations, driver decompositions, cohort retention, anomaly scans — were frozen by the Python engine (plans, SQL, and results committed to the repo).
+      This button replays all 35 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
     </div>
-    <button id="evalbtn" disabled>▶ run the 30-question eval</button>
+    <button id="evalbtn" disabled>▶ run the 35-question eval</button>
     <div id="evalout"></div>
   </div>
 
@@ -379,14 +379,109 @@
   let busy = false, nQ = 0, nSql = 0, nCharts = 0;
 
   function planChips(plan, extra) {
-    const bits = [`metric <b>${plan.metric}</b>`];
-    if (plan.dims.length) bits.push(`by <b>${plan.dims.join(", ")}</b>`);
+    const bits = [];
+    const kind = plan.kind || "aggregate";
+    if (kind !== "aggregate") bits.push(`<b>${kind.toUpperCase()}</b>`);
+    if (plan.metric) bits.push(`metric <b>${plan.metric}</b>`);
+    if (plan.dims && plan.dims.length) bits.push(`by <b>${plan.dims.join(", ")}</b>`);
     bits.push(`window <b>${plan.time.label}</b>`);
     for (const f of plan.filters || []) bits.push(`${f.dim} = <b>${f.value}</b>`);
     if (plan.top) bits.push(`top <b>${plan.top}</b>`);
     if (plan.compare) bits.push(`vs <b>${plan.compare.label}</b>`);
     if (extra) bits.push(extra);
     return `<div class="planchips">${bits.map((b) => `<span>${b}</span>`).join("")}</div>`;
+  }
+
+  /* ---------- analyst renderers ---------- */
+  function waterfallChart(zone, w, kind) {
+    const items = [{ label: "prior", v: w.start, type: "total" },
+                   ...w.steps.map((s) => ({ label: s.label, v: s.delta, type: s.delta >= 0 ? "up" : "dn" })),
+                   { label: "current", v: w.end, type: "total" }];
+    const W = 860, H = 280, L = 70, R = 16, T = 18, B = 56;
+    let run = 0;
+    const levels = items.map((it) => {
+      if (it.type === "total") { const a = [0, it.v]; run = it.v; return a; }
+      const a = [run, run + it.v]; run += it.v; return a;
+    });
+    const all = levels.flat();
+    const lo = Math.min(0, ...all) * 1.02, hi = Math.max(...all) * 1.08;
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+    const bw = Math.min(84, (W - L - R) / items.length - 14);
+    const X = (i) => L + i * (W - L - R) / items.length + 7;
+    let g = "";
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + k * (hi - lo) / 4;
+      g += `<line x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}" stroke="var(--grid)"/>
+            <text x="${L - 6}" y="${Y(v) + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${F(v, kind)}</text>`;
+    }
+    items.forEach((it, i) => {
+      const [a, b] = levels[i];
+      const y0 = Y(Math.max(a, b)), h = Math.max(2, Math.abs(Y(a) - Y(b)));
+      const fill = it.type === "total" ? "#5f5a51" : it.type === "up" ? "#2f8a58" : "#b8463a";
+      g += `<rect x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="3" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${F(it.v, kind)}</title></rect>`;
+      const vtxt = it.type === "total" ? F(it.v, kind) : (it.v >= 0 ? "+" : "−") + F(Math.abs(it.v), kind);
+      g += `<text x="${X(i) + bw / 2}" y="${y0 - 5}" font-size="9.5" font-weight="bold" fill="var(--dim)" text-anchor="middle">${vtxt}</text>`;
+      const lbl = String(it.label).length > 12 ? String(it.label).slice(0, 11) + "…" : it.label;
+      g += `<text x="${X(i) + bw / 2}" y="${H - B + 15}" font-size="9" fill="var(--text)" text-anchor="middle">${escH(lbl)}</text>`;
+      if (i < items.length - 1)
+        g += `<line x1="${X(i) + bw}" y1="${Y(levels[i][1])}" x2="${X(i + 1)}" y2="${Y(levels[i][1])}" stroke="var(--dim)" stroke-dasharray="3 3" opacity=".5"/>`;
+    });
+    g += `<text x="${L}" y="${H - 6}" font-size="9" fill="var(--dim)">bridge by ${escH(w.dim)} — steps reconcile exactly to the total change</text>`;
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+  }
+
+  function heatmap(zone, matrix) {
+    const maxCols = Math.max(...matrix.map((r) => r.cells.length));
+    const mix = (t) => {
+      const a = [243, 240, 233], b = [63, 90, 160];
+      const c = a.map((x, i) => Math.round(x + (b[i] - x) * t));
+      return `rgb(${c[0]},${c[1]},${c[2]})`;
+    };
+    let head = `<tr><th style="text-align:left">cohort</th><th>size</th>`;
+    for (let k = 0; k < maxCols; k++) head += `<th>+Q${k}</th>`;
+    head += "</tr>";
+    const body = matrix.map((r) => {
+      let tds = `<td style="text-align:left;font-weight:700">${escH(r.cohort)}</td><td>${r.size.toLocaleString("en-US")}</td>`;
+      r.cells.forEach((c) => {
+        const t = Math.min(1, c / 100);
+        tds += `<td style="background:${mix(t)};color:${t > 0.55 ? "#fff" : "var(--text)"}" title="${c}% still active">${Math.round(c)}%</td>`;
+      });
+      if (maxCols > r.cells.length) tds += `<td colspan="${maxCols - r.cells.length}" style="border:0"></td>`;
+      return `<tr>${tds}</tr>`;
+    }).join("");
+    zone.innerHTML = `<table>${head}${body}</table>
+      <div style="font-size:.62rem;color:var(--dim);margin-top:.3rem">cohort = quarter of first purchase · cell = % of the cohort ordering k quarters later · +Q0 is 100% by construction</div>`;
+  }
+
+  function sparkline(points) {
+    const lo = Math.min(...points), hi = Math.max(...points), rng = hi - lo || 1;
+    const pts = points.map((v, i) =>
+      `${(i * 110 / Math.max(1, points.length - 1)).toFixed(1)},${(22 - 18 * (v - lo) / rng).toFixed(1)}`).join(" ");
+    return `<svg viewBox="0 0 112 26" width="112" height="26" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#5f5a51" stroke-width="1.6"/></svg>`;
+  }
+
+  function anomalyList(zone, an) {
+    if (!an.flags.length) {
+      zone.innerHTML = `<div style="font-size:.76rem;color:var(--dim);padding:.4rem 0">no series moved more than 2σ in ${escH(an.window)} — steady as she goes.</div>`;
+      return;
+    }
+    zone.innerHTML = `<table><tr><th style="text-align:left">series</th><th>month</th><th>MoM</th><th>z</th><th style="text-align:left">shape</th></tr>` +
+      an.flags.map((f) => `<tr>
+        <td style="text-align:left">${escH(f.series)}</td>
+        <td>${escH(f.month)}</td>
+        <td style="font-weight:700;color:${f.mom_pct >= 0 ? "var(--green)" : "var(--coral)"}">${f.mom_pct >= 0 ? "+" : ""}${f.mom_pct}%</td>
+        <td style="font-weight:700">${f.z >= 0 ? "+" : ""}${f.z}σ</td>
+        <td style="text-align:left">${sparkline(f.points)}</td></tr>`).join("") +
+      `</table><div style="font-size:.62rem;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
+  }
+
+  function driverDrilldown(inv, kind) {
+    return `<details><summary>every dimension's contribution (each partitions the exact delta)</summary>` +
+      Object.entries(inv.by_dim).map(([dim, rows]) => `
+        <table style="margin-top:.4rem"><tr><th style="text-align:left">${escH(dim)}</th><th>prior</th><th>current</th><th>Δ</th></tr>
+        ${rows.map((r) => `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td>
+          <td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${r.delta >= 0 ? "+" : "−"}${F(Math.abs(r.delta), kind)}</td></tr>`).join("")}
+        </table>`).join("") + `</details>`;
   }
 
   function resultTable(result, kind) {
@@ -403,14 +498,23 @@
     const llmOn = $("llm-on").checked;
     const t0 = performance.now();
 
-    // Desk 1 — the Analyst plans (deterministic or live LLM)
-    setDesk("analyst", "agent working", llmOn
+    // Desk 1 — the Analyst plans (deterministic or live LLM).
+    // Analyst kinds (why/retention/anomalies) always stay deterministic.
+    let detPlan = null, detErr = null;
+    try { detPlan = Abacus.parse(question); } catch (e) { detErr = e; }
+    const analystKind = detPlan && detPlan.kind !== "aggregate";
+    setDesk("analyst", "agent working", llmOn && !analystKind
       ? `on the wire to ${escH($("llm-provider").value)}<span class="dots"></span>`
+      : analystKind ? 'this one needs the whole desk<span class="dots"></span>'
       : 'reading your question<span class="dots"></span>');
     await sleep(420);
     let plan, mode = "DETERMINISTIC", modeCls = "", llmMeta = "", llmRaw = null;
     try {
-      if (llmOn) {
+      if (analystKind) {
+        plan = detPlan;
+        mode = plan.kind.toUpperCase();
+        setDesk("analyst", "agent", `parsed ✓ <b>${plan.kind}</b>${plan.metric ? ` on ${plan.metric}` : ""} · ${escH(plan.time.label)}${llmOn ? " (analyst kinds stay deterministic)" : ""}`);
+      } else if (llmOn) {
         const cfg = { provider: $("llm-provider").value, model: $("llm-model").value.trim(),
                       key: $("llm-key").value.trim() };
         if (!cfg.key) throw new Error("no API key pasted — flip off LLM mode or add a key");
@@ -420,7 +524,8 @@
         llmMeta = ` · model ${out.ms} ms · ${out.usage}`;
         setDesk("analyst", "agent", `<b>${escH(cfg.model)}</b> answered in ${out.ms} ms ✓`);
       } else {
-        plan = Abacus.parse(question);
+        if (detErr) throw detErr;
+        plan = detPlan;
         setDesk("analyst", "agent", `parsed ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
       }
     } catch (e) {
@@ -435,22 +540,35 @@
     nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
 
     // Desk 2 — the Librarian resolves it against the manifest
-    setDesk("librarian", "agent working", 'flipping the catalog<span class="dots"></span>');
+    setDesk("librarian", "agent working", analystKind
+      ? 'pulling every dimension card<span class="dots"></span>'
+      : 'flipping the catalog<span class="dots"></span>');
     await sleep(380);
     const man = Abacus.manifest;
-    const msql = man.metrics[plan.metric].sql.split("\n")[0];
-    const joins = ["p", "c"].filter((a) =>
-      (msql + plan.dims.map((d) => man.dimensions[d].sql).join(" ") +
-       (plan.filters || []).map((f) => man.dimensions[f.dim].sql).join(" ")).includes(a + "."));
-    setDesk("librarian", "agent",
-      `<b>${plan.metric}</b> → ${escH(msql.length > 34 ? msql.slice(0, 33) + "…" : msql)} ✓ joins: ${joins.length ? joins.map((j) => j === "p" ? "products" : "customers").join(", ") : "none"}`);
+    if (plan.metric) {
+      const msql = man.metrics[plan.metric].sql.split("\n")[0];
+      const joins = ["p", "c"].filter((a) =>
+        (msql + plan.dims.map((d) => man.dimensions[d].sql).join(" ") +
+         (plan.filters || []).map((f) => man.dimensions[f.dim].sql).join(" ")).includes(a + "."));
+      setDesk("librarian", "agent",
+        `<b>${plan.metric}</b> → ${escH(msql.length > 34 ? msql.slice(0, 33) + "…" : msql)} ✓ joins: ${joins.length ? joins.map((j) => j === "p" ? "products" : "customers").join(", ") : "none"}`);
+    } else {
+      setDesk("librarian", "agent", plan.kind === "retention"
+        ? "cohort recipe: first purchase defines the cohort ✓"
+        : `watchlist out: 7 metric series ✓`);
+    }
 
     // Desk 3 — the Machinist runs it
-    setDesk("machinist", "agent working", 'spinning the flywheel<span class="dots"></span>');
+    const mLabel = { investigate: "running the decomposition",
+                     retention: "walking every customer through the quarters",
+                     anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
+    setDesk("machinist", "agent working", mLabel + '<span class="dots"></span>');
     await sleep(360);
-    let result;
+    let result, story2;
+    const tdb0 = performance.now();
     try {
-      result = Abacus.runPlan(plan);
+      const out = Abacus.runAny(plan);
+      result = out.result; story2 = out.story;
     } catch (e) {
       setDesk("machinist", "agent", "query refused ✗");
       const d = document.createElement("div");
@@ -460,14 +578,38 @@
       busy = false; $("ask").disabled = false;
       return;
     }
-    nSql += 1 + (result.prior ? 1 : 0);
-    chip("machinist", `${nSql} QUERIES · ${result.ms.toFixed(0)} ms last`);
-    setDesk("machinist", "agent", `<b>${result.rows.length}</b> row${result.rows.length === 1 ? "" : "s"} in <b>${result.ms.toFixed(1)} ms</b> ✓`);
+    const dbMs = result.ms !== undefined ? result.ms : performance.now() - tdb0;
+    if (plan.kind === "investigate") {
+      // narrate the fan-out: the queries really ran; the count is real
+      for (let k = 1; k <= result.queries; k += 3) {
+        setDesk("machinist", "agent working", `query ${Math.min(k + 2, result.queries)}/${result.queries} — comparing periods<span class="dots"></span>`);
+        await sleep(90);
+      }
+      nSql += result.queries;
+      setDesk("machinist", "agent", `<b>${result.queries}</b> queries · delta decomposed ✓`);
+    } else if (plan.kind === "retention") {
+      nSql += 2;
+      setDesk("machinist", "agent", `<b>${result.matrix.length}</b> cohorts × ${Math.max(...result.matrix.map((r) => r.cells.length))} quarters ✓`);
+    } else if (plan.kind === "anomalies") {
+      nSql += result.queries;
+      setDesk("machinist", "agent", `<b>${result.flags.length}</b> flags from ${result.queries} series ✓`);
+    } else {
+      nSql += 1 + (result.prior ? 1 : 0);
+      setDesk("machinist", "agent", `<b>${result.rows.length}</b> row${result.rows.length === 1 ? "" : "s"} in <b>${dbMs.toFixed(1)} ms</b> ✓`);
+    }
+    chip("machinist", `${nSql} QUERIES`);
 
     // Desk 4 — the Illustrator inks it
-    setDesk("illustrator", "agent working", 'inking the chart<span class="dots"></span>');
+    const iLabel = { investigate: "drawing the waterfall", retention: "shading the triangle",
+                     anomalies: "circling the outliers" }[plan.kind] || "inking the chart";
+    setDesk("illustrator", "agent working", iLabel + '<span class="dots"></span>');
     await sleep(340);
-    const kind = man.metrics[plan.metric].fmt;
+    const kind = plan.metric ? man.metrics[plan.metric].fmt : "int";
+    const metaBits = plan.kind === "investigate"
+      ? `${result.queries} compiled queries`
+      : plan.kind === "retention" ? `${result.matrix.length} cohorts`
+      : plan.kind === "anomalies" ? `${result.queries} series scanned`
+      : `${result.rows.length} rows · db ${dbMs.toFixed(1)} ms`;
     const card = document.createElement("div");
     card.className = "ans";
     card.innerHTML = `
@@ -475,18 +617,24 @@
       ${planChips(plan)}
       <div class="story"></div>
       <div class="zone"></div>
-      <div class="meta">${result.rows.length} rows · db ${result.ms.toFixed(1)} ms · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
-      <details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>
+      <div class="meta">${metaBits} · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
+      ${plan.kind === "aggregate" ? `<details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>` : ""}
+      ${plan.kind === "investigate" ? driverDrilldown(result, kind) : ""}
       ${llmRaw ? `<details><summary>the model's raw plan</summary><pre>${escH(llmRaw)}</pre></details>` : ""}
-      ${resultTable(result, kind)}`;
+      ${plan.kind === "aggregate" ? resultTable(result, kind) : ""}`;
     $("feed").prepend(card);
     const zone = card.querySelector(".zone");
-    if (!plan.dims.length) statTile(zone, plan, result, kind);
+    if (plan.kind === "investigate") {
+      if (result.waterfall) waterfallChart(zone, result.waterfall, kind);
+      else zone.innerHTML = "";
+    } else if (plan.kind === "retention") heatmap(zone, result.matrix);
+    else if (plan.kind === "anomalies") anomalyList(zone, result);
+    else if (!plan.dims.length) statTile(zone, plan, result, kind);
     else if (man.dimensions[plan.dims[0]].time && plan.dims.length === 1 && result.rows.length > 1)
       lineChart(zone, result.rows, kind);
     else barChart(zone, result.rows.slice(0, 14), kind);
     const story = card.querySelector(".story");
-    const text = Abacus.narrate(plan, result);
+    const text = story2;
     if (REDUCED) story.textContent = text;
     else {
       let i = 0;
@@ -505,10 +653,16 @@
   /* ---------------- eval ---------------- */
   const close = (a, b) => Math.abs(a - b) <= Math.max(1e-6, 1e-9 * Math.abs(b));
   function planEq(a, g) {
-    return a.metric === g.metric
+    const kindsMatch = (a.kind || "aggregate") === (g.kind || "aggregate");
+    const timeMatch = a.time.start === g.time.start && a.time.end === g.time.end;
+    if ((g.kind || "aggregate") !== "aggregate")
+      return kindsMatch && timeMatch && a.metric === g.metric
+        && !!a.compare === !!g.compare
+        && (!a.compare || (a.compare.start === g.compare.start && a.compare.end === g.compare.end));
+    return kindsMatch && a.metric === g.metric
       && JSON.stringify(a.dims) === JSON.stringify(g.dims)
       && JSON.stringify(a.filters || []) === JSON.stringify(g.filters || [])
-      && a.time.start === g.time.start && a.time.end === g.time.end
+      && timeMatch
       && (a.top || null) === (g.top || null)
       && !!a.compare === !!g.compare
       && (!a.compare || (a.compare.start === g.compare.start && a.compare.end === g.compare.end));
@@ -525,8 +679,8 @@
       try {
         const plan = Abacus.parse(g.q);
         pOk = planEq(plan, g.plan);
-        const r = Abacus.runPlan(plan);
-        vOk = r.rows.length === g.rows.length && r.rows.every((row, i) =>
+        const check = Abacus.canonicalCheck(plan, Abacus.runAny(plan).result);
+        vOk = check.length === g.rows.length && check.every((row, i) =>
           row.every((cell, j) => typeof cell === "number" && typeof g.rows[i][j] === "number"
             ? close(cell, g.rows[i][j]) : String(cell) === String(g.rows[i][j])));
         if (!pOk) note = "plan differs";
@@ -561,14 +715,14 @@
 
   /* ---------------- boot ---------------- */
   const EXAMPLES = [
+    "why did revenue jump in q4 2025 vs the previous quarter",
+    "retention by signup cohort",
+    "scan 2025 for anomalies",
     "revenue by region last quarter",
     "margin % by category in 2025",
     "revenue ytd vs last year",
     "top 5 products by revenue last quarter",
     "mobile revenue by month in 2026",
-    "vip aov last quarter",
-    "return rate by category in 2025",
-    "new customers by month in 2026",
   ];
 
   (async () => {
@@ -597,7 +751,11 @@
         <div><b>slice by</b><br>${Object.keys(manifest.dimensions).join(", ")}<br><br>
              <b>filter with</b><br>${Object.entries(manifest.values).map(([d, vs]) => `${d}: ${vs.join(", ")}`).join("<br>")}</div>
         <div><b>time</b><br>last quarter · this quarter · q4 2025 · in 2025 · june 2026 · last 6 months · ytd · all time<br><br>
-             <b>extras</b><br>top 5 … · “vs last year” / “vs previous period” on totals</div>`;
+             <b>extras</b><br>top 5 … · “vs last year” / “vs previous period” on totals</div>
+        <div><b>and the analyst kinds</b><br>
+             “why did revenue jump in q4 2025 vs the previous quarter” → driver decomposition + waterfall<br>
+             “retention by signup cohort” → the retention triangle<br>
+             “scan 2025 for anomalies” → z-scores across every watched series</div>`;
     } catch (e) {
       setDesk("analyst", "agent", "warehouse failed to load ✗");
       const d = document.createElement("div");
