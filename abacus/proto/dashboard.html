@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abacus · Dashboard prototype</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<script src="../vendor/sql-wasm.js"></script>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --line: #e3e6ea;
+    --text: #1f2632; --dim: #6b7280; --grid: #eceef1; --chip: #eef1f8;
+    --green: #2f8a58; --coral: #b8463a; --gold: #8f6f1d; --viz-accent: #3f5aa0;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; }
+  .top { display: flex; align-items: center; gap: 1rem; padding: .7rem 1.2rem; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+  .top .brand { font-weight: 800; letter-spacing: -.01em; } .top .brand b { color: var(--viz-accent); }
+  .top .spacer { flex: 1; }
+  .top a { color: var(--dim); text-decoration: none; font-size: .85rem; } .top a:hover { color: var(--text); }
+  select { font: inherit; padding: .35rem .6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 1.1rem 1.2rem 3rem; }
+  .crumbs { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; min-height: 1.8rem; margin-bottom: .8rem; font-size: .82rem; color: var(--dim); }
+  .crumbs .f { background: var(--chip); border: 1px solid var(--line); color: var(--viz-accent); border-radius: 999px; padding: .12rem .6rem; font-weight: 600; cursor: pointer; }
+  .crumbs .f:hover { background: var(--coral); color: #fff; border-color: var(--coral); }
+  .crumbs .f:hover::after { content: " ✕"; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-bottom: 1rem; }
+  @media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; cursor: pointer; transition: box-shadow .15s, transform .15s; position: relative; }
+  .kpi:hover { box-shadow: 0 6px 18px rgba(31,38,50,.09); transform: translateY(-2px); }
+  .kpi .lab { font-size: .72rem; color: var(--dim); font-weight: 600; }
+  .kpi .val { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; margin-top: .2rem; font-variant-numeric: tabular-nums; }
+  .kpi .dl { font-size: .72rem; font-weight: 700; margin-top: .1rem; } .kpi .dl.up { color: var(--green); } .kpi .dl.dn { color: var(--coral); }
+  .kpi .why { position: absolute; top: .6rem; right: .7rem; font-size: .64rem; color: var(--dim); opacity: 0; transition: opacity .15s; }
+  .kpi:hover .why { opacity: 1; color: var(--viz-accent); }
+  .charts { display: grid; grid-template-columns: 1.3fr 1fr; gap: .8rem; margin-bottom: 1rem; }
+  @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; }
+  .panel h3 { font-size: .82rem; margin-bottom: .1rem; display: flex; align-items: center; gap: .5rem; }
+  .panel h3 .act { margin-left: auto; font-size: .7rem; font-weight: 700; color: var(--viz-accent); cursor: pointer; border: 1px solid var(--line); border-radius: 7px; padding: .1rem .5rem; }
+  .panel h3 .act:hover { background: var(--chip); }
+  .panel .sub { font-size: .68rem; color: var(--dim); margin-bottom: .2rem; }
+  .clickable .bar { cursor: pointer; }
+  .reports { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .reports button { flex: 1; min-width: 160px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--rc); border-radius: 10px; padding: .55rem .8rem; cursor: pointer; }
+  .reports button:hover { box-shadow: 0 5px 14px rgba(31,38,50,.08); }
+  .reports .t { font-weight: 700; font-size: .82rem; } .reports .d { font-size: .68rem; color: var(--dim); }
+  #detail { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; min-height: 80px; }
+  #detail .placeholder { color: var(--dim); font-size: .85rem; text-align: center; padding: 1.5rem 0; }
+  #detail h3 { font-size: .9rem; margin-bottom: .4rem; }
+  #load { max-width: 320px; margin: 4rem auto; text-align: center; color: var(--dim); }
+  #load .b { height: 6px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: .5rem; }
+  #load .b i { display: block; height: 100%; width: 0; background: var(--viz-accent); }
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="brand">Abacus <b>Dashboard</b></span>
+    <span class="spacer"></span>
+    <label style="font-size:.8rem;color:var(--dim)">window</label>
+    <select id="win"></select>
+    <a href="./">← all prototypes</a>
+  </div>
+  <div class="wrap">
+    <div id="load">building the dashboard…<div class="b"><i id="loadfill"></i></div></div>
+    <div id="app" style="display:none">
+      <div class="crumbs" id="crumbs"><span>click a KPI to explain it · click a category bar to cross-filter everything</span></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="charts">
+        <div class="panel"><h3>Revenue trend <span class="act" id="explain-trend">explain ↝</span></h3><div class="sub" id="trend-sub"></div><div id="trend"></div></div>
+        <div class="panel clickable"><h3>Revenue by category</h3><div class="sub">click a bar to filter the whole page</div><div id="cat"></div></div>
+      </div>
+      <div class="reports">
+        <button style="--rc:var(--green)" id="rep-cohort"><div class="t">🧭 Retention triangle</div><div class="d">cohorts by first-purchase quarter</div></button>
+        <button style="--rc:var(--gold)" id="rep-anom"><div class="t">📡 Anomaly scan</div><div class="d">z-scores across the watchlist</div></button>
+        <button style="--rc:var(--viz-accent)" id="rep-eval"><div class="t">✓ Parity eval</div><div class="d">browser engine vs Python twin, live</div></button>
+      </div>
+      <div id="detail"><div class="placeholder">Your drill-downs and investigations appear here.</div></div>
+    </div>
+  </div>
+
+<script src="../engine.js"></script>
+<script src="viz.js"></script>
+<script>
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  Viz.injectCSS();
+  const TIME = ["2025","ytd","last quarter","q4 2025","q3 2025","last 6 months","2024","all time"];
+  const state = { phrase: "2025", filters: [] };
+  const tf = (p)=>Abacus.timeFromPhrase(p);
+  const KPI = [
+    { metric:"revenue", lab:"Net revenue", cmp:true },
+    { metric:"orders", lab:"Orders", cmp:true },
+    { metric:"aov", lab:"Avg order value", cmp:true },
+    { metric:"return_rate", lab:"Return rate", cmp:false },
+  ];
+  function prevOf(t){ const s=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10)}; const n=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1; return {start:s(t.start,-n),end:s(t.start,-1),label:"previous period"}; }
+  function base(extra){ return Object.assign({ kind:"aggregate", dims:[], filters:[...state.filters], time: tf(state.phrase).time, top:null, compare:null }, extra); }
+
+  function renderCrumbs(){
+    const c = $("crumbs"); c.innerHTML = "";
+    if (!state.filters.length){ c.innerHTML = `<span>window <b>${tf(state.phrase).time.label}</b> · click a KPI to explain it · click a category bar to cross-filter</span>`; return; }
+    const w = document.createElement("span"); w.innerHTML = `window <b>${tf(state.phrase).time.label}</b> · filters:`; c.appendChild(w);
+    state.filters.forEach((f,i)=>{ const b=document.createElement("span"); b.className="f"; b.textContent=`${f.dim}: ${f.value}`; b.title="remove"; b.addEventListener("click",()=>{ state.filters.splice(i,1); build(); }); c.appendChild(b); });
+  }
+
+  function buildKPIs(){
+    const grid = $("kpis"); grid.innerHTML="";
+    for (const k of KPI){
+      const man = Abacus.manifest, kind = man.metrics[k.metric].fmt;
+      const cur = Abacus.runPlan(base({metric:k.metric})).rows[0]?.slice(-1)[0] ?? 0;
+      let dl = "";
+      if (k.cmp){
+        const t = tf(state.phrase).time, comp = /YTD|all time/.test(t.label)? {start:(+t.start.slice(0,4)-1)+t.start.slice(4),end:(+t.end.slice(0,4)-1)+t.end.slice(4)} : prevOf(t);
+        const pri = Abacus.runPlan(base({metric:k.metric, time:comp})).rows[0]?.slice(-1)[0] ?? 0;
+        if (pri){ const d=100*(cur-pri)/Math.abs(pri); dl=`<div class="dl ${d>=0?"up":"dn"}">${d>=0?"▲":"▼"} ${Math.abs(d).toFixed(1)}% vs prior</div>`; }
+      }
+      const el = document.createElement("div"); el.className="kpi";
+      el.innerHTML = `<div class="lab">${man.metrics[k.metric].label}</div><div class="val">${Viz.F(cur,kind)}</div>${dl}<span class="why">🔎 explain</span>`;
+      el.addEventListener("click", ()=> drill({kind:"investigate", metric:k.metric, dims:[], filters:[...state.filters], time: tf(state.phrase).time, top:null, compare: prevOf(tf(state.phrase).time)}));
+      grid.appendChild(el);
+    }
+  }
+
+  function buildCharts(){
+    const trend = Abacus.runAny(base({metric:"revenue", dims:["month"]}));
+    $("trend-sub").textContent = trend.story.split("—")[1]?.trim() || "";
+    Viz.chart($("trend"), base({metric:"revenue",dims:["month"]}), trend.result, "money");
+    const catPlan = base({metric:"revenue", dims:["category"]});
+    const cat = Abacus.runAny(catPlan);
+    Viz.chart($("cat"), catPlan, cat.result, "money");
+    // make category bars cross-filter
+    const rows = cat.result.rows.slice(0,14);
+    $("cat").querySelectorAll(".bar").forEach((bar,i)=>{
+      bar.style.cursor="pointer";
+      bar.addEventListener("click", ()=>{ const v=rows[i][0]; if(!state.filters.some(f=>f.dim==="category"&&f.value===v)){ state.filters=state.filters.filter(f=>f.dim!=="category"); state.filters.push({dim:"category",value:v}); build(); } });
+    });
+  }
+
+  function drill(plan, title){
+    const d = $("detail");
+    d.innerHTML = `<h3>${title||"🔎 " + planTitle(plan)}</h3><div class="mount"></div>`;
+    Viz.renderCard(d.querySelector(".mount"), plan, ...run(plan));
+    d.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  function run(p){ const {result,story}=Abacus.runAny(p); return [result,story,{onWhy:(pl)=>drill({kind:"investigate",metric:pl.metric,dims:[],filters:pl.filters,time:pl.time,top:null,compare:pl.compare||prevOf(pl.time)})}]; }
+  function planTitle(p){ const man=Abacus.manifest; if(p.kind==="investigate")return `Why did ${man.metrics[p.metric].label.toLowerCase()} move — ${p.time.label}?`; if(p.kind==="retention")return "Retention by cohort"; if(p.kind==="anomalies")return "Anomaly scan · "+p.time.label; return man.metrics[p.metric].label; }
+
+  function build(){ renderCrumbs(); buildKPIs(); buildCharts(); }
+
+  $("explain-trend").addEventListener("click", ()=> drill({kind:"investigate",metric:"revenue",dims:[],filters:[...state.filters],time:tf(state.phrase).time,top:null,compare:prevOf(tf(state.phrase).time)}));
+  $("rep-cohort").addEventListener("click", ()=> drill({kind:"retention",metric:null,dims:[],filters:[],time:tf(state.phrase).time,top:null,compare:null}, "🧭 Retention by signup cohort"));
+  $("rep-anom").addEventListener("click", ()=> drill({kind:"anomalies",metric:null,dims:[],filters:[],time:tf(state.phrase).time,top:null,compare:null}, "📡 Anomaly scan · "+tf(state.phrase).time.label));
+  $("rep-eval").addEventListener("click", runEval);
+
+  async function runEval(){
+    const d=$("detail"); d.innerHTML=`<h3>✓ Parity eval</h3><div id="ev" style="font-size:.82rem;color:var(--dim)">replaying 35 golden questions through the browser engine…</div>`;
+    const golds = await (await fetch("../data/goldens.json")).json();
+    const close=(a,b)=>Math.abs(a-b)<=Math.max(1e-6,1e-9*Math.abs(b)); let pOk=0,vOk=0;
+    for (const g of golds){ try{ const pl=Abacus.parse(g.q); const chk=Abacus.canonicalCheck(pl,Abacus.runAny(pl).result);
+      const v=chk.length===g.rows.length&&chk.every((r,i)=>r.every((c,j)=>typeof c==="number"&&typeof g.rows[i][j]==="number"?close(c,g.rows[i][j]):String(c)===String(g.rows[i][j])));
+      pOk++; if(v)vOk++; }catch(e){} }
+    $("ev").innerHTML = `<b style="color:var(--green)">${vOk}/${golds.length}</b> results match the Python engine to the cent · ${pOk}/${golds.length} plans parse identically`;
+  }
+
+  (async()=>{
+    await Viz.boot((g,t)=>{ $("loadfill").style.width=Math.round(100*g/t)+"%"; });
+    const sel=$("win"); TIME.forEach(p=>{ const o=document.createElement("option"); o.value=p; o.textContent=tf(p).time.label; sel.appendChild(o); });
+    sel.value=state.phrase; sel.addEventListener("change",()=>{ state.phrase=sel.value; build(); });
+    $("load").style.display="none"; $("app").style.display="";
+    build();
+  })();
+</script>
+</body>
+</html>

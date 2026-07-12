@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abacus — choose an interface</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<style>
+  :root { --bg:#f4f2ec; --panel:#fffdf8; --line:#ddd6c8; --text:#1c1a17; --dim:#5f5a51; --blue:#3f5aa0; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"Segoe UI",system-ui,sans-serif; line-height:1.55; padding:2rem 1rem 4rem; }
+  .wrap { max-width:1000px; margin:0 auto; }
+  header { text-align:center; margin-bottom:.4rem; }
+  h1 { font-size:1.8rem; letter-spacing:-.01em; }
+  .sub { color:var(--dim); max-width:640px; margin:.5rem auto 0; }
+  .note { text-align:center; font-size:.76rem; color:var(--dim); margin:.8rem auto 2rem; max-width:640px; border:1.5px dashed var(--line); border-radius:10px; padding:.5rem .8rem; background:var(--panel); }
+  .note b { color:#2f8a58; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  @media (max-width:820px){ .grid { grid-template-columns:1fr; } }
+  .card { background:var(--panel); border:1.5px solid var(--line); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:4px 4px 0 rgba(28,26,23,.05); transition:transform .15s, box-shadow .15s; }
+  .card:hover { transform:translateY(-3px); box-shadow:7px 9px 0 rgba(28,26,23,.07); }
+  .thumb { height:150px; display:flex; align-items:center; justify-content:center; font-size:.7rem; position:relative; overflow:hidden; }
+  .thumb .big { font-size:2.4rem; }
+  .t-console { background:#12151c; color:#8aa2c8; font-family:ui-monospace,monospace; }
+  .t-console .l { position:absolute; left:14px; right:14px; }
+  .t-dash { background:linear-gradient(135deg,#eef1f8,#fff); }
+  .t-dash .row { display:flex; gap:6px; }
+  .t-dash .tile { width:52px; height:34px; background:#fff; border:1px solid #e3e6ea; border-radius:6px; }
+  .t-dash .bar { height:8px; border-radius:3px; background:#3f5aa0; margin-top:5px; }
+  .t-studio { background:#faf8f3; color:#211d18; font-family:Georgia,serif; padding:0 1.4rem; text-align:left; }
+  .t-studio .u { color:#3f5aa0; border-bottom:2px solid rgba(63,90,160,.3); }
+  .body { padding:1rem 1.1rem 1.2rem; display:flex; flex-direction:column; flex:1; }
+  .body h2 { font-size:1.1rem; } .body .pitch { color:var(--dim); font-size:.85rem; margin:.3rem 0 .7rem; flex:0; }
+  .body ul { list-style:none; padding:0; margin:0 0 1rem; font-size:.78rem; }
+  .body li { padding-left:1.1rem; position:relative; margin-bottom:.2rem; }
+  .body li:before { content:"▸"; position:absolute; left:0; color:var(--blue); }
+  .body .for { font-size:.7rem; color:var(--dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.7rem; }
+  .open { margin-top:auto; text-align:center; text-decoration:none; font-weight:700; font-size:.9rem; color:#fff; background:var(--blue); border-radius:10px; padding:.55rem; }
+  .open:hover { filter:brightness(1.08); }
+  footer { text-align:center; color:var(--dim); font-size:.75rem; margin-top:2rem; }
+  footer a { color:var(--blue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Abacus — pick an interface</h1>
+    <p class="sub">Three genuinely different front-ends over the <b>same real engine</b>. Every one runs live queries against the 125k-row warehouse in your browser — no mockups. Click through, then tell me which direction to make the real one.</p>
+  </header>
+  <p class="note">All three share one engine + one result renderer, so the <b>charts and math are identical</b> everywhere — only the way you <b>build the question</b> changes. The current live site is a fourth option (the pixel “plan board”).</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="thumb t-console"><div class="l"><span style="color:#6ec18a">abacus ❯</span> select <span style="color:#6f9cf0">revenue</span> by <span style="color:#6f9cf0">region</span><br><br><span style="color:#7c8698">[1] running…</span> ▏</div></div>
+      <div class="body">
+        <div class="for">for a technical eye</div>
+        <h2>Console</h2>
+        <p class="pitch">An analyst REPL. The query is a command line of clickable tokens; results stream as notebook cells.</p>
+        <ul><li>Dark IDE aesthetic, monospace</li><li>Tokens + <code>\why \cohort \scan</code> commands</li><li>Reads as “this person writes code”</li></ul>
+        <a class="open" href="console.html">Open Console →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="thumb t-dash">
+        <div><div class="row"><div class="tile"></div><div class="tile"></div><div class="tile"></div></div><div class="bar" style="width:150px"></div><div class="bar" style="width:110px;opacity:.6"></div><div class="bar" style="width:80px;opacity:.4"></div></div>
+      </div>
+      <div class="body">
+        <div class="for">for a business / PM eye</div>
+        <h2>Dashboard</h2>
+        <p class="pitch">A live command center. KPIs and charts load on open; you click <em>into</em> the data — no composing.</p>
+        <ul><li>Click a KPI → it explains itself</li><li>Click a bar → cross-filter everything</li><li>Reads as a real BI product</li></ul>
+        <a class="open" href="dashboard.html">Open Dashboard →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="thumb t-studio"><div style="font-size:1.15rem;line-height:1.5">Show me <span class="u">revenue</span> by <span class="u">region</span> for <span class="u">last quarter</span>.</div></div>
+      <div class="body">
+        <div class="for">for a design eye</div>
+        <h2>Studio</h2>
+        <p class="pitch">One calm sentence you complete, one big editorial answer. Serif, whitespace, no clutter.</p>
+        <ul><li>Fill in the blanks of a sentence</li><li>Auto-runs; one focused result</li><li>Reads as a premium, considered tool</li></ul>
+        <a class="open" href="studio.html">Open Studio →</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    prototypes over the shared Abacus engine · the current live board is at <a href="../">/abacus/</a> · part of <a href="/">hnguyen.dev</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abacus · Studio prototype</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍</text></svg>">
+<script src="../vendor/sql-wasm.js"></script>
+<style>
+  :root {
+    --bg: #faf8f3; --panel: #fffdf8; --line: #e7e2d6; --text: #211d18; --dim: #857c6e;
+    --grid: #ece7db; --chip: #f2eee4; --green: #2f7c54; --coral: #b8463a; --gold: #8f6f1d; --viz-accent: #3f5aa0;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  .top { display: flex; align-items: center; padding: 1rem 1.4rem; }
+  .top .brand { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; letter-spacing: .01em; }
+  .top .brand em { color: var(--viz-accent); font-style: normal; }
+  .top .spacer { flex: 1; }
+  .top a { color: var(--dim); text-decoration: none; font-size: .85rem; } .top a:hover { color: var(--text); }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 1.5rem 1.4rem 4rem; }
+  .compose { font-family: var(--serif); font-size: clamp(1.5rem, 3.6vw, 2.15rem); line-height: 1.45; letter-spacing: -.01em; color: var(--text); margin: 1.5rem 0 1rem; }
+  .compose .lead { color: var(--dim); }
+  .pick { color: var(--viz-accent); border-bottom: 2px solid rgba(63,90,160,.28); cursor: pointer; white-space: nowrap; position: relative; }
+  .pick:hover { border-bottom-color: var(--viz-accent); }
+  .pick.ph { color: var(--dim); border-bottom-style: dashed; font-style: italic; }
+  .pick .car { font-size: .55em; vertical-align: .2em; color: var(--dim); margin-left: .12em; }
+  .compose .opt { color: var(--dim); }
+  .menu { position: absolute; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .35rem; box-shadow: 0 16px 40px rgba(33,29,24,.16); max-height: 340px; overflow: auto; min-width: 210px; font-family: -apple-system, system-ui, sans-serif; font-size: .9rem; }
+  .menu button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: var(--text); font: inherit; padding: .35rem .6rem; border-radius: 8px; cursor: pointer; }
+  .menu button:hover { background: var(--chip); color: var(--viz-accent); }
+  .menu .grp { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; padding: .4rem .6rem .15rem; }
+  .under { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; font-size: .82rem; color: var(--dim); flex-wrap: wrap; }
+  .under button { font: inherit; font-size: .82rem; background: transparent; border: 0; color: var(--dim); cursor: pointer; border-bottom: 1px dashed var(--line); padding: 0 0 1px; }
+  .under button:hover, .under button.on { color: var(--viz-accent); border-bottom-color: var(--viz-accent); }
+  .under button.on { font-weight: 700; }
+  .answer { border-top: 1px solid var(--line); padding-top: 1.6rem; opacity: 0; transition: opacity .4s; }
+  .answer.show { opacity: 1; }
+  .answer .kicker { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: .5rem; }
+  .answer .lede { font-family: var(--serif); font-size: 1.25rem; line-height: 1.5; color: var(--text); margin-bottom: 1rem; min-height: 1.4em; }
+  .answer .lede b { color: var(--text); }
+  .answer .why { font: inherit; font-family: var(--serif); font-size: 1.05rem; background: transparent; border: 0; color: var(--coral); cursor: pointer; border-bottom: 2px solid rgba(184,70,58,.3); padding: 0; margin-top: .5rem; }
+  .answer .why:hover { border-bottom-color: var(--coral); }
+  .thinking { font-family: var(--serif); font-size: 1.2rem; color: var(--dim); }
+  .thinking .d { display: inline-block; animation: bob 1s ease-in-out infinite; } .thinking .d:nth-child(2){animation-delay:.15s} .thinking .d:nth-child(3){animation-delay:.3s}
+  @keyframes bob { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+  .planchips { margin-top: 1rem; opacity: .8; }
+  #load { text-align: center; color: var(--dim); margin: 5rem auto; max-width: 300px; font-family: var(--serif); font-size: 1.1rem; }
+  #load .b { height: 5px; background: var(--chip); border-radius: 999px; overflow: hidden; margin-top: .7rem; }
+  #load .b i { display: block; height: 100%; width: 0; background: var(--viz-accent); }
+  .mini { margin-top: 2.5rem; font-size: .82rem; color: var(--dim); display: flex; gap: 1.2rem; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 1rem; }
+  .mini button { font: inherit; font-size: .82rem; background: transparent; border: 0; color: var(--viz-accent); cursor: pointer; }
+  .mini button:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="top"><span class="brand">Abacus <em>Studio</em></span><span class="spacer"></span><a href="./">← all prototypes</a></div>
+  <div class="wrap">
+    <div id="load">preparing the studio…<div class="b"><i id="loadfill"></i></div></div>
+    <div id="app" style="display:none">
+      <div class="compose" id="compose"></div>
+      <div class="under">
+        <button id="cmp-prev">compare to previous period</button>
+        <button id="cmp-yoy">compare to last year</button>
+      </div>
+      <div class="answer" id="answer"></div>
+      <div class="mini">
+        <span>go deeper —</span>
+        <button data-r="cohort">retention by cohort</button>
+        <button data-r="scan">scan for anomalies</button>
+        <span style="margin-left:auto;color:var(--dim)">every figure is compiled to SQL and computed live · no chatbox</span>
+      </div>
+    </div>
+  </div>
+
+<script src="../engine.js"></script>
+<script src="viz.js"></script>
+<script>
+  "use strict";
+  const $ = (id)=>document.getElementById(id);
+  Viz.injectCSS();
+  const TIME = ["last quarter","this quarter","q4 2025","q3 2025","2025","2024","ytd","last 6 months","june 2026","all time"];
+  const st = { metric:null, dim:null, timeIdx:0, cmp:null };
+  const tf=(p)=>Abacus.timeFromPhrase(p);
+  const prevOf=(t)=>{ const s=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10)}; const n=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1; return {start:s(t.start,-n),end:s(t.start,-1),label:"previous period"}; };
+  function compareAllowed(){ return !st.dim || Abacus.manifest.dimensions[st.dim].time; }
+  function curCompare(){ if(!st.cmp||!compareAllowed())return null; return tf(TIME[st.timeIdx]+(st.cmp==="yoy"?" vs last year":" vs previous period")).compare; }
+  function plan(){ return { kind:"aggregate", metric:st.metric, dims: st.dim?[st.dim]:[], filters:[], time: tf(TIME[st.timeIdx]).time, top: st.dim==="product"?10:null, compare: curCompare() }; }
+
+  function menu(anchor, groups, onPick){
+    document.querySelectorAll(".menu").forEach(m=>m.remove());
+    const m=document.createElement("div"); m.className="menu";
+    for(const g of groups){ if(g.label){const h=document.createElement("div");h.className="grp";h.textContent=g.label;m.appendChild(h);} for(const it of g.items){const b=document.createElement("button");b.textContent=it.label;b.addEventListener("click",()=>{m.remove();onPick(it.value);});m.appendChild(b);} }
+    document.body.appendChild(m);
+    const r=anchor.getBoundingClientRect();
+    m.style.left=Math.min(r.left,window.innerWidth-m.offsetWidth-10)+"px";
+    m.style.top=(r.bottom+6+window.scrollY)+"px";
+    setTimeout(()=>document.addEventListener("click",function h(e){ if(!m.contains(e.target)&&!anchor.contains(e.target)){m.remove();document.removeEventListener("click",h);} }), 0);
+  }
+
+  function renderCompose(){
+    const man=Abacus.manifest;
+    const mLabel = st.metric ? man.metrics[st.metric].label.toLowerCase() : "a measure";
+    const dLabel = st.dim ? man.dimensions[st.dim].label : "everything";
+    const wLabel = tf(TIME[st.timeIdx]).time.label;
+    $("compose").innerHTML =
+      `<span class="lead">Show me</span> <span class="pick ${st.metric?"":"ph"}" id="p-metric">${mLabel}<span class="car">▾</span></span> ` +
+      `<span class="opt">by</span> <span class="pick ${st.dim?"":"ph"}" id="p-dim">${dLabel}<span class="car">▾</span></span> ` +
+      `<span class="opt">for</span> <span class="pick" id="p-win">${wLabel}<span class="car">▾</span></span><span class="lead">.</span>`;
+    $("p-metric").addEventListener("click",(e)=>menu(e.currentTarget,[{label:"measures",items:Object.entries(man.metrics).map(([k,v])=>({label:v.label,value:k}))}],v=>{st.metric=v;changed();}));
+    $("p-dim").addEventListener("click",(e)=>menu(e.currentTarget,[{items:[{label:"— just the total —",value:"__none"}]},{label:"break down by",items:Object.entries(man.dimensions).map(([k,v])=>({label:v.label,value:k}))}],v=>{st.dim=v==="__none"?null:v;changed();}));
+    $("p-win").addEventListener("click",(e)=>menu(e.currentTarget,[{label:"window",items:TIME.map((p,i)=>({label:tf(p).time.label,value:i}))}],v=>{st.timeIdx=v;changed();}));
+    $("cmp-prev").classList.toggle("on",st.cmp==="prev"&&compareAllowed());
+    $("cmp-yoy").classList.toggle("on",st.cmp==="yoy"&&compareAllowed());
+    $("cmp-prev").style.opacity=$("cmp-yoy").style.opacity=compareAllowed()?1:.4;
+  }
+
+  let tmr=null;
+  function changed(){ renderCompose(); if(st.metric){ clearTimeout(tmr); tmr=setTimeout(()=>runIt(plan()),260); } }
+
+  function runIt(p){
+    const a=$("answer"); a.classList.add("show");
+    const kick = {aggregate:"THE FIGURE",investigate:"THE INVESTIGATION",retention:"RETENTION",anomalies:"ANOMALY SCAN"}[p.kind]||"RESULT";
+    a.innerHTML = `<div class="kicker">${kick}</div><div class="thinking"><span class="d">●</span><span class="d">●</span><span class="d">●</span></div>`;
+    setTimeout(()=>{
+      const {result,story}=Abacus.runAny(p);
+      a.innerHTML = `<div class="kicker">${kick}</div><div class="lede"></div><div class="mount"></div>`;
+      Viz.renderCard(a.querySelector(".mount"), p, result, story, { chips:true, onWhy:null });
+      // move the typed narration up into the serif lede, hide the plain one
+      const plain = a.querySelector(".viz-story"); plain.style.display="none";
+      const lede=a.querySelector(".lede");
+      typeSerif(lede, story);
+      if (p.kind==="aggregate" && p.dims.length===0 && result.rows.length){
+        const b=document.createElement("button"); b.className="why"; b.textContent="Why did it move? →";
+        b.addEventListener("click",()=> runIt({kind:"investigate",metric:p.metric,dims:[],filters:p.filters,time:p.time,top:null,compare:p.compare||prevOf(p.time)}));
+        a.querySelector(".mount").appendChild(b);
+      }
+    }, Viz.REDUCED?0:360);
+  }
+  function typeSerif(el,text){ if(Viz.REDUCED){el.textContent=text;return;} let i=0; const iv=setInterval(()=>{i+=5;el.textContent=text.slice(0,i); if(i>=text.length)clearInterval(iv);},14); }
+
+  $("cmp-prev").addEventListener("click",()=>{ if(!compareAllowed())return; st.cmp=st.cmp==="prev"?null:"prev"; changed(); });
+  $("cmp-yoy").addEventListener("click",()=>{ if(!compareAllowed())return; st.cmp=st.cmp==="yoy"?null:"yoy"; changed(); });
+  document.querySelectorAll(".mini button").forEach(b=>b.addEventListener("click",()=>{
+    const time=tf(TIME[st.timeIdx]).time;
+    if(b.dataset.r==="cohort") runIt({kind:"retention",metric:null,dims:[],filters:[],time,top:null,compare:null});
+    if(b.dataset.r==="scan") runIt({kind:"anomalies",metric:null,dims:[],filters:[],time,top:null,compare:null});
+  }));
+
+  (async()=>{
+    await Viz.boot((g,t)=>{ $("loadfill").style.width=Math.round(100*g/t)+"%"; });
+    $("load").style.display="none"; $("app").style.display="";
+    st.timeIdx=TIME.indexOf("last quarter");
+    renderCompose();
+    setTimeout(()=>{ if(!st.metric){ st.metric="revenue"; st.timeIdx=TIME.indexOf("q4 2025"); st.cmp="prev"; changed(); } }, 900);
+  })();
+</script>
+</body>
+</html>
