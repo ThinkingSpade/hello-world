@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse — the morning brief that writes itself</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --grid: #e5e1d6;
+    --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58; --violet: #6a47a0;
+    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1rem; }
+  h1 { font-size: 1.7rem; letter-spacing: .06em; }
+  h1 .dot { color: var(--green); animation: caret .9s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
+  .honesty { display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim); border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem; background: var(--panel); max-width: 720px; }
+  .honesty b { color: var(--green); }
+  .card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(28,26,23,.05); }
+  .card h2 { font-size: .92rem; letter-spacing: .04em; margin-bottom: .2rem; }
+  .card .src { font-size: .64rem; color: var(--dim); margin-bottom: .6rem; }
+  .card .src a { color: var(--blue); }
+  /* wire strip */
+  .wires { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
+  .wire { display: flex; align-items: center; gap: .45rem; background: var(--panel); border: 1.5px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: .68rem; color: var(--dim); }
+  .wire i { width: 9px; height: 9px; border-radius: 50%; background: #b8b2a4; }
+  .wire.up i { background: var(--green); }
+  .wire.down i { background: var(--coral); animation: blinkled .6s steps(2) infinite; }
+  .wire.wait i { background: var(--gold); animation: blinkled 1s steps(2) infinite; }
+  @keyframes blinkled { 50% { opacity: .25; } }
+  .wire b { color: var(--text); }
+  /* hero debt */
+  .hero { text-align: center; padding: 1.3rem 1rem 1.1rem; }
+  .hero .label { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .hero .big { font-size: clamp(1.6rem, 5.2vw, 3rem); font-weight: 800; letter-spacing: .01em; margin: .2rem 0; font-variant-numeric: tabular-nums; }
+  .hero .sub { font-size: .72rem; color: var(--dim); }
+  .hero .sub b { color: var(--text); }
+  .hero .pace { display: inline-block; margin-top: .5rem; font-size: .66rem; color: var(--coral); border: 1.5px solid var(--coral); border-radius: 999px; padding: .08rem .6rem; font-weight: 700; }
+  /* fx board */
+  .fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem; }
+  .fxtile { border: 1.5px solid var(--line); border-radius: 10px; padding: .5rem .65rem; background: var(--panel); position: relative; }
+  .fxtile .sym { font-weight: 800; font-size: .8rem; }
+  .fxtile .sym i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: .35rem; vertical-align: 0; }
+  .fxtile .rate { font-size: .95rem; font-weight: 700; margin-top: .1rem; font-variant-numeric: tabular-nums; }
+  .fxtile .chg { font-size: .66rem; font-weight: 700; }
+  .fxtile .chg.up { color: var(--green); } .fxtile .chg.dn { color: var(--coral); }
+  .fxtile svg { width: 100%; height: 30px; margin-top: .25rem; }
+  .fxtile .per { font-size: .6rem; color: var(--dim); }
+  /* charts */
+  .chartwrap { position: relative; }
+  .chartwrap svg { width: 100%; height: auto; display: block; }
+  .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: .66rem; border-radius: 8px; padding: .4rem .6rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; box-shadow: 3px 3px 0 rgba(28,26,23,.18); }
+  .tip .t { color: #c9c2b4; }
+  .tip .row { display: flex; align-items: center; gap: .35rem; }
+  .tip .row i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .68rem; color: var(--dim); margin: .3rem 0 .1rem; }
+  .legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .3rem; vertical-align: -1px; }
+  .ranges { display: inline-flex; gap: .25rem; margin-left: .6rem; }
+  .ranges button { font: inherit; font-size: .64rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .12rem .5rem; cursor: pointer; }
+  .ranges button.on { background: var(--text); color: #fff; border-color: var(--text); }
+  details.tbl { margin-top: .5rem; font-size: .68rem; color: var(--dim); }
+  details.tbl summary { cursor: pointer; }
+  details.tbl table { border-collapse: collapse; margin-top: .4rem; width: 100%; font-variant-numeric: tabular-nums; }
+  details.tbl th, details.tbl td { border: 1px solid var(--line); padding: .15rem .45rem; text-align: right; }
+  details.tbl th:first-child, details.tbl td:first-child { text-align: left; }
+  /* world bank tiles */
+  .wbgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .6rem; }
+  .wbtile { border: 1.5px solid var(--line); border-radius: 10px; padding: .55rem .7rem; background: var(--panel); }
+  .wbtile .c { font-weight: 800; font-size: .78rem; }
+  .wbtile .v { font-size: .72rem; margin-top: .2rem; }
+  .wbtile .v b { font-variant-numeric: tabular-nums; }
+  .wbtile .v .up { color: var(--green); } .wbtile .v .dn { color: var(--coral); }
+  /* analyst + brief */
+  .briefrow { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; align-items: start; }
+  @media (max-width: 760px) { .briefrow { grid-template-columns: 1fr; } }
+  .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(28,26,23,.05); }
+  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; }
+  .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+  .agent .nm { font-weight: 800; font-size: .84rem; }
+  .agent .rl { font-size: .66rem; color: var(--green); font-weight: 700; }
+  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
+  .agent .st { font-size: .62rem; color: var(--dim); margin-top: .2rem; min-height: 1.1em; }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
+  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
+  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
+  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect:nth-child(2) { animation-delay: 1.3s; }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
+  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  @keyframes mflow { to { stroke-dashoffset: -120; } }
+  #brief { font-size: .8rem; }
+  #brief .bline { margin-bottom: .55rem; padding-left: 1rem; text-indent: -1rem; }
+  #brief .bline:before { content: "▸ "; color: var(--green); }
+  #brief .caret2 { display: inline-block; width: .5em; background: var(--green); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
+  .receipts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
+  .receipts a { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; text-decoration: none; }
+  .receipts a:before { content: "📎 "; }
+  .receipts a:hover { color: var(--blue); border-color: var(--blue); }
+  /* error state */
+  .feed-err { border: 1.5px solid var(--coral); background: var(--coral-bg); border-radius: 10px; padding: .6rem .8rem; font-size: .74rem; }
+  .feed-err b { color: var(--coral); }
+  .feed-err button { font: inherit; font-size: .68rem; margin-top: .35rem; cursor: pointer; border: 1px solid var(--coral); color: var(--coral); background: transparent; border-radius: 6px; padding: .15rem .6rem; }
+  .skel { color: var(--dim); font-size: .74rem; }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body data-palette="#3f5aa0,#8f6f1d,#2f8a58,#6a47a0,#b8463a">
+<div class="wrap">
+  <header>
+    <h1>PULSE<span class="dot">_</span></h1>
+    <p class="tagline">the morning brief that writes itself — live numbers, narrated on the spot</p>
+    <span class="honesty"><b>everything on this page is fetched by your browser, right now,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between, no key, no cached copy: if a wire is down you'll see it down, and the numbers are whatever the world says they are at <b id="opened-at">—</b>.</span>
+  </header>
+
+  <div class="wires" id="wires"></div>
+
+  <div class="card hero" id="debt-hero">
+    <div class="label">US federal debt — total public debt outstanding</div>
+    <div class="big" id="debt-big">loading the ledger…</div>
+    <div class="sub" id="debt-sub">&nbsp;</div>
+    <div class="pace" id="debt-pace" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>The dollar, indexed <span class="ranges" id="fx-ranges"></span></h2>
+    <div class="src">units of each currency per 1 USD, indexed to 100 at window start — up = stronger dollar · source: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a> (ECB reference rates) · <span id="fx-when">fetching…</span></div>
+    <div id="fx-chart-zone"><p class="skel">calling the FX wire…</p></div>
+  </div>
+
+  <div class="card">
+    <h2>FX board</h2>
+    <div class="src">latest ECB reference rate per 1 USD, with the window's path</div>
+    <div class="fxgrid" id="fx-board"><p class="skel">…</p></div>
+  </div>
+
+  <div class="card">
+    <h2>The debt, one year back</h2>
+    <div class="src">daily total public debt outstanding · source: <a href="https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny" target="_blank" rel="noopener">US Treasury Fiscal Data</a> · <span id="debt-when">fetching…</span></div>
+    <div id="debt-chart-zone"><p class="skel">calling the Treasury wire…</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Growth &amp; prices — latest World Bank annuals</h2>
+    <div class="src">annual figures, labeled by their year — these move yearly, not daily · source: <a href="https://data.worldbank.org" target="_blank" rel="noopener">World Bank Open Data</a> · <span id="wb-when">fetching…</span></div>
+    <div class="wbgrid" id="wb-grid"><p class="skel">…</p></div>
+  </div>
+
+  <div class="card">
+    <h2>The brief</h2>
+    <div class="src">composed in your browser from the numbers above — templates plus arithmetic, no model, no tokens, every claim traceable to a wire</div>
+    <div class="briefrow">
+      <div class="agent" id="ag-an">
+        <div class="ava" id="av-an"></div>
+        <div class="nm">The Analyst</div>
+        <div class="rl">Files before your coffee cools</div>
+        <div class="tg">reads three wires, writes one page</div>
+        <div class="st" id="st-an">waiting on the wires<span class="dots"></span></div>
+      </div>
+      <div>
+        <div id="brief"><p class="skel">the brief starts typing once at least one wire answers…</p></div>
+        <div class="receipts" id="receipts"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    PULSE · fetch → compute → narrate, all client-side ·
+    same engine as a Python CLI (<code>pulse brief</code>) on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/pulse" target="_blank" rel="noopener">the branch</a> ·
+    part of <a href="/">hnguyen.dev</a>
+  </footer>
+</div>
+
+<script>
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // fixed categorical assignment — color follows the currency, never its rank
+  const FXC = { EUR: "#3f5aa0", GBP: "#8f6f1d", JPY: "#2f8a58", MXN: "#6a47a0", CNY: "#b8463a", CAD: "#5f5a51" };
+  const CHART_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY"];       // 5 series max on one chart
+  const ALL_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY", "CAD"];
+  const PER = { EUR: "€ per $", GBP: "£ per $", JPY: "¥ per $", MXN: "MX$ per $", CNY: "¥ per $", CAD: "C$ per $" };
+
+  const state = { fx: null, debt: null, gdp: null, cpi: null, pop: null, fxDays: 90 };
+  const WIRES = [
+    ["fx", "Frankfurter · ECB rates"],
+    ["debt", "US Treasury · Fiscal Data"],
+    ["wb", "World Bank · Open Data"],
+  ];
+
+  $("opened-at").textContent = new Date().toLocaleString(undefined,
+    { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  function wireStrip() {
+    $("wires").innerHTML = WIRES.map(([k, label]) => {
+      const st = state["wire_" + k] || "wait";
+      const note = state["wirenote_" + k] || "dialing";
+      return `<span class="wire ${st}" id="wire-${k}"><i></i><b>${label}</b> — ${note}</span>`;
+    }).join("");
+  }
+  function setWire(k, st, note) { state["wire_" + k] = st; state["wirenote_" + k] = note; wireStrip(); }
+  wireStrip();
+
+  async function fetchJSON(url, timeoutMs = 12000) {
+    const ctl = new AbortController();
+    const t0 = performance.now();
+    const to = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, { signal: ctl.signal });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      return { j, ms: Math.round(performance.now() - t0) };
+    } finally { clearTimeout(to); }
+  }
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+  const fmtMoney = (x) => {
+    if (Math.abs(x) >= 1e12) return "$" + (x / 1e12).toFixed(2) + " trillion";
+    if (Math.abs(x) >= 1e9) return "$" + (x / 1e9).toFixed(1) + " billion";
+    return "$" + Math.round(x).toLocaleString();
+  };
+
+  function errBox(zone, host, retryFn) {
+    zone.innerHTML = `<div class="feed-err"><b>wire unreachable</b> — your browser
+      couldn't reach <b>${host}</b> just now (this page talks to the source directly;
+      there is no server in between to blame). <br>
+      <button type="button">try the wire again</button></div>`;
+    zone.querySelector("button").addEventListener("click", retryFn);
+  }
+
+  /* ================= FX ================= */
+  async function loadFX() {
+    setWire("fx", "wait", "dialing");
+    const zone = $("fx-chart-zone");
+    try {
+      const url = `https://api.frankfurter.dev/v1/${iso(daysAgo(state.fxDays))}..?base=USD&symbols=${ALL_SYMS.join(",")}`;
+      const { j, ms } = await fetchJSON(url);
+      const dates = Object.keys(j.rates).sort();
+      if (!dates.length) throw new Error("empty series");
+      state.fx = { dates, series: Object.fromEntries(ALL_SYMS.map(s => [s, dates.map(d => j.rates[d][s])])) };
+      setWire("fx", "up", `answered in ${ms} ms`);
+      $("fx-when").textContent = `fetched ${new Date().toLocaleTimeString()} · latest rate day ${dates[dates.length - 1]}`;
+      renderFXChart(); renderFXBoard(); renderBrief();
+    } catch (e) {
+      setWire("fx", "down", "unreachable");
+      state.fx = null;
+      errBox(zone, "api.frankfurter.dev", loadFX);
+      $("fx-board").innerHTML = `<div class="feed-err"><b>FX wire down</b> — no rates to show, and none will be invented.</div>`;
+      renderBrief();
+    }
+  }
+
+  function renderFXChart() {
+    const { dates, series } = state.fx;
+    const W = 940, H = 320, L = 46, R = 96, T = 16, B = 34;
+    const idx = {};
+    for (const s of CHART_SYMS) {
+      const base = series[s].find(v => v != null);
+      idx[s] = series[s].map(v => v == null ? null : 100 * v / base);
+    }
+    const flat = CHART_SYMS.flatMap(s => idx[s]).filter(v => v != null);
+    let lo = Math.min(...flat), hi = Math.max(...flat);
+    const pad = Math.max(0.4, (hi - lo) * 0.08); lo -= pad; hi += pad;
+    const X = (i) => L + i * (W - L - R) / Math.max(1, dates.length - 1);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+    let g = "";
+    const ySteps = 4;
+    for (let k = 0; k <= ySteps; k++) {
+      const v = lo + k * (hi - lo) / ySteps, y = Y(v);
+      g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>
+            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${v.toFixed(1)}</text>`;
+    }
+    const nx = 5;
+    for (let k = 0; k < nx; k++) {
+      const i = Math.round(k * (dates.length - 1) / (nx - 1));
+      g += `<text x="${X(i)}" y="${H - 12}" font-size="9" fill="var(--dim)" text-anchor="middle">${dates[i].slice(5)}</text>`;
+    }
+    g += `<line x1="${L}" y1="${Y(100)}" x2="${W - R}" y2="${Y(100)}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="3 4"/>
+          <text x="${L + 4}" y="${Y(100) - 4}" font-size="8.5" fill="var(--dim)">100 = ${dates[0]}</text>`;
+    // lines + end labels with collision nudge
+    const ends = [];
+    for (const s of CHART_SYMS) {
+      const pts = idx[s].map((v, i) => v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`)
+        .filter(Boolean).join(" ");
+      g += `<polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-linejoin="round"/>`;
+      const lastV = [...idx[s]].reverse().find(v => v != null);
+      ends.push({ s, y: Y(lastV), v: lastV });
+    }
+    ends.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++)
+      if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+    for (const e of ends)
+      g += `<text x="${W - R + 7}" y="${e.y + 3}" font-size="10" font-weight="bold" fill="${FXC[e.s]}">${e.s} ${e.v.toFixed(1)}</text>`;
+    g += `<rect id="fx-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
+          <line id="fx-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
+
+    const zone = $("fx-chart-zone");
+    zone.innerHTML = `
+      <div class="legend">${CHART_SYMS.map(s => `<span><i style="background:${FXC[s]}"></i>${s}</span>`).join("")}
+        <span style="margin-left:auto">CAD on the board below</span></div>
+      <div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dollar strength, indexed">${g}</svg>
+        <div class="tip" id="fx-tip"></div></div>
+      <details class="tbl"><summary>view as table (last 10 rate days)</summary><table>
+        <tr><th>date</th>${ALL_SYMS.map(s => `<th>${s}</th>`).join("")}</tr>
+        ${dates.slice(-10).map((d, k) => `<tr><td>${d}</td>${ALL_SYMS.map(s =>
+          `<td>${(series[s][dates.length - 10 + k] ?? "—")}</td>`).join("")}</tr>`).join("")}
+      </table></details>`;
+
+    const hover = zone.querySelector("#fx-hover"), cross = zone.querySelector("#fx-cross"),
+          tip = $("fx-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
+    hover.addEventListener("mousemove", (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(dates.length - 1,
+        Math.round((fx - L) / ((W - L - R) / (dates.length - 1)))));
+      cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i));
+      cross.setAttribute("opacity", ".55");
+      tip.innerHTML = `<div class="t">${dates[i]}</div>` + CHART_SYMS.map(s =>
+        `<div class="row"><i style="background:${FXC[s]}"></i>${s} ${series[s][i] ?? "—"} · idx ${idx[s][i]?.toFixed(2) ?? "—"}</div>`).join("");
+      tip.style.opacity = 1;
+      const wr = wrapEl.getBoundingClientRect();
+      const px = (X(i) / W) * wr.width;
+      tip.style.left = Math.min(wr.width - 190, Math.max(0, px + 12)) + "px";
+      tip.style.top = "12px";
+    });
+    hover.addEventListener("mouseleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); });
+  }
+
+  function renderFXBoard() {
+    const { dates, series } = state.fx;
+    $("fx-board").innerHTML = ALL_SYMS.map(s => {
+      const vals = series[s].filter(v => v != null);
+      const last = vals[vals.length - 1], first = vals[0];
+      const chg = 100 * (last - first) / first;
+      const lo = Math.min(...vals), hi = Math.max(...vals), rng = hi - lo || 1;
+      const pts = vals.map((v, i) =>
+        `${(i * 140 / (vals.length - 1)).toFixed(1)},${(26 - 22 * (v - lo) / rng).toFixed(1)}`).join(" ");
+      return `<div class="fxtile" title="${s}: ${first} → ${last} over ${dates.length} rate days">
+        <div class="sym"><i style="background:${FXC[s]}"></i>${s}</div>
+        <div class="rate">${last}</div>
+        <div class="per">${PER[s]}</div>
+        <svg viewBox="0 0 140 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2"/></svg>
+        <div class="chg ${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "▲" : "▼"} ${chg.toFixed(1)}% vs ${dates[0]}</div>
+      </div>`;
+    }).join("");
+  }
+
+  /* ================= DEBT ================= */
+  async function loadDebt() {
+    setWire("debt", "wait", "dialing");
+    const zone = $("debt-chart-zone");
+    try {
+      const url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service" +
+        "/v2/accounting/od/debt_to_penny?fields=record_date,tot_pub_debt_out_amt" +
+        `&filter=record_date:gte:${iso(daysAgo(370))}&sort=record_date&page[size]=500`;
+      const { j, ms } = await fetchJSON(url);
+      const rows = (j.data || []).map(r => ({ date: r.record_date, total: +r.tot_pub_debt_out_amt }))
+        .filter(r => r.total > 0);
+      if (rows.length < 2) throw new Error("not enough rows");
+      state.debt = rows;
+      setWire("debt", "up", `answered in ${ms} ms`);
+      $("debt-when").textContent = `fetched ${new Date().toLocaleTimeString()} · latest posting ${rows[rows.length - 1].date}`;
+      renderDebt(); renderBrief();
+    } catch (e) {
+      setWire("debt", "down", "unreachable");
+      state.debt = null;
+      $("debt-big").textContent = "Treasury wire unreachable";
+      $("debt-sub").textContent = "no number will be invented in its place";
+      errBox(zone, "api.fiscaldata.treasury.gov", loadDebt);
+      renderBrief();
+    }
+  }
+
+  let paceTimer = null;
+  function renderDebt() {
+    const rows = state.debt;
+    const first = rows[0], last = rows[rows.length - 1];
+    const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
+    const perSec = (last.total - first.total) / (days * 86400);
+    const postedAt = new Date(last.date + "T16:00:00");   // Treasury posts each business day
+    $("debt-sub").innerHTML = `posted <b>${last.date}</b> · up <b>${fmtMoney(last.total - first.total)}</b> in ${Math.round(days)} days`;
+    $("debt-pace").style.display = "inline-block";
+    $("debt-pace").textContent = `≈ $${Math.round(perSec).toLocaleString()} / second — extrapolated between daily postings at the observed pace`;
+    clearInterval(paceTimer);
+    const tick = () => {
+      const est = last.total + Math.max(0, (Date.now() - postedAt) / 1000) * perSec;
+      $("debt-big").textContent = "$" + Math.round(est).toLocaleString();
+    };
+    tick();
+    if (!REDUCED) paceTimer = setInterval(tick, 120);
+
+    // chart: single measure, single hue (sequential job → blue), one axis
+    const W = 940, H = 260, L = 62, R = 18, T = 14, B = 30;
+    const lo = Math.min(...rows.map(r => r.total)) * 0.999, hi = Math.max(...rows.map(r => r.total)) * 1.001;
+    const X = (i) => L + i * (W - L - R) / (rows.length - 1);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+    let g = "";
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + k * (hi - lo) / 4, y = Y(v);
+      g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>
+            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">$${(v / 1e12).toFixed(2)}T</text>`;
+    }
+    for (let k = 0; k < 5; k++) {
+      const i = Math.round(k * (rows.length - 1) / 4);
+      g += `<text x="${X(i)}" y="${H - 10}" font-size="9" fill="var(--dim)" text-anchor="middle">${rows[i].date.slice(0, 7)}</text>`;
+    }
+    const line = rows.map((r, i) => `${X(i).toFixed(1)},${Y(r.total).toFixed(1)}`).join(" ");
+    g += `<polygon points="${L},${H - B} ${line} ${W - R},${H - B}" fill="#3f5aa0" opacity=".12"/>
+          <polyline points="${line}" fill="none" stroke="#3f5aa0" stroke-width="2" stroke-linejoin="round"/>
+          <rect id="dt-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
+          <line id="dt-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
+    const zone = $("debt-chart-zone");
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="US total public debt, one year">${g}</svg>
+        <div class="tip" id="dt-tip"></div></div>
+      <details class="tbl"><summary>view as table (monthly samples)</summary><table>
+        <tr><th>date</th><th>total public debt</th></tr>
+        ${rows.filter((r, i) => i % 21 === 0 || i === rows.length - 1).map(r =>
+          `<tr><td>${r.date}</td><td>$${r.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`).join("")}
+      </table></details>`;
+    const hover = zone.querySelector("#dt-hover"), cross = zone.querySelector("#dt-cross"),
+          tip = $("dt-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
+    hover.addEventListener("mousemove", (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(rows.length - 1,
+        Math.round((fx - L) / ((W - L - R) / (rows.length - 1)))));
+      cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", ".55");
+      tip.innerHTML = `<div class="t">${rows[i].date}</div><div class="row"><i style="background:#3f5aa0"></i>$${rows[i].total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>`;
+      tip.style.opacity = 1;
+      const wr = wrapEl.getBoundingClientRect();
+      tip.style.left = Math.min(wr.width - 230, Math.max(0, (X(i) / W) * wr.width + 12)) + "px";
+      tip.style.top = "10px";
+    });
+    hover.addEventListener("mouseleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); });
+  }
+
+  /* ================= WORLD BANK ================= */
+  async function loadWB() {
+    setWire("wb", "wait", "dialing");
+    try {
+      const base = "https://api.worldbank.org/v2/country";
+      const [g, c, p] = await Promise.all([
+        fetchJSON(`${base}/USA;CHN;DEU;WLD/indicator/NY.GDP.MKTP.KD.ZG?format=json&mrnev=1&per_page=20`),
+        fetchJSON(`${base}/USA;CHN;DEU;WLD/indicator/FP.CPI.TOTL.ZG?format=json&mrnev=1&per_page=20`),
+        fetchJSON(`${base}/USA/indicator/SP.POP.TOTL?format=json&mrnev=1&per_page=5`),
+      ]);
+      const parse = (j) => Object.fromEntries((j[1] || []).filter(r => r.value != null)
+        .map(r => [r.country.value, { year: r.date, value: Math.round(r.value * 100) / 100 }]));
+      state.gdp = parse(g.j); state.cpi = parse(c.j); state.pop = parse(p.j);
+      if (!Object.keys(state.gdp).length) throw new Error("empty");
+      setWire("wb", "up", `answered in ${g.ms} ms`);
+      $("wb-when").textContent = `fetched ${new Date().toLocaleTimeString()}`;
+      renderWB(); renderBrief();
+    } catch (e) {
+      setWire("wb", "down", "unreachable");
+      state.gdp = state.cpi = state.pop = null;
+      $("wb-grid").innerHTML = `<div class="feed-err"><b>World Bank wire down</b> — annuals unavailable this visit.
+        <button type="button">try the wire again</button></div>`;
+      $("wb-grid").querySelector("button").addEventListener("click", loadWB);
+      renderBrief();
+    }
+  }
+
+  function renderWB() {
+    const order = ["United States", "China", "Germany", "World"];
+    $("wb-grid").innerHTML = order.filter(c => state.gdp[c]).map(c => {
+      const g = state.gdp[c], i = (state.cpi || {})[c];
+      return `<div class="wbtile"><div class="c">${c}</div>
+        <div class="v">growth <b class="${g.value >= 0 ? "up" : "dn"}">${g.value >= 0 ? "+" : ""}${g.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${g.year})</span></div>
+        ${i ? `<div class="v">inflation <b>${i.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${i.year})</span></div>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  /* ================= THE BRIEF ================= */
+  function pixelAnalyst() {
+    const ink = "#1c1a17", skin = "#d9a06b", ac = "#2f8a58";
+    return `<svg viewBox="0 0 132 116" shape-rendering="crispEdges">
+      <g class="person">
+        <rect x="50" y="13" width="32" height="9" fill="#4a3520"/>
+        <rect x="80" y="18" width="8" height="16" fill="#4a3520"/>
+        <rect x="50" y="19" width="5" height="10" fill="#4a3520"/>
+        <rect x="50" y="20" width="32" height="30" fill="${skin}"/>
+        <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
+        <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
+        <rect x="54" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+        <rect x="68" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+        <rect x="64" y="33" width="4" height="2" fill="${ink}"/>
+        <rect x="59" y="43" width="14" height="3" fill="${ink}"/>
+        <rect x="44" y="50" width="44" height="24" fill="#2e3442"/>
+        <rect x="58" y="50" width="16" height="10" fill="#fff"/>
+        <rect x="62" y="52" width="8" height="16" fill="${ac}"/>
+        <rect x="34" y="64" width="14" height="9" fill="#2e3442"/>
+        <rect x="84" y="64" width="14" height="9" fill="#2e3442"/>
+      </g>
+      <g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
+      <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
+      <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
+      <rect x="13" y="47" width="28" height="20" fill="#161a20"/>
+      <polyline class="mchart" points="14,62 20,55 25,58 31,50 38,46" fill="none" stroke="#7fbf6a" stroke-width="2"/>
+      <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
+      <rect x="4" y="76" width="124" height="9" fill="${ac}"/>
+      <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
+      <rect x="12" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <rect x="110" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <rect x="98" y="66" width="9" height="10" fill="#fff"/>
+      <rect x="107" y="68" width="3" height="5" fill="#fff"/>
+      <rect x="99" y="64" width="7" height="2" fill="${ac}"/>
+      <g class="steam"><rect x="100" y="56" width="2" height="5" fill="#b8b2a4"/><rect x="104" y="54" width="2" height="5" fill="#b8b2a4"/></g>
+    </svg>`;
+  }
+  $("av-an").innerHTML = pixelAnalyst();
+
+  function composeBrief() {
+    const lines = [];
+    if (state.fx) {
+      const { dates, series } = state.fx;
+      const mv = {};
+      for (const s of ALL_SYMS) {
+        const v = series[s].filter(x => x != null);
+        if (v.length > 1) mv[s] = 100 * (v[v.length - 1] - v[0]) / v[0];
+      }
+      const strongest = Object.keys(mv).reduce((a, b) => mv[a] > mv[b] ? a : b);
+      const weakest = Object.keys(mv).reduce((a, b) => mv[a] < mv[b] ? a : b);
+      lines.push(`FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar gained most against ${strongest} (${mv[strongest] >= 0 ? "+" : ""}${mv[strongest].toFixed(1)}%) and did worst against ${weakest} (${mv[weakest] >= 0 ? "+" : ""}${mv[weakest].toFixed(1)}%).`);
+    } else lines.push("FX wire is down — no exchange-rate read this visit, and none will be made up.");
+    if (state.debt) {
+      const rows = state.debt, first = rows[0], last = rows[rows.length - 1];
+      const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
+      const perDay = (last.total - first.total) / days;
+      let line = `US federal debt: ${fmtMoney(last.total)} as of ${last.date} — up ${fmtMoney(last.total - first.total)} over the window, about ${fmtMoney(perDay)} a day (≈ $${Math.round(perDay / 86400).toLocaleString()} every second).`;
+      if (state.pop) {
+        const p = Object.values(state.pop)[0];
+        line += ` That's $${Math.round(last.total / p.value).toLocaleString()} per US resident (World Bank population, ${p.year}).`;
+      }
+      lines.push(line);
+    } else lines.push("Treasury wire is down — no debt read this visit.");
+    if (state.gdp) {
+      const year = Object.values(state.gdp)[0].year;
+      const gl = ["United States", "China", "Germany", "World"].filter(c => state.gdp[c])
+        .map(c => `${c} ${state.gdp[c].value >= 0 ? "+" : ""}${state.gdp[c].value.toFixed(1)}%`).join(", ");
+      let line = `Growth (World Bank annuals, ${year}): ${gl}.`;
+      if (state.cpi && Object.keys(state.cpi).length) {
+        const cl = ["United States", "China", "Germany", "World"].filter(c => state.cpi[c])
+          .map(c => `${c} ${state.cpi[c].value.toFixed(1)}%`).join(", ");
+        line += ` Inflation: ${cl}.`;
+      }
+      lines.push(line);
+    } else lines.push("World Bank wire is down — no growth or inflation read.");
+    const up = ["fx", "debt", "gdp"].filter(k => state[k]).length;
+    lines.push(`Wire check: ${up} of 3 sources answered your browser directly. Nothing on this page was cached, proxied, or typed in by a human.`);
+    return lines;
+  }
+
+  let briefTyped = false, briefTimer = null;
+  function renderBrief() {
+    const settled = ["fx", "debt", "gdp"].every(k => state["wire_" + (k === "gdp" ? "wb" : k)] !== "wait" && state["wire_" + (k === "gdp" ? "wb" : k)] !== undefined);
+    if (!settled) return;
+    const lines = composeBrief();
+    const el = $("brief");
+    $("receipts").innerHTML = [
+      ["Frankfurter — ECB reference rates", "https://frankfurter.dev"],
+      ["US Treasury — Debt to the Penny", "https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny"],
+      ["World Bank Open Data", "https://data.worldbank.org"],
+      ["fetched " + new Date().toLocaleTimeString(), "#"],
+    ].map(([t, h]) => `<a href="${h}" ${h !== "#" ? 'target="_blank" rel="noopener"' : ""}>${t}</a>`).join("");
+    if (briefTyped || REDUCED) {
+      el.innerHTML = lines.map(l => `<div class="bline">${l}</div>`).join("");
+      $("ag-an").className = "agent";
+      $("st-an").textContent = "brief filed ✓";
+      return;
+    }
+    briefTyped = true;
+    $("ag-an").className = "agent working";
+    $("st-an").innerHTML = 'typing it up<span class="dots"></span>';
+    el.innerHTML = "";
+    clearInterval(briefTimer);
+    let li = 0, ci = 0;
+    let cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
+    briefTimer = setInterval(() => {
+      ci += 3;
+      cur.textContent = lines[li].slice(0, ci);
+      if (ci >= lines[li].length) {
+        li++; ci = 0;
+        if (li >= lines.length) {
+          clearInterval(briefTimer);
+          $("ag-an").className = "agent";
+          $("st-an").textContent = "brief filed ✓";
+          return;
+        }
+        cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
+      }
+    }, 24);
+  }
+
+  /* ranges */
+  const rangesEl = $("fx-ranges");
+  for (const d of [30, 90, 365]) {
+    const b = document.createElement("button");
+    b.textContent = d + "d";
+    if (d === 90) b.className = "on";
+    b.addEventListener("click", () => {
+      state.fxDays = d; briefTyped = true;    // don't re-type the brief on range flips
+      [...rangesEl.children].forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      loadFX();
+    });
+    rangesEl.appendChild(b);
+  }
+
+  loadFX(); loadDebt(); loadWB();
+</script>
+</body>
+</html>
