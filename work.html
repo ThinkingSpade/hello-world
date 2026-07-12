@@ -214,6 +214,30 @@
         </div>
       </article>
 
+      <article class="window exp" style="--dot:var(--pink-tx)">
+        <div class="window-bar" style="--accent:var(--pink-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">conductor.db</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand conductor.db"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--pink-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8.2" y="2.6" width="7.6" height="12.2" rx="2.4"/><circle cx="12" cy="6.6" r="1.65" fill="none" stroke-width="1.2"/><circle cx="12" cy="11" r="1.65" fill="#1c1a17" stroke="none"/><path d="M12 14.8 V18.6" fill="none"/><path d="M3 21.4 H21" fill="none"/><path d="M4.6 18.9 H19.4" fill="none" stroke-width="1.1"/><path d="M6.8 18.9 V21.4 M10.3 18.9 V21.4 M13.7 18.9 V21.4 M17.2 18.9 V21.4" fill="none" stroke-width="1.1"/></svg></div>
+          <div class="exp-main">
+            <h3>Conductor</h3>
+            <p class="exp-role">Data-pipeline reliability agent</p>
+            <p class="exp-meta">Data engineering · 2026</p>
+            <p class="exp-desc">When the nightly pipeline derails — a vendor renames a column, join keys change shape, a file loads twice — Conductor reads the run ledger, probes the warehouse with real SQL, explains the break in plain English with the evidence quoted, and drafts the repair with a rollback staged. A human clears every fix before a single row is rewritten.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="Python, SQL, SQLite, Data quality, pytest"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>The staging-and-facts pipeline really runs — SQL with data-quality checks after every task. Diagnoses are deterministic signature matches over probed evidence, fixes come from vetted templates (destructive repairs snapshot the table first), and the demo replays a genuine end-to-end run: the data actually broke, and actually got repaired.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/conductor/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/conductor" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
       <article class="window exp coming" style="--dot:var(--gold-tx)">
         <div class="window-bar" style="--accent:var(--gold-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">coming-soon</span></div>
         <div class="window-body exp-body">

@@ -1,0 +1,249 @@
+{
+ "resolved": true,
+ "duration_s": 0.0,
+ "board": {
+  "nodes": [
+   {
+    "id": "orders_raw",
+    "label": "orders_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "customers_raw",
+    "label": "customers_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "stg_orders",
+    "label": "stg_orders",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "stg_customers",
+    "label": "stg_customers",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "fct_daily_revenue",
+    "label": "fct_daily_revenue",
+    "kind": "task",
+    "col": 2
+   }
+  ],
+  "edges": [
+   [
+    "orders_raw",
+    "stg_orders"
+   ],
+   [
+    "customers_raw",
+    "stg_customers"
+   ],
+   [
+    "stg_orders",
+    "fct_daily_revenue"
+   ],
+   [
+    "stg_customers",
+    "fct_daily_revenue"
+   ]
+  ]
+ },
+ "timeline": [
+  {
+   "t": "page",
+   "text": "Data-quality alarm — stg_orders: unique(order_id) failing; yesterday's revenue reads 2× and the CFO noticed before we did",
+   "sev": "P2"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "fail",
+   "detail": "rebuilt — 1,509 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {
+     "name": "unique(order_id)",
+     "table": "stg_orders",
+     "status": "fail",
+     "detail": "111 duplicated order_id values"
+    },
+    {
+     "name": "not_null(order_total)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no NULLs"
+    }
+   ]
+  },
+  {
+   "t": "think",
+   "ms": 1600,
+   "status": "reading the failure"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT order_id, COUNT(*) AS copies FROM stg_orders\nGROUP BY order_id HAVING copies > 1 LIMIT 5;",
+   "out": "order_id  copies\n--------  ------\n501424    2\n501425    2\n501426    2\n501427    2\n501428    2",
+   "note": "sample the duplicated keys"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT load_batch, COUNT(*) AS rows_loaded FROM orders_raw\nGROUP BY load_batch ORDER BY load_batch DESC LIMIT 6;",
+   "out": "load_batch           rows_loaded\n-------------------  -----------\nbatch-2026-07-11-01  146\nbatch-2026-07-10-02  149\nbatch-2026-07-10-01  149\nbatch-2026-07-09-01  145\nbatch-2026-07-08-01  104\nbatch-2026-07-07-01  109",
+   "note": "the batch ledger never lies — was something loaded twice?"
+  },
+  {
+   "t": "think",
+   "ms": 2200,
+   "status": "matching against known derailments"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "duplicate-load",
+   "cause": "Yesterday's file was loaded twice — the loader retried after a timeout that had actually succeeded, so every order from that day exists under two batch tags and revenue reads exactly 2×. The orders are real; the second copy is not.",
+   "receipts": [
+    "failed check: unique(order_id) on stg_orders — 111 duplicated order_id values",
+    "501424    2",
+    "501425    2",
+    "501426    2"
+   ],
+   "confidence": 93
+  },
+  {
+   "t": "proposal",
+   "command": "CREATE TABLE orders_raw_backup_dedup AS SELECT * FROM orders_raw;\nDELETE FROM orders_raw\nWHERE rowid NOT IN (SELECT MIN(rowid) FROM orders_raw GROUP BY order_id);",
+   "explain": "Back the raw table up, then delete the later copy of each duplicated order (keep the first physical row per order_id). Destructive on raw, hence the backup first and the high grade.",
+   "risk": "high",
+   "rollback": "DROP TABLE orders_raw; ALTER TABLE orders_raw_backup_dedup RENAME TO orders_raw;",
+   "followup": "Make the loader idempotent — stage into a temp table and MERGE on order_id — so a retry can never double-load again."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "dispatcher"
+  },
+  {
+   "t": "apply",
+   "cmd": "apply repair script (backup first)",
+   "out": "CREATE TABLE orders_raw_backup_dedup AS SELECT * FROM orders_raw;\nDELETE FROM orders_raw\nWHERE rowid NOT IN (SELECT MIN(rowid) FROM orders_raw GROUP BY order_id);"
+  },
+  {
+   "t": "think",
+   "ms": 1800,
+   "status": "re-running the pipeline"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "ok",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {
+     "name": "unique(order_id)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    },
+    {
+     "name": "not_null(order_total)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no NULLs"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "fct_daily_revenue",
+   "status": "ok",
+   "detail": "rebuilt — 70 rows"
+  },
+  {
+   "t": "checks",
+   "task": "fct_daily_revenue",
+   "results": [
+    {
+     "name": "not_null(region)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "no NULLs"
+    },
+    {
+     "name": "row_count_min(10)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "70 rows (min 10)"
+    }
+   ]
+  },
+  {
+   "t": "verify",
+   "result": "green",
+   "text": "All tasks rebuilt, every check green — marts are fresh and the numbers reconcile. Standing down."
+  }
+ ],
+ "id": "dup-load",
+ "title": "revenue doubled overnight — yesterday loaded twice",
+ "tag": "warehouse · P2 · duplicate load",
+ "recorded": "scenario-replay"
+}

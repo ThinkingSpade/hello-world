@@ -1,0 +1,279 @@
+{
+ "resolved": true,
+ "duration_s": 0.0,
+ "board": {
+  "nodes": [
+   {
+    "id": "orders_raw",
+    "label": "orders_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "customers_raw",
+    "label": "customers_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "stg_orders",
+    "label": "stg_orders",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "stg_customers",
+    "label": "stg_customers",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "fct_daily_revenue",
+    "label": "fct_daily_revenue",
+    "kind": "task",
+    "col": 2
+   }
+  ],
+  "edges": [
+   [
+    "orders_raw",
+    "stg_orders"
+   ],
+   [
+    "customers_raw",
+    "stg_customers"
+   ],
+   [
+    "stg_orders",
+    "fct_daily_revenue"
+   ],
+   [
+    "stg_customers",
+    "fct_daily_revenue"
+   ]
+  ]
+ },
+ "timeline": [
+  {
+   "t": "page",
+   "text": "Data-quality alarm — fct_daily_revenue: not_null(region) failing on today's partition; revenue by region under-reporting in every dashboard",
+   "sev": "P2"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "ok",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {
+     "name": "unique(order_id)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    },
+    {
+     "name": "not_null(order_total)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no NULLs"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "fct_daily_revenue",
+   "status": "fail",
+   "detail": "rebuilt — 66 rows"
+  },
+  {
+   "t": "checks",
+   "task": "fct_daily_revenue",
+   "results": [
+    {
+     "name": "not_null(region)",
+     "table": "fct_daily_revenue",
+     "status": "fail",
+     "detail": "1 NULL region rows of 66 (1.5%)"
+    },
+    {
+     "name": "row_count_min(10)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "66 rows (min 10)"
+    }
+   ]
+  },
+  {
+   "t": "think",
+   "ms": 1600,
+   "status": "reading the failure"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT day, SUM(orders) AS orphan_orders, SUM(revenue) AS orphan_revenue\nFROM fct_daily_revenue WHERE region IS NULL GROUP BY day;",
+   "out": "day         orphan_orders  orphan_revenue\n----------  -------------  --------------\n2026-07-11  122            16263.0",
+   "note": "when did the orphan rows start?"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT typeof(customer_id) AS key_type, COUNT(*) AS n\nFROM orders_raw GROUP BY 1 ORDER BY n DESC;",
+   "out": "key_type  n\n--------  ----\ninteger   1572\ntext      146",
+   "note": "are the join keys still the type we think they are?"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT DISTINCT '''' || customer_id || '''' AS sample_key\nFROM orders_raw WHERE typeof(customer_id) = 'text' LIMIT 3;",
+   "out": "sample_key\n-----------\n'CUST-1339'\n'CUST-1371'\n'CUST-1117'",
+   "note": "show me one of the misbehaving keys, quoted"
+  },
+  {
+   "t": "think",
+   "ms": 2200,
+   "status": "matching against known derailments"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "key-format-drift",
+   "cause": "Today's export switched to formatted customer IDs — 'CUST-1042' instead of 1042 — so they land as TEXT and the join to customers_raw never matches. Region goes NULL for every order loaded today: the revenue is still counted, just attributed to nowhere, which is why every regional dashboard under-reports.",
+   "receipts": [
+    "failed check: not_null(region) on fct_daily_revenue — 1 NULL region rows of 66 (1.5%)",
+    "text      146",
+    "'CUST-1339'",
+    "'CUST-1371'"
+   ],
+   "confidence": 90
+  },
+  {
+   "t": "proposal",
+   "command": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.customer_id,\n+ CAST(REPLACE(o.customer_id, 'CUST-', '') AS INTEGER) AS customer_id,   -- normalize the new key format at staging",
+   "explain": "Normalize the key once, at staging — strip the new prefix and cast back to INTEGER so every downstream join matches again. Backfills today's partition on re-run; raw data untouched.",
+   "risk": "medium",
+   "rollback": "Reverse the patch and re-run; the raw table was never modified.",
+   "followup": "File it upstream: key formats are a contract. Add a typeof() check at load so a format change pages at ingest, not at 2 a.m."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "dispatcher"
+  },
+  {
+   "t": "apply",
+   "cmd": "patch tasks/stg_orders.sql",
+   "out": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.customer_id,\n+ CAST(REPLACE(o.customer_id, 'CUST-', '') AS INTEGER) AS customer_id,   -- normalize the new key format at staging"
+  },
+  {
+   "t": "think",
+   "ms": 1800,
+   "status": "re-running the pipeline"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "ok",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {
+     "name": "unique(order_id)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    },
+    {
+     "name": "not_null(order_total)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no NULLs"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "fct_daily_revenue",
+   "status": "ok",
+   "detail": "rebuilt — 70 rows"
+  },
+  {
+   "t": "checks",
+   "task": "fct_daily_revenue",
+   "results": [
+    {
+     "name": "not_null(region)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "no NULLs"
+    },
+    {
+     "name": "row_count_min(10)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "70 rows (min 10)"
+    }
+   ]
+  },
+  {
+   "t": "verify",
+   "result": "green",
+   "text": "All tasks rebuilt, every check green — marts are fresh and the numbers reconcile. Standing down."
+  }
+ ],
+ "id": "null-join",
+ "title": "region gone NULL — a join quietly stopped matching",
+ "tag": "warehouse · P3 · data quality",
+ "recorded": "scenario-replay"
+}
