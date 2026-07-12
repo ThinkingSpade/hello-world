@@ -187,6 +187,97 @@
   #loadbar { height: 9px; background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
   #loadbar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .15s; }
   #loadtxt { font-size: .62rem; color: var(--dim); text-align: center; margin-top: .2rem; }
+  /* ================= the plan board ================= */
+  .boardgrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .boardgrid { grid-template-columns: 1fr; } }
+  .board { background: repeating-linear-gradient(-45deg, #f1eee6, #f1eee6 12px, #eee9df 12px, #eee9df 24px);
+    border: 2px solid #c9bfa6; border-radius: 12px; padding: .8rem; position: relative;
+    box-shadow: inset 0 0 0 4px #fffdf8, inset 0 0 14px rgba(28,26,23,.06); }
+  .board:before { content: "PLAN BOARD"; position: absolute; top: -9px; left: 14px; background: var(--panel);
+    font-size: .58rem; letter-spacing: .18em; color: var(--dim); padding: 0 .4rem; font-weight: 700; }
+  .slotrow { display: flex; align-items: stretch; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+  .slotlab { font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-weight: 700;
+    align-self: center; min-width: 62px; }
+  .slot { min-height: 42px; min-width: 116px; border: 2px dashed #c3b99f; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; gap: .4rem; padding: .2rem .35rem;
+    background: rgba(255,253,248,.6); flex: 1; transition: border-color .2s, background .2s; }
+  .slot.filled { border-style: solid; }
+  .slot.metricslot.filled { border-color: var(--blue); background: #eef1f8; }
+  .slot.dimslot.filled { border-color: var(--gold); background: #f6efdd; }
+  .slot .empty { font-size: .64rem; color: #b3a988; font-style: italic; }
+  /* the physical tokens */
+  .tok { font: inherit; cursor: pointer; border: 1.5px solid var(--tc, var(--line)); background: #fffdf8;
+    border-radius: 8px; padding: .28rem .6rem; font-size: .72rem; font-weight: 700; color: var(--text);
+    box-shadow: 2px 2px 0 rgba(28,26,23,.12); display: inline-flex; align-items: center; gap: .35rem;
+    transition: transform .12s, box-shadow .12s; position: relative; user-select: none; }
+  .tok:hover { transform: translateY(-1px); box-shadow: 3px 4px 0 rgba(28,26,23,.16); }
+  .tok:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(28,26,23,.12); }
+  .tok.metric { --tc: var(--blue); }
+  .tok.dim { --tc: var(--gold); }
+  .tok.on { background: var(--tc); color: #fff; }
+  .tok .ic { font-size: .68rem; opacity: .8; }
+  .tok.placed { animation: snap .3s cubic-bezier(.34,1.7,.64,1); }
+  @keyframes snap { 0% { transform: scale(1.5) translateY(-14px); opacity: .3; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+  .tok .x { font-size: .8rem; color: rgba(255,255,255,.75); margin-left: .1rem; line-height: 1; }
+  /* time dial */
+  .dial { display: inline-flex; align-items: stretch; border: 2px solid var(--violet); border-radius: 9px; overflow: hidden; background: #fffdf8; }
+  .dial button { font: inherit; border: 0; background: #f0ebf6; color: var(--violet); cursor: pointer; padding: 0 .55rem; font-weight: 800; font-size: .9rem; }
+  .dial button:hover { background: var(--violet); color: #fff; }
+  .dial .win { padding: .28rem .7rem; font-size: .72rem; font-weight: 700; align-self: center; min-width: 130px; text-align: center; }
+  /* stamps (filters) */
+  .stamp { font: inherit; cursor: pointer; border: 2px solid var(--coral); color: var(--coral); background: transparent;
+    border-radius: 6px; padding: .16rem .5rem; font-size: .64rem; font-weight: 800; letter-spacing: .03em;
+    text-transform: uppercase; opacity: .72; transition: all .12s; }
+  .stamp:hover { opacity: 1; }
+  .stamp.on { background: var(--coral); color: #fff; opacity: 1; transform: rotate(-2deg); box-shadow: 2px 2px 0 rgba(28,26,23,.18); }
+  .toggle { font: inherit; cursor: pointer; border: 2px solid var(--line); background: #fffdf8; color: var(--dim);
+    border-radius: 8px; padding: .24rem .6rem; font-size: .66rem; font-weight: 700; }
+  .toggle.on { border-color: var(--green); color: #fff; background: var(--green); }
+  .toggle.dis { opacity: .4; cursor: not-allowed; }
+  .stepper { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; color: var(--dim); }
+  .stepper button { font: inherit; border: 1.5px solid var(--line); background: #fffdf8; cursor: pointer; border-radius: 6px; width: 22px; height: 22px; font-weight: 800; }
+  .stepper.dis { opacity: .4; }
+  /* the run lever */
+  .runwrap { display: flex; align-items: center; gap: .8rem; margin-top: .3rem; }
+  #lever { position: relative; width: 62px; height: 58px; cursor: pointer; border: 0; background: none; padding: 0; flex: none; }
+  #lever:disabled { cursor: not-allowed; opacity: .5; }
+  #lever .base { position: absolute; bottom: 0; left: 11px; width: 40px; height: 20px; background: #3a3f4d; border-radius: 4px; }
+  #lever .stick { position: absolute; bottom: 14px; left: 28px; width: 6px; height: 34px; background: #6b4a2f; border-radius: 3px;
+    transform-origin: bottom center; transition: transform .18s cubic-bezier(.34,1.6,.64,1); }
+  #lever .knob { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--coral); border: 2px solid #1c1a17; }
+  #lever:not(:disabled):hover .stick { transform: rotate(8deg); }
+  #lever.pulled .stick { transform: rotate(32deg); }
+  #lever .lbl { position: absolute; bottom: -14px; left: 0; width: 100%; text-align: center; font-size: .54rem; font-weight: 800; letter-spacing: .1em; color: var(--coral); }
+  .runwrap .hint { font-size: .68rem; color: var(--dim); }
+  /* SQL preview panel */
+  .sqlprev { background: var(--term); color: var(--term-text); border-radius: 12px; border: 1.5px solid #0d1014; padding: .7rem .85rem; font-size: .72rem; min-height: 100%; position: relative; }
+  .sqlprev .bar { display: flex; gap: .3rem; margin-bottom: .5rem; align-items: center; }
+  .sqlprev .bar i { width: 9px; height: 9px; border-radius: 50%; }
+  .sqlprev .bar i:nth-child(1) { background: #b8463a; } .sqlprev .bar i:nth-child(2) { background: #8f6f1d; } .sqlprev .bar i:nth-child(3) { background: #2f8a58; }
+  .sqlprev .bar span { margin-left: auto; font-size: .58rem; color: #5a6478; letter-spacing: .06em; }
+  .sqlprev pre { white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; }
+  .sqlprev .kw { color: #7fbf6a; } .sqlprev .lit { color: #e0c36a; } .sqlprev .idn { color: #c9d4e4; }
+  .sqlprev.stale { opacity: .55; }
+  .sqlprev .ph { color: #5a6478; font-style: italic; }
+  .sqlprev .flash { animation: sqlflash .4s ease-out; }
+  @keyframes sqlflash { from { background: rgba(63,90,160,.35); } to { background: transparent; } }
+  /* reports shelf */
+  .shelf { display: flex; gap: .6rem; flex-wrap: wrap; align-items: stretch; }
+  .report { flex: 1; min-width: 190px; text-align: left; cursor: pointer; border: 2px solid var(--rc); background: #fffdf8;
+    border-radius: 11px; padding: .55rem .75rem; box-shadow: 3px 3px 0 rgba(28,26,23,.06); transition: transform .12s; }
+  .report:hover { transform: translateY(-2px); }
+  .report:disabled { opacity: .5; cursor: wait; }
+  .report .rt { font-weight: 800; font-size: .78rem; }
+  .report .rd { font-size: .62rem; color: var(--dim); margin-top: .15rem; }
+  .report .rt .ic { margin-right: .3rem; }
+  .board-help { font-size: .62rem; color: var(--dim); margin-top: .5rem; }
+  /* the WHY button on result cards */
+  .whybtn { font: inherit; cursor: pointer; margin-top: .5rem; border: 2px solid var(--coral); color: #fff; background: var(--coral);
+    border-radius: 8px; padding: .3rem .8rem; font-size: .72rem; font-weight: 800; letter-spacing: .02em; box-shadow: 2px 2px 0 rgba(28,26,23,.18); }
+  .whybtn:hover { transform: translateY(-1px); }
+  .whybtn:disabled { opacity: .5; }
+  .racklab { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 700; margin: .1rem 0 .35rem; }
+  .rack { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 </style>
 </head>
@@ -194,7 +285,7 @@
 <div class="wrap">
   <header>
     <h1>ABACUS<span class="dot">_</span></h1>
-    <p class="tagline">a data analyst you can interrogate — it aggregates, but it also investigates: why-decompositions, cohorts, anomaly scans · all in your browser</p>
+    <p class="tagline">build a question from the semantic layer's own pieces — no chatbox — and watch it compile to real SQL on a warehouse in your browser</p>
     <span class="honesty"><b>the SQL engine and every query are real</b> — a <b id="hdr-rows">125k</b>-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) is loaded into SQLite-in-WebAssembly on this page. Keyless mode plans queries deterministically; paste your own API key and a live LLM plans them instead — <b>your key stays in this tab</b> and the model only ever picks from the semantic layer. Nobody, human or model, writes raw SQL.</span>
     <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
       <div id="loadtxt">fetching the warehouse…</div></div>
@@ -203,24 +294,71 @@
   <div class="crew" id="crew"></div>
 
   <div class="card">
-    <h2>Ask the desk</h2>
-    <div class="askrow">
-      <input id="q" type="text" placeholder="loading the warehouse…" disabled
-             aria-label="ask a question">
-      <button id="ask" disabled>ask</button>
-    </div>
-    <div class="chips" id="chips"></div>
-    <details class="help"><summary>what can I ask?</summary><div class="cols" id="helpcols"></div></details>
-    <details class="llm" id="llmpanel">
-      <summary>⚡ live LLM mode — bring your own key <span class="live" id="llmstate"></span></summary>
-      <div class="llmrow">
-        <label class="switch"><input type="checkbox" id="llm-on"> use a live LLM as the planner</label>
-        <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
-        <input id="llm-model" type="text" value="claude-haiku-4-5" size="20" aria-label="model">
-        <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
+    <h2>Build the question — snap the pieces onto the board</h2>
+    <div class="boardgrid">
+      <div>
+        <div class="board" id="board">
+          <div class="slotrow"><span class="slotlab">measure</span>
+            <div class="slot metricslot" id="slot-metric"><span class="empty">drop a metric card…</span></div></div>
+          <div class="slotrow"><span class="slotlab">group by</span>
+            <div class="slot dimslot" id="slot-dim0"><span class="empty">optional</span></div>
+            <div class="slot dimslot" id="slot-dim1"><span class="empty">optional</span></div></div>
+          <div class="slotrow"><span class="slotlab">window</span>
+            <div class="dial"><button id="dial-prev" aria-label="earlier window">◀</button>
+              <span class="win" id="dial-win">—</span>
+              <button id="dial-next" aria-label="later window">▶</button></div>
+            <button class="toggle" id="cmp-prev">vs prev period</button>
+            <button class="toggle" id="cmp-yoy">vs last year</button></div>
+          <div class="slotrow"><span class="slotlab">filters</span>
+            <div id="stamps" style="display:flex;flex-wrap:wrap;gap:.35rem;flex:1"></div></div>
+          <div class="slotrow"><span class="slotlab">top N</span>
+            <span class="stepper dis" id="topstep"><button id="top-dec">−</button><b id="top-val">all</b><button id="top-inc">+</button>
+              <span style="font-size:.6rem">(products only)</span></span></div>
+          <div class="runwrap">
+            <button id="lever" disabled aria-label="run the query">
+              <span class="base"></span><span class="stick"><span class="knob"></span></span><span class="lbl">RUN</span></button>
+            <span class="hint" id="runhint">pick a measure to arm the lever</span>
+          </div>
+        </div>
+        <div class="board-help">click a card to place it · click a placed card to send it back · the window dial and stamps reshape the plan live →</div>
       </div>
-      <div style="margin-top:.4rem">Your key is kept in this tab's memory only and requests go <b>straight from your browser to the provider</b> — no server of mine ever sees it. The model receives the semantic layer and must answer with a JSON plan; the plan is validated against the manifest and compiled by the same guarded compiler as keyless mode. If the model names a metric that doesn't exist, the plan is rejected, not improvised.</div>
+      <div class="sqlprev" id="sqlprev">
+        <div class="bar"><i></i><i></i><i></i><span>compiled live · the only SQL author in the system</span></div>
+        <pre id="sqlpre"><span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span></pre>
+      </div>
+    </div>
+
+    <div class="racklab">metric cards — one definition each, straight from the semantic layer</div>
+    <div class="rack" id="rack-metrics"></div>
+    <div class="racklab">dimension trays — slice the measure</div>
+    <div class="rack" id="rack-dims"></div>
+
+    <details class="llm" id="llmpanel" style="margin-top:.6rem">
+      <summary>⚡ or dictate to the Analyst — a live LLM arranges the board <span class="live" id="llmstate"></span></summary>
+      <div class="llmrow">
+        <input id="llm-q" type="text" placeholder="e.g. how did mobile revenue trend this year?" style="flex:1;min-width:220px" aria-label="describe the question">
+        <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
+        <input id="llm-model" type="text" value="claude-haiku-4-5" size="18" aria-label="model">
+        <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
+        <button id="llm-go" class="toggle">arrange →</button>
+      </div>
+      <div style="margin-top:.4rem">The model never touches SQL — it only <b>arranges the cards on the board</b>. You watch which tokens it picks; then the same guarded compiler runs. Your key stays in this tab and requests go straight from your browser to the provider. A metric that isn't on a card is a rejected plan, not an improvised query.</div>
     </details>
+  </div>
+
+  <div class="card">
+    <h2>Reports shelf — the investigations a lookup tool can't do</h2>
+    <div class="shelf" id="shelf">
+      <button class="report" id="rep-why" style="--rc:var(--coral)" disabled>
+        <div class="rt"><span class="ic">🔎</span>Why did it move?</div>
+        <div class="rd">place a measure + window, then decompose the change across every dimension into a waterfall</div></button>
+      <button class="report" id="rep-cohort" style="--rc:var(--green)">
+        <div class="rt"><span class="ic">🧭</span>Retention triangle</div>
+        <div class="rd">behavioral cohorts by quarter of first purchase</div></button>
+      <button class="report" id="rep-anom" style="--rc:var(--gold)">
+        <div class="rt"><span class="ic">📡</span>Anomaly scan</div>
+        <div class="rd">z-scores across the watchlist over the window on the dial</div></button>
+    </div>
   </div>
 
   <div id="feed"></div>
@@ -236,7 +374,7 @@
   </div>
 
   <footer>
-    ABACUS · question → plan → semantic layer → SQL → chart, entirely client-side ·
+    ABACUS · plan board → semantic layer → compiled SQL → chart, entirely client-side ·
     Python twin + goldens on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/abacus" target="_blank" rel="noopener">the branch</a> ·
     part of <a href="/">hnguyen.dev</a>
   </footer>
@@ -615,58 +753,28 @@
     return `<details><summary>result table (${result.rows.length} rows)</summary><table><tr>${head}</tr>${body}</table></details>`;
   }
 
-  async function ask(question) {
-    if (busy || !question.trim()) return;
+  async function runPlanFlow(plan, label, mode, opts = {}) {
+    if (busy) return;
     busy = true;
-    $("ask").disabled = true;
-    const llmOn = $("llm-on").checked;
+    setBoardEnabled(false);
+    const modeCls = opts.modeCls || "";
+    const llmMeta = opts.llmMeta || "";
+    const llmRaw = opts.llmRaw || null;
     const t0 = performance.now();
+    const analystKind = plan.kind && plan.kind !== "aggregate";
 
-    // Desk 1 — the Analyst plans (deterministic or live LLM).
-    // Analyst kinds (why/retention/anomalies) always stay deterministic.
-    let detPlan = null, detErr = null;
-    try { detPlan = Abacus.parse(question); } catch (e) { detErr = e; }
-    const analystKind = detPlan && detPlan.kind !== "aggregate";
+    // Desk 1 — the Analyst takes the plan already built on the board
     moveTicket(0); eyes(0);
-    setDesk("analyst", "agent working", llmOn && !analystKind
-      ? `on the wire to ${escH($("llm-provider").value)}<span class="dots"></span>`
-      : analystKind ? 'this one needs the whole desk<span class="dots"></span>'
-      : 'reading your question<span class="dots"></span>');
-    await sleep(420);
-    let plan, mode = "DETERMINISTIC", modeCls = "", llmMeta = "", llmRaw = null;
-    try {
-      if (analystKind) {
-        plan = detPlan;
-        mode = plan.kind.toUpperCase();
-        setDesk("analyst", "agent", `parsed ✓ <b>${plan.kind}</b>${plan.metric ? ` on ${plan.metric}` : ""} · ${escH(plan.time.label)}${llmOn ? " (analyst kinds stay deterministic)" : ""}`);
-      } else if (llmOn) {
-        const cfg = { provider: $("llm-provider").value, model: $("llm-model").value.trim(),
-                      key: $("llm-key").value.trim() };
-        if (!cfg.key) throw new Error("no API key pasted — flip off LLM mode or add a key");
-        const out = await Abacus.llmPlan(question, cfg);
-        plan = out.plan; llmRaw = out.raw;
-        mode = `LIVE LLM · ${cfg.model}`; modeCls = "live";
-        llmMeta = ` · model ${out.ms} ms · ${out.usage}`;
-        setDesk("analyst", "agent", `<b>${escH(cfg.model)}</b> answered in ${out.ms} ms ✓`);
-      } else {
-        if (detErr) throw detErr;
-        plan = detPlan;
-        setDesk("analyst", "agent", `parsed ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
-      }
-    } catch (e) {
-      setDesk("analyst", "agent", "couldn't make sense of that ✗");
-      stageClear();
-      const d = document.createElement("div");
-      d.className = "err";
-      d.innerHTML = `<b>${escH(question)}</b> — ${escH(e.message)}`;
-      $("feed").prepend(d);
-      busy = false; $("ask").disabled = false;
-      return;
-    }
+    setDesk("analyst", "agent working", opts.fromLLM
+      ? 'transcribing the model’s picks<span class="dots"></span>'
+      : 'reading the board<span class="dots"></span>');
+    await sleep(380);
+    setDesk("analyst", "agent", analystKind
+      ? `taking the <b>${plan.kind}</b> ticket${plan.metric ? ` on ${plan.metric}` : ""} · ${escH(plan.time.label)}`
+      : `plan in hand ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
     nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
 
     // Desk 2 — the Librarian resolves it against the manifest
-    moveTicket(1); eyes(1);
     moveTicket(1); eyes(1);
     setDesk("librarian", "agent working", analystKind
       ? 'pulling every dimension card<span class="dots"></span>'
@@ -688,7 +796,6 @@
 
     // Desk 3 — the Machinist runs it
     moveTicket(2); eyes(2);
-    moveTicket(2); eyes(2);
     const mLabel = { investigate: "running the decomposition",
                      retention: "walking every customer through the quarters",
                      anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
@@ -704,9 +811,9 @@
       stageClear();
       const d = document.createElement("div");
       d.className = "err";
-      d.innerHTML = `<b>${escH(question)}</b> — the compiler refused the plan: ${escH(e.message)}${llmOn ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
+      d.innerHTML = `<b>${escH(label)}</b> — the compiler refused the plan: ${escH(e.message)}${opts.fromLLM ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
       $("feed").prepend(d);
-      busy = false; $("ask").disabled = false;
+      busy = false; setBoardEnabled(true);
       return;
     }
     const dbMs = result.ms !== undefined ? result.ms : performance.now() - tdb0;
@@ -732,7 +839,6 @@
 
     // Desk 4 — the Illustrator inks it
     moveTicket(3); eyes(3);
-    moveTicket(3); eyes(3);
     const iLabel = { investigate: "drawing the waterfall", retention: "shading the triangle",
                      anomalies: "circling the outliers" }[plan.kind] || "inking the chart";
     setDesk("illustrator", "agent working", iLabel + '<span class="dots"></span>');
@@ -747,7 +853,7 @@
     const card = document.createElement("div");
     card.className = "ans k-" + (plan.kind || "aggregate");
     card.innerHTML = `
-      <div class="qline">${KIND_ICON[plan.kind] || "▦"} “${escH(question)}” <span class="mode ${modeCls}">${escH(mode)}</span></div>
+      <div class="qline">${KIND_ICON[plan.kind] || "▦"} ${escH(label)} <span class="mode ${modeCls}">${escH(mode)}</span></div>
       ${planChips(plan)}
       <div class="story"></div>
       <div class="zone"></div>
@@ -777,12 +883,27 @@
         if (i >= text.length) clearInterval(iv);
       }, 16);
     }
+    // a scalar total invites the follow-up a lookup tool can't answer
+    if (plan.kind === "aggregate" && plan.dims.length === 0 && result.rows.length) {
+      const btn = document.createElement("button");
+      btn.className = "whybtn";
+      btn.textContent = "🔎 why did it move? → investigate";
+      btn.addEventListener("click", () => {
+        if (busy) return;
+        const compare = plan.compare || prevPeriodOf(plan.time);
+        const inv = { kind: "investigate", metric: plan.metric, dims: [],
+                      filters: plan.filters, time: plan.time, top: null, compare };
+        const lbl = `🔎 why did ${man.metrics[plan.metric].label.toLowerCase()} move, ${plan.time.label}?`;
+        runPlanFlow(inv, lbl, "INVESTIGATE");
+      });
+      card.appendChild(btn);
+    }
     nCharts++; chip("illustrator", `${nCharts} CHART${nCharts > 1 ? "S" : ""}`);
     stageClear();
     setDesk("illustrator", "agent cheer", "filed ✓");
     setTimeout(() => setDesk("illustrator", "agent", "cleaning brushes"), 1800);
     busy = false;
-    $("ask").disabled = false;
+    setBoardEnabled(true);
   }
 
   /* ---------------- eval ---------------- */
@@ -848,21 +969,276 @@
     $("evalbtn").disabled = false;
   }
 
+  /* ================= THE PLAN BOARD ================= */
+  const TIME_PRESETS = ["last quarter", "this quarter", "q4 2025", "q3 2025",
+    "q2 2025", "q1 2025", "2025", "2024", "ytd", "last 6 months",
+    "june 2026", "may 2026", "all time"];
+  const METRIC_ICON = { money: "$", money2: "$", pct: "%", int: "#" };
+  const board = { metric: null, dims: [], filters: [], timeIdx: 0,
+                  timeOverride: null, compareOverride: null, compareMode: null, top: null };
+  let boardLocked = false, userTouched = false;
+
+  function markTouched() { userTouched = true; }
+  function prevPeriodOf(time) {
+    const shift = (iso, d) => { const x = new Date(iso + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + d); return x.toISOString().slice(0, 10); };
+    const n = Math.round((Date.parse(time.end) - Date.parse(time.start)) / 86400000) + 1;
+    return { start: shift(time.start, -n), end: shift(time.start, -1), label: "previous period" };
+  }
+  function boardTime() {
+    return board.timeOverride || Abacus.timeFromPhrase(TIME_PRESETS[board.timeIdx]).time;
+  }
+  function compareAllowed() {
+    const man = Abacus.manifest;
+    return board.dims.every((d) => man.dimensions[d].time);   // totals or a time trend only
+  }
+  function currentCompare() {
+    if (!board.compareMode || !compareAllowed()) return null;
+    if (board.timeOverride) return board.compareOverride;
+    const phrase = TIME_PRESETS[board.timeIdx] + (board.compareMode === "yoy" ? " vs last year" : " vs previous period");
+    return Abacus.timeFromPhrase(phrase).compare;
+  }
+  function composePlan() {
+    return { kind: "aggregate", metric: board.metric, dims: [...board.dims],
+             filters: board.filters.filter((f) => !board.dims.includes(f.dim)),
+             time: boardTime(), top: board.top, compare: currentCompare() };
+  }
+  function humanLabel(plan) {
+    const man = Abacus.manifest;
+    let s = man.metrics[plan.metric].label;
+    if (plan.dims.length) s += " by " + plan.dims.join(" & ");
+    for (const f of plan.filters) s += " · " + f.value;
+    if (plan.top) s += " · top " + plan.top;
+    s += " · " + plan.time.label;
+    if (plan.compare) s += " vs " + plan.compare.label;
+    return "“" + s + "”";
+  }
+  function updatePreview() {
+    const pre = $("sqlpre");
+    if (!board.metric) {
+      pre.innerHTML = '<span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span>';
+      $("sqlprev").classList.add("stale"); return;
+    }
+    let sql;
+    try { sql = Abacus.compilePlan(composePlan()); } catch (e) { sql = "-- " + e.message; }
+    pre.innerHTML = sql
+      .split(/'([^']*)'/).map((seg, i) => i % 2 ? `<span class="lit">'${escH(seg)}'</span>` : escH(seg)
+        .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|GROUP BY|ORDER BY|LIMIT|AND|AS|DESC|SUM|COUNT|DISTINCT|CASE|WHEN|THEN|ELSE|END|NULLIF)\b/g, '<span class="kw">$1</span>')).join("");
+    $("sqlprev").classList.remove("stale");
+    if (!REDUCED) { pre.classList.remove("flash"); void pre.offsetWidth; pre.classList.add("flash"); }
+  }
+
+  function renderBoard() {
+    const man = Abacus.manifest;
+    // measure slot
+    const ms = $("slot-metric");
+    if (board.metric) {
+      ms.className = "slot metricslot filled";
+      ms.innerHTML = `<button class="tok metric placed" data-clear="metric"><span class="ic">${METRIC_ICON[man.metrics[board.metric].fmt]}</span>${escH(man.metrics[board.metric].label)}<span class="x">×</span></button>`;
+    } else { ms.className = "slot metricslot"; ms.innerHTML = '<span class="empty">drop a metric card…</span>'; }
+    // dim slots
+    [0, 1].forEach((i) => {
+      const el = $("slot-dim" + i), d = board.dims[i];
+      if (d) {
+        el.className = "slot dimslot filled";
+        el.innerHTML = `<button class="tok dim placed" data-cleardim="${d}">${escH(man.dimensions[d].label)}<span class="x">×</span></button>`;
+      } else { el.className = "slot dimslot"; el.innerHTML = `<span class="empty">${i === 0 ? "optional" : "optional"}</span>`; }
+    });
+    // dial
+    $("dial-win").textContent = boardTime().label;
+    // compare toggles
+    const allow = compareAllowed();
+    for (const [id, mode] of [["cmp-prev", "prev"], ["cmp-yoy", "yoy"]]) {
+      const b = $(id);
+      b.classList.toggle("on", board.compareMode === mode && allow);
+      b.classList.toggle("dis", !allow);
+    }
+    // stamps: grey a stamp whose dim is currently grouped
+    for (const el of document.querySelectorAll(".stamp")) {
+      const grouped = board.dims.includes(el.dataset.dim);
+      const on = board.filters.some((f) => f.dim === el.dataset.dim && f.value === el.dataset.value);
+      el.classList.toggle("on", on && !grouped);
+      el.style.opacity = grouped ? ".25" : "";
+    }
+    // top stepper
+    const step = $("topstep"), canTop = board.dims.includes("product");
+    step.classList.toggle("dis", !canTop);
+    $("top-val").textContent = board.top ? board.top : (canTop ? "10" : "all");
+    // rack on-states
+    for (const el of document.querySelectorAll("#rack-metrics .tok"))
+      el.classList.toggle("on", el.dataset.metric === board.metric);
+    for (const el of document.querySelectorAll("#rack-dims .tok"))
+      el.classList.toggle("on", board.dims.includes(el.dataset.dim));
+    // lever + reports
+    const armed = !!board.metric && !boardLocked;
+    $("lever").disabled = !armed;
+    $("runhint").textContent = board.metric ? "pull the lever to compile & run" : "pick a measure to arm the lever";
+    $("rep-why").disabled = !armed;
+    updatePreview();
+  }
+
+  function placeMetric(m) { markTouched(); board.metric = board.metric === m ? null : m; renderBoard(); }
+  function toggleDim(d) {
+    markTouched();
+    const i = board.dims.indexOf(d);
+    if (i >= 0) board.dims.splice(i, 1);
+    else if (board.dims.length < 2) board.dims.push(d);
+    if (!board.dims.includes("product")) board.top = null;
+    renderBoard();
+  }
+  function toggleFilter(dim, value) {
+    markTouched();
+    const i = board.filters.findIndex((f) => f.dim === dim && f.value === value);
+    if (i >= 0) board.filters.splice(i, 1); else board.filters.push({ dim, value });
+    renderBoard();
+  }
+  function setTimeIdx(i) {
+    markTouched(); board.timeOverride = null; board.compareOverride = null;
+    board.timeIdx = (i + TIME_PRESETS.length) % TIME_PRESETS.length; renderBoard();
+  }
+  function setCompare(mode) {
+    markTouched();
+    board.compareMode = board.compareMode === mode ? null : mode; renderBoard();
+  }
+
+  function setBoardEnabled(on) {
+    boardLocked = !on;
+    $("rack-metrics").style.pointerEvents = on ? "" : "none";
+    $("rack-dims").style.pointerEvents = on ? "" : "none";
+    $("board").style.opacity = on ? "1" : ".6";
+    document.querySelectorAll(".report").forEach((b) => {
+      if (b.id === "rep-why") b.disabled = !on || !board.metric;
+      else b.disabled = !on;
+    });
+    renderBoard();
+  }
+
+  function runReport(which) {
+    if (busy) return;
+    markTouched();
+    if (which === "why") {
+      if (!board.metric) return;
+      const time = boardTime(), compare = currentCompare() || prevPeriodOf(time);
+      const plan = { kind: "investigate", metric: board.metric, dims: [],
+                     filters: board.filters, time, top: null, compare };
+      runPlanFlow(plan, `🔎 why did ${Abacus.manifest.metrics[board.metric].label.toLowerCase()} move, ${time.label}?`, "INVESTIGATE");
+    } else if (which === "cohort") {
+      runPlanFlow({ kind: "retention", metric: null, dims: [], filters: [],
+                    time: boardTime(), top: null, compare: null },
+                  "🧭 retention by signup cohort", "RETENTION");
+    } else if (which === "anom") {
+      const time = boardTime();
+      runPlanFlow({ kind: "anomalies", metric: null, dims: [], filters: [],
+                    time, top: null, compare: null },
+                  `📡 anomaly scan · ${time.label}`, "ANOMALIES");
+    }
+  }
+
+  function buildRacks(man) {
+    const mr = $("rack-metrics");
+    mr.innerHTML = "";
+    for (const [k, spec] of Object.entries(man.metrics)) {
+      const b = document.createElement("button");
+      b.className = "tok metric"; b.dataset.metric = k;
+      b.innerHTML = `<span class="ic">${METRIC_ICON[spec.fmt]}</span>${escH(spec.label)}`;
+      b.title = spec.sql.split("\n")[0];
+      b.addEventListener("click", () => placeMetric(k));
+      mr.appendChild(b);
+    }
+    const dr = $("rack-dims");
+    dr.innerHTML = "";
+    for (const [k, spec] of Object.entries(man.dimensions)) {
+      const b = document.createElement("button");
+      b.className = "tok dim"; b.dataset.dim = k;
+      b.textContent = "▸ " + spec.label;
+      b.addEventListener("click", () => toggleDim(k));
+      dr.appendChild(b);
+    }
+    const st = $("stamps");
+    st.innerHTML = "";
+    for (const [dim, vals] of Object.entries(man.values)) {
+      for (const v of vals) {
+        const b = document.createElement("button");
+        b.className = "stamp"; b.dataset.dim = dim; b.dataset.value = v;
+        b.textContent = v;
+        b.addEventListener("click", () => toggleFilter(dim, v));
+        st.appendChild(b);
+      }
+    }
+  }
+
+  // clicking a placed token (the × cards inside slots) clears it
+  $("board").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-clear],[data-cleardim]");
+    if (!c || boardLocked) return;
+    if (c.dataset.clear === "metric") placeMetric(board.metric);
+    else if (c.dataset.cleardim) toggleDim(c.dataset.cleardim);
+  });
+  $("dial-prev").addEventListener("click", () => setTimeIdx(board.timeIdx - 1));
+  $("dial-next").addEventListener("click", () => setTimeIdx(board.timeIdx + 1));
+  $("cmp-prev").addEventListener("click", () => setCompare("prev"));
+  $("cmp-yoy").addEventListener("click", () => setCompare("yoy"));
+  $("top-inc").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.min(20, (board.top || 10) + 5); renderBoard(); });
+  $("top-dec").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.max(5, (board.top || 10) - 5); renderBoard(); });
+  $("lever").addEventListener("click", () => {
+    if (boardLocked || !board.metric) return;
+    markTouched();
+    $("lever").classList.add("pulled");
+    setTimeout(() => $("lever").classList.remove("pulled"), 400);
+    const plan = composePlan();
+    runPlanFlow(plan, humanLabel(plan), "BOARD");
+  });
+  $("rep-why").addEventListener("click", () => runReport("why"));
+  $("rep-cohort").addEventListener("click", () => runReport("cohort"));
+  $("rep-anom").addEventListener("click", () => runReport("anom"));
+
+  // the LLM only arranges the board; you watch its picks land as cards
+  async function llmArrange() {
+    if (busy) return;
+    markTouched();
+    const q = $("llm-q").value.trim();
+    if (!q) return;
+    const cfg = { provider: $("llm-provider").value, model: $("llm-model").value.trim(), key: $("llm-key").value.trim() };
+    if (!cfg.key) { $("llmstate").textContent = "· paste a key first"; return; }
+    $("llm-go").disabled = true; $("llmstate").textContent = "· on the wire…";
+    setDesk("analyst", "agent working live", `on the wire to ${escH(cfg.provider)}<span class="dots"></span>`);
+    $("ag-analyst").classList.add("live");
+    let out;
+    try { out = await Abacus.llmPlan(q, cfg); }
+    catch (e) {
+      $("llmstate").textContent = "· " + e.message.slice(0, 40);
+      setDesk("analyst", "agent", "the wire dropped ✗");
+      $("ag-analyst").classList.remove("live"); $("llm-go").disabled = false; return;
+    }
+    const plan = out.plan;
+    // clear then place the model's picks, one card at a time
+    board.metric = null; board.dims = []; board.filters = []; board.top = plan.top || null;
+    board.timeOverride = plan.time; board.compareOverride = plan.compare || null;
+    board.compareMode = plan.compare ? (/prior year/.test(plan.compare.label) ? "yoy" : "prev") : null;
+    renderBoard();
+    $("llmstate").textContent = `· ${cfg.model} chose ${out.ms} ms`;
+    await sleep(260); board.metric = plan.metric; renderBoard();
+    for (const d of (plan.dims || [])) { await sleep(260); board.dims.push(d); renderBoard(); }
+    for (const f of (plan.filters || [])) { await sleep(220); board.filters.push(f); renderBoard(); }
+    $("ag-analyst").classList.remove("live");
+    setDesk("analyst", "agent", "board set by the model — pull to run");
+    $("llm-go").disabled = false;
+    await sleep(500);
+    if (!busy) {
+      $("lever").classList.add("pulled"); setTimeout(() => $("lever").classList.remove("pulled"), 400);
+      const p = composePlan();
+      runPlanFlow(p, humanLabel(p), `LIVE LLM · ${cfg.model}`, { modeCls: "live", fromLLM: true, llmRaw: out.raw, llmMeta: ` · model ${out.ms} ms · ${out.usage}` });
+    }
+  }
+  $("llm-go").addEventListener("click", llmArrange);
+  $("llm-q").addEventListener("keydown", (e) => { if (e.key === "Enter") llmArrange(); });
+  $("llm-q").addEventListener("focus", markTouched);
+  $("llm-provider").addEventListener("change", () => {
+    $("llm-model").value = $("llm-provider").value === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
+    $("llm-key").placeholder = $("llm-provider").value === "anthropic" ? "sk-ant-… (stays in this tab)" : "sk-… (stays in this tab)";
+  });
+  $("evalbtn").addEventListener("click", runEval);
+
   /* ---------------- boot ---------------- */
-  const EXAMPLES = [
-    "why did revenue jump in q4 2025 vs the previous quarter",
-    "retention by signup cohort",
-    "scan 2025 for anomalies",
-    "revenue by region last quarter",
-    "margin % by category in 2025",
-    "revenue ytd vs last year",
-    "top 5 products by revenue last quarter",
-    "mobile revenue by month in 2026",
-  ];
-
-  let userTouched = false;
-  for (const ev of ["focus", "keydown"]) $("q").addEventListener(ev, () => { userTouched = true; });
-
   async function fetchWithProgress(url) {
     const r = await fetch(url);
     const total = +r.headers.get("content-length") || 0;
@@ -906,33 +1282,20 @@
         setDesk(id, "agent cheer", txt);
         setTimeout(() => $("ag-" + id).className = "agent", 900);
       }, i * 220));
-      $("q").disabled = false; $("q").placeholder = 'try “why did revenue jump in q4 2025?”';
-      $("ask").disabled = false; $("evalbtn").disabled = false;
-      // auto-showcase: if the visitor hasn't touched anything, the desk
-      // demonstrates itself on the hardest question kind
+      setDesk("analyst", "agent", "ready — build a question on the board");
+      buildRacks(manifest);
+      renderBoard();
+      $("evalbtn").disabled = false;
+      // auto-showcase: if untouched, the desk builds a plan and investigates
       setTimeout(() => {
-        if (!userTouched && !busy) {
-          const q0 = "why did revenue jump in q4 2025 vs the previous quarter";
-          $("q").value = q0;
-          ask(q0);
-        }
-      }, 1400);
-      for (const ex of EXAMPLES) {
-        const b = document.createElement("button");
-        b.textContent = ex;
-        b.addEventListener("click", () => { $("q").value = ex; ask(ex); });
-        $("chips").appendChild(b);
-      }
-      $("helpcols").innerHTML = `
-        <div><b>metrics</b><br>${Object.entries(manifest.metrics).map(([k, v]) => `${v.label} <i style="color:var(--dim)">(${v.syn.slice(0, 2).join(", ")})</i>`).join("<br>")}</div>
-        <div><b>slice by</b><br>${Object.keys(manifest.dimensions).join(", ")}<br><br>
-             <b>filter with</b><br>${Object.entries(manifest.values).map(([d, vs]) => `${d}: ${vs.join(", ")}`).join("<br>")}</div>
-        <div><b>time</b><br>last quarter · this quarter · q4 2025 · in 2025 · june 2026 · last 6 months · ytd · all time<br><br>
-             <b>extras</b><br>top 5 … · “vs last year” / “vs previous period” on totals</div>
-        <div><b>and the analyst kinds</b><br>
-             “why did revenue jump in q4 2025 vs the previous quarter” → driver decomposition + waterfall<br>
-             “retention by signup cohort” → the retention triangle<br>
-             “scan 2025 for anomalies” → z-scores across every watched series</div>`;
+        if (userTouched || busy) return;
+        board.metric = "revenue"; renderBoard();
+        setTimeout(() => {
+          if (userTouched || busy) return;
+          board.timeIdx = TIME_PRESETS.indexOf("q4 2025"); renderBoard();
+          setTimeout(() => { if (!userTouched && !busy) { userTouched = false; runReport("why"); } }, 800);
+        }, 700);
+      }, 1500);
     } catch (e) {
       setDesk("analyst", "agent", "warehouse failed to load ✗");
       const d = document.createElement("div");
@@ -941,19 +1304,6 @@
       $("feed").prepend(d);
     }
   })();
-
-  $("ask").addEventListener("click", () => ask($("q").value));
-  $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") ask($("q").value); });
-  $("evalbtn").addEventListener("click", runEval);
-  $("llm-provider").addEventListener("change", () => {
-    $("llm-model").value = $("llm-provider").value === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
-    $("llm-key").placeholder = $("llm-provider").value === "anthropic" ? "sk-ant-… (stays in this tab)" : "sk-… (stays in this tab)";
-  });
-  $("llm-on").addEventListener("change", () => {
-    const on = $("llm-on").checked;
-    $("llmstate").textContent = on ? "· ON" : "";
-    $("ag-analyst").classList.toggle("live", on);
-  });
 </script>
 </body>
 </html>

@@ -597,8 +597,15 @@ Question: ${question}`;
     throw new Error(kind);
   }
 
+  // The Plan Board builds plan objects directly; it needs the same time
+  // grammar the parser uses, so a window phrase → {time, compare} once.
+  function timeFromPhrase(phrase) {
+    const [time, compare] = parseTime(String(phrase).toLowerCase());
+    return { time, compare };
+  }
+
   return { init, parse, compilePlan, runPlan, runAny, canonicalCheck,
-           narrate, fmt, llmPlan, llmPrompt,
+           narrate, fmt, llmPlan, llmPrompt, timeFromPhrase,
            exec, get manifest() { return MAN; } };
 })();
 window.Abacus = Abacus;
