@@ -192,8 +192,28 @@
   /* ================= the plan board ================= */
   .boardgrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; }
   @media (max-width: 820px) { .boardgrid { grid-template-columns: 1fr; } }
+  /* the command console — same query, another skin */
+  .console { border: 1.5px solid var(--line); border-radius: 12px; background: #fbfbfc; overflow: hidden;
+    box-shadow: 3px 3px 0 rgba(20,20,26,.05); margin-bottom: .85rem; transition: border-color .25s, box-shadow .25s; }
+  .console.armed { border-color: var(--blue); box-shadow: 3px 3px 0 rgba(63,90,160,.12); }
+  .console .chead { display: flex; align-items: center; gap: .5rem; padding: .32rem .7rem; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .console .ctag { font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .console .csub { font-size: .6rem; color: var(--dim); margin-left: auto; }
+  .console .cline { display: flex; align-items: center; gap: .5rem; padding: .55rem .7rem; }
+  .cprompt { color: var(--green); font-weight: 800; white-space: nowrap; user-select: none; }
+  .cprompt b { color: var(--blue); font-weight: 800; }
+  #cmd { flex: 1; min-width: 60px; font: inherit; font-size: .84rem; border: 0; background: transparent; color: var(--text); caret-color: var(--blue); padding: .1rem 0; }
+  #cmd:focus { outline: none; }
+  #cmd::placeholder { color: #9a99a3; font-style: italic; }
+  .cline:not(:focus-within):after { content: "▊"; color: var(--blue); animation: cblink 1.1s steps(2) infinite; margin-right: .1rem; order: 3; }
+  @keyframes cblink { 50% { opacity: 0; } }
+  .crun { order: 4; font: inherit; font-weight: 800; font-size: .74rem; color: #fff; background: var(--blue); border: 1.5px solid var(--blue); border-radius: 8px; padding: .22rem .7rem; cursor: pointer; box-shadow: 2px 2px 0 rgba(20,20,26,.12); transition: filter .15s, transform .05s; white-space: nowrap; }
+  .crun:hover { filter: brightness(1.08); } .crun:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 rgba(20,20,26,.12); }
+  #cmd { order: 2; } .cprompt { order: 1; }
+  .cerr { display: none; color: var(--coral); font-size: .68rem; font-weight: 700; padding: 0 .7rem .5rem 3.1rem; }
+  .cerr.show { display: block; }
   .board { background: repeating-linear-gradient(-45deg, #F4F4F6, #F4F4F6 12px, #ECECEF 12px, #ECECEF 24px);
-    border: 2px solid #c9bfa6; border-radius: 12px; padding: .8rem; position: relative;
+    border: 2px solid #cfced6; border-radius: 12px; padding: .8rem; position: relative;
     box-shadow: inset 0 0 0 4px #ffffff, inset 0 0 14px rgba(20,20,26,.06); }
   .board:before { content: "PLAN BOARD"; position: absolute; top: -9px; left: 14px; background: var(--panel);
     font-size: .58rem; letter-spacing: .18em; color: var(--dim); padding: 0 .4rem; font-weight: 700; }
@@ -340,7 +360,7 @@
 <div class="wrap">
   <header>
     <h1>ABACUS<span class="dot">_</span></h1>
-    <p class="tagline">build a question from real building blocks — no chatbox — and watch it compile to live SQL on a <b id="hdr-rows">125k</b>-row warehouse running in your browser</p>
+    <p class="tagline">type a question in the console, or build it from real building blocks — either way a <b>deterministic compiler</b> writes the SQL (never a chatbot) on a <b id="hdr-rows">125k</b>-row warehouse in your browser</p>
     <details class="how"><summary>how it's real</summary>
       <span>A 125k-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) runs on SQLite-in-WebAssembly on this page. A semantic layer defines every metric once; the board hands a plan to a deterministic compiler — <b>the only thing allowed to write SQL</b>. Bring your own API key and a live LLM arranges the board instead — your key stays in this tab, and the model only ever picks from the semantic layer.</span></details>
     <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
@@ -351,6 +371,16 @@
 
   <div class="card" id="boardcard">
     <h2>Build a question <span class="stepnote" id="stepnote">— drop in a measure to begin</span></h2>
+    <div class="console" id="console">
+      <div class="chead"><span class="ctag">console</span><span class="csub">type a question — or build it on the board below ↓</span></div>
+      <div class="cline" id="cline">
+        <span class="cprompt">abacus&nbsp;<b>❯</b></span>
+        <input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+          aria-label="type a question" placeholder="e.g. revenue by region last quarter">
+        <button class="crun" id="cmd-run" title="run ⏎">run ⏎</button>
+      </div>
+      <div class="cerr" id="cerr"></div>
+    </div>
     <div class="board" id="board">
       <div class="slotrow primary"><span class="slotlab">measure</span>
         <div class="slot metricslot" id="slot-metric"><span class="empty">drop a metric card from below…</span></div></div>
@@ -1149,6 +1179,68 @@
     $("runhint").textContent = board.metric ? "pull the lever to compile & run" : "pick a measure to arm the lever";
     $("rep-why").disabled = !armed;
     updatePreview();
+    renderConsole();
+  }
+
+  /* -------- the command console: same query, typed instead of built -------- */
+  function boardCommand() {
+    if (!board.metric) return "";
+    const man = Abacus.manifest;
+    let s = man.metrics[board.metric].label.toLowerCase();
+    if (board.dims.length) s += " by " + board.dims.map((d) => man.dimensions[d].label).join(" and ");
+    for (const f of board.filters.filter((f) => !board.dims.includes(f.dim))) s += " for " + f.value;
+    s += " in " + boardTime().label.toLowerCase();
+    if (currentCompare()) s += board.compareMode === "yoy" ? " vs last year" : " vs previous period";
+    return s;
+  }
+  function renderConsole() {
+    const cmd = $("cmd"); if (!cmd) return;
+    const bc = boardCommand();
+    cmd.placeholder = bc || "e.g. revenue by region last quarter  ·  why did margin drop in q1 2026";
+    $("console").classList.toggle("armed", !!board.metric);
+  }
+  let cerrTimer = null;
+  function consoleErr(msg) {
+    const e = $("cerr"); e.textContent = "✗ " + msg; e.classList.add("show");
+    clearTimeout(cerrTimer); cerrTimer = setTimeout(() => e.classList.remove("show"), 4200);
+  }
+  function reflectPlanToBoard(plan) {
+    if (plan.metric) {
+      board.metric = plan.metric;
+      board.dims = (plan.dims || []).slice(0, 2);
+      board.filters = (plan.filters || []).slice();
+      board.top = plan.top || null;
+    }
+    board.timeOverride = plan.time;
+    board.compareOverride = plan.compare || null;
+    board.compareMode = plan.compare ? "prev" : null;
+    renderBoard();
+  }
+  function consoleKindLabel(plan) {
+    const man = Abacus.manifest;
+    if (plan.kind === "investigate") return `why did ${man.metrics[plan.metric].label.toLowerCase()} move, ${plan.time.label}?`;
+    if (plan.kind === "retention") return "retention by signup cohort";
+    if (plan.kind === "anomalies") return `anomaly scan · ${plan.time.label}`;
+    return humanLabel(plan);
+  }
+  function runConsole(text) {
+    if (busy) return;
+    markTouched();
+    let plan;
+    try { plan = Abacus.parse(text); }
+    catch (err) { consoleErr(err.message + " — try a metric like revenue, orders, margin %"); return; }
+    reflectPlanToBoard(plan);
+    const isAnalyst = plan.kind && plan.kind !== "aggregate";
+    $("cmd").value = "";
+    $("cmd").blur();
+    runPlanFlow(plan, isAnalyst ? consoleKindLabel(plan) : humanLabel(plan),
+                isAnalyst ? plan.kind.toUpperCase() : "CONSOLE");
+  }
+  function submitConsole() {
+    const text = $("cmd").value.trim();
+    if (text) { runConsole(text); return; }
+    if (!board.metric) { consoleErr("type a question, or drop a measure on the board first"); $("cmd").focus(); return; }
+    $("lever").click();   // empty line → run whatever's on the board
   }
 
   function placeMetric(m) { markTouched(); board.metric = board.metric === m ? null : m; renderBoard(); }
@@ -1313,6 +1405,9 @@
   $("rep-why").addEventListener("click", () => runReport("why"));
   $("rep-cohort").addEventListener("click", () => runReport("cohort"));
   $("rep-anom").addEventListener("click", () => runReport("anom"));
+  $("cmd").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitConsole(); } });
+  $("cmd").addEventListener("input", () => $("cerr").classList.remove("show"));
+  $("cmd-run").addEventListener("click", submitConsole);
 
   // the LLM only arranges the board; you watch its picks land as cards
   async function llmArrange() {
