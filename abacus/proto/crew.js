@@ -48,11 +48,12 @@ const Crew = (() => {
     };
     return `<span class="workbub">${c.bubs[0]}</span>
     <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
-      <g class="person">${hair}
+      <g class="person"><g class="head">${hair}
         <rect x="50" y="20" width="32" height="30" fill="${skin}"/>
+        <rect class="facelight" x="50" y="20" width="32" height="26" fill="${c.ac}" opacity="0"/>
         <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
         <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>${glasses}
-        <rect x="59" y="43" width="14" height="3" fill="${ink}"/>
+        <rect x="59" y="43" width="14" height="3" fill="${ink}"/></g>
         <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
         <rect x="58" y="50" width="16" height="10" fill="#fff"/>
         <rect x="62" y="52" width="8" height="16" fill="${c.ac}"/>
@@ -62,7 +63,7 @@ const Crew = (() => {
       <g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
       <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
       <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
-      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>${charts[c.style]}
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>${charts[c.style]}<rect class="mglow" x="13" y="47" width="28" height="20" fill="${c.ac}" opacity="0"/>
       <rect x="22" y="70" width="10" height="4" fill="#23272f"/>${extra[c.style]}
       <rect x="4" y="76" width="124" height="9" fill="${c.ac}"/>
       <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
@@ -85,19 +86,26 @@ const Crew = (() => {
     const css = `
       .crew { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: .6rem; margin-bottom: 1rem; }
       @media (max-width:1000px){ .crew { grid-template-columns: repeat(2,1fr); } } @media (max-width:560px){ .crew { grid-template-columns:1fr; } }
-      .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .5rem .45rem .55rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(28,26,23,.05); transition: border-color .3s; }
+      .agent { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: .55rem .5rem .6rem; text-align: center; position: relative; box-shadow: 0 1px 2px rgba(20,20,26,.04); transition: transform .35s cubic-bezier(.34,1.2,.64,1), box-shadow .35s, border-color .35s; will-change: transform; }
       .agent.working, .agent.speaking { border-color: var(--ac); }
-      .agent .ava { width: 96px; height: 84px; margin: 0 auto .2rem; position: relative; }
-      .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
-      .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
-      @keyframes breathe { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-1.5px)} }
+      .agent.working { transform: translateY(-4px); box-shadow: 0 14px 30px -8px rgba(20,20,26,.16), 0 2px 6px rgba(20,20,26,.06); }
+      .agent .ava { width: 96px; height: 84px; margin: 0 auto .2rem; position: relative; perspective: 340px; }
+      .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; overflow: visible; }
+      .agent .person { transform-origin: 66px 84px; animation: breathe 4.2s ease-in-out infinite; }
+      @keyframes breathe { 0%,100%{ transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } 50%{ transform: translateY(-1.6px) scale(1.008); filter: drop-shadow(0 6px 5px rgba(20,20,26,.08)); } }
+      .agent .head { transform-origin: 66px 46px; transition: transform .3s ease; }
+      .facelight { transition: opacity .3s; } .mglow { transition: opacity .3s; }
       .agent .nm { font-weight: 800; font-size: .74rem; } .agent .rl { font-size: .58rem; color: var(--ac); font-weight: 700; }
-      .agent .chipstat { display:inline-block; margin-top:.22rem; font-size:.55rem; font-weight:700; letter-spacing:.04em; color:var(--ac); border:1.5px solid var(--ac); border-radius:999px; padding:.06rem .42rem; background:#fff; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .agent .chipstat { display:inline-block; margin-top:.22rem; font-size:.55rem; font-weight:700; letter-spacing:.04em; color:var(--ac); border:1px solid color-mix(in srgb, var(--ac) 35%, transparent); border-radius:999px; padding:.06rem .42rem; background:color-mix(in srgb, var(--ac) 7%, #fff); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .agent .st { font-size: .58rem; color: var(--dim); min-height: 2em; margin-top: .16rem; } .agent .st b { color: var(--text); }
       .agent .st .dots:after { content:""; animation: dots 1.2s steps(4) infinite; }
       @keyframes dots { 0%{content:""} 25%{content:"."} 50%{content:".."} 75%{content:"..."} }
-      .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; } .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
-      @keyframes ponder { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} } @keyframes lean { from{transform:translateY(0)} to{transform:translateY(-2px)} }
+      .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; } .agent.working .person { animation: leanin .62s ease-in-out infinite alternate; }
+      @keyframes ponder { 0%,100%{ transform: translateY(0); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } 50%{ transform: translateY(-3px); filter: drop-shadow(0 6px 5px rgba(20,20,26,.1)); } }
+      @keyframes leanin { from{ transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } to{ transform: translateY(-3px) scale(1.055); filter: drop-shadow(0 10px 9px rgba(20,20,26,.16)); } }
+      .agent.working .head { animation: peekin .62s ease-in-out infinite alternate; } @keyframes peekin { from{transform:translateY(0)} to{transform:translateY(1.4px) scale(1.02)} }
+      .agent.working .facelight { opacity: .16; animation: facepulse 1.3s ease-in-out infinite; } @keyframes facepulse { 0%,100%{opacity:.08} 50%{opacity:.2} }
+      .agent.working .mglow { animation: mglowpulse 1.1s ease-in-out infinite; } @keyframes mglowpulse { 0%,100%{opacity:.12} 50%{opacity:.4} }
       .agent.working .hands rect:nth-child(1){animation:tap .18s steps(1) infinite} .agent.working .hands rect:nth-child(2){animation:tap .18s steps(1) infinite .09s}
       @keyframes tap { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
       .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; } @keyframes cheer { 0%,100%{transform:translateY(0)} 45%{transform:translateY(-9px)} }
@@ -108,14 +116,15 @@ const Crew = (() => {
       .eye { animation: blink 4.6s infinite; transform-origin: center; } @keyframes blink { 0%,94%,100%{transform:scaleY(1)} 96%,98%{transform:scaleY(.1)} }
       .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; } @keyframes mflow { to { stroke-dashoffset: -120; } }
       .scr { animation: flick 7.3s steps(1) infinite; } @keyframes flick { 0%,93%,100%{opacity:1} 94%,96%{opacity:.72} }
-      .workbub { position:absolute; top:-10px; left:0; display:none; z-index:5; background:#fff; border:1.5px solid var(--ac); border-radius:8px; padding:.06rem .4rem; font-size:.56rem; font-weight:700; color:var(--ac); white-space:nowrap; box-shadow:2px 2px 0 rgba(28,26,23,.12); }
-      .workbub:after { content:""; position:absolute; right:12px; bottom:-5px; width:7px; height:7px; background:#fff; border-right:1.5px solid var(--ac); border-bottom:1.5px solid var(--ac); transform:rotate(45deg); }
+      .workbub { position:absolute; top:-10px; left:0; display:none; z-index:5; background:#fff; border:1px solid var(--ac); border-radius:8px; padding:.06rem .4rem; font-size:.56rem; font-weight:700; color:var(--ac); white-space:nowrap; box-shadow:0 4px 10px -2px rgba(20,20,26,.18); }
+      .workbub:after { content:""; position:absolute; right:12px; bottom:-5px; width:7px; height:7px; background:#fff; border-right:1px solid var(--ac); border-bottom:1px solid var(--ac); transform:rotate(45deg); }
       .agent.working .workbub, .agent.mumble .workbub { display:block; animation: ponder 1.4s ease-in-out infinite; }
-      #crticket { position:absolute; width:40px; height:32px; z-index:7; display:none; transition:left .55s cubic-bezier(.34,1.25,.64,1), top .55s cubic-bezier(.34,1.25,.64,1); pointer-events:none; filter:drop-shadow(2px 3px 0 rgba(28,26,23,.22)); }
+      #crticket { position:absolute; width:40px; height:32px; z-index:7; display:none; transition:left .55s cubic-bezier(.34,1.25,.64,1), top .55s cubic-bezier(.34,1.25,.64,1); pointer-events:none; filter:drop-shadow(0 5px 8px rgba(20,20,26,.24)); }
       #crticket.show { display:block; } #crticket .flap { animation: tick-bob .55s ease-in-out infinite alternate; }
       @keyframes tick-bob { from{transform:translateY(0)} to{transform:translateY(-5px)} }
       #crticket.filed { animation: tick-file .5s ease-in forwards; } @keyframes tick-file { to{transform:translateY(46px) scale(.5);opacity:0} }
       .agent.look-left .eye rect { transform: translateX(-1.6px); } .agent.look-right .eye rect { transform: translateX(1.6px); } .agent .eye rect { transition: transform .25s; }
+      .agent.look-left .head { transform: translateX(-1.4px) rotate(-1.3deg); } .agent.look-right .head { transform: translateX(1.4px) rotate(1.3deg); }
       .agent.stretch .person { animation: stretching 1.3s ease-in-out 1; } .agent.stretch .arm-l, .agent.stretch .arm-r { animation: armsup 1.3s ease-in-out 1; }
       @keyframes stretching { 0%,100%{transform:translateY(0)} 30%,70%{transform:translateY(-4px)} } @keyframes armsup { 0%,100%{transform:translateY(0)} 30%,70%{transform:translateY(-7px)} }
       .agent.wiggle .person { animation: swivel 1.5s ease-in-out 1; } @keyframes swivel { 0%,100%{transform:rotate(0)} 28%{transform:rotate(-4deg)} 68%{transform:rotate(4deg)} }
@@ -134,7 +143,7 @@ const Crew = (() => {
       el.appendChild(d);
     }
     ticketEl = document.createElement("div"); ticketEl.id = "crticket";
-    ticketEl.innerHTML = `<svg viewBox="0 0 40 32" shape-rendering="crispEdges" class="flap"><rect x="1" y="3" width="38" height="26" fill="#fffdf8" stroke="#1c1a17" stroke-width="2"/><rect x="6" y="9" width="22" height="2.5" fill="#5f5a51"/><rect x="6" y="14" width="28" height="2.5" fill="#c9c2b4"/><rect x="6" y="19" width="16" height="2.5" fill="#c9c2b4"/><rect x="30" y="7" width="6" height="6" fill="#b8463a"/></svg>`;
+    ticketEl.innerHTML = `<svg viewBox="0 0 40 32" shape-rendering="crispEdges" class="flap"><rect x="1" y="3" width="38" height="26" fill="#ffffff" stroke="#16161a" stroke-width="2"/><rect x="6" y="9" width="22" height="2.5" fill="#6b6b73"/><rect x="6" y="14" width="28" height="2.5" fill="#d6d6db"/><rect x="6" y="19" width="16" height="2.5" fill="#d6d6db"/><rect x="30" y="7" width="6" height="6" fill="#4b5bd6"/></svg>`;
     el.appendChild(ticketEl);
     // office life
     const FID = ["sip","stretch","wiggle","yawn","mumble","glance"], MS = {sip:1100,stretch:1300,wiggle:1500,yawn:1100,mumble:1700,glance:1400};
