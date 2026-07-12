@@ -131,6 +131,62 @@
   @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
   footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
   a { color: var(--blue); }
+  /* ================= craft pass ================= */
+  /* the desk rail + the traveling query ticket */
+  .crew { position: relative; }
+  #ticket { position: absolute; width: 40px; height: 32px; z-index: 7; display: none;
+    transition: left .55s cubic-bezier(.34,1.25,.64,1), top .55s cubic-bezier(.34,1.25,.64,1);
+    pointer-events: none; filter: drop-shadow(2px 3px 0 rgba(28,26,23,.22)); }
+  #ticket.show { display: block; }
+  #ticket .flap { animation: tick-bob .55s ease-in-out infinite alternate; }
+  @keyframes tick-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+  #ticket.filed { animation: tick-file .5s ease-in forwards; }
+  @keyframes tick-file { to { transform: translateY(46px) scale(.5); opacity: 0; } }
+  /* eyes track the active desk */
+  .agent.look-left .eye rect { transform: translateX(-1.6px); }
+  .agent.look-right .eye rect { transform: translateX(1.6px); }
+  .agent .eye rect { transition: transform .25s; }
+  /* office life: fidgets + mutter bubbles */
+  .agent.stretch .person { animation: stretching 1.3s ease-in-out 1; }
+  .agent.stretch .arm-l, .agent.stretch .arm-r { animation: armsup 1.3s ease-in-out 1; }
+  @keyframes stretching { 0%,100% { transform: translateY(0); } 30%,70% { transform: translateY(-4px); } }
+  @keyframes armsup { 0%,100% { transform: translateY(0); } 30%,70% { transform: translateY(-7px); } }
+  .agent.wiggle .person { animation: swivel 1.5s ease-in-out 1; }
+  @keyframes swivel { 0%,100% { transform: rotate(0); } 28% { transform: rotate(-4deg); } 68% { transform: rotate(4deg); } }
+  .agent.yawn .eye { animation: none; transform: scaleY(.18); }
+  .agent.yawn .person { animation: yawnlean 1.1s ease-in-out 1; }
+  @keyframes yawnlean { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2px) rotate(-1.5deg); } }
+  .agent.mumble .workbub { display: block; animation: ponder 1.4s ease-in-out infinite; }
+  /* answer cards: kind accents + the insight pull-quote */
+  .ans { border-left: 5px solid var(--kc, var(--blue)); }
+  .ans.k-investigate { --kc: var(--coral); }
+  .ans.k-retention { --kc: var(--green); }
+  .ans.k-anomalies { --kc: var(--gold); }
+  .ans .qline .mode { background: var(--kc, var(--dim)); }
+  .ans .qline .mode.live { background: var(--coral); }
+  .ans .story { font-size: .92rem; line-height: 1.65; background: var(--panel-2);
+    border-radius: 10px; padding: .65rem .9rem .65rem 2.1rem; margin: .5rem 0; position: relative; min-height: 2.2em; }
+  .ans .story:before { content: "❝"; position: absolute; left: .7rem; top: .45rem;
+    color: var(--kc, var(--blue)); font-size: 1.25rem; font-weight: 800; }
+  .stat .big { font-size: 2.7rem; letter-spacing: -.01em; }
+  .stat .lbl { font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: .15rem; }
+  .zone rect.bar { transition: opacity .15s; }
+  .zone rect.bar:hover { opacity: .78; }
+  /* heatmap cells */
+  .zone table.heat { border-collapse: separate; border-spacing: 3px; }
+  .zone table.heat td, .zone table.heat th { border: 0; border-radius: 6px; padding: .3rem .35rem;
+    min-width: 2.4rem; text-align: center; font-weight: 700; font-size: .64rem; }
+  .zone table.heat th { background: transparent; color: var(--dim); font-weight: 400; }
+  .zone table.heat td.lab { background: transparent; text-align: left; }
+  .ramp { display: inline-flex; align-items: center; gap: .35rem; font-size: .6rem; color: var(--dim); margin-top: .3rem; }
+  .ramp i { width: 60px; height: 8px; border-radius: 4px; display: inline-block;
+    background: linear-gradient(90deg, #f3f0e9, #3f5aa0); }
+  /* loading */
+  #loadwrap { max-width: 460px; margin: .2rem auto 0; display: none; }
+  #loadwrap.show { display: block; }
+  #loadbar { height: 9px; background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+  #loadbar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .15s; }
+  #loadtxt { font-size: .62rem; color: var(--dim); text-align: center; margin-top: .2rem; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 </style>
 </head>
@@ -140,6 +196,8 @@
     <h1>ABACUS<span class="dot">_</span></h1>
     <p class="tagline">a data analyst you can interrogate — it aggregates, but it also investigates: why-decompositions, cohorts, anomaly scans · all in your browser</p>
     <span class="honesty"><b>the SQL engine and every query are real</b> — a <b id="hdr-rows">125k</b>-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) is loaded into SQLite-in-WebAssembly on this page. Keyless mode plans queries deterministically; paste your own API key and a live LLM plans them instead — <b>your key stays in this tab</b> and the model only ever picks from the semantic layer. Nobody, human or model, writes raw SQL.</span>
+    <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
+      <div id="loadtxt">fetching the warehouse…</div></div>
   </header>
 
   <div class="crew" id="crew"></div>
@@ -194,17 +252,21 @@
   /* ---------------- the crew ---------------- */
   const CREW = [
     { id: "analyst", name: "The Analyst", role: "Reads the question", ac: "#3f5aa0",
-      tg: "hears 'vibes', writes 'metrics'", bub: "hm, 'margin'…", style: "pony",
-      idle: "sharpening pencils", chip: "0 QUESTIONS" },
+      tg: "hears 'vibes', writes 'metrics'", style: "pony", chip: "0 QUESTIONS",
+      bubs: ["hm, 'margin'…", "define 'good'?", "that's a metric", "since when?"],
+      idles: ["sharpening pencils", "re-reading old tickets", "aligning the headset"] },
     { id: "librarian", name: "The Librarian", role: "Keeps the semantic layer", ac: "#8f6f1d",
-      tg: "every metric has a card in the catalog", bub: "checking the card…", style: "bun",
-      idle: "dusting the catalog", chip: "… METRICS ON FILE" },
+      tg: "every metric has a card in the catalog", style: "bun", chip: "… METRICS ON FILE",
+      bubs: ["one metric, one card", "no synonym clashes", "joins are earned", "shh."],
+      idles: ["dusting the catalog", "re-filing 'revenue'", "stamping new cards"] },
     { id: "machinist", name: "The Machinist", role: "Runs the warehouse", ac: "#2f8a58",
-      tg: "keeps the flywheel spinning", bub: "tk tk tk", style: "cap",
-      idle: "oiling the flywheel", chip: "0 QUERIES" },
+      tg: "keeps the flywheel spinning", style: "cap", chip: "0 QUERIES",
+      bubs: ["tk tk tk", "125k rows, no sweat", "full scan? fine.", "wasm hums tonight"],
+      idles: ["oiling the flywheel", "listening to the fans", "topping off the cache"] },
     { id: "illustrator", name: "The Illustrator", role: "Inks the answer", ac: "#6a47a0",
-      tg: "won't ship a chart with two y-axes", bub: "one axis. ONE.", style: "beret",
-      idle: "cleaning brushes", chip: "0 CHARTS" },
+      tg: "won't ship a chart with two y-axes", style: "beret", chip: "0 CHARTS",
+      bubs: ["one axis. ONE.", "labels, not legends", "ink the peak", "gridlines whisper"],
+      idles: ["cleaning brushes", "mixing the blues", "squaring the easel"] },
   ];
 
   function pixelChar(c) {
@@ -233,7 +295,7 @@
       beret: `<g><rect x="98" y="60" width="16" height="12" fill="#efe9da"/><rect x="100" y="62" width="5" height="3" fill="#3f5aa0"/><rect x="106" y="62" width="5" height="3" fill="#b8463a"/><rect x="100" y="67" width="5" height="3" fill="#8f6f1d"/><rect x="106" y="67" width="5" height="3" fill="#2f8a58"/></g>`,
     };
     return `
-    <span class="workbub">${c.bub}</span>
+    <span class="workbub">${c.bubs[0]}</span>
     <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         ${hair}
@@ -245,8 +307,8 @@
         <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
         <rect x="58" y="50" width="16" height="10" fill="#fff"/>
         <rect x="62" y="52" width="8" height="16" fill="${c.ac}"/>
-        <rect x="34" y="64" width="14" height="9" fill="${suit}"/>
-        <rect x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <rect class="arm-l" x="34" y="64" width="14" height="9" fill="${suit}"/>
+        <rect class="arm-r" x="84" y="64" width="14" height="9" fill="${suit}"/>
         <g class="sipsteam"><rect x="70" y="34" width="2" height="4" fill="#c9c2b4"/><rect x="75" y="31" width="2" height="4" fill="#c9c2b4"/></g>
       </g>
       <g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
@@ -290,15 +352,71 @@
   };
   const chip = (id, text) => { $("chip-" + id).textContent = text; };
 
-  setInterval(() => {           // idle sips
+  /* -------- the traveling query ticket -------- */
+  const ticketEl = document.createElement("div");
+  ticketEl.id = "ticket";
+  ticketEl.innerHTML = `<svg viewBox="0 0 40 32" shape-rendering="crispEdges" class="flap">
+    <rect x="1" y="3" width="38" height="26" fill="#fffdf8" stroke="#1c1a17" stroke-width="2"/>
+    <rect x="6" y="9" width="22" height="2.5" fill="#5f5a51"/>
+    <rect x="6" y="14" width="28" height="2.5" fill="#c9c2b4"/>
+    <rect x="6" y="19" width="16" height="2.5" fill="#c9c2b4"/>
+    <rect x="30" y="7" width="6" height="6" fill="#b8463a"/></svg>`;
+  $("crew").appendChild(ticketEl);
+  function moveTicket(i) {
+    const desk = $("ag-" + CREW[i].id);
+    if (!desk) return;
+    ticketEl.classList.remove("filed");
+    ticketEl.classList.add("show");
+    ticketEl.style.left = (desk.offsetLeft + desk.offsetWidth / 2 - 20) + "px";
+    ticketEl.style.top = (desk.offsetTop - 10) + "px";
+  }
+  function fileTicket() {
+    ticketEl.classList.add("filed");
+    setTimeout(() => ticketEl.classList.remove("show", "filed"), 550);
+  }
+  function eyes(activeIdx) {
+    CREW.forEach((c, j) => {
+      const el = $("ag-" + c.id);
+      el.classList.remove("look-left", "look-right");
+      if (activeIdx >= 0 && j !== activeIdx)
+        el.classList.add(j < activeIdx ? "look-right" : "look-left");
+    });
+  }
+  function stageClear() { fileTicket(); eyes(-1); }
+
+  /* -------- office life: nobody just sits there -------- */
+  const FIDGETS = ["sip", "stretch", "wiggle", "yawn", "mumble", "glance"];
+  const FIDGET_MS = { sip: 1100, stretch: 1300, wiggle: 1500, yawn: 1100, mumble: 1700, glance: 1400 };
+  setInterval(() => {
+    if (REDUCED || busy) return;
+    const n = 1 + (Math.random() < 0.35 ? 1 : 0);
+    for (let k = 0; k < n; k++) {
+      const ci = Math.floor(Math.random() * CREW.length);
+      const c = CREW[ci];
+      const el = $("ag-" + c.id);
+      if (!el || /working|thinking|mumble|sip|stretch|wiggle|yawn/.test(el.className)) continue;
+      const f = FIDGETS[Math.floor(Math.random() * FIDGETS.length)];
+      if (f === "glance") {
+        const dir = Math.random() < 0.5 ? "look-left" : "look-right";
+        el.classList.add(dir);
+        setTimeout(() => el.classList.remove(dir), FIDGET_MS.glance);
+      } else {
+        if (f === "mumble") {
+          const wb = el.querySelector(".workbub");
+          if (wb) wb.textContent = c.bubs[Math.floor(Math.random() * c.bubs.length)];
+        }
+        el.classList.add(f);
+        setTimeout(() => el.classList.remove(f), FIDGET_MS[f]);
+      }
+    }
+  }, 3400);
+  setInterval(() => {           // idle status drift
     if (REDUCED || busy) return;
     const c = CREW[Math.floor(Math.random() * CREW.length)];
     const el = $("ag-" + c.id);
-    if (!/working|thinking/.test(el.className)) {
-      el.classList.add("sip");
-      setTimeout(() => el.classList.remove("sip"), 1100);
-    }
-  }, 4600);
+    if (el && el.className === "agent")
+      $("st-" + c.id).textContent = c.idles[Math.floor(Math.random() * c.idles.length)];
+  }, 7000);
 
   /* ---------------- formatting helpers ---------------- */
   const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -316,7 +434,7 @@
       const y = 6 + i * rowH;
       const label = r.slice(0, -1).join(" · ");
       g += `<text x="${L - 8}" y="${y + 18}" font-size="11" fill="var(--text)" text-anchor="end">${escH(label.length > 28 ? label.slice(0, 27) + "…" : label)}</text>
-            <rect x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="4" fill="#3f5aa0"><title>${escH(label)}: ${F(v, kind)}</title></rect>
+            <rect class="bar" x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="4" fill="#3f5aa0"><title>${escH(label)}: ${F(v, kind)}</title></rect>
             <text x="${L + w + 7}" y="${y + 18}" font-size="10.5" font-weight="bold" fill="var(--dim)">${F(v, kind)}</text>`;
     });
     zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
@@ -372,7 +490,8 @@
       const d = 100 * (v - result.prior.value) / Math.abs(result.prior.value);
       delta = `<div class="delta ${d >= 0 ? "up" : "dn"}">${d >= 0 ? "▲" : "▼"} ${Math.abs(d).toFixed(1)}% vs ${escH(plan.compare.label)} (${F(result.prior.value, kind)})</div>`;
     }
-    zone.innerHTML = `<div class="stat"><div class="big">${F(v, kind)}</div>${delta}</div>`;
+    const lbl = Abacus.manifest.metrics[plan.metric].label + " · " + plan.time.label;
+    zone.innerHTML = `<div class="stat"><div class="lbl">${escH(lbl)}</div><div class="big">${F(v, kind)}</div>${delta}</div>`;
   }
 
   /* ---------------- the ask flow ---------------- */
@@ -422,7 +541,7 @@
       const vtxt = it.type === "total" ? F(it.v, kind) : (it.v >= 0 ? "+" : "−") + F(Math.abs(it.v), kind);
       g += `<text x="${X(i) + bw / 2}" y="${y0 - 5}" font-size="9.5" font-weight="bold" fill="var(--dim)" text-anchor="middle">${vtxt}</text>`;
       const lbl = String(it.label).length > 12 ? String(it.label).slice(0, 11) + "…" : it.label;
-      g += `<text x="${X(i) + bw / 2}" y="${H - B + 15}" font-size="9" fill="var(--text)" text-anchor="middle">${escH(lbl)}</text>`;
+      g += `<text x="${X(i) + bw / 2}" y="${H - B + (i % 2 ? 27 : 15)}" font-size="9" fill="var(--text)" text-anchor="middle">${escH(lbl)}</text>`;
       if (i < items.length - 1)
         g += `<line x1="${X(i) + bw}" y1="${Y(levels[i][1])}" x2="${X(i + 1)}" y2="${Y(levels[i][1])}" stroke="var(--dim)" stroke-dasharray="3 3" opacity=".5"/>`;
     });
@@ -441,23 +560,28 @@
     for (let k = 0; k < maxCols; k++) head += `<th>+Q${k}</th>`;
     head += "</tr>";
     const body = matrix.map((r) => {
-      let tds = `<td style="text-align:left;font-weight:700">${escH(r.cohort)}</td><td>${r.size.toLocaleString("en-US")}</td>`;
+      let tds = `<td class="lab" style="font-weight:700">${escH(r.cohort)}</td><td class="lab">${r.size.toLocaleString("en-US")}</td>`;
       r.cells.forEach((c) => {
         const t = Math.min(1, c / 100);
         tds += `<td style="background:${mix(t)};color:${t > 0.55 ? "#fff" : "var(--text)"}" title="${c}% still active">${Math.round(c)}%</td>`;
       });
-      if (maxCols > r.cells.length) tds += `<td colspan="${maxCols - r.cells.length}" style="border:0"></td>`;
+      if (maxCols > r.cells.length) tds += `<td class="lab" colspan="${maxCols - r.cells.length}"></td>`;
       return `<tr>${tds}</tr>`;
     }).join("");
-    zone.innerHTML = `<table>${head}${body}</table>
-      <div style="font-size:.62rem;color:var(--dim);margin-top:.3rem">cohort = quarter of first purchase · cell = % of the cohort ordering k quarters later · +Q0 is 100% by construction</div>`;
+    zone.innerHTML = `<div style="overflow-x:auto"><table class="heat">${head}${body}</table></div>
+      <div class="ramp">0% <i></i> 100% still ordering &nbsp;·&nbsp; cohort = quarter of first purchase · +Q0 is 100% by construction</div>`;
   }
 
-  function sparkline(points) {
+  function sparkline(points, idx, up) {
     const lo = Math.min(...points), hi = Math.max(...points), rng = hi - lo || 1;
-    const pts = points.map((v, i) =>
-      `${(i * 110 / Math.max(1, points.length - 1)).toFixed(1)},${(22 - 18 * (v - lo) / rng).toFixed(1)}`).join(" ");
-    return `<svg viewBox="0 0 112 26" width="112" height="26" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#5f5a51" stroke-width="1.6"/></svg>`;
+    const P = (v, i) => [(i * 110 / Math.max(1, points.length - 1)), (22 - 18 * (v - lo) / rng)];
+    const pts = points.map((v, i) => P(v, i).map((x) => x.toFixed(1)).join(",")).join(" ");
+    let mark = "";
+    if (idx !== undefined && points[idx] !== undefined) {
+      const [mx, my] = P(points[idx], idx);
+      mark = `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.2" fill="${up ? "#2f8a58" : "#b8463a"}"/>`;
+    }
+    return `<svg viewBox="-4 -3 120 32" width="120" height="30"><polyline points="${pts}" fill="none" stroke="#8b857a" stroke-width="1.6"/>${mark}</svg>`;
   }
 
   function anomalyList(zone, an) {
@@ -471,7 +595,7 @@
         <td>${escH(f.month)}</td>
         <td style="font-weight:700;color:${f.mom_pct >= 0 ? "var(--green)" : "var(--coral)"}">${f.mom_pct >= 0 ? "+" : ""}${f.mom_pct}%</td>
         <td style="font-weight:700">${f.z >= 0 ? "+" : ""}${f.z}σ</td>
-        <td style="text-align:left">${sparkline(f.points)}</td></tr>`).join("") +
+        <td style="text-align:left">${sparkline(f.points, f.idx, f.mom_pct >= 0)}</td></tr>`).join("") +
       `</table><div style="font-size:.62rem;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
   }
 
@@ -503,6 +627,7 @@
     let detPlan = null, detErr = null;
     try { detPlan = Abacus.parse(question); } catch (e) { detErr = e; }
     const analystKind = detPlan && detPlan.kind !== "aggregate";
+    moveTicket(0); eyes(0);
     setDesk("analyst", "agent working", llmOn && !analystKind
       ? `on the wire to ${escH($("llm-provider").value)}<span class="dots"></span>`
       : analystKind ? 'this one needs the whole desk<span class="dots"></span>'
@@ -530,6 +655,7 @@
       }
     } catch (e) {
       setDesk("analyst", "agent", "couldn't make sense of that ✗");
+      stageClear();
       const d = document.createElement("div");
       d.className = "err";
       d.innerHTML = `<b>${escH(question)}</b> — ${escH(e.message)}`;
@@ -540,6 +666,8 @@
     nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
 
     // Desk 2 — the Librarian resolves it against the manifest
+    moveTicket(1); eyes(1);
+    moveTicket(1); eyes(1);
     setDesk("librarian", "agent working", analystKind
       ? 'pulling every dimension card<span class="dots"></span>'
       : 'flipping the catalog<span class="dots"></span>');
@@ -559,6 +687,8 @@
     }
 
     // Desk 3 — the Machinist runs it
+    moveTicket(2); eyes(2);
+    moveTicket(2); eyes(2);
     const mLabel = { investigate: "running the decomposition",
                      retention: "walking every customer through the quarters",
                      anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
@@ -571,6 +701,7 @@
       result = out.result; story2 = out.story;
     } catch (e) {
       setDesk("machinist", "agent", "query refused ✗");
+      stageClear();
       const d = document.createElement("div");
       d.className = "err";
       d.innerHTML = `<b>${escH(question)}</b> — the compiler refused the plan: ${escH(e.message)}${llmOn ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
@@ -600,6 +731,8 @@
     chip("machinist", `${nSql} QUERIES`);
 
     // Desk 4 — the Illustrator inks it
+    moveTicket(3); eyes(3);
+    moveTicket(3); eyes(3);
     const iLabel = { investigate: "drawing the waterfall", retention: "shading the triangle",
                      anomalies: "circling the outliers" }[plan.kind] || "inking the chart";
     setDesk("illustrator", "agent working", iLabel + '<span class="dots"></span>');
@@ -610,10 +743,11 @@
       : plan.kind === "retention" ? `${result.matrix.length} cohorts`
       : plan.kind === "anomalies" ? `${result.queries} series scanned`
       : `${result.rows.length} rows · db ${dbMs.toFixed(1)} ms`;
+    const KIND_ICON = { aggregate: "▦", investigate: "🔎", retention: "🧭", anomalies: "📡" };
     const card = document.createElement("div");
-    card.className = "ans";
+    card.className = "ans k-" + (plan.kind || "aggregate");
     card.innerHTML = `
-      <div class="qline">“${escH(question)}” <span class="mode ${modeCls}">${escH(mode)}</span></div>
+      <div class="qline">${KIND_ICON[plan.kind] || "▦"} “${escH(question)}” <span class="mode ${modeCls}">${escH(mode)}</span></div>
       ${planChips(plan)}
       <div class="story"></div>
       <div class="zone"></div>
@@ -644,6 +778,7 @@
       }, 16);
     }
     nCharts++; chip("illustrator", `${nCharts} CHART${nCharts > 1 ? "S" : ""}`);
+    stageClear();
     setDesk("illustrator", "agent cheer", "filed ✓");
     setTimeout(() => setDesk("illustrator", "agent", "cleaning brushes"), 1800);
     busy = false;
@@ -725,21 +860,63 @@
     "mobile revenue by month in 2026",
   ];
 
+  let userTouched = false;
+  for (const ev of ["focus", "keydown"]) $("q").addEventListener(ev, () => { userTouched = true; });
+
+  async function fetchWithProgress(url) {
+    const r = await fetch(url);
+    const total = +r.headers.get("content-length") || 0;
+    if (!r.body || !total) return r.arrayBuffer();
+    const reader = r.body.getReader();
+    const chunks = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      $("loadfill").style.width = Math.round(100 * got / total) + "%";
+      $("loadtxt").textContent = `fetching the warehouse… ${(got / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`;
+    }
+    const buf = new Uint8Array(got);
+    let off = 0;
+    for (const c of chunks) { buf.set(c, off); off += c.length; }
+    return buf.buffer;
+  }
+
   (async () => {
     try {
       const t0 = performance.now();
+      const dbData = await fetchWithProgress("data/warehouse.sqlite");
       const { manifest } = await Abacus.init({
-        vendor: "vendor/", manifest: "data/manifest.json", db: "data/warehouse.sqlite" });
+        vendor: "vendor/", manifest: "data/manifest.json", dbData });
       const ms = Math.round(performance.now() - t0);
+      $("loadtxt").textContent = `warehouse open — ${ms} ms`;
+      setTimeout(() => $("loadwrap").classList.remove("show"), 900);
       const st = manifest.stats;
       $("hdr-rows").textContent = (st.rows_total / 1000).toFixed(0) + "k";
       chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
-      setDesk("analyst", "agent", "ready — ask me something");
-      setDesk("librarian", "agent", `catalog open: ${Object.keys(manifest.metrics).length} metrics on file`);
-      setDesk("machinist", "agent", `warehouse loaded: <b>${st.rows_total.toLocaleString()}</b> rows in ${ms} ms`);
-      setDesk("illustrator", "agent", "easel up");
-      $("q").disabled = false; $("q").placeholder = 'try “revenue by region last quarter”';
+      // the crew clocks in one by one
+      const wake = [
+        ["machinist", `warehouse open: <b>${st.rows_total.toLocaleString()}</b> rows in ${ms} ms`],
+        ["librarian", `catalog open: ${Object.keys(manifest.metrics).length} metrics on file`],
+        ["illustrator", "easel up"],
+        ["analyst", "ready — ask me something"],
+      ];
+      wake.forEach(([id, txt], i) => setTimeout(() => {
+        setDesk(id, "agent cheer", txt);
+        setTimeout(() => $("ag-" + id).className = "agent", 900);
+      }, i * 220));
+      $("q").disabled = false; $("q").placeholder = 'try “why did revenue jump in q4 2025?”';
       $("ask").disabled = false; $("evalbtn").disabled = false;
+      // auto-showcase: if the visitor hasn't touched anything, the desk
+      // demonstrates itself on the hardest question kind
+      setTimeout(() => {
+        if (!userTouched && !busy) {
+          const q0 = "why did revenue jump in q4 2025 vs the previous quarter";
+          $("q").value = q0;
+          ask(q0);
+        }
+      }, 1400);
       for (const ex of EXAMPLES) {
         const b = document.createElement("button");
         b.textContent = ex;

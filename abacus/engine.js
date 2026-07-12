@@ -377,7 +377,8 @@ Question: ${question}`;
     const [SQL, manRes, dbRes] = await Promise.all([
       initSqlJs({ locateFile: (f) => paths.vendor + f }),
       fetch(paths.manifest).then((r) => r.json()),
-      fetch(paths.db).then((r) => r.arrayBuffer()),
+      paths.dbData ? Promise.resolve(paths.dbData)
+                   : fetch(paths.db).then((r) => r.arrayBuffer()),
     ]);
     MAN = manRes;
     DB = new SQL.Database(new Uint8Array(dbRes));
@@ -536,12 +537,13 @@ Question: ${question}`;
         const mu = vals.reduce((a, b) => a + b, 0) / vals.length;
         const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mu) ** 2, 0) / vals.length);
         if (!sd) continue;
-        for (const [month, mom, level] of moms) {
+        for (let mi = 0; mi < moms.length; mi++) {
+          const [month, mom, level] = moms[mi];
           const z = (mom - mu) / sd;
           if (Math.abs(z) >= zFloor) {
             flags.push({ series: MAN.metrics[metric].label + (key !== "overall" ? ` · ${key}` : ""),
                          metric, month, mom_pct: Math.round(mom * 10) / 10,
-                         z: Math.round(z * 100) / 100, level,
+                         z: Math.round(z * 100) / 100, level, idx: mi + 1,
                          points: pts.map((p) => p[1]) });
           }
         }
