@@ -3,89 +3,120 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Abacus · Console prototype</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌘</text></svg>">
+<title>Abacus · Console</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
 <script src="../vendor/sql-wasm.js"></script>
 <style>
   :root {
-    --bg: #0f1219; --panel: #171b24; --panel-2: #1e2330; --line: #2a3140;
-    --text: #d7dee8; --dim: #7c8698; --grid: #29303e; --chip: rgba(111,156,240,.12);
-    --green: #6ec18a; --coral: #e78573; --gold: #d8b46a; --viz-accent: #6f9cf0;
+    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --grid: #e5e1d6; --chip: rgba(63,90,160,.08);
+    --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58; --violet: #6a47a0;
+    --coral: #b8463a; --viz-accent: #3f5aa0;
   }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--text); font-family: "SF Mono", ui-monospace, "Courier New", monospace; font-size: 14px; line-height: 1.5; }
-  .top { display: flex; align-items: center; gap: .8rem; padding: .7rem 1rem; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 20; }
-  .top .brand { font-weight: 700; letter-spacing: .04em; } .top .brand b { color: var(--viz-accent); }
-  .top .spacer { flex: 1; }
-  .top a { color: var(--dim); text-decoration: none; font-size: .82rem; } .top a:hover { color: var(--text); }
-  .wrap { max-width: 980px; margin: 0 auto; padding: 1rem; }
-  .cmdbar { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .7rem .8rem; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; position: sticky; top: 55px; z-index: 15; }
-  .prompt { color: var(--green); font-weight: 700; }
-  .tok { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font: inherit; padding: .18rem .55rem; border-radius: 7px; cursor: pointer; white-space: nowrap; }
-  .tok:hover { border-color: var(--viz-accent); }
-  .tok .k { color: var(--dim); } .tok .v { color: var(--viz-accent); font-weight: 700; }
+  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  /* header */
+  header { text-align: center; margin-bottom: 1rem; }
+  h1 { font-size: 1.7rem; letter-spacing: .06em; }
+  h1 .dot { color: var(--blue); animation: caret .9s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
+  details.how { display: inline-block; margin-top: .55rem; font-size: .68rem; color: var(--dim); }
+  details.how summary { cursor: pointer; border: 1.5px dashed var(--line); border-radius: 10px; padding: .3rem .8rem; background: var(--panel); display: inline-block; }
+  details.how summary b { color: var(--green); }
+  details.how span { display: block; max-width: 760px; margin: .5rem auto 0; text-align: left; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: .6rem .8rem; }
+  details.how b { color: var(--text); }
+  #loadwrap { max-width: 320px; margin: .9rem auto 0; color: var(--dim); font-size: .74rem; }
+  #loadbar { height: 6px; background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; margin-top: .35rem; }
+  #loadfill { display: block; height: 100%; width: 0; background: var(--blue); transition: width .15s; }
+  #loadwrap.done { display: none; }
+  /* command bar — a cream console window */
+  .console { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; box-shadow: 4px 4px 0 rgba(28,26,23,.05); margin-bottom: .8rem; overflow: hidden; position: sticky; top: .5rem; z-index: 15; }
+  .console .chrome { display: flex; align-items: center; gap: .4rem; padding: .4rem .7rem; border-bottom: 1.5px solid var(--line); background: var(--panel-2); }
+  .console .chrome .dots { display: flex; gap: .32rem; }
+  .console .chrome .dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(28,26,23,.35); }
+  .console .chrome .dots i:nth-child(1) { background: #d98b7f; } .console .chrome .dots i:nth-child(2) { background: #dcc07a; } .console .chrome .dots i:nth-child(3) { background: #8fbf95; }
+  .console .chrome .title { font-size: .66rem; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+  .console .chrome .rows { margin-left: auto; font-size: .64rem; color: var(--dim); }
+  .console .chrome .rows b { color: var(--text); }
+  .cmdbar { padding: .7rem .8rem; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+  .prompt { color: var(--green); font-weight: 800; letter-spacing: .02em; }
+  .tok { background: #fff; border: 1.5px solid var(--line); color: var(--text); font: inherit; font-size: .82rem; padding: .22rem .6rem; border-radius: 8px; cursor: pointer; white-space: nowrap; box-shadow: 2px 2px 0 rgba(28,26,23,.06); transition: border-color .15s, transform .05s; }
+  .tok:hover { border-color: var(--blue); } .tok:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 rgba(28,26,23,.06); }
+  .tok .k { color: var(--dim); } .tok .v { color: var(--blue); font-weight: 800; }
   .tok.ph .v { color: var(--dim); font-weight: 400; font-style: italic; }
-  .tok.rm { color: var(--coral); border-color: transparent; background: transparent; padding: .1rem .3rem; }
-  .cmd-chip { background: transparent; border: 1px dashed var(--line); color: var(--dim); font: inherit; padding: .18rem .5rem; border-radius: 7px; cursor: pointer; }
-  .cmd-chip:hover { color: var(--gold); border-color: var(--gold); }
-  .run { margin-left: auto; background: var(--viz-accent); color: #0f1219; border: 0; font: inherit; font-weight: 700; padding: .3rem .9rem; border-radius: 7px; cursor: pointer; }
-  .run:disabled { opacity: .4; cursor: not-allowed; }
-  .toggle { background: var(--panel-2); border: 1px solid var(--line); color: var(--dim); font: inherit; padding: .18rem .5rem; border-radius: 7px; cursor: pointer; font-size: .82rem; }
-  .toggle.on { color: #0f1219; background: var(--green); border-color: var(--green); font-weight: 700; }
-  .menu { position: absolute; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: .3rem; box-shadow: 0 12px 30px rgba(0,0,0,.5); max-height: 320px; overflow: auto; min-width: 190px; }
-  .menu button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: var(--text); font: inherit; padding: .3rem .5rem; border-radius: 6px; cursor: pointer; }
-  .menu button:hover { background: var(--panel-2); color: var(--viz-accent); }
-  .menu .grp { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; padding: .3rem .5rem .1rem; }
-  .hint { color: var(--dim); font-size: .78rem; margin: .5rem .2rem 1rem; }
+  .toggle { background: #fff; border: 1.5px solid var(--line); color: var(--dim); font: inherit; font-size: .78rem; padding: .22rem .55rem; border-radius: 8px; cursor: pointer; box-shadow: 2px 2px 0 rgba(28,26,23,.06); }
+  .toggle.on { color: #fff; background: var(--green); border-color: var(--green); font-weight: 800; }
+  .run { margin-left: auto; background: var(--blue); color: #fff; border: 1.5px solid var(--blue); font: inherit; font-weight: 800; font-size: .82rem; padding: .3rem 1rem; border-radius: 8px; cursor: pointer; box-shadow: 3px 3px 0 rgba(28,26,23,.12); transition: transform .05s, box-shadow .05s; }
+  .run:hover { filter: brightness(1.05); } .run:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(28,26,23,.12); }
+  .run:disabled { opacity: .4; cursor: not-allowed; box-shadow: 3px 3px 0 rgba(28,26,23,.12); }
+  .hint { color: var(--dim); font-size: .72rem; margin: 0 .2rem 1rem; display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
   .hint b { color: var(--gold); }
+  .cmd-chip { background: var(--panel); border: 1.5px dashed var(--line); color: var(--dim); font: inherit; font-size: .72rem; padding: .16rem .5rem; border-radius: 999px; cursor: pointer; }
+  .cmd-chip:hover { color: var(--gold); border-color: var(--gold); }
+  /* dropdown menu */
+  .menu { position: absolute; z-index: 40; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: .3rem; box-shadow: 5px 6px 0 rgba(28,26,23,.1); max-height: 340px; overflow: auto; min-width: 200px; }
+  .menu button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: var(--text); font: inherit; font-size: .82rem; padding: .3rem .55rem; border-radius: 7px; cursor: pointer; }
+  .menu button:hover { background: var(--panel-2); color: var(--blue); }
+  .menu .grp { font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; padding: .35rem .55rem .12rem; font-weight: 700; }
+  /* stream of session cells */
   #stream { display: flex; flex-direction: column; gap: 1rem; }
-  .cell { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; animation: rise .3s ease-out; }
+  .cell { border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; box-shadow: 4px 4px 0 rgba(28,26,23,.05); animation: rise .3s ease-out; }
   @keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .cell .echo { padding: .5rem .8rem; border-bottom: 1px solid var(--line); color: var(--dim); font-size: .82rem; display: flex; gap: .5rem; align-items: baseline; }
-  .cell .echo .n { color: var(--viz-accent); } .cell .echo b { color: var(--text); }
-  .cell .body { padding: .8rem; }
-  .cell .running { padding: .8rem; color: var(--dim); }
-  .cell .running .cur { display: inline-block; width: .6em; height: 1em; background: var(--green); vertical-align: -2px; animation: blink 1s steps(2) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .status { color: var(--dim); font-size: .74rem; text-align: center; padding: 1.5rem 0 2rem; }
-  .status .cur { display: inline-block; width: .55em; height: 1em; background: var(--green); vertical-align: -2px; animation: blink 1s steps(2) infinite; margin-left: .2rem; }
-  #load { max-width: 300px; margin: 3rem auto; text-align: center; color: var(--dim); font-size: .82rem; }
-  #load .b { height: 6px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: .5rem; }
-  #load .b i { display: block; height: 100%; width: 0; background: var(--viz-accent); }
-  a.link { color: var(--viz-accent); }
+  .cell .echo { padding: .5rem .8rem; border-bottom: 1.5px solid var(--line); background: var(--panel-2); color: var(--dim); font-size: .78rem; display: flex; gap: .5rem; align-items: baseline; }
+  .cell .echo .n { color: var(--blue); font-weight: 800; } .cell .echo .prompt { font-size: .78rem; } .cell .echo b { color: var(--text); }
+  .cell .cbody { padding: .8rem .9rem 1rem; }
+  .cell .cbody .waiting { color: var(--dim); font-size: .78rem; padding: .3rem 0; }
+  .cell .cbody .waiting .cur { display: inline-block; width: .55em; height: 1em; background: var(--green); vertical-align: -2px; animation: cblink 1s steps(2) infinite; margin-left: .1rem; }
+  @keyframes cblink { 50% { opacity: 0; } }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  footer a { color: var(--blue); }
 </style>
 </head>
 <body>
-  <div class="top">
-    <span class="brand">abacus <b>// console</b></span>
-    <span class="spacer"></span>
-    <a href="./">← all prototypes</a>
-  </div>
-  <div class="wrap">
-    <div id="load">booting the warehouse…<div class="b"><i id="loadfill"></i></div></div>
-    <div id="app" style="display:none">
+<div class="wrap">
+  <header>
+    <h1>ABACUS<span class="dot">_</span></h1>
+    <p class="tagline">an analyst's console — build a query from clickable tokens, and the crew compiles it to live SQL on a <b id="hdr-rows">125k</b>-row warehouse in your browser</p>
+    <details class="how"><summary>how it's real</summary>
+      <span>A 125k-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) runs on SQLite-in-WebAssembly on this page. A semantic layer defines every metric once; the console hands a plan to a <b>deterministic compiler — the only thing allowed to write SQL</b>. No chatbox: every part of the query is a token you pick.</span></details>
+    <div id="loadwrap">fetching the warehouse…<div id="loadbar"><i id="loadfill"></i></div></div>
+  </header>
+
+  <div class="crew" id="crew"></div>
+
+  <div id="app" style="display:none">
+    <div class="console">
+      <div class="chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">abacus — query console</span>
+        <span class="rows">warehouse <b id="rows">—</b> rows · sqlite-wasm</span>
+      </div>
       <div class="cmdbar" id="cmdbar">
-        <span class="prompt">abacus ❯</span>
+        <span class="prompt">abacus&nbsp;❯</span>
         <button class="tok ph" id="t-metric"><span class="k">select</span> <span class="v">metric</span></button>
         <button class="tok" id="t-by"><span class="k">by</span> <span class="v">—</span></button>
         <button class="tok" id="t-window"><span class="k">window</span> <span class="v">—</span></button>
         <button class="tok" id="t-where"><span class="k">+</span> <span class="v">where</span></button>
         <button class="toggle" id="t-cmp">vs prev</button>
-        <button class="run" id="run" disabled>run ⏎</button>
+        <button class="run" id="run" disabled>run&nbsp;⏎</button>
       </div>
-      <div class="hint">pick a <b>metric</b>, then <b>run</b> — or drop a command:
-        <button class="cmd-chip" data-cmd="why">\why</button>
-        <button class="cmd-chip" data-cmd="cohort">\cohort</button>
-        <button class="cmd-chip" data-cmd="scan">\scan</button>
-        <span style="color:var(--dim)">(no chatbox — everything is a token)</span>
-      </div>
-      <div id="stream"></div>
-      <div class="status">warehouse: <b id="rows">—</b> rows · sqlite-wasm · deterministic compiler<span class="cur"></span></div>
     </div>
+    <div class="hint">pick a <b>metric</b>, then <b>run</b> — or drop a command:
+      <button class="cmd-chip" data-cmd="why">\why</button>
+      <button class="cmd-chip" data-cmd="cohort">\cohort</button>
+      <button class="cmd-chip" data-cmd="scan">\scan</button>
+      <span>the ticket travels the crew for every run</span>
+    </div>
+    <div id="stream"></div>
+    <footer>console prototype over the shared Abacus engine · <a href="./">all prototypes</a> · the live board is at <a href="../">/abacus/</a> · part of <a href="/">hnguyen.dev</a></footer>
   </div>
+</div>
 
 <script src="../engine.js"></script>
 <script src="viz.js"></script>
+<script src="crew.js"></script>
 <script>
   "use strict";
   const $ = (id) => document.getElementById(id);
@@ -94,23 +125,28 @@
   const st = { metric: null, dims: [], filters: [], timeIdx: 0, cmp: null };
   let n = 0;
 
-  function tf(phrase){ return Abacus.timeFromPhrase(phrase); }
-  function compareAllowed(){ return st.dims.every(d => Abacus.manifest.dimensions[d].time); }
+  const tf = (phrase) => Abacus.timeFromPhrase(phrase);
+  const compareAllowed = () => st.dims.every(d => Abacus.manifest.dimensions[d].time);
   function curCompare(){
     if (!st.cmp || !compareAllowed()) return null;
-    return tf(TIME[st.timeIdx] + (st.cmp==="yoy" ? " vs last year":" vs previous period")).compare;
+    return tf(TIME[st.timeIdx] + (st.cmp==="yoy" ? " vs last year" : " vs previous period")).compare;
   }
   function plan(){
     return { kind:"aggregate", metric: st.metric, dims:[...st.dims],
              filters: st.filters.filter(f=>!st.dims.includes(f.dim)),
              time: tf(TIME[st.timeIdx]).time, top: st.dims.includes("product")?10:null, compare: curCompare() };
   }
+  function prevOf(t){
+    const shift=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10);};
+    const span=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1;
+    return { start:shift(t.start,-span), end:shift(t.start,-1), label:"previous period" };
+  }
 
   function menu(anchor, groups, onPick){
     document.querySelectorAll(".menu").forEach(m=>m.remove());
     const m = document.createElement("div"); m.className="menu";
     for (const g of groups){
-      if (g.label) { const h=document.createElement("div"); h.className="grp"; h.textContent=g.label; m.appendChild(h); }
+      if (g.label){ const h=document.createElement("div"); h.className="grp"; h.textContent=g.label; m.appendChild(h); }
       for (const it of g.items){ const b=document.createElement("button"); b.innerHTML=it.html||it.label; b.addEventListener("click",()=>{ m.remove(); onPick(it.value); }); m.appendChild(b); }
     }
     document.body.appendChild(m);
@@ -125,8 +161,7 @@
     const mt = $("t-metric");
     if (st.metric){ mt.className="tok"; mt.innerHTML=`<span class="k">select</span> <span class="v">${man.metrics[st.metric].label}</span>`; }
     else { mt.className="tok ph"; mt.innerHTML=`<span class="k">select</span> <span class="v">metric</span>`; }
-    const by = $("t-by");
-    by.innerHTML = `<span class="k">by</span> <span class="v">${st.dims.length? st.dims.join(", "):"—"}</span>`;
+    $("t-by").innerHTML = `<span class="k">by</span> <span class="v">${st.dims.length? st.dims.join(", "):"—"}</span>`;
     $("t-window").innerHTML = `<span class="k">window</span> <span class="v">${tf(TIME[st.timeIdx]).time.label}</span>`;
     const wh = $("t-where");
     wh.innerHTML = st.filters.length ? `<span class="k">where</span> <span class="v">${st.filters.map(f=>f.value).join(", ")}</span>` : `<span class="k">+</span> <span class="v">where</span>`;
@@ -135,7 +170,7 @@
     $("run").disabled = !st.metric;
   }
 
-  $("t-metric").addEventListener("click", (e)=> menu(e.currentTarget,
+  $("t-metric").addEventListener("click",(e)=> menu(e.currentTarget,
     [{label:"measures", items:Object.entries(Abacus.manifest.metrics).map(([k,v])=>({label:v.label,value:k}))}],
     v=>{ st.metric = st.metric===v?null:v; render(); }));
   $("t-by").addEventListener("click",(e)=> menu(e.currentTarget,
@@ -145,7 +180,7 @@
     [{label:"window", items:TIME.map((p,i)=>({label:tf(p).time.label,value:i}))}],
     v=>{ st.timeIdx=v; render(); }));
   $("t-where").addEventListener("click",(e)=>{
-    const groups = Object.entries(Abacus.manifest.values).map(([dim,vals])=>({label:dim, items:[...vals.map(val=>({label:(st.filters.some(f=>f.dim===dim&&f.value===val)?"✓ ":"")+val,value:dim+"::"+val}))]}));
+    const groups = Object.entries(Abacus.manifest.values).map(([dim,vals])=>({label:dim, items:vals.map(val=>({label:(st.filters.some(f=>f.dim===dim&&f.value===val)?"✓ ":"")+val,value:dim+"::"+val}))}));
     groups.unshift({items:[{label:"— clear filters —",value:"__clear"}]});
     menu(e.currentTarget, groups, v=>{ if(v==="__clear"){st.filters=[];} else { const [dim,val]=v.split("::"); const i=st.filters.findIndex(f=>f.dim===dim&&f.value===val); if(i>=0)st.filters.splice(i,1); else st.filters.push({dim,value:val}); } render(); });
   });
@@ -157,28 +192,29 @@
     if (c.dataset.cmd==="cohort") exec({kind:"retention",metric:null,dims:[],filters:[],time,top:null,compare:null});
     if (c.dataset.cmd==="scan") exec({kind:"anomalies",metric:null,dims:[],filters:[],time,top:null,compare:null});
   }));
-  function prevOf(t){ const s=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10)}; const nn=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1; return {start:s(t.start,-nn),end:s(t.start,-1),label:"previous period"}; }
 
   function echoFor(p){
     const man = Abacus.manifest;
-    if (p.kind==="investigate") return `<b>\\why</b> ${man.metrics[p.metric].label} · ${p.time.label}`;
-    if (p.kind==="retention") return `<b>\\cohort</b> retention`;
-    if (p.kind==="anomalies") return `<b>\\scan</b> ${p.time.label}`;
-    let s = `select <b>${p.metric}</b>`; if(p.dims.length) s+=` by <b>${p.dims.join(", ")}</b>`;
-    s+=` window <b>${p.time.label}</b>`; for(const f of p.filters) s+=` where <b>${f.value}</b>`;
-    if(p.compare) s+=` vs <b>${p.compare.label}</b>`; return s;
+    if (p.kind==="investigate") return `<span class="prompt">abacus&nbsp;❯</span> <b>\\why</b> ${man.metrics[p.metric].label} · ${p.time.label}`;
+    if (p.kind==="retention") return `<span class="prompt">abacus&nbsp;❯</span> <b>\\cohort</b> retention triangle`;
+    if (p.kind==="anomalies") return `<span class="prompt">abacus&nbsp;❯</span> <b>\\scan</b> ${p.time.label} for outliers`;
+    let s = `<span class="prompt">abacus&nbsp;❯</span> select <b>${p.metric}</b>`;
+    if(p.dims.length) s+=` by <b>${p.dims.join(", ")}</b>`;
+    s+=` window <b>${p.time.label}</b>`;
+    for(const f of p.filters) s+=` where <b>${f.value}</b>`;
+    if(p.compare) s+=` vs <b>${p.compare.label}</b>`;
+    return s;
   }
+  const onWhy = (pl)=> exec({kind:"investigate",metric:pl.metric,dims:[],filters:pl.filters,time:pl.time,top:null,compare:pl.compare||prevOf(pl.time)});
   async function exec(p){
+    if (Crew.busy) return;
     n++;
     const cell = document.createElement("div"); cell.className="cell";
-    cell.innerHTML = `<div class="echo"><span class="n">[${n}]</span> <span>${echoFor(p)}</span></div><div class="running">compiling &amp; running<span class="cur"></span></div>`;
+    cell.innerHTML = `<div class="echo"><span class="n">[${n}]</span> <span>${echoFor(p)}</span></div>`+
+                     `<div class="cbody"><div class="waiting">the crew is on it — reading, joining, running, inking<span class="cur"></span></div></div>`;
     $("stream").appendChild(cell);
     cell.scrollIntoView({behavior:"smooth",block:"end"});
-    await new Promise(r=>setTimeout(r, Viz.REDUCED?0:280));
-    const body = document.createElement("div"); body.className="body";
-    cell.querySelector(".running").replaceWith(body);
-    const { result, story } = Abacus.runAny(p);
-    Viz.renderCard(body, p, result, story, { onWhy: (pl)=>exec({kind:"investigate",metric:pl.metric,dims:[],filters:pl.filters,time:pl.time,top:null,compare:pl.compare||prevOf(pl.time)}) });
+    await Crew.run(p, cell.querySelector(".cbody"), { onWhy });
     cell.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
 
@@ -186,11 +222,15 @@
     await Viz.boot((got,total)=>{ $("loadfill").style.width=Math.round(100*got/total)+"%"; });
     const man = Abacus.manifest;
     $("rows").textContent = man.stats.rows_total.toLocaleString();
-    $("load").style.display="none"; $("app").style.display="";
+    $("hdr-rows").textContent = Math.round(man.stats.rows_total/1000)+"k";
+    Crew.mount($("crew"));
+    Crew.ready(man);
+    $("loadwrap").classList.add("done"); $("app").style.display="";
     st.timeIdx = TIME.indexOf("last quarter");
     render();
-    // a gentle demo so the stream isn't empty
-    setTimeout(()=>{ if(!n){ st.metric="revenue"; render(); exec({kind:"investigate",metric:"revenue",dims:[],filters:[],time:tf("q4 2025").time,top:null,compare:prevOf(tf("q4 2025").time)}); } }, 900);
+    // a gentle demo so the session isn't empty
+    setTimeout(()=>{ if(!n){ st.metric="revenue"; render();
+      exec({kind:"investigate",metric:"revenue",dims:[],filters:[],time:tf("q4 2025").time,top:null,compare:prevOf(tf("q4 2025").time)}); } }, 1400);
   })();
 </script>
 </body>
