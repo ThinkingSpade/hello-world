@@ -278,6 +278,54 @@
   .whybtn:disabled { opacity: .5; }
   .racklab { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 700; margin: .1rem 0 .35rem; }
   .rack { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+  /* ================= calm pass: hierarchy + progressive disclosure ================= */
+  .how { margin-top: .5rem; font-size: .66rem; color: var(--dim); }
+  .how summary { cursor: pointer; color: var(--blue); }
+  .how span { display: block; max-width: 720px; margin: .35rem auto 0; line-height: 1.5;
+    border: 1.5px dashed var(--line); border-radius: 10px; padding: .5rem .75rem; background: var(--panel); }
+  .how b { color: var(--green); }
+  /* slim the crew — beloved, but ambient, not a hero band */
+  .crew { gap: .6rem; }
+  .crew .agent { padding: .5rem .45rem .55rem; }
+  .crew .ava { width: 96px; height: 84px; }
+  .crew .nm { font-size: .74rem; }
+  .crew .rl { font-size: .58rem; }
+  .crew .tg { display: none; }
+  .crew .chipstat { font-size: .55rem; padding: .06rem .42rem; margin-top: .22rem; }
+  .crew .st { font-size: .58rem; min-height: 2em; }
+  .crew .workbub { font-size: .58rem; top: -10px; }
+  .card h2 { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+  .stepnote { font-size: .66rem; font-weight: 400; color: var(--dim); letter-spacing: 0; text-transform: none; }
+  /* the board reads as a sentence; refine controls wake up once a measure lands */
+  .refine, #refineracks { transition: opacity .3s, filter .3s; }
+  #boardcard.needs-metric .refine, #boardcard.needs-metric #refineracks {
+    opacity: .32; pointer-events: none; filter: grayscale(.5); }
+  #boardcard.needs-metric .slotrow.primary .slot { border-color: var(--blue); animation: pulseslot 2s ease-in-out infinite; }
+  @keyframes pulseslot { 0%,100% { box-shadow: 0 0 0 0 rgba(63,90,160,0); } 50% { box-shadow: 0 0 0 4px rgba(63,90,160,.14); } }
+  .toprow { display: none; }
+  .toprow.show { display: flex; }
+  /* filters tucked behind a small disclosure — 16 stamps was the loudest noise */
+  .filterbox { align-self: center; }
+  .filterbox > summary { cursor: pointer; list-style: none; font-size: .64rem; font-weight: 800; color: var(--coral);
+    border: 2px solid var(--coral); border-radius: 8px; padding: .22rem .6rem; opacity: .8; }
+  .filterbox[open] > summary { opacity: 1; background: var(--coral-bg); }
+  .filterbox > summary::-webkit-details-marker { display: none; }
+  .filterbox #filtercount { color: #fff; background: var(--coral); border-radius: 999px; padding: 0 .35rem; margin-left: .25rem; }
+  .filterbox #filtercount:empty { display: none; }
+  .stamps { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+  /* SQL demoted from a full column to a calm strip below the board */
+  .sqlbox { margin-top: .5rem; }
+  .sqlbox > summary { cursor: pointer; font-size: .62rem; letter-spacing: .04em; color: var(--dim); }
+  .sqlbox .sqlprev { margin-top: .4rem; max-height: 168px; overflow: auto; }
+  /* quieter racks: lighter, smaller tokens so 19 cards don't shout */
+  .rack .tok { font-size: .68rem; padding: .24rem .55rem; box-shadow: 1px 2px 0 rgba(28,26,23,.1); }
+  .rack .tok.dim { font-weight: 400; }
+  .racklab { margin-top: .55rem; }
+  /* compact reports shelf */
+  .report { padding: .5rem .7rem; }
+  .report .rd { margin-top: .1rem; }
+  .evalcard > summary { cursor: pointer; font-size: .82rem; }
+  .evalcard > summary b { color: var(--green); }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 </style>
 </head>
@@ -285,56 +333,55 @@
 <div class="wrap">
   <header>
     <h1>ABACUS<span class="dot">_</span></h1>
-    <p class="tagline">build a question from the semantic layer's own pieces — no chatbox — and watch it compile to real SQL on a warehouse in your browser</p>
-    <span class="honesty"><b>the SQL engine and every query are real</b> — a <b id="hdr-rows">125k</b>-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) is loaded into SQLite-in-WebAssembly on this page. Keyless mode plans queries deterministically; paste your own API key and a live LLM plans them instead — <b>your key stays in this tab</b> and the model only ever picks from the semantic layer. Nobody, human or model, writes raw SQL.</span>
+    <p class="tagline">build a question from real building blocks — no chatbox — and watch it compile to live SQL on a <b id="hdr-rows">125k</b>-row warehouse running in your browser</p>
+    <details class="how"><summary>how it's real</summary>
+      <span>A 125k-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) runs on SQLite-in-WebAssembly on this page. A semantic layer defines every metric once; the board hands a plan to a deterministic compiler — <b>the only thing allowed to write SQL</b>. Bring your own API key and a live LLM arranges the board instead — your key stays in this tab, and the model only ever picks from the semantic layer.</span></details>
     <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
       <div id="loadtxt">fetching the warehouse…</div></div>
   </header>
 
   <div class="crew" id="crew"></div>
 
-  <div class="card">
-    <h2>Build the question — snap the pieces onto the board</h2>
-    <div class="boardgrid">
-      <div>
-        <div class="board" id="board">
-          <div class="slotrow"><span class="slotlab">measure</span>
-            <div class="slot metricslot" id="slot-metric"><span class="empty">drop a metric card…</span></div></div>
-          <div class="slotrow"><span class="slotlab">group by</span>
-            <div class="slot dimslot" id="slot-dim0"><span class="empty">optional</span></div>
-            <div class="slot dimslot" id="slot-dim1"><span class="empty">optional</span></div></div>
-          <div class="slotrow"><span class="slotlab">window</span>
-            <div class="dial"><button id="dial-prev" aria-label="earlier window">◀</button>
-              <span class="win" id="dial-win">—</span>
-              <button id="dial-next" aria-label="later window">▶</button></div>
-            <button class="toggle" id="cmp-prev">vs prev period</button>
-            <button class="toggle" id="cmp-yoy">vs last year</button></div>
-          <div class="slotrow"><span class="slotlab">filters</span>
-            <div id="stamps" style="display:flex;flex-wrap:wrap;gap:.35rem;flex:1"></div></div>
-          <div class="slotrow"><span class="slotlab">top N</span>
-            <span class="stepper dis" id="topstep"><button id="top-dec">−</button><b id="top-val">all</b><button id="top-inc">+</button>
-              <span style="font-size:.6rem">(products only)</span></span></div>
-          <div class="runwrap">
-            <button id="lever" disabled aria-label="run the query">
-              <span class="base"></span><span class="stick"><span class="knob"></span></span><span class="lbl">RUN</span></button>
-            <span class="hint" id="runhint">pick a measure to arm the lever</span>
-          </div>
-        </div>
-        <div class="board-help">click a card to place it · click a placed card to send it back · the window dial and stamps reshape the plan live →</div>
+  <div class="card" id="boardcard">
+    <h2>Build a question <span class="stepnote" id="stepnote">— drop in a measure to begin</span></h2>
+    <div class="board" id="board">
+      <div class="slotrow primary"><span class="slotlab">measure</span>
+        <div class="slot metricslot" id="slot-metric"><span class="empty">drop a metric card from below…</span></div></div>
+      <div class="refine" id="refine">
+        <div class="slotrow"><span class="slotlab">group by</span>
+          <div class="slot dimslot" id="slot-dim0"><span class="empty">optional</span></div>
+          <div class="slot dimslot" id="slot-dim1"><span class="empty">optional</span></div></div>
+        <div class="slotrow"><span class="slotlab">window</span>
+          <div class="dial"><button id="dial-prev" aria-label="earlier window">◀</button>
+            <span class="win" id="dial-win">—</span>
+            <button id="dial-next" aria-label="later window">▶</button></div>
+          <button class="toggle" id="cmp-prev">vs prev</button>
+          <button class="toggle" id="cmp-yoy">vs last yr</button>
+          <details class="filterbox" id="filterbox"><summary>＋ filter <span id="filtercount"></span></summary>
+            <div id="stamps" class="stamps"></div></details></div>
+        <div class="slotrow toprow" id="toprow"><span class="slotlab">top N</span>
+          <span class="stepper" id="topstep"><button id="top-dec">−</button><b id="top-val">10</b><button id="top-inc">+</button> products</span></div>
       </div>
-      <div class="sqlprev" id="sqlprev">
-        <div class="bar"><i></i><i></i><i></i><span>compiled live · the only SQL author in the system</span></div>
-        <pre id="sqlpre"><span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span></pre>
+      <div class="runwrap">
+        <button id="lever" disabled aria-label="run the query">
+          <span class="base"></span><span class="stick"><span class="knob"></span></span><span class="lbl">RUN</span></button>
+        <span class="hint" id="runhint">pick a measure to arm the lever</span>
       </div>
     </div>
+    <details class="sqlbox" id="sqlbox" open>
+      <summary>compiled live — the only SQL author in the system</summary>
+      <div class="sqlprev" id="sqlprev"><pre id="sqlpre"><span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span></pre></div>
+    </details>
 
-    <div class="racklab">metric cards — one definition each, straight from the semantic layer</div>
+    <div class="racklab">① pick a measure</div>
     <div class="rack" id="rack-metrics"></div>
-    <div class="racklab">dimension trays — slice the measure</div>
-    <div class="rack" id="rack-dims"></div>
+    <div class="refine-racks" id="refineracks">
+      <div class="racklab">② slice it (optional) — or just pull RUN</div>
+      <div class="rack" id="rack-dims"></div>
+    </div>
 
     <details class="llm" id="llmpanel" style="margin-top:.6rem">
-      <summary>⚡ or dictate to the Analyst — a live LLM arranges the board <span class="live" id="llmstate"></span></summary>
+      <summary>⚡ or let a live LLM arrange the board for you <span class="live" id="llmstate"></span></summary>
       <div class="llmrow">
         <input id="llm-q" type="text" placeholder="e.g. how did mobile revenue trend this year?" style="flex:1;min-width:220px" aria-label="describe the question">
         <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
@@ -342,36 +389,35 @@
         <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
         <button id="llm-go" class="toggle">arrange →</button>
       </div>
-      <div style="margin-top:.4rem">The model never touches SQL — it only <b>arranges the cards on the board</b>. You watch which tokens it picks; then the same guarded compiler runs. Your key stays in this tab and requests go straight from your browser to the provider. A metric that isn't on a card is a rejected plan, not an improvised query.</div>
+      <div style="margin-top:.4rem">The model never touches SQL — it only <b>arranges the cards on the board</b>, and you watch which tokens it picks before the same guarded compiler runs. Your key stays in this tab. A metric that isn't on a card is a rejected plan, not an improvised query.</div>
     </details>
   </div>
 
   <div class="card">
-    <h2>Reports shelf — the investigations a lookup tool can't do</h2>
+    <h2>Or run an investigation <span class="stepnote">— things a lookup tool can't do</span></h2>
     <div class="shelf" id="shelf">
       <button class="report" id="rep-why" style="--rc:var(--coral)" disabled>
         <div class="rt"><span class="ic">🔎</span>Why did it move?</div>
-        <div class="rd">place a measure + window, then decompose the change across every dimension into a waterfall</div></button>
+        <div class="rd">decompose the change into a waterfall</div></button>
       <button class="report" id="rep-cohort" style="--rc:var(--green)">
         <div class="rt"><span class="ic">🧭</span>Retention triangle</div>
-        <div class="rd">behavioral cohorts by quarter of first purchase</div></button>
+        <div class="rd">cohorts by first-purchase quarter</div></button>
       <button class="report" id="rep-anom" style="--rc:var(--gold)">
         <div class="rt"><span class="ic">📡</span>Anomaly scan</div>
-        <div class="rd">z-scores across the watchlist over the window on the dial</div></button>
+        <div class="rd">z-scores over the window on the dial</div></button>
     </div>
   </div>
 
   <div id="feed"></div>
 
-  <div class="card">
-    <h2>The parity eval — run it yourself</h2>
-    <div style="font-size:.72rem;color:var(--dim);margin-bottom:.5rem">
-      35 golden questions — aggregations, driver decompositions, cohort retention, anomaly scans — were frozen by the Python engine (plans, SQL, and results committed to the repo).
-      This button replays all 35 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
+  <details class="card evalcard">
+    <summary><b>Proof it's real</b> — replay the 35-question parity eval yourself</summary>
+    <div style="font-size:.72rem;color:var(--dim);margin:.5rem 0">
+      35 golden questions were frozen by the Python engine (plans, SQL, and results committed to the repo). This replays all 35 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
     </div>
     <button id="evalbtn" disabled>▶ run the 35-question eval</button>
     <div id="evalout"></div>
-  </div>
+  </details>
 
   <footer>
     ABACUS · plan board → semantic layer → compiled SQL → chart, entirely client-side ·
@@ -1053,21 +1099,29 @@
       b.classList.toggle("dis", !allow);
     }
     // stamps: grey a stamp whose dim is currently grouped
+    let nFilters = 0;
     for (const el of document.querySelectorAll(".stamp")) {
       const grouped = board.dims.includes(el.dataset.dim);
       const on = board.filters.some((f) => f.dim === el.dataset.dim && f.value === el.dataset.value);
       el.classList.toggle("on", on && !grouped);
       el.style.opacity = grouped ? ".25" : "";
+      if (on && !grouped) nFilters++;
     }
-    // top stepper
-    const step = $("topstep"), canTop = board.dims.includes("product");
-    step.classList.toggle("dis", !canTop);
-    $("top-val").textContent = board.top ? board.top : (canTop ? "10" : "all");
+    $("filtercount").textContent = nFilters ? nFilters : "";
+    // top-N row only exists when products are on the board
+    const canTop = board.dims.includes("product");
+    $("toprow").classList.toggle("show", canTop);
+    $("top-val").textContent = board.top || 10;
     // rack on-states
     for (const el of document.querySelectorAll("#rack-metrics .tok"))
       el.classList.toggle("on", el.dataset.metric === board.metric);
     for (const el of document.querySelectorAll("#rack-dims .tok"))
       el.classList.toggle("on", board.dims.includes(el.dataset.dim));
+    // progressive disclosure: the board wakes up once a measure is placed
+    $("boardcard").classList.toggle("needs-metric", !board.metric);
+    $("stepnote").textContent = board.metric
+      ? "— tweak the slice, window or filters, then pull RUN"
+      : "— drop in a measure to begin";
     // lever + reports
     const armed = !!board.metric && !boardLocked;
     $("lever").disabled = !armed;
