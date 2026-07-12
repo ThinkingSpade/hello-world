@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abacus — a data analyst you can interrogate</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<script src="vendor/sql-wasm.js"></script>
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --grid: #e5e1d6;
+    --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58; --violet: #6a47a0;
+    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1rem; }
+  h1 { font-size: 1.7rem; letter-spacing: .06em; }
+  h1 .dot { color: var(--blue); animation: caret .9s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
+  .honesty { display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim); border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem; background: var(--panel); max-width: 780px; }
+  .honesty b { color: var(--green); }
+  .card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(28,26,23,.05); }
+  .card h2 { font-size: .92rem; letter-spacing: .04em; margin-bottom: .55rem; }
+  /* crew */
+  .crew { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: 1rem; }
+  @media (max-width: 1000px) { .crew { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .crew { grid-template-columns: 1fr; } }
+  .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(28,26,23,.05); transition: border-color .3s; }
+  .agent.working, .agent.speaking { border-color: var(--ac); }
+  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; position: relative; }
+  .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+  .agent .nm { font-weight: 800; font-size: .82rem; }
+  .agent .rl { font-size: .64rem; color: var(--ac); font-weight: 700; }
+  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
+  .agent .chipstat { display: inline-block; margin-top: .3rem; font-size: .6rem; font-weight: 700; letter-spacing: .04em; color: var(--ac); border: 1.5px solid var(--ac); border-radius: 999px; padding: .08rem .5rem; background: #fff; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .agent .st { font-size: .62rem; color: var(--dim); min-height: 2.2em; margin-top: .18rem; }
+  .agent .st b { color: var(--text); }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
+  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
+  @keyframes ponder { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
+  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
+  @keyframes cheer { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-9px); } }
+  .agent.sip .person { animation: sipping 1s ease-in-out 1; }
+  @keyframes sipping { 0%,100% { transform: rotate(0); } 35%,65% { transform: rotate(-3.5deg) translateY(-2px); } }
+  .agent.sip .sipsteam { opacity: 1; }
+  .sipsteam { opacity: 0; transition: opacity .3s; }
+  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect:nth-child(2) { animation-delay: 1.3s; }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
+  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
+  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  @keyframes mflow { to { stroke-dashoffset: -120; } }
+  .scr { animation: flick 7.3s steps(1) infinite; }
+  @keyframes flick { 0%, 93%, 100% { opacity: 1; } 94%, 96% { opacity: .72; } }
+  .workbub { position: absolute; top: -12px; left: 0; display: none; z-index: 5; background: #fff; border: 1.5px solid var(--ac); border-radius: 8px; padding: .08rem .4rem; font-size: .64rem; font-weight: 700; color: var(--ac); white-space: nowrap; box-shadow: 2px 2px 0 rgba(28,26,23,.12); }
+  .workbub:after { content: ""; position: absolute; right: 12px; bottom: -5px; width: 7px; height: 7px; background: #fff; border-right: 1.5px solid var(--ac); border-bottom: 1.5px solid var(--ac); transform: rotate(45deg); }
+  .agent.working .workbub { display: block; animation: ponder 1.4s ease-in-out infinite; }
+  .wire-badge { position: absolute; top: .45rem; right: .55rem; font-size: .56rem; font-weight: 800; letter-spacing: .06em; color: #fff; background: var(--coral); border-radius: 999px; padding: .1rem .45rem; display: none; }
+  .agent.live .wire-badge { display: inline-block; }
+  /* ask box */
+  .askrow { display: flex; gap: .5rem; }
+  #q { flex: 1; font: inherit; font-size: .9rem; padding: .55rem .8rem; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); }
+  #q:focus { outline: none; border-color: var(--blue); }
+  #ask { font: inherit; font-weight: 700; font-size: .85rem; background: var(--blue); color: #fff; border: 0; border-radius: 10px; padding: .55rem 1.2rem; cursor: pointer; }
+  #ask:disabled { opacity: .5; cursor: wait; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+  .chips button { font: inherit; font-size: .66rem; background: var(--panel-2); color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: .18rem .6rem; cursor: pointer; }
+  .chips button:hover { color: var(--blue); border-color: var(--blue); }
+  details.help { margin-top: .6rem; font-size: .7rem; color: var(--dim); }
+  details.help summary { cursor: pointer; }
+  details.help .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; margin-top: .5rem; }
+  details.help b { color: var(--text); }
+  /* llm panel */
+  details.llm { margin-top: .7rem; border: 1.5px dashed var(--line); border-radius: 10px; padding: .5rem .7rem; font-size: .7rem; color: var(--dim); }
+  details.llm summary { cursor: pointer; font-weight: 700; color: var(--text); }
+  details.llm summary .live { color: var(--coral); }
+  .llmrow { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; align-items: center; }
+  .llmrow select, .llmrow input { font: inherit; font-size: .7rem; padding: .3rem .5rem; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); }
+  .llmrow input[type=password] { width: 250px; }
+  .llmrow label { display: flex; align-items: center; gap: .3rem; }
+  .switch { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; color: var(--text); cursor: pointer; }
+  /* answers */
+  .ans { border: 1.5px solid var(--line); border-radius: 12px; padding: .75rem .9rem; background: var(--panel); margin-bottom: .8rem; animation: pop .28s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop { 0% { transform: scale(.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .ans .qline { font-size: .8rem; font-weight: 700; }
+  .ans .qline .mode { float: right; font-size: .6rem; font-weight: 800; letter-spacing: .05em; border-radius: 999px; padding: .08rem .5rem; color: #fff; background: var(--dim); }
+  .ans .qline .mode.live { background: var(--coral); }
+  .planchips { display: flex; flex-wrap: wrap; gap: .3rem; margin: .4rem 0; }
+  .planchips span { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; }
+  .planchips span b { color: var(--blue); }
+  .ans .story { font-size: .8rem; margin: .45rem 0; }
+  .ans .meta { font-size: .64rem; color: var(--dim); margin-top: .4rem; }
+  .ans details { font-size: .68rem; color: var(--dim); margin-top: .3rem; }
+  .ans details summary { cursor: pointer; }
+  .ans pre { background: #161a20; color: #c9d4e4; border-radius: 8px; padding: .5rem .7rem; font-size: .66rem; overflow-x: auto; margin-top: .3rem; white-space: pre-wrap; }
+  .ans table { border-collapse: collapse; margin-top: .4rem; font-size: .68rem; width: 100%; font-variant-numeric: tabular-nums; }
+  .ans th, .ans td { border: 1px solid var(--line); padding: .15rem .45rem; text-align: right; }
+  .ans th:first-child, .ans td:first-child { text-align: left; }
+  .chartwrap { position: relative; margin-top: .4rem; }
+  .chartwrap svg { width: 100%; height: auto; display: block; }
+  .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: .66rem; border-radius: 8px; padding: .35rem .55rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; box-shadow: 3px 3px 0 rgba(28,26,23,.18); }
+  .stat { text-align: center; padding: .7rem 0 .3rem; }
+  .stat .big { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat .delta { display: inline-block; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: .1rem .6rem; margin-top: .3rem; }
+  .stat .delta.up { color: var(--green); border: 1.5px solid var(--green); }
+  .stat .delta.dn { color: var(--coral); border: 1.5px solid var(--coral); }
+  .err { border: 1.5px solid var(--coral); background: var(--coral-bg); border-radius: 10px; padding: .5rem .7rem; font-size: .74rem; margin-bottom: .8rem; }
+  .err b { color: var(--coral); }
+  /* eval */
+  #evalbtn { font: inherit; font-size: .74rem; font-weight: 700; background: var(--green); color: #fff; border: 0; border-radius: 8px; padding: .4rem .9rem; cursor: pointer; }
+  #evalout { font-size: .72rem; margin-top: .5rem; }
+  #evalout .big { font-weight: 800; color: var(--green); }
+  #evalout details { margin-top: .3rem; color: var(--dim); }
+  #evalout li.bad { color: var(--coral); font-weight: 700; }
+  #evalout ul { columns: 2; font-size: .64rem; list-style: none; padding: 0; margin-top: .3rem; }
+  @media (max-width: 700px) { #evalout ul { columns: 1; } }
+  .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
+  @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ABACUS<span class="dot">_</span></h1>
+    <p class="tagline">a data analyst you can interrogate — semantic layer · query compiler · a real warehouse, all in your browser</p>
+    <span class="honesty"><b>the SQL engine and every query are real</b> — a <b id="hdr-rows">125k</b>-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) is loaded into SQLite-in-WebAssembly on this page. Keyless mode plans queries deterministically; paste your own API key and a live LLM plans them instead — <b>your key stays in this tab</b> and the model only ever picks from the semantic layer. Nobody, human or model, writes raw SQL.</span>
+  </header>
+
+  <div class="crew" id="crew"></div>
+
+  <div class="card">
+    <h2>Ask the desk</h2>
+    <div class="askrow">
+      <input id="q" type="text" placeholder="loading the warehouse…" disabled
+             aria-label="ask a question">
+      <button id="ask" disabled>ask</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <details class="help"><summary>what can I ask?</summary><div class="cols" id="helpcols"></div></details>
+    <details class="llm" id="llmpanel">
+      <summary>⚡ live LLM mode — bring your own key <span class="live" id="llmstate"></span></summary>
+      <div class="llmrow">
+        <label class="switch"><input type="checkbox" id="llm-on"> use a live LLM as the planner</label>
+        <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
+        <input id="llm-model" type="text" value="claude-haiku-4-5" size="20" aria-label="model">
+        <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
+      </div>
+      <div style="margin-top:.4rem">Your key is kept in this tab's memory only and requests go <b>straight from your browser to the provider</b> — no server of mine ever sees it. The model receives the semantic layer and must answer with a JSON plan; the plan is validated against the manifest and compiled by the same guarded compiler as keyless mode. If the model names a metric that doesn't exist, the plan is rejected, not improvised.</div>
+    </details>
+  </div>
+
+  <div id="feed"></div>
+
+  <div class="card">
+    <h2>The parity eval — run it yourself</h2>
+    <div style="font-size:.72rem;color:var(--dim);margin-bottom:.5rem">
+      30 golden questions were frozen by the Python engine (plans, SQL, and results committed to the repo).
+      This button replays all 30 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
+    </div>
+    <button id="evalbtn" disabled>▶ run the 30-question eval</button>
+    <div id="evalout"></div>
+  </div>
+
+  <footer>
+    ABACUS · question → plan → semantic layer → SQL → chart, entirely client-side ·
+    Python twin + goldens on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/abacus" target="_blank" rel="noopener">the branch</a> ·
+    part of <a href="/">hnguyen.dev</a>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, REDUCED ? 0 : ms));
+
+  /* ---------------- the crew ---------------- */
+  const CREW = [
+    { id: "analyst", name: "The Analyst", role: "Reads the question", ac: "#3f5aa0",
+      tg: "hears 'vibes', writes 'metrics'", bub: "hm, 'margin'…", style: "pony",
+      idle: "sharpening pencils", chip: "0 QUESTIONS" },
+    { id: "librarian", name: "The Librarian", role: "Keeps the semantic layer", ac: "#8f6f1d",
+      tg: "every metric has a card in the catalog", bub: "checking the card…", style: "bun",
+      idle: "dusting the catalog", chip: "… METRICS ON FILE" },
+    { id: "machinist", name: "The Machinist", role: "Runs the warehouse", ac: "#2f8a58",
+      tg: "keeps the flywheel spinning", bub: "tk tk tk", style: "cap",
+      idle: "oiling the flywheel", chip: "0 QUERIES" },
+    { id: "illustrator", name: "The Illustrator", role: "Inks the answer", ac: "#6a47a0",
+      tg: "won't ship a chart with two y-axes", bub: "one axis. ONE.", style: "beret",
+      idle: "cleaning brushes", chip: "0 CHARTS" },
+  ];
+
+  function pixelChar(c) {
+    const ink = "#1c1a17", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
+    const hairC = { pony: "#6b4a2f", bun: "#3a2f28", cap: "#5a4632", beret: "#2a2622" }[c.style];
+    let hair = "";
+    if (c.style === "pony") hair = `<rect x="50" y="13" width="32" height="9" fill="${hairC}"/><rect x="80" y="18" width="8" height="18" fill="${hairC}"/><rect x="50" y="19" width="5" height="9" fill="${hairC}"/>
+      <rect x="46" y="27" width="5" height="10" fill="${ink}"/><rect x="47" y="37" width="3" height="6" fill="${ink}"/><rect x="47" y="43" width="8" height="3" fill="${ink}"/>`;
+    else if (c.style === "bun") hair = `<rect x="50" y="14" width="32" height="8" fill="${hairC}"/><rect x="82" y="18" width="9" height="9" fill="${hairC}"/><rect x="50" y="20" width="5" height="12" fill="${hairC}"/>`;
+    else if (c.style === "cap") hair = `<rect x="50" y="12" width="32" height="9" fill="${c.ac}"/><rect x="76" y="19" width="14" height="4" fill="${c.ac}"/><rect x="62" y="8" width="8" height="6" fill="${c.ac}"/>`;
+    else hair = `<rect x="48" y="12" width="30" height="9" fill="${c.ac}"/><rect x="74" y="10" width="12" height="7" fill="${c.ac}"/><rect x="50" y="19" width="32" height="3" fill="${hairC}"/>`;
+    const glasses = c.style === "bun" || c.style === "beret" ? `
+      <rect x="54" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="68" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="64" y="33" width="4" height="2" fill="${ink}"/>` : "";
+    const charts = {
+      pony: `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`,
+      bun: `<g class="mchart"><rect x="16" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="27" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="18" y="53" width="4" height="1.5" fill="#5a6478"/><rect x="29" y="53" width="4" height="1.5" fill="#5a6478"/></g>`,
+      cap: `<g class="mchart"><rect x="16" y="58" width="4" height="8" fill="#8fa7d9"/><rect x="23" y="54" width="4" height="12" fill="#8fa7d9"/><rect x="30" y="50" width="4" height="16" fill="#8fa7d9"/></g>`,
+      beret: `<polyline class="mchart" points="14,64 20,58 25,60 31,52 38,48" fill="none" stroke="#7fbf6a" stroke-width="2"/>`,
+    };
+    const extra = {
+      pony: "",
+      bun: `<g><rect x="96" y="58" width="22" height="18" fill="#8a7d64"/><rect x="98" y="60" width="18" height="6" fill="#6b5d47"/><rect x="98" y="68" width="18" height="6" fill="#6b5d47"/><rect x="105" y="62" width="4" height="2" fill="#e0c36a"/><rect x="105" y="70" width="4" height="2" fill="#e0c36a"/></g>`,
+      cap: `<g><rect x="98" y="46" width="22" height="30" fill="#23272f"/><rect x="101" y="50" width="4" height="3" fill="#2f8a58"/><rect x="107" y="50" width="4" height="3" fill="#e0c36a"/><rect x="101" y="57" width="4" height="3" fill="#2f8a58"/><rect x="107" y="57" width="4" height="3" fill="#2f8a58"/><rect x="101" y="64" width="4" height="3" fill="#b8463a"/><rect x="107" y="64" width="4" height="3" fill="#2f8a58"/></g>`,
+      beret: `<g><rect x="98" y="60" width="16" height="12" fill="#efe9da"/><rect x="100" y="62" width="5" height="3" fill="#3f5aa0"/><rect x="106" y="62" width="5" height="3" fill="#b8463a"/><rect x="100" y="67" width="5" height="3" fill="#8f6f1d"/><rect x="106" y="67" width="5" height="3" fill="#2f8a58"/></g>`,
+    };
+    return `
+    <span class="workbub">${c.bub}</span>
+    <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
+      <g class="person">
+        ${hair}
+        <rect x="50" y="20" width="32" height="30" fill="${skin}"/>
+        <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
+        <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
+        ${glasses}
+        <rect x="59" y="43" width="14" height="3" fill="${ink}"/>
+        <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
+        <rect x="58" y="50" width="16" height="10" fill="#fff"/>
+        <rect x="62" y="52" width="8" height="16" fill="${c.ac}"/>
+        <rect x="34" y="64" width="14" height="9" fill="${suit}"/>
+        <rect x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <g class="sipsteam"><rect x="70" y="34" width="2" height="4" fill="#c9c2b4"/><rect x="75" y="31" width="2" height="4" fill="#c9c2b4"/></g>
+      </g>
+      <g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
+      <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
+      <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>
+      ${charts[c.style]}
+      <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
+      ${extra[c.style]}
+      <rect x="4" y="76" width="124" height="9" fill="${c.ac}"/>
+      <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
+      <rect x="12" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <rect x="110" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <g class="deskstuff">
+        <rect x="86" y="66" width="9" height="10" fill="#fff"/>
+        <rect x="95" y="68" width="3" height="5" fill="#fff"/>
+        <rect x="87" y="64" width="7" height="2" fill="${c.ac}"/>
+        <g class="steam"><rect x="88" y="56" width="2" height="5" fill="#b8b2a4"/><rect x="92" y="54" width="2" height="5" fill="#b8b2a4"/></g>
+      </g>
+    </svg>`;
+  }
+
+  for (const c of CREW) {
+    const div = document.createElement("div");
+    div.className = "agent"; div.id = "ag-" + c.id;
+    div.style.setProperty("--ac", c.ac);
+    div.innerHTML = `
+      <span class="wire-badge">LIVE WIRE</span>
+      <div class="ava">${pixelChar(c)}</div>
+      <div class="nm">${c.name}</div>
+      <div class="rl">${c.role}</div>
+      <div class="tg">${c.tg}</div>
+      <span class="chipstat" id="chip-${c.id}">${c.chip}</span>
+      <div class="st" id="st-${c.id}">warming up the warehouse<span class="dots"></span></div>`;
+    $("crew").appendChild(div);
+  }
+  const setDesk = (id, cls, text) => {
+    const el = $("ag-" + id);
+    el.className = "agent " + cls + (el.classList.contains("live") ? " live" : "");
+    $("st-" + id).innerHTML = text;
+  };
+  const chip = (id, text) => { $("chip-" + id).textContent = text; };
+
+  setInterval(() => {           // idle sips
+    if (REDUCED || busy) return;
+    const c = CREW[Math.floor(Math.random() * CREW.length)];
+    const el = $("ag-" + c.id);
+    if (!/working|thinking/.test(el.className)) {
+      el.classList.add("sip");
+      setTimeout(() => el.classList.remove("sip"), 1100);
+    }
+  }, 4600);
+
+  /* ---------------- formatting helpers ---------------- */
+  const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const F = (v, kind) => Abacus.fmt(v, kind);
+
+  /* ---------------- charts ---------------- */
+  function barChart(zone, rows, kind) {
+    const n = rows.length, W = 860, rowH = 30, L = 210, R = 96;
+    const H = n * rowH + 12;
+    const vmax = Math.max(...rows.map((r) => r[r.length - 1] || 0));
+    let g = "";
+    rows.forEach((r, i) => {
+      const v = r[r.length - 1] || 0;
+      const w = Math.max(2, (W - L - R) * v / (vmax || 1));
+      const y = 6 + i * rowH;
+      const label = r.slice(0, -1).join(" · ");
+      g += `<text x="${L - 8}" y="${y + 18}" font-size="11" fill="var(--text)" text-anchor="end">${escH(label.length > 28 ? label.slice(0, 27) + "…" : label)}</text>
+            <rect x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="4" fill="#3f5aa0"><title>${escH(label)}: ${F(v, kind)}</title></rect>
+            <text x="${L + w + 7}" y="${y + 18}" font-size="10.5" font-weight="bold" fill="var(--dim)">${F(v, kind)}</text>`;
+    });
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+  }
+
+  function lineChart(zone, rows, kind) {
+    const W = 860, H = 250, L = 64, R = 20, T = 14, B = 30;
+    const vals = rows.map((r) => r[r.length - 1] || 0);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const padv = Math.max((hi - lo) * 0.1, Math.abs(hi) * 0.02 + 1e-9);
+    lo = Math.min(lo, lo - padv); hi += padv;
+    const X = (i) => L + i * (W - L - R) / Math.max(1, rows.length - 1);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+    let g = "";
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + k * (hi - lo) / 4, y = Y(v);
+      g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)"/>
+            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${F(v, kind)}</text>`;
+    }
+    const nx = Math.min(6, rows.length);
+    for (let k = 0; k < nx; k++) {
+      const i = Math.round(k * (rows.length - 1) / Math.max(1, nx - 1));
+      g += `<text x="${X(i)}" y="${H - 12}" font-size="9" fill="var(--dim)" text-anchor="middle">${escH(rows[i][0])}</text>`;
+    }
+    const line = rows.map((r, i) => `${X(i).toFixed(1)},${Y(r[r.length - 1] || 0).toFixed(1)}`).join(" ");
+    const peakI = vals.indexOf(Math.max(...vals));
+    g += `<polygon points="${L},${H - B} ${line} ${W - R},${H - B}" fill="#3f5aa0" opacity=".1"/>
+          <polyline points="${line}" fill="none" stroke="#3f5aa0" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="${X(peakI)}" cy="${Y(vals[peakI])}" r="4" fill="#3f5aa0"/>
+          <text x="${X(peakI)}" y="${Y(vals[peakI]) - 8}" font-size="9.5" font-weight="bold" fill="#3f5aa0" text-anchor="middle">${F(vals[peakI], kind)}</text>
+          <rect class="hov" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
+          <line class="crs" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" opacity="0"/>`;
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="tip"></div></div>`;
+    const wrap = zone.querySelector(".chartwrap"), svg = wrap.querySelector("svg"),
+          hov = svg.querySelector(".hov"), crs = svg.querySelector(".crs"), tip = wrap.querySelector(".tip");
+    hov.addEventListener("mousemove", (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(rows.length - 1, Math.round((fx - L) / ((W - L - R) / Math.max(1, rows.length - 1)))));
+      crs.setAttribute("x1", X(i)); crs.setAttribute("x2", X(i)); crs.setAttribute("opacity", ".5");
+      tip.innerHTML = `${escH(rows[i][0])} — <b>${F(rows[i][rows[i].length - 1], kind)}</b>`;
+      tip.style.opacity = 1;
+      tip.style.left = Math.min(r.width - 160, Math.max(0, (X(i) / W) * r.width + 10)) + "px";
+      tip.style.top = "8px";
+    });
+    hov.addEventListener("mouseleave", () => { tip.style.opacity = 0; crs.setAttribute("opacity", "0"); });
+  }
+
+  function statTile(zone, plan, result, kind) {
+    const v = result.rows.length ? result.rows[0][result.rows[0].length - 1] : null;
+    let delta = "";
+    if (result.prior && result.prior.value) {
+      const d = 100 * (v - result.prior.value) / Math.abs(result.prior.value);
+      delta = `<div class="delta ${d >= 0 ? "up" : "dn"}">${d >= 0 ? "▲" : "▼"} ${Math.abs(d).toFixed(1)}% vs ${escH(plan.compare.label)} (${F(result.prior.value, kind)})</div>`;
+    }
+    zone.innerHTML = `<div class="stat"><div class="big">${F(v, kind)}</div>${delta}</div>`;
+  }
+
+  /* ---------------- the ask flow ---------------- */
+  let busy = false, nQ = 0, nSql = 0, nCharts = 0;
+
+  function planChips(plan, extra) {
+    const bits = [`metric <b>${plan.metric}</b>`];
+    if (plan.dims.length) bits.push(`by <b>${plan.dims.join(", ")}</b>`);
+    bits.push(`window <b>${plan.time.label}</b>`);
+    for (const f of plan.filters || []) bits.push(`${f.dim} = <b>${f.value}</b>`);
+    if (plan.top) bits.push(`top <b>${plan.top}</b>`);
+    if (plan.compare) bits.push(`vs <b>${plan.compare.label}</b>`);
+    if (extra) bits.push(extra);
+    return `<div class="planchips">${bits.map((b) => `<span>${b}</span>`).join("")}</div>`;
+  }
+
+  function resultTable(result, kind) {
+    const head = result.columns.map((c) => `<th>${escH(c)}</th>`).join("");
+    const body = result.rows.slice(0, 40).map((r) =>
+      `<tr>${r.map((v, i) => `<td>${i === r.length - 1 ? F(v, kind) : escH(v)}</td>`).join("")}</tr>`).join("");
+    return `<details><summary>result table (${result.rows.length} rows)</summary><table><tr>${head}</tr>${body}</table></details>`;
+  }
+
+  async function ask(question) {
+    if (busy || !question.trim()) return;
+    busy = true;
+    $("ask").disabled = true;
+    const llmOn = $("llm-on").checked;
+    const t0 = performance.now();
+
+    // Desk 1 — the Analyst plans (deterministic or live LLM)
+    setDesk("analyst", "agent working", llmOn
+      ? `on the wire to ${escH($("llm-provider").value)}<span class="dots"></span>`
+      : 'reading your question<span class="dots"></span>');
+    await sleep(420);
+    let plan, mode = "DETERMINISTIC", modeCls = "", llmMeta = "", llmRaw = null;
+    try {
+      if (llmOn) {
+        const cfg = { provider: $("llm-provider").value, model: $("llm-model").value.trim(),
+                      key: $("llm-key").value.trim() };
+        if (!cfg.key) throw new Error("no API key pasted — flip off LLM mode or add a key");
+        const out = await Abacus.llmPlan(question, cfg);
+        plan = out.plan; llmRaw = out.raw;
+        mode = `LIVE LLM · ${cfg.model}`; modeCls = "live";
+        llmMeta = ` · model ${out.ms} ms · ${out.usage}`;
+        setDesk("analyst", "agent", `<b>${escH(cfg.model)}</b> answered in ${out.ms} ms ✓`);
+      } else {
+        plan = Abacus.parse(question);
+        setDesk("analyst", "agent", `parsed ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
+      }
+    } catch (e) {
+      setDesk("analyst", "agent", "couldn't make sense of that ✗");
+      const d = document.createElement("div");
+      d.className = "err";
+      d.innerHTML = `<b>${escH(question)}</b> — ${escH(e.message)}`;
+      $("feed").prepend(d);
+      busy = false; $("ask").disabled = false;
+      return;
+    }
+    nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
+
+    // Desk 2 — the Librarian resolves it against the manifest
+    setDesk("librarian", "agent working", 'flipping the catalog<span class="dots"></span>');
+    await sleep(380);
+    const man = Abacus.manifest;
+    const msql = man.metrics[plan.metric].sql.split("\n")[0];
+    const joins = ["p", "c"].filter((a) =>
+      (msql + plan.dims.map((d) => man.dimensions[d].sql).join(" ") +
+       (plan.filters || []).map((f) => man.dimensions[f.dim].sql).join(" ")).includes(a + "."));
+    setDesk("librarian", "agent",
+      `<b>${plan.metric}</b> → ${escH(msql.length > 34 ? msql.slice(0, 33) + "…" : msql)} ✓ joins: ${joins.length ? joins.map((j) => j === "p" ? "products" : "customers").join(", ") : "none"}`);
+
+    // Desk 3 — the Machinist runs it
+    setDesk("machinist", "agent working", 'spinning the flywheel<span class="dots"></span>');
+    await sleep(360);
+    let result;
+    try {
+      result = Abacus.runPlan(plan);
+    } catch (e) {
+      setDesk("machinist", "agent", "query refused ✗");
+      const d = document.createElement("div");
+      d.className = "err";
+      d.innerHTML = `<b>${escH(question)}</b> — the compiler refused the plan: ${escH(e.message)}${llmOn ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
+      $("feed").prepend(d);
+      busy = false; $("ask").disabled = false;
+      return;
+    }
+    nSql += 1 + (result.prior ? 1 : 0);
+    chip("machinist", `${nSql} QUERIES · ${result.ms.toFixed(0)} ms last`);
+    setDesk("machinist", "agent", `<b>${result.rows.length}</b> row${result.rows.length === 1 ? "" : "s"} in <b>${result.ms.toFixed(1)} ms</b> ✓`);
+
+    // Desk 4 — the Illustrator inks it
+    setDesk("illustrator", "agent working", 'inking the chart<span class="dots"></span>');
+    await sleep(340);
+    const kind = man.metrics[plan.metric].fmt;
+    const card = document.createElement("div");
+    card.className = "ans";
+    card.innerHTML = `
+      <div class="qline">“${escH(question)}” <span class="mode ${modeCls}">${escH(mode)}</span></div>
+      ${planChips(plan)}
+      <div class="story"></div>
+      <div class="zone"></div>
+      <div class="meta">${result.rows.length} rows · db ${result.ms.toFixed(1)} ms · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
+      <details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>
+      ${llmRaw ? `<details><summary>the model's raw plan</summary><pre>${escH(llmRaw)}</pre></details>` : ""}
+      ${resultTable(result, kind)}`;
+    $("feed").prepend(card);
+    const zone = card.querySelector(".zone");
+    if (!plan.dims.length) statTile(zone, plan, result, kind);
+    else if (man.dimensions[plan.dims[0]].time && plan.dims.length === 1 && result.rows.length > 1)
+      lineChart(zone, result.rows, kind);
+    else barChart(zone, result.rows.slice(0, 14), kind);
+    const story = card.querySelector(".story");
+    const text = Abacus.narrate(plan, result);
+    if (REDUCED) story.textContent = text;
+    else {
+      let i = 0;
+      const iv = setInterval(() => {
+        i += 4; story.textContent = text.slice(0, i);
+        if (i >= text.length) clearInterval(iv);
+      }, 16);
+    }
+    nCharts++; chip("illustrator", `${nCharts} CHART${nCharts > 1 ? "S" : ""}`);
+    setDesk("illustrator", "agent cheer", "filed ✓");
+    setTimeout(() => setDesk("illustrator", "agent", "cleaning brushes"), 1800);
+    busy = false;
+    $("ask").disabled = false;
+  }
+
+  /* ---------------- eval ---------------- */
+  const close = (a, b) => Math.abs(a - b) <= Math.max(1e-6, 1e-9 * Math.abs(b));
+  function planEq(a, g) {
+    return a.metric === g.metric
+      && JSON.stringify(a.dims) === JSON.stringify(g.dims)
+      && JSON.stringify(a.filters || []) === JSON.stringify(g.filters || [])
+      && a.time.start === g.time.start && a.time.end === g.time.end
+      && (a.top || null) === (g.top || null)
+      && !!a.compare === !!g.compare
+      && (!a.compare || (a.compare.start === g.compare.start && a.compare.end === g.compare.end));
+  }
+  async function runEval() {
+    $("evalbtn").disabled = true;
+    setDesk("machinist", "agent working", 'replaying all 30 goldens<span class="dots"></span>');
+    const goldens = await (await fetch("data/goldens.json")).json();
+    let planOk = 0, valOk = 0;
+    const items = [], times = [];
+    for (const g of goldens) {
+      const t0 = performance.now();
+      let pOk = false, vOk = false, note = "";
+      try {
+        const plan = Abacus.parse(g.q);
+        pOk = planEq(plan, g.plan);
+        const r = Abacus.runPlan(plan);
+        vOk = r.rows.length === g.rows.length && r.rows.every((row, i) =>
+          row.every((cell, j) => typeof cell === "number" && typeof g.rows[i][j] === "number"
+            ? close(cell, g.rows[i][j]) : String(cell) === String(g.rows[i][j])));
+        if (!pOk) note = "plan differs";
+        else if (!vOk) note = "values differ";
+      } catch (e) { note = e.message; }
+      times.push(performance.now() - t0);
+      planOk += pOk; valOk += vOk;
+      items.push(`<li class="${pOk && vOk ? "" : "bad"}">${pOk && vOk ? "✓" : "✗"} ${escH(g.q)}${note ? " — " + escH(note) : ""}</li>`);
+      await sleep(12);
+    }
+    const med = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
+    $("evalout").innerHTML = `
+      <span class="big">${planOk}/${goldens.length} plans match the Python engine exactly · ${valOk}/${goldens.length} results match to the cent</span>
+      · median ${med.toFixed(1)} ms per question
+      <details><summary>per-question results</summary><ul>${items.join("")}</ul></details>`;
+    setDesk("machinist", "agent cheer", `eval done ✓ ${valOk}/${goldens.length}`);
+    setTimeout(() => setDesk("machinist", "agent", "oiling the flywheel"), 2000);
+    if (planOk === goldens.length && valOk === goldens.length && !REDUCED) {
+      const rect = $("evalout").getBoundingClientRect();
+      for (let i = 0; i < 7; i++) {
+        const s = document.createElement("span");
+        s.className = "spark"; s.textContent = ["✦", "✧", "◆"][i % 3];
+        s.style.color = ["#2f8a58", "#8f6f1d", "#3f5aa0"][i % 3];
+        s.style.left = rect.left + Math.random() * Math.min(500, rect.width) + "px";
+        s.style.top = rect.top + "px";
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 1600);
+      }
+    }
+    $("evalbtn").disabled = false;
+  }
+
+  /* ---------------- boot ---------------- */
+  const EXAMPLES = [
+    "revenue by region last quarter",
+    "margin % by category in 2025",
+    "revenue ytd vs last year",
+    "top 5 products by revenue last quarter",
+    "mobile revenue by month in 2026",
+    "vip aov last quarter",
+    "return rate by category in 2025",
+    "new customers by month in 2026",
+  ];
+
+  (async () => {
+    try {
+      const t0 = performance.now();
+      const { manifest } = await Abacus.init({
+        vendor: "vendor/", manifest: "data/manifest.json", db: "data/warehouse.sqlite" });
+      const ms = Math.round(performance.now() - t0);
+      const st = manifest.stats;
+      $("hdr-rows").textContent = (st.rows_total / 1000).toFixed(0) + "k";
+      chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
+      setDesk("analyst", "agent", "ready — ask me something");
+      setDesk("librarian", "agent", `catalog open: ${Object.keys(manifest.metrics).length} metrics on file`);
+      setDesk("machinist", "agent", `warehouse loaded: <b>${st.rows_total.toLocaleString()}</b> rows in ${ms} ms`);
+      setDesk("illustrator", "agent", "easel up");
+      $("q").disabled = false; $("q").placeholder = 'try “revenue by region last quarter”';
+      $("ask").disabled = false; $("evalbtn").disabled = false;
+      for (const ex of EXAMPLES) {
+        const b = document.createElement("button");
+        b.textContent = ex;
+        b.addEventListener("click", () => { $("q").value = ex; ask(ex); });
+        $("chips").appendChild(b);
+      }
+      $("helpcols").innerHTML = `
+        <div><b>metrics</b><br>${Object.entries(manifest.metrics).map(([k, v]) => `${v.label} <i style="color:var(--dim)">(${v.syn.slice(0, 2).join(", ")})</i>`).join("<br>")}</div>
+        <div><b>slice by</b><br>${Object.keys(manifest.dimensions).join(", ")}<br><br>
+             <b>filter with</b><br>${Object.entries(manifest.values).map(([d, vs]) => `${d}: ${vs.join(", ")}`).join("<br>")}</div>
+        <div><b>time</b><br>last quarter · this quarter · q4 2025 · in 2025 · june 2026 · last 6 months · ytd · all time<br><br>
+             <b>extras</b><br>top 5 … · “vs last year” / “vs previous period” on totals</div>`;
+    } catch (e) {
+      setDesk("analyst", "agent", "warehouse failed to load ✗");
+      const d = document.createElement("div");
+      d.className = "err";
+      d.innerHTML = `<b>boot failure</b> — ${escH(e.message)}`;
+      $("feed").prepend(d);
+    }
+  })();
+
+  $("ask").addEventListener("click", () => ask($("q").value));
+  $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") ask($("q").value); });
+  $("evalbtn").addEventListener("click", runEval);
+  $("llm-provider").addEventListener("change", () => {
+    $("llm-model").value = $("llm-provider").value === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
+    $("llm-key").placeholder = $("llm-provider").value === "anthropic" ? "sk-ant-… (stays in this tab)" : "sk-… (stays in this tab)";
+  });
+  $("llm-on").addEventListener("change", () => {
+    const on = $("llm-on").checked;
+    $("llmstate").textContent = on ? "· ON" : "";
+    $("ag-analyst").classList.toggle("live", on);
+  });
+</script>
+</body>
+</html>
