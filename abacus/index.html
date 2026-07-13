@@ -15,7 +15,15 @@
   }
   * { box-sizing: border-box; margin: 0; }
   body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
-  .wrap { max-width: 1080px; margin: 0 auto; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  /* workbench: build on the left, results on the right */
+  .workbench { display: grid; grid-template-columns: 1.04fr .96fr; gap: 1rem; align-items: start; }
+  .wb-build { min-width: 0; }
+  .wb-results { position: sticky; top: .7rem; align-self: start; max-height: calc(100vh - 1.2rem); overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 2px 5px 6px 3px; }
+  .reslab { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 800; margin: 0 0 .55rem .1rem; position: sticky; top: 0; background: var(--bg); padding: .3rem 0; z-index: 3; }
+  .reslab .live { color: var(--coral); }
+  .feedempty { border: 1.5px dashed var(--line); border-radius: 12px; padding: 1.5rem 1rem; text-align: center; color: var(--dim); font-size: .72rem; background: #fbfbfc; }
+  @media (max-width: 940px) { .workbench { grid-template-columns: 1fr; } .wb-results { position: static; max-height: none; overflow: visible; } }
   header { text-align: center; margin-bottom: 1rem; }
   h1 { font-size: 1.7rem; letter-spacing: .06em; }
   h1 .dot { color: var(--blue); animation: caret .9s steps(2) infinite; }
@@ -95,7 +103,16 @@
   .llmrow label { display: flex; align-items: center; gap: .3rem; }
   .switch { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; color: var(--text); cursor: pointer; }
   /* answers */
-  .ans { border: 1.5px solid var(--line); border-radius: 12px; padding: .75rem .9rem; background: var(--panel); margin-bottom: .8rem; animation: pop .28s cubic-bezier(.34,1.56,.64,1); }
+  /* the docket — each answer printed like the ticket the crew files */
+  .ans { position: relative; background: #fff; border: 1.5px solid #dcdce2; border-radius: 3px; padding: .8rem 1rem .95rem; margin-bottom: 1.15rem; animation: pop .28s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 2px 0 #ececef, 0 3px 0 #dcdce2, 0 10px 18px -11px rgba(20,20,26,.22); }
+  .ans:after { content: ""; position: absolute; left: -1px; right: -1px; bottom: -7px; height: 8px;
+    background: linear-gradient(-45deg, transparent 4px, #fff 0) 0 0/9px 8px repeat-x, linear-gradient(45deg, transparent 4px, #dcdce2 0) 0 0/9px 8px repeat-x; }
+  .ans .dk-head { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; padding-right: 62px; font-size: .55rem; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 800; border-bottom: 1.5px dashed #d7d7de; padding-bottom: .38rem; margin-bottom: .5rem; }
+  .ans .dk-head .dk-no b { color: var(--kc, var(--blue)); }
+  .ans .dk-head .dk-mode { color: var(--kc, var(--blue)); }
+  .ans .dk-head .dk-meta { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ans .dk-stamp { position: absolute; right: 14px; top: 11px; font-size: .56rem; font-weight: 900; color: var(--coral); border: 2px solid var(--coral); border-radius: 5px; padding: .03rem .3rem; transform: rotate(-9deg); opacity: .82; letter-spacing: .06em; pointer-events: none; }
   @keyframes pop { 0% { transform: scale(.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .ans .qline { font-size: .8rem; font-weight: 700; }
   .ans .qline .mode { float: right; font-size: .6rem; font-weight: 800; letter-spacing: .05em; border-radius: 999px; padding: .08rem .5rem; color: #fff; background: var(--dim); }
@@ -160,7 +177,7 @@
   @keyframes yawnlean { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2px) rotate(-1.5deg); } }
   .agent.mumble .workbub { display: block; animation: bubbob 1.4s ease-in-out infinite; }
   /* answer cards: kind accents + the insight pull-quote */
-  .ans { border-left: 5px solid var(--kc, var(--blue)); }
+  .ans { --kc: var(--blue); }
   .ans.k-investigate { --kc: var(--coral); }
   .ans.k-retention { --kc: var(--green); }
   .ans.k-anomalies { --kc: var(--gold); }
@@ -369,7 +386,9 @@
 
   <div class="crew" id="crew"></div>
 
-  <div class="card" id="boardcard">
+  <div class="workbench">
+   <div class="wb-build">
+    <div class="card" id="boardcard">
     <h2>Build a question <span class="stepnote" id="stepnote">— drop in a measure to begin</span></h2>
     <div class="console" id="console">
       <div class="chead"><span class="ctag">console</span><span class="csub">type a question — or build it on the board below ↓</span></div>
@@ -444,8 +463,13 @@
         <div class="rd">z-scores over the window on the dial</div></button>
     </div>
   </div>
+   </div><!-- /wb-build -->
 
-  <div id="feed"></div>
+   <div class="wb-results">
+     <div class="reslab">▟ results — newest on top</div>
+     <div id="feed"><div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div></div>
+   </div>
+  </div><!-- /workbench -->
 
   <details class="card evalcard">
     <summary><b>Proof it's real</b> — replay the 35-question parity eval yourself</summary>
@@ -725,7 +749,7 @@
   }
 
   /* ---------------- the ask flow ---------------- */
-  let busy = false, nQ = 0, nSql = 0, nCharts = 0;
+  let busy = false, nQ = 0, nSql = 0, nCharts = 0, nDocket = 0;
 
   function planChips(plan, extra) {
     const bits = [];
@@ -947,10 +971,21 @@
       : plan.kind === "anomalies" ? `${result.queries} series scanned`
       : `${result.rows.length} rows · db ${dbMs.toFixed(1)} ms`;
     const KIND_ICON = { aggregate: "▦", investigate: "🔎", retention: "🧭", anomalies: "📡" };
+    nDocket++;
+    const dkNo = String(nDocket).padStart(3, "0");
+    const dkKind = plan.kind === "investigate" ? "why" : plan.kind === "retention" ? "retention"
+      : plan.kind === "anomalies" ? "scan" : (plan.metric || "");
+    const dkStat = plan.kind === "investigate" ? `${result.queries} queries`
+      : plan.kind === "retention" ? `${result.matrix.length} cohorts`
+      : plan.kind === "anomalies" ? `${result.queries} series`
+      : `${dbMs.toFixed(1)} ms`;
+    const emp = document.querySelector(".feedempty"); if (emp) emp.remove();
     const card = document.createElement("div");
     card.className = "ans k-" + (plan.kind || "aggregate");
     card.innerHTML = `
-      <div class="qline">${KIND_ICON[plan.kind] || "▦"} ${escH(label)} <span class="mode ${modeCls}">${escH(mode)}</span></div>
+      <div class="dk-head"><span class="dk-no">DOCKET Nº <b>${dkNo}</b>${mode ? ` · <span class="dk-mode ${modeCls}">${escH(mode)}</span>` : ""}</span><span class="dk-meta">${escH(plan.time.label)} · ${escH(dkKind)} · ${dkStat}</span></div>
+      <div class="dk-stamp">FILED ✓</div>
+      <div class="qline">${KIND_ICON[plan.kind] || "▦"} ${escH(label.replace(/^\s*[🔎🧭📡▦]\s*/, ""))}</div>
       ${planChips(plan)}
       <div class="story"></div>
       <div class="zone"></div>
