@@ -192,6 +192,8 @@
   .btn { font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; background: var(--navy); color: #fff; border: 0; border-radius: 8px; padding: .45rem 1rem; }
   .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
   .btn.ghost:hover { color: var(--navy); border-color: var(--navy); }
+  .loaderr { color: var(--coral); font-size: .78rem; font-weight: 400; }
+  .loaderr .btn { margin-left: .6rem; padding: .25rem .6rem; font-size: .68rem; }
   .spd { display: flex; gap: .25rem; }
   .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
   .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
@@ -224,43 +226,43 @@
     <span class="honesty"><b>replay of a real engine run</b> — the pipeline below actually executed against a canned cluster fixture (<code>helmsman record</code>), and nothing mutates without the captain's stamp. Point it at a kubeconfig and it does this on a live cluster.</span>
   </header>
 
-  <div class="picker" id="picker"></div>
+  <div class="picker" id="picker" role="group" aria-label="Replay incident"></div>
 
   <div class="card">
-    <div class="incident-title" id="ititle">—</div>
+    <div class="incident-title" id="ititle" role="status" aria-live="polite">—</div>
     <div class="stagewrap">
-      <div id="toast"></div>
+      <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="bridge">
         <div class="agent" id="ag-helm">
-          <span class="klaxon" id="klaxon"></span>
-          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⌕</span>
-          <div class="ava" id="av-helm"></div>
+          <span class="klaxon" id="klaxon" aria-hidden="true"></span>
+          <span class="thought" aria-hidden="true"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⌕</span>
+          <div class="ava" id="av-helm" aria-hidden="true"></div>
           <div class="nm">The Helmsman</div>
           <div class="rl">Agent on watch</div>
           <div class="tg">reads the logs so she doesn't have to</div>
           <span class="chipstat" id="sc-helm">0 COMMANDS RUN</span>
-          <div class="st" id="st-helm">watching the gauges</div>
+          <div class="st" id="st-helm" role="status" aria-live="polite" aria-atomic="true">watching the gauges</div>
         </div>
         <div class="agent" id="ag-capt">
-          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⚓</span>
-          <div class="ava" id="av-capt"></div>
+          <span class="thought" aria-hidden="true"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⚓</span>
+          <div class="ava" id="av-capt" aria-hidden="true"></div>
           <div class="nm">The Captain</div>
           <div class="rl">Holds the only pen</div>
           <div class="tg">nothing ships without the stamp</div>
           <span class="chipstat" id="sc-capt">STAMPS 0</span>
-          <div class="st" id="st-capt">coffee in hand</div>
+          <div class="st" id="st-capt" role="status" aria-live="polite" aria-atomic="true">coffee in hand</div>
         </div>
         <div class="boardcard">
           <h3>cluster — <span id="board-ns">prod</span></h3>
           <div id="board"></div>
         </div>
       </div>
-      <div class="term" id="term"><div class="bar"><i></i><i></i><i></i></div></div>
+      <div class="term" id="term" role="log" aria-live="polite" aria-relevant="additions" aria-label="Command output"><div class="bar" aria-hidden="true"><i></i><i></i><i></i></div></div>
     </div>
     <div class="controls">
       <button class="btn" id="play">▶ play</button>
       <button class="btn ghost" id="restart">↺ restart</button>
-      <div class="spd" id="spd"></div>
+      <div class="spd" id="spd" role="group" aria-label="Playback speed"></div>
       <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
       <span class="tclock" id="clock">0:00</span>
     </div>
@@ -268,7 +270,7 @@
 
   <div class="card">
     <h2>Incident log</h2>
-    <div id="feed"></div>
+    <div id="feed" role="log" aria-live="polite" aria-relevant="additions"></div>
   </div>
 
   <footer>
@@ -289,8 +291,46 @@
   ];
   const CPS = 60;             // terminal typing speed at 1×
 
-  let S = null, steps = [], idx = 0, playing = false, speed = 1, timer = null, typerStop = null;
-  let elapsed = 0, cmdCount = 0;
+  let S = null, steps = [], idx = 0, playing = false, speed = 1, gen = 0;
+  let elapsed = 0, cmdCount = 0, authorization = null, blocked = false, seeking = false;
+  let timers = [], commandTask = null, pendingStep = null, fetchController = null, boardModel = null;
+
+  function forgetTimer(id) {
+    timers = timers.filter((timerId) => timerId !== id);
+  }
+
+  function cancelTimer(id) {
+    clearTimeout(id);
+    clearInterval(id);
+    forgetTimer(id);
+  }
+
+  function scheduleTimeout(fn, delay, scheduledGen = gen) {
+    const id = setTimeout(() => {
+      forgetTimer(id);
+      if (scheduledGen !== gen) return;
+      fn();
+    }, delay);
+    timers.push(id);
+    return id;
+  }
+
+  function scheduleInterval(fn, delay, scheduledGen = gen) {
+    const id = setInterval(() => {
+      if (scheduledGen !== gen) return;
+      fn();
+    }, delay);
+    timers.push(id);
+    return id;
+  }
+
+  function clearTimers() {
+    for (const id of timers) {
+      clearTimeout(id);
+      clearInterval(id);
+    }
+    timers = [];
+  }
 
   /* ---------- pixel characters ---------- */
   function pixelChar(kind) {
@@ -353,10 +393,11 @@
 
   /* ---------- board ---------- */
   function renderBoard() {
+    if (!S || !boardModel) return;
     $("board-ns").textContent = S.namespace;
     const b = $("board");
     b.replaceChildren();
-    for (const node of S.board.nodes) {
+    for (const node of boardModel.nodes) {
       const nd = document.createElement("div");
       nd.className = "node";
       nd.innerHTML = `<div class="nl">▣ ${node.name}</div>`;
@@ -381,13 +422,37 @@
     }
   }
 
+  function updateBoardFromRollout(out) {
+    if (!boardModel) return;
+    const names = out.split("\n").slice(1).map((line) => line.trim().split(/\s+/)[0]).filter(Boolean);
+    const app = (S.selector || "").split("=").pop();
+    const slots = boardModel.nodes.flatMap((node) =>
+      node.pods.filter((pod) => pod.app === app).map((pod) => ({ node, pod })));
+    if (!names.length || !slots.length) return;
+    names.forEach((name, i) => {
+      if (slots[i]) {
+        slots[i].pod.name = name;
+        slots[i].pod.victim = true;
+      } else {
+        boardModel.nodes[i % boardModel.nodes.length].pods.push({ name, app, victim: true });
+      }
+    });
+    for (const slot of slots.slice(names.length)) {
+      slot.node.pods = slot.node.pods.filter((pod) => pod !== slot.pod);
+    }
+    renderBoard();
+    boardState("fixing");
+  }
+
   /* ---------- terminal ---------- */
   function termLine(html, cls) {
+    const term = $("term");
+    const follow = !seeking && term.scrollHeight - term.scrollTop - term.clientHeight < 48;
     const d = document.createElement("div");
     d.className = "ln " + (cls || "");
     d.innerHTML = html;
-    $("term").appendChild(d);
-    $("term").scrollTop = $("term").scrollHeight;
+    term.appendChild(d);
+    if (follow) term.scrollTop = term.scrollHeight;
     return d;
   }
   const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -402,11 +467,12 @@
 
   /* ---------- feed cards ---------- */
   function card(cls, html) {
+    const follow = !seeking && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 120;
     const d = document.createElement("div");
     d.className = "ev " + cls;
     d.innerHTML = html;
     $("feed").appendChild(d);
-    d.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+    if (follow) d.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
     return d;
   }
 
@@ -436,22 +502,35 @@
       termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`);
       done(); return;
     }
+    const taskGen = gen;
     let i = 0;
+    let finished = false;
+    let iv = null, outputTimer = null;
     const perTick = Math.max(1, Math.round((CPS * speed) * 0.03));
-    const iv = setInterval(() => {
+    const finish = (showOutput, notify) => {
+      if (finished) return;
+      finished = true;
+      if (iv !== null) cancelTimer(iv);
+      if (outputTimer !== null) cancelTimer(outputTimer);
+      caret.remove();
+      if (showOutput) {
+        target.textContent = text;
+        termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`);
+      }
+      commandTask = null;
+      if (notify && taskGen === gen) done();
+    };
+    iv = scheduleInterval(() => {
       i = Math.min(text.length, i + perTick);
       target.textContent = text.slice(0, i);
-      $("term").scrollTop = $("term").scrollHeight;
       if (i >= text.length) {
-        clearInterval(iv); caret.remove();
-        setTimeout(() => {
-          termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`);
-          done();
-        }, 220 / speed);
+        cancelTimer(iv);
+        iv = null;
+        caret.remove();
+        outputTimer = scheduleTimeout(() => finish(true, true), 220 / speed, taskGen);
       }
-    }, 30);
-    typerStop = () => { clearInterval(iv); caret.remove(); target.textContent = text;
-                        termLine(`<span class="out">${colorOut(ev.ev.out)}</span>`); };
+    }, 30, taskGen);
+    commandTask = { cancel: (complete) => finish(complete, complete) };
   }
 
   function riskBadge(r) { return `<span class="risk ${r}">${r} risk</span>`; }
@@ -489,8 +568,9 @@
       s.style.left = rect.left + Math.random() * rect.width + "px";
       s.style.top = rect.top + Math.random() * rect.height * 0.6 + "px";
       s.style.animationDelay = (Math.random() * 0.3) + "s";
+      s.setAttribute("aria-hidden", "true");
       document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1700);
+      scheduleTimeout(() => s.remove(), 1700);
     }
   }
 
@@ -531,12 +611,17 @@
           if (ev.note) termLine(`<span class="note"># ${esc(ev.note)}</span>`);
           termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
           termLine(`<span class="out">${colorOut(ev.out)}</span>`);
+          if (/^verify:/.test(ev.note || "")) updateBoardFromRollout(ev.out);
           return fin();
         }
         setStatus("helm", "agent working", "running kubectl…");
-        return typeCmd(s, () => { typerStop = null; setStatus("helm", "agent", "reading the output"); fin(); });
+        return typeCmd(s, () => {
+          if (/^verify:/.test(ev.note || "")) updateBoardFromRollout(ev.out);
+          setStatus("helm", "agent", "reading the output");
+          fin();
+        });
       case "think":
-        if (!instant) setStatus("helm", "agent thinking", esc(ev.status) + '<span class="dots"></span>');
+        setStatus("helm", instant ? "agent" : "agent thinking", esc(ev.status) + (instant ? "" : '<span class="dots"></span>'));
         return fin();
       case "diagnosis": {
         const known = ev.signature !== "unknown";
@@ -548,15 +633,18 @@
         return fin();
       }
       case "proposal":
+        authorization = null;
         proposalCard(ev, instant);
         setStatus("helm", "agent", "fix drafted — over to the captain");
         setStatus("capt", "agent thinking", "reading the proposal");
         return fin();
       case "gate":
-        if (!instant) { setStatus("capt", "agent thinking", 'weighing the risk<span class="dots"></span>'); toast("awaiting the captain's stamp"); }
+        setStatus("capt", instant ? "agent" : "agent thinking", 'weighing the risk' + (instant ? "" : '<span class="dots"></span>'));
+        if (!instant) toast("awaiting the captain's stamp");
         return fin();
       case "approval": {
         const ok = ev.decision === "approved";
+        authorization = ok;
         applyStamp(ev.decision, instant);
         $("sc-capt").textContent = "STAMPS 1";
         setStatus("capt", ok ? "agent cheer" : "agent", ok ? "stamped it ✓" : "holding the line ✗");
@@ -564,6 +652,17 @@
         return fin();
       }
       case "apply":
+        if (authorization !== true) {
+          blocked = true;
+          boardState("bad");
+          setStatus("helm", "agent", "standing down — approval required");
+          setStatus("capt", "agent", "holding the line ✕");
+          card("verify held", `
+            <div class="hd">✕ mutation blocked</div>
+            The latest gate was not approved. No repair command was run.`);
+          return fin();
+        }
+        bumpCmds();
         boardState("fixing");
         if (instant) {
           termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
@@ -572,7 +671,7 @@
         }
         setStatus("helm", "agent working", "applying the fix…");
         return typeCmd({ ev: { cmd: ev.cmd, out: ev.out, note: "approved — hands on the wheel" } },
-                       () => { typerStop = null; fin(); });
+                       () => { fin(); });
       case "verify": {
         const green = ev.result === "green";
         $("klaxon").classList.remove("on");
@@ -607,22 +706,49 @@
     return 900;
   }
 
+  function finishPlayback() {
+    playing = false;
+    $("scrub").value = steps.length;
+    $("play").textContent = "▶ replay";
+  }
+
+  function completeStep(s, scheduledGen, nextDelay) {
+    if (scheduledGen !== gen) return;
+    elapsed += stepDur(s);
+    idx++;
+    $("scrub").value = idx;
+    tickClock(elapsed);
+    if (blocked) {
+      stopPlayback(false);
+      $("play").textContent = "▶ replay";
+      return;
+    }
+    if (idx >= steps.length) {
+      finishPlayback();
+      return;
+    }
+    if (playing) scheduleTimeout(runStep, nextDelay / speed, scheduledGen);
+  }
+
   function runStep() {
     if (!playing) return;
-    if (idx >= steps.length) { playing = false; $("play").textContent = "▶ replay"; return; }
+    if (idx >= steps.length) { finishPlayback(); return; }
+    const scheduledGen = gen;
     const s = steps[idx];
-    $("scrub").value = idx;
-    const dur = stepDur(s) / speed;
-    elapsed += stepDur(s);
     if (s.t === "cmd" || s.t === "apply") {
-      applyStep(s, false, () => {
-        tickClock(elapsed); idx++;
-        if (playing) timer = setTimeout(runStep, 250 / speed);
-      });
+      applyStep(s, false, () => completeStep(s, scheduledGen, 250));
     } else {
       applyStep(s, false);
-      tickClock(elapsed); idx++;
-      timer = setTimeout(runStep, dur);
+      let completionTimer = null, finished = false;
+      const finish = (complete) => {
+        if (finished) return;
+        finished = true;
+        if (completionTimer !== null) cancelTimer(completionTimer);
+        pendingStep = null;
+        if (complete && scheduledGen === gen) completeStep(s, scheduledGen, 0);
+      };
+      completionTimer = scheduleTimeout(() => finish(true), stepDur(s) / speed, scheduledGen);
+      pendingStep = { cancel: finish };
     }
   }
 
@@ -636,88 +762,223 @@
     setStatus("helm", "agent", "watching the gauges");
     setStatus("capt", "agent", "coffee in hand");
     $("klaxon").classList.remove("on");
-    $("term").innerHTML = '<div class="bar"><i></i><i></i><i></i></div>';
+    $("term").innerHTML = '<div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>';
     $("feed").replaceChildren();
-    renderBoard();
+    boardModel = S ? JSON.parse(JSON.stringify(S.board)) : null;
+    if (S) renderBoard();
+    else { $("board-ns").textContent = "—"; $("board").replaceChildren(); }
     idx = 0; elapsed = 0; cmdCount = 0;
+    authorization = null; blocked = false;
     $("scrub").value = 0;
     tickClock(0);
+    return Boolean(S);
   }
 
   function seek(to) {
+    if (!S) return;
     pause();
     resetStage();
-    for (let i = 0; i < to && i < steps.length; i++) {
-      const s = steps[i];
-      if (s.t === "think" || s.t === "gate") { elapsed += stepDur(s); continue; }
-      elapsed += stepDur(s);
-      applyStep(s, true);
+    let restored = 0;
+    seeking = true;
+    try {
+      for (let i = 0; i < to && i < steps.length; i++) {
+        const s = steps[i];
+        elapsed += stepDur(s);
+        applyStep(s, true);
+        restored = i + 1;
+        if (blocked) break;
+      }
+    } finally {
+      seeking = false;
     }
-    idx = to;
+    idx = restored;
     tickClock(elapsed);
-    $("scrub").value = to;
+    $("scrub").value = restored;
   }
 
   function play() {
-    if (idx >= steps.length) seek(0);
+    if (!S) return;
+    if (idx >= steps.length || blocked) { restartPlayback(); return; }
     playing = true;
     $("play").textContent = "⏸ pause";
+    startFidgets();
     runStep();
   }
-  function pause() {
+
+  function stopPlayback(completeCommand) {
     playing = false;
-    clearTimeout(timer);
-    if (typerStop) { typerStop(); typerStop = null; idx++; }
-    $("play").textContent = "▶ play";
+    if (commandTask) commandTask.cancel(completeCommand);
+    if (pendingStep) pendingStep.cancel(completeCommand);
+    clearTimers();
+    $("play").textContent = idx >= steps.length || blocked ? "▶ replay" : "▶ play";
+  }
+
+  function pause() {
+    stopPlayback(true);
+  }
+
+  function restartPlayback() {
+    if (!S) return;
+    gen++;
+    stopPlayback(false);
+    resetStage();
+    play();
   }
 
   $("play").addEventListener("click", () => (playing ? pause() : play()));
-  $("restart").addEventListener("click", () => { seek(0); play(); });
+  $("restart").addEventListener("click", restartPlayback);
   $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
   const spd = $("spd");
   for (const s of [1, 2, 4]) {
     const b = document.createElement("button");
     b.textContent = s + "×";
+    b.setAttribute("aria-pressed", s === 1 ? "true" : "false");
     if (s === 1) b.className = "on";
     b.addEventListener("click", () => {
       speed = s;
-      [...spd.children].forEach((x) => x.classList.remove("on"));
+      [...spd.children].forEach((x) => {
+        x.classList.remove("on");
+        x.setAttribute("aria-pressed", "false");
+      });
       b.classList.add("on");
+      b.setAttribute("aria-pressed", "true");
     });
     spd.appendChild(b);
   }
 
   /* idle fidgets — the bridge is never fully still */
-  setInterval(() => {
+  function startFidgets() {
     if (REDUCED || !S) return;
-    const pick = Math.random() < 0.5 ? "ag-helm" : "ag-capt";
-    const el = $(pick);
-    if (!el || el.className !== "agent") return;
-    el.classList.add("sip");
-    setTimeout(() => el.classList.remove("sip"), 1100);
-  }, 4600);
-
-  /* ---------- sessions ---------- */
-  async function loadSession(file) {
-    S = await (await fetch("sessions/" + file)).json();
-    [...$("picker").children].forEach((el) => el.classList.toggle("active", el.dataset.f === file));
-    $("ititle").innerHTML = `“${S.title}” <span class="tag">${S.tag} · fixture-replay</span>`;
-    resetStage();
-    buildSteps();
-    play();
+    const scheduledGen = gen;
+    scheduleInterval(() => {
+      const pick = Math.random() < 0.5 ? "ag-helm" : "ag-capt";
+      const el = $(pick);
+      if (!el || el.className !== "agent") return;
+      el.classList.add("sip");
+      scheduleTimeout(() => el.classList.remove("sip"), 1100, scheduledGen);
+    }, 4600, scheduledGen);
   }
 
-  (async () => {
-    for (const [file] of SESSIONS) {
-      const meta = await (await fetch("sessions/" + file)).json();
+  /* ---------- sessions ---------- */
+  function severityOf(session) {
+    const page = session.timeline.find((ev) => ev.t === "page");
+    return page ? page.sev : "";
+  }
+
+  function displayTag(session) {
+    return [session.namespace, severityOf(session), session.tag].filter(Boolean).join(" · ");
+  }
+
+  function setControlsEnabled(enabled) {
+    for (const el of [$("play"), $("restart"), $("scrub"), ...spd.children]) el.disabled = !enabled;
+  }
+
+  function selectSession(file) {
+    [...$("picker").children].forEach((el) => {
+      const selected = el.dataset.f === file;
+      el.classList.toggle("active", selected);
+      if (el.matches("button")) el.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+  }
+
+  function renderIncidentTitle(session) {
+    const title = $("ititle");
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = displayTag(session) + " · fixture-replay";
+    title.replaceChildren(document.createTextNode(`“${session.title}” `), tag);
+  }
+
+  function renderLoadError(message, retry) {
+    const wrap = document.createElement("span");
+    wrap.className = "loaderr";
+    wrap.textContent = message;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn ghost";
+    button.textContent = "retry";
+    button.addEventListener("click", retry);
+    wrap.appendChild(button);
+    $("ititle").replaceChildren(wrap);
+  }
+
+  async function fetchSession(file, signal) {
+    const response = await fetch("sessions/" + file, { signal });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const session = await response.json();
+    if (!session || typeof session.title !== "string" || !Array.isArray(session.timeline) ||
+        !session.board || !Array.isArray(session.board.nodes)) throw new Error("invalid session data");
+    return session;
+  }
+
+  async function loadSession(file) {
+    const loadGen = ++gen;
+    stopPlayback(false);
+    if (fetchController) fetchController.abort();
+    fetchController = new AbortController();
+    S = null; steps = [];
+    setControlsEnabled(false);
+    selectSession(file);
+    resetStage();
+    setStatus("helm", "agent", "loading the replay");
+    $("ititle").textContent = "loading incident replay…";
+    try {
+      const session = await fetchSession(file, fetchController.signal);
+      if (loadGen !== gen) return;
+      S = session;
+      renderIncidentTitle(S);
+      resetStage();
+      buildSteps();
+      setControlsEnabled(true);
+      play();
+    } catch (error) {
+      if (loadGen !== gen || error.name === "AbortError") return;
+      renderLoadError("Could not load this incident replay.", () => loadSession(file));
+      setStatus("helm", "agent", "replay unavailable");
+    } finally {
+      if (loadGen === gen) fetchController = null;
+    }
+  }
+
+  function renderPicker(metas) {
+    $("picker").replaceChildren();
+    metas.forEach((meta, i) => {
+      const file = SESSIONS[i][0];
       const b = document.createElement("button");
       b.type = "button"; b.className = "sess"; b.dataset.f = file;
-      b.innerHTML = `${meta.title}<small>${meta.tag} · fixture-replay</small>`;
+      b.setAttribute("aria-pressed", "false");
+      const small = document.createElement("small");
+      small.textContent = displayTag(meta) + " · fixture-replay";
+      b.append(document.createTextNode(meta.title), small);
       b.addEventListener("click", () => loadSession(file));
       $("picker").appendChild(b);
+    });
+  }
+
+  async function bootstrap() {
+    const loadGen = ++gen;
+    stopPlayback(false);
+    if (fetchController) fetchController.abort();
+    fetchController = new AbortController();
+    setControlsEnabled(false);
+    $("ititle").textContent = "loading incident list…";
+    try {
+      const metas = await Promise.all(SESSIONS.map(([file]) => fetchSession(file, fetchController.signal)));
+      if (loadGen !== gen) return;
+      renderPicker(metas);
+      fetchController = null;
+      await loadSession(SESSIONS[0][0]);
+    } catch (error) {
+      if (loadGen !== gen || error.name === "AbortError") return;
+      fetchController.abort();
+      fetchController = null;
+      renderLoadError("Could not load the incident list.", bootstrap);
+      setStatus("helm", "agent", "replay unavailable");
     }
-    loadSession(SESSIONS[0][0]);
-  })();
+  }
+
+  setControlsEnabled(false);
+  bootstrap();
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
  "selector": "app=payments",
  "victim": "payments-6c9d8e7f5-nn4kq",
  "resolved": true,
- "duration_s": 0.0,
+ "duration_s": 27.1,
  "timeline": [
   {
    "t": "page",
@@ -50,18 +50,25 @@
    "cause": "The rollout is pulling an image tag that doesn't exist (registry.internal/payments:v2.4.11): the registry answers 'manifest not found', so new pods can never start. Old replicas are still serving — this is a bad deploy, not an outage yet.",
    "receipts": [
     "payments-6c9d8e7f5-nn4kq   0/1     ImagePullBackOff   0          11m",
-    "payments-6c9d8e7f5-x8w2j   0/1     ImagePullBackOff   0          11mName:             payments-6c9d8e7f5-nn4kq",
+    "payments-6c9d8e7f5-x8w2j   0/1     ImagePullBackOff   0          11m",
+    "Name:             payments-6c9d8e7f5-nn4kq",
     "Image:          registry.internal/payments:v2.4.11",
     "Reason:       ImagePullBackOff"
    ],
    "confidence": 95
   },
   {
+   "t": "cmd",
+   "cmd": "kubectl rollout history deployment/payments -n prod",
+   "out": "deployment.apps/payments\nREVISION  CHANGE-CAUSE\n11        deploy registry.internal/payments:v2.4.10 (last good)\n12        deploy registry.internal/payments:v2.4.11 (current, ImagePullBackOff)",
+   "note": "identify the last known-good revision before choosing a rollback target"
+  },
+  {
    "t": "proposal",
-   "command": "kubectl -n prod rollout undo deploy/payments",
-   "explain": "Roll back to the previous ReplicaSet, which is the last image that actually exists. Zero-downtime: the old pods are still up.",
+   "command": "kubectl -n prod rollout undo deploy/payments --to-revision=11",
+   "explain": "Roll back explicitly to revision 11, the history table's last-good image. Zero-downtime: the old pods are still up.",
    "risk": "low",
-   "rollback": "kubectl -n prod rollout undo deploy/payments --to-revision=<failed-revision>  # to retry the new tag",
+   "rollback": "kubectl -n prod rollout undo deploy/payments --to-revision=11  # explicit last-good target from rollout history",
    "followup": "Fix the tag in the pipeline (looks like a typo) and re-deploy."
   },
   {
@@ -71,7 +78,7 @@
   },
   {
    "t": "apply",
-   "cmd": "kubectl -n prod rollout undo deploy/payments",
+   "cmd": "kubectl -n prod rollout undo deploy/payments --to-revision=11",
    "out": "deployment.apps/payments rolled back"
   },
   {
@@ -93,7 +100,7 @@
  ],
  "id": "image-pull",
  "title": "payments rollout stuck on a tag that doesn't exist",
- "tag": "prod · P3 · ImagePullBackOff",
+ "tag": "ImagePullBackOff",
  "recorded": "fixture-replay",
  "board": {
   "nodes": [

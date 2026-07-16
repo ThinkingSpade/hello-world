@@ -32,6 +32,7 @@
   #loadbar { height: 3px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: .5rem; }
   #loadfill { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
   #loadwrap.done { display: none; }
+  #loadwrap button { margin-top: .6rem; font: inherit; color: var(--accent); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .25rem .65rem; cursor: pointer; }
   /* command bar — a clean console panel */
   .console { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; margin-bottom: .7rem; overflow: hidden; position: sticky; top: .6rem; z-index: 15; box-shadow: 0 1px 2px rgba(20,20,26,.04); }
   .console .chrome { display: flex; align-items: center; gap: .5rem; padding: .5rem .85rem; border-bottom: 1px solid var(--line-2); }
@@ -122,7 +123,7 @@
   let n = 0;
 
   const tf = (phrase) => Abacus.timeFromPhrase(phrase);
-  const compareAllowed = () => st.dims.every(d => Abacus.manifest.dimensions[d].time);
+  const compareAllowed = () => st.dims.length === 0;
   function curCompare(){
     if (!st.cmp || !compareAllowed()) return null;
     return tf(TIME[st.timeIdx] + (st.cmp==="yoy" ? " vs last year" : " vs previous period")).compare;
@@ -133,9 +134,7 @@
              time: tf(TIME[st.timeIdx]).time, top: st.dims.includes("product")?10:null, compare: curCompare() };
   }
   function prevOf(t){
-    const shift=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10);};
-    const span=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1;
-    return { start:shift(t.start,-span), end:shift(t.start,-1), label:"previous period" };
+    return Abacus.comparisonFor(t,"prev");
   }
 
   function menu(anchor, groups, onPick){
@@ -214,20 +213,28 @@
     cell.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
 
-  (async()=>{
-    await Viz.boot((got,total)=>{ $("loadfill").style.width=Math.round(100*got/total)+"%"; });
-    const man = Abacus.manifest;
-    $("rows").textContent = man.stats.rows_total.toLocaleString();
-    $("hdr-rows").textContent = Math.round(man.stats.rows_total/1000)+"k";
-    Crew.mount($("crew"));
-    Crew.ready(man);
-    $("loadwrap").classList.add("done"); $("app").style.display="";
-    st.timeIdx = TIME.indexOf("last quarter");
-    render();
-    // a gentle demo so the session isn't empty
-    setTimeout(()=>{ if(!n){ st.metric="revenue"; render();
-      exec({kind:"investigate",metric:"revenue",dims:[],filters:[],time:tf("q4 2025").time,top:null,compare:prevOf(tf("q4 2025").time)}); } }, 1400);
-  })();
+  async function boot(){
+    const load=$("loadwrap"); load.classList.remove("done"); load.innerHTML='fetching the warehouse…<div id="loadbar"><i id="loadfill"></i></div>'; $("app").style.display="none";
+    try {
+      await Viz.boot((got,total)=>{ $("loadfill").style.width=Math.round(100*got/total)+"%"; });
+      const man = Abacus.manifest;
+      $("rows").textContent = man.stats.rows_total.toLocaleString();
+      $("hdr-rows").textContent = Math.round(man.stats.rows_total/1000)+"k";
+      $("crew").innerHTML="";
+      Crew.mount($("crew"));
+      Crew.ready(man);
+      load.classList.add("done"); $("app").style.display="";
+      st.timeIdx = TIME.indexOf("last quarter");
+      render();
+      // a gentle demo so the session isn't empty
+      setTimeout(()=>{ if(!n){ st.metric="revenue"; render();
+        exec({kind:"investigate",metric:"revenue",dims:[],filters:[],time:tf("q4 2025").time,top:null,compare:prevOf(tf("q4 2025").time)}); } }, 1400);
+    } catch (e) {
+      load.innerHTML='Could not open the warehouse.<br><button id="retry" type="button">retry</button>'; load.title=e.message;
+      $("retry").addEventListener("click",boot);
+    }
+  }
+  boot();
 </script>
 </body>
 </html>

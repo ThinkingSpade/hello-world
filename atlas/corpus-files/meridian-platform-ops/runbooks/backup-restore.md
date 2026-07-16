@@ -4,7 +4,7 @@ title: Restoring Postgres from Backup with Point-in-Time Recovery
 type: runbook
 service: database
 tags: [backup, restore, postgres]
-updated: 2024-06-30
+updated: 2024-10-02
 ---
 
 ## Overview
@@ -14,6 +14,8 @@ and its replicas) from a base backup plus WAL archives, including point-in-time
 recovery (PITR) to a target timestamp. Use it after data corruption, an accidental
 destructive migration, or a failed failover. Cache-layer state is rebuilt separately;
 for downstream effects on sessions see: "Redis Memory Pressure Evicts Session Keys".
+Host names and Postgres 16 paths follow the canonical **Postgres HA architecture review
+v2024-10-02**.
 
 ## Preconditions
 
@@ -26,7 +28,7 @@ for downstream effects on sessions see: "Redis Memory Pressure Evicts Session Ke
 ```shell
 export VAULT_TOKEN=<VAULT_TOKEN>
 export WALG_S3_PREFIX=s3://meridian-db-backups/db-primary-2
-export PGDATA=/var/lib/postgresql/15/main
+export PGDATA=/var/lib/postgresql/16/main
 ```
 
 ## Steps
@@ -41,7 +43,7 @@ wal-g wal-verify integrity timeline
 2. Stop Postgres on the restore host and set aside the old data directory:
 
 ```shell
-sudo systemctl stop postgresql@15-main
+sudo systemctl stop postgresql@16-main
 sudo mv "$PGDATA" "${PGDATA}.corrupt.$(date +%s)"
 ```
 
@@ -65,8 +67,8 @@ touch "$PGDATA/recovery.signal"
 5. Start Postgres and watch WAL replay progress:
 
 ```shell
-sudo systemctl start postgresql@15-main
-tail -f /var/log/postgresql/postgresql-15-main.log | grep -E 'restored|recovery'
+sudo systemctl start postgresql@16-main
+tail -f /var/log/postgresql/postgresql-16-main.log | grep -E 'restored|recovery'
 ```
 
 6. When replay pauses at the target, confirm the recovery point before promoting:

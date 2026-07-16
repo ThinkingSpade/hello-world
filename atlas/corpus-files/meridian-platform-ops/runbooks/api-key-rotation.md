@@ -29,10 +29,14 @@ revoked. Primary consumers are `payments-api`, `auth-svc`, and `search-indexer`.
    the old version; KV-v2 keeps it addressable during the grace window.
 
    ```shell
+   OLD_VERSION=$(vault kv metadata get -format=json \
+     secret/meridian/api-keys/payments-api | jq -r '.data.current_version')
    NEW_KEY=$(openssl rand -hex 32)
    vault kv put secret/meridian/api-keys/payments-api \
      key="$NEW_KEY" rotated_at="$(date -u +%FT%TZ)" rotated_by="<YOUR_LDAP>"
-   vault kv get -field=version secret/meridian/api-keys/payments-api
+   NEW_VERSION=$(vault kv metadata get -format=json \
+     secret/meridian/api-keys/payments-api | jq -r '.data.current_version')
+   printf 'old version: %s; new version: %s\n' "$OLD_VERSION" "$NEW_VERSION"
    ```
 
 2. **Enter the dual-publish window.** Register the new key alongside the old one in the
@@ -69,7 +73,7 @@ revoked. Primary consumers are `payments-api`, `auth-svc`, and `search-indexer`.
    ```shell
    curl -sS -X DELETE https://gateway.meridian.internal/admin/v1/keys/<OLD_KEY_ID> \
      -H "Authorization: Bearer <ADMIN_TOKEN>"
-   vault kv metadata delete secret/meridian/api-keys/payments-api-old
+   vault kv destroy -versions="$OLD_VERSION" secret/meridian/api-keys/payments-api
    ```
 
 ## Verification

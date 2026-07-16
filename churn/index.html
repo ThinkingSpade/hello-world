@@ -48,9 +48,11 @@
   .fclear:hover { color: var(--coral); border-color: var(--coral); }
   .hint { font-size: .7rem; color: var(--dim); }
   /* KPI tiles */
-  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-bottom: .8rem; }
-  @media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
-  .kpi { border-top: 3px solid var(--blue); }
+  .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8rem; margin-bottom: .8rem; }
+  @media (max-width: 1060px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 400px) { .kpis { grid-template-columns: 1fr; } }
+  .kpi { border-top: 3px solid var(--blue); min-width: 0; }
   .kpi .num { font-size: 1.7rem; font-weight: 800; line-height: 1.15; }
   .kpi .cap { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
   .kpi .sub { font-size: .68rem; color: var(--dim); margin-top: .15rem; }
@@ -61,8 +63,9 @@
   .charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .8rem; }
   @media (max-width: 1000px) { .charts { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 680px) { .charts { grid-template-columns: 1fr; } }
-  .hrow { display: grid; grid-template-columns: 118px 1fr 74px; gap: .5rem; align-items: center; padding: .22rem 0; cursor: pointer; border-radius: 4px; }
+  .hrow { display: grid; grid-template-columns: 118px 1fr 74px; gap: .5rem; align-items: center; padding: .22rem 0; cursor: pointer; border: 0; border-radius: 4px; background: none; color: inherit; font: inherit; text-align: initial; width: 100%; }
   .hrow:hover { background: var(--panel-2); }
+  .hrow:focus-visible, .vbar:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   .hrow .cat { font-size: .7rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hrow .track { height: 14px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
   .hrow .track i { display: block; height: 100%; background: var(--blue); border-radius: 3px 0 0 3px; transition: width .25s; }
@@ -71,7 +74,7 @@
   .hrow.sel .track i { background: var(--coral); }
   .hrow.dim2 { opacity: .45; }
   .vchart { display: flex; align-items: flex-end; gap: .5rem; height: 128px; padding-top: .4rem; }
-  .vbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; height: 100%; }
+  .vbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; height: 100%; border: 0; padding: 0; background: none; color: inherit; font: inherit; }
   .vbar i { width: 100%; background: var(--blue); border-radius: 3px 3px 0 0; transition: height .25s; }
   .vbar.sel i { background: var(--coral); }
   .vbar.dim2 { opacity: .45; }
@@ -80,8 +83,6 @@
   .chart-note { font-size: .64rem; color: var(--dim); margin-top: .5rem; }
   .mini-lbl { font-size: .62rem; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .1rem; }
   .datalinks { font-size: .7rem; color: var(--dim); margin-top: .45rem; }
-  .kpis { grid-template-columns: repeat(5, 1fr); }
-  @media (max-width: 1060px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
   .kpi.predicted { border-top-color: var(--violet); }
   #km, #profit { width: 100%; height: auto; display: block; }
   .dec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
@@ -92,14 +93,18 @@
   .dec-out span { font-size: .6rem; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
   .dec-net { color: var(--green); }
   .dec-net.neg { color: var(--coral); }
+  .risk-table-wrap { overflow-x: auto; }
   .risk-table { border-collapse: collapse; width: 100%; font-size: .74rem; }
   .risk-table th { background: var(--panel-2); text-transform: uppercase; font-size: .62rem; letter-spacing: .06em; text-align: left; }
   .risk-table th, .risk-table td { border: 1px solid var(--line); padding: .3rem .55rem; }
-  .risk-table tr.r { cursor: pointer; }
   .risk-table tr.r:hover td { background: var(--panel-2); }
   .risk-table .p { font-weight: 700; }
   .risk-table .p.high { color: var(--coral); }
   .risk-table .why-cell { background: var(--panel-2); }
+  .disclose { border: 0; padding: 0; background: none; color: var(--blue); font: inherit; cursor: pointer; text-decoration: underline; }
+  .disclose:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .load-error { border-color: var(--coral); color: var(--dim); margin-bottom: .9rem; }
+  .load-error button { margin-left: .5rem; }
   /* tooltip */
   #tip {
     position: fixed; display: none; z-index: 30; pointer-events: none;
@@ -156,6 +161,7 @@
     <p class="datalinks">the real data:
       <a href="data.csv" download>raw CSV (7,043 rows)</a> ·
       <a href="rows.json">rows.json</a> ·
+      <a href="provenance.json">provenance.json</a> ·
       <a href="model.json">model.json</a> ·
       <a href="https://github.com/IBM/telco-customer-churn-on-icp4d" target="_blank" rel="noopener">IBM source</a> ·
       <a href="https://github.com/ThinkingSpade/hello-world/blob/claude/churn-radar/ANALYSIS.md" target="_blank" rel="noopener">full analysis ↗</a></p>
@@ -167,6 +173,7 @@
     <button class="fclear hide" id="clear-filters" type="button">clear all</button>
     <span class="hint" id="filter-hint">none — click any bar below to slice the data</span>
   </div>
+  <div class="card load-error hide" id="load-error" role="alert"></div>
 
   <div class="kpis">
     <div class="card kpi"><div class="num" id="kpi-n">—</div><div class="cap">customers in view</div><div class="sub" id="kpi-n-sub"></div></div>
@@ -200,13 +207,13 @@
     <h2>Intervention simulator — from probabilities to money</h2>
     <div class="dec-grid">
       <div>
-        <div class="ctl"><label>risk threshold — target customers above <span class="val" id="v-tau"></span></label>
+        <div class="ctl"><label for="in-tau">risk threshold — target active customers above <span class="val" id="v-tau"></span></label>
           <input type="range" id="in-tau" min="5" max="90" value="45"></div>
-        <div class="ctl"><label>cost per retention offer — <span class="val" id="v-cost"></span></label>
+        <div class="ctl"><label for="in-cost">cost per retention offer — <span class="val" id="v-cost"></span></label>
           <input type="range" id="in-cost" min="5" max="150" step="5" value="40"></div>
-        <div class="ctl"><label>chance an offer saves a churner — <span class="val" id="v-save"></span></label>
+        <div class="ctl"><label for="in-save">chance an offer saves a churner — <span class="val" id="v-save"></span></label>
           <input type="range" id="in-save" min="5" max="60" step="5" value="30"></div>
-        <div class="ctl"><label>value horizon — <span class="val" id="v-hor"></span> of monthly charges</label>
+        <div class="ctl"><label for="in-hor">value horizon — <span class="val" id="v-hor"></span> of monthly charges</label>
           <input type="range" id="in-hor" min="3" max="24" value="12"></div>
         <p class="note">Expected net = save-rate × Σ pᵢ × horizon × chargesᵢ (targeted) − offer cost × targeted.
           Probabilities are calibrated (see analysis), so this arithmetic is meaningful — and every assumption
@@ -218,20 +225,23 @@
           <div><b id="d-n">—</b><span>customers targeted</span></div>
           <div><b id="d-saves">—</b><span>expected saves</span></div>
           <div><b id="d-cost">—</b><span>total offer cost</span></div>
-          <div><b id="d-prec">—</b><span>realized precision at τ</span></div>
-          <div><b id="d-rec">—</b><span>realized recall at τ</span></div>
+          <div><b id="d-prec">—</b><span>held-out precision at τ</span></div>
+          <div><b id="d-rec">—</b><span>held-out recall at τ</span></div>
         </div>
+        <p class="chart-note" id="eval-note">Precision and recall are unavailable because row-level hold-out membership was not shipped.</p>
         <svg id="profit" viewBox="0 0 360 150" role="img" aria-label="Expected net vs threshold"></svg>
-        <p class="chart-note">expected net vs threshold — dot marks the optimum for current assumptions</p>
+        <p class="chart-note">expected net vs threshold — dot marks a unique optimum when one exists</p>
       </div>
     </div>
   </section>
 
   <section class="card mb">
-    <h2>Top at-risk customers in view — who to call Monday morning</h2>
-    <table class="risk-table" id="risk-table"></table>
+    <h2>Top at-risk active customers in view — who to call Monday morning</h2>
+    <div class="risk-table-wrap" role="region" aria-label="Top at-risk active customers" tabindex="0">
+      <table class="risk-table" id="risk-table"></table>
+    </div>
     <p class="chart-note">Real customer IDs from the dataset, scored by the shipped model, respecting your
-      filters. Click a row for the model's reasoning.</p>
+      filters. Customers with recorded churn are excluded; use each customer button for the model's reasoning.</p>
   </section>
 
   <div class="grid2">
@@ -273,7 +283,7 @@
 
   <footer>churn radar · real data, real coefficients, no server — audit rows.json &amp; model.json</footer>
 </div>
-<div id="tip"></div>
+<div id="tip" role="tooltip"></div>
 
 <script>
   const $ = (id) => document.getElementById(id);
@@ -285,6 +295,7 @@
   const TENURE_BUCKETS = [[0, 6, "0–6"], [7, 12, "7–12"], [13, 24, "13–24"], [25, 48, "25–48"], [49, 72, "49–72"]];
   const CHARGE_BUCKETS = [[0, 35, "<$35"], [35, 60, "$35–60"], [60, 80, "$60–80"], [80, 100, "$80–100"], [100, 999, "$100+"]];
   let ROWS = null;              // decoded columnar data
+  let PROVENANCE = null;        // row-level prediction and evaluation provenance
   const filters = {};           // dim -> Set(values); tenure/charges -> Set(bucket idx)
 
   function decode(raw) {
@@ -341,6 +352,7 @@
     if (filters[dim].has(key)) filters[dim].delete(key);
     else filters[dim].add(key);
     if (!filters[dim].size) delete filters[dim];
+    hideTip();
     renderDash();
   }
 
@@ -349,6 +361,10 @@
     tip.style.display = "block";
     tip.style.left = Math.min(ev.clientX + 14, window.innerWidth - 250) + "px";
     tip.style.top = (ev.clientY + 14) + "px";
+  }
+  function showTipFor(el, html) {
+    const rect = el.getBoundingClientRect();
+    showTip({ clientX: rect.left, clientY: rect.bottom }, html);
   }
   const hideTip = () => (tip.style.display = "none");
 
@@ -366,19 +382,24 @@
     values.forEach((v, vi) => {
       const [ch, tot] = stats[vi];
       const rate = tot ? ch / tot : 0;
-      const row = document.createElement("div");
+      const row = document.createElement("button");
+      row.type = "button";
       row.className = "hrow" + (active ? (active.has(vi) ? " sel" : " dim2") : "");
+      row.setAttribute("aria-pressed", active && active.has(vi) ? "true" : "false");
+      row.setAttribute("aria-label", `${dim}: ${v}, ${(rate * 100).toFixed(1)}% churn, ${fmt(tot)} customers in view`);
       const cat = document.createElement("span"); cat.className = "cat"; cat.textContent = v;
-      const track = document.createElement("div"); track.className = "track";
+      const track = document.createElement("span"); track.className = "track";
       const fill = document.createElement("i"); fill.style.width = (rate * 100 * 1.6) + "%";
       track.appendChild(fill);
       const pct = document.createElement("span"); pct.className = "pct";
       pct.innerHTML = `${(rate * 100).toFixed(0)}% <small>· ${fmt(tot)}</small>`;
       row.append(cat, track, pct);
+      const detail = `<b>${dim}: ${v}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view<br><i>click to ${active && active.has(vi) ? "remove" : "apply"} filter</i>`;
       row.addEventListener("click", () => toggleFilter(dim, vi));
-      row.addEventListener("mousemove", (ev) =>
-        showTip(ev, `<b>${dim}: ${v}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view<br><i>click to ${active && active.has(vi) ? "remove" : "apply"} filter</i>`));
+      row.addEventListener("mousemove", (ev) => showTip(ev, detail));
       row.addEventListener("mouseleave", hideTip);
+      row.addEventListener("focus", () => showTipFor(row, detail));
+      row.addEventListener("blur", hideTip);
       box.appendChild(row);
     });
   }
@@ -398,16 +419,21 @@
     buckets.forEach(([lo, hi, label], bi) => {
       const [ch, tot] = stats[bi];
       const rate = tot ? ch / tot : 0;
-      const bar = document.createElement("div");
+      const bar = document.createElement("button");
+      bar.type = "button";
       bar.className = "vbar" + (active ? (active.has(bi) ? " sel" : " dim2") : "");
+      bar.setAttribute("aria-pressed", active && active.has(bi) ? "true" : "false");
+      bar.setAttribute("aria-label", `${label}, ${(rate * 100).toFixed(1)}% churn, ${fmt(tot)} customers in view`);
       const v = document.createElement("span"); v.className = "v"; v.textContent = (rate * 100).toFixed(0) + "%";
       const fill = document.createElement("i"); fill.style.height = (rate / maxRate * 82) + "%";
       const c = document.createElement("span"); c.className = "c"; c.textContent = label;
       bar.append(v, fill, c);
+      const detail = `<b>${label}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view`;
       bar.addEventListener("click", () => toggleFilter(dim, bi));
-      bar.addEventListener("mousemove", (ev) =>
-        showTip(ev, `<b>${label}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view`));
+      bar.addEventListener("mousemove", (ev) => showTip(ev, detail));
       bar.addEventListener("mouseleave", hideTip);
+      bar.addEventListener("focus", () => showTipFor(bar, detail));
+      bar.addEventListener("blur", hideTip);
       box.appendChild(bar);
     });
   }
@@ -534,21 +560,35 @@
   }
 
   function economics(tau, cost, save, hor) {
-    let nT = 0, expChurn = 0, value = 0, tp = 0, churnedInView = 0;
+    let nT = 0, expChurn = 0, value = 0;
     for (const i of VIEW) {
-      if (ROWS.churn[i]) churnedInView++;
+      if (ROWS.churn[i]) continue;
       if (ROWS.score[i] < tau) continue;
       nT++;
       expChurn += ROWS.score[i];
       value += ROWS.score[i] * hor * ROWS.charges[i];
-      if (ROWS.churn[i]) tp++;
     }
     return {
-      nT, tp, churnedInView,
+      nT,
       saves: save * expChurn,
       net: save * value - cost * nT,
       cost: cost * nT,
     };
+  }
+
+  function evaluationAt(tau) {
+    const source = PROVENANCE && PROVENANCE.rows_score;
+    const indices = source && source.untouched_indices;
+    if (!source || !source.eligible_for_evaluation || !Array.isArray(indices)) return null;
+    let targeted = 0, tp = 0, churned = 0;
+    for (const i of indices) {
+      if (!inView(i)) continue;
+      if (ROWS.churn[i]) churned++;
+      if (ROWS.score[i] < tau) continue;
+      targeted++;
+      if (ROWS.churn[i]) tp++;
+    }
+    return { targeted, tp, churned };
   }
 
   function renderDecision() {
@@ -564,8 +604,12 @@
     $("d-n").textContent = fmt(e.nT);
     $("d-saves").textContent = e.saves.toFixed(0);
     $("d-cost").textContent = "$" + fmt(Math.round(e.cost));
-    $("d-prec").textContent = e.nT ? (e.tp / e.nT * 100).toFixed(0) + "%" : "—";
-    $("d-rec").textContent = e.churnedInView ? (e.tp / e.churnedInView * 100).toFixed(0) + "%" : "—";
+    const evaluation = evaluationAt(tau);
+    $("d-prec").textContent = evaluation && evaluation.targeted ? (evaluation.tp / evaluation.targeted * 100).toFixed(0) + "%" : "—";
+    $("d-rec").textContent = evaluation && evaluation.churned ? (evaluation.tp / evaluation.churned * 100).toFixed(0) + "%" : "—";
+    $("eval-note").textContent = evaluation
+      ? `Precision and recall use ${fmt(PROVENANCE.rows_score.untouched_indices.length)} untouched hold-out predictions.`
+      : "Precision and recall are unavailable because row-level hold-out membership was not shipped.";
 
     // profit curve
     const pts = [];
@@ -575,52 +619,82 @@
       pts.push([t / 100, v]);
       if (v > best[1]) best = [t / 100, v];
     }
+    const empty = VIEW.length === 0 || !VIEW.some((i) => !ROWS.churn[i]);
+    if (empty) {
+      $("profit").innerHTML = `<text x="180" y="78" font-size="10" fill="#5f5a51" text-anchor="middle">No targetable customers in view</text>`;
+      return;
+    }
     const lo = Math.min(...pts.map((p) => p[1]), 0), hi = Math.max(...pts.map((p) => p[1]), 1);
     const W = 360, H = 150, L = 8, R = 8, T = 10, B = 18;
     const X = (t) => L + ((t - 0.05) / 0.85) * (W - L - R);
     const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
     let out = `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="#d9d4c8"/>`;
     out += `<path d="M ${pts.map(([t, v]) => `${X(t)} ${Y(v)}`).join(" L ")}" fill="none" stroke="#2f8a58" stroke-width="2"/>`;
-    out += `<circle cx="${X(best[0])}" cy="${Y(best[1])}" r="4" fill="#b8463a"/>`;
-    out += `<text x="${X(best[0])}" y="${Y(best[1]) - 8}" font-size="9" fill="#b8463a" text-anchor="middle">optimum τ=${(best[0] * 100).toFixed(0)}%</text>`;
+    const optima = pts.filter((p) => Math.abs(p[1] - best[1]) < 0.000001);
+    if (optima.length === 1) {
+      out += `<circle cx="${X(best[0])}" cy="${Y(best[1])}" r="4" fill="#b8463a"/>`;
+      out += `<text x="${X(best[0])}" y="${Y(best[1]) - 8}" font-size="9" fill="#b8463a" text-anchor="middle">optimum τ=${(best[0] * 100).toFixed(0)}%</text>`;
+    } else {
+      out += `<text x="${W / 2}" y="${T + 9}" font-size="9" fill="#5f5a51" text-anchor="middle">no unique optimum</text>`;
+    }
     out += `<line x1="${X(tau)}" y1="${T}" x2="${X(tau)}" y2="${H - B}" stroke="#3f5aa0" stroke-dasharray="3 3"/>`;
     out += `<text x="${L}" y="${H - 4}" font-size="9" fill="#5f5a51">τ 5%</text>`;
     out += `<text x="${W - R}" y="${H - 4}" font-size="9" fill="#5f5a51" text-anchor="end">90%</text>`;
     $("profit").innerHTML = out;
   }
   for (const id of ["in-tau", "in-cost", "in-save", "in-hor"])
-    document.addEventListener("DOMContentLoaded", () => {});
-  ["in-tau", "in-cost", "in-save", "in-hor"].forEach((id) => {
-    document.addEventListener("input", (ev) => {
-      if (ev.target && ev.target.id === id) renderDecision();
-    });
-  });
+    $(id).addEventListener("input", renderDecision);
 
   /* ================= top at-risk table ================= */
   let openRow = null;
+  let openButton = null;
   function renderRiskTable() {
     const table = $("risk-table");
-    const top = [...VIEW].sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 20);
+    const top = [...VIEW].filter((i) => !ROWS.churn[i])
+      .sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 20);
+    openRow = null;
+    openButton = null;
     table.replaceChildren();
     const head = table.insertRow();
     for (const h of ["customer", "contract", "internet", "tenure", "$ / mo", "churn probability"]) {
       const th = document.createElement("th"); th.textContent = h; head.appendChild(th);
+    }
+    if (!top.length) {
+      const tr = table.insertRow();
+      const td = tr.insertCell();
+      td.colSpan = 6; td.textContent = "No active customers in view.";
+      return;
     }
     for (const i of top) {
       const tr = table.insertRow();
       tr.className = "r";
       const p = ROWS.score[i];
       const cells = [
-        ROWS.ids[i], featValue(i, "Contract"), featValue(i, "InternetService"),
+        featValue(i, "Contract"), featValue(i, "InternetService"),
         ROWS.tenure[i] + " mo", "$" + ROWS.charges[i].toFixed(0),
       ];
+      const customer = tr.insertCell();
+      const button = document.createElement("button");
+      button.type = "button"; button.className = "disclose"; button.textContent = ROWS.ids[i];
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-label", `Show model reasoning for customer ${ROWS.ids[i]}`);
+      customer.appendChild(button);
       for (const c of cells) { const td = tr.insertCell(); td.textContent = c; }
       const td = tr.insertCell();
       td.className = "p" + (p >= 0.6 ? " high" : "");
       td.textContent = (p * 100).toFixed(1) + "%";
-      tr.addEventListener("click", () => {
-        if (openRow) { openRow.remove(); if (openRow.dataset.i === String(i)) { openRow = null; return; } }
-        const ex = table.insertRow(tr.rowIndex);
+      button.addEventListener("click", () => {
+        const wasOpen = openRow && openRow.dataset.i === String(i);
+        if (openRow) {
+          openRow.remove();
+          openButton.setAttribute("aria-expanded", "false");
+          openButton.removeAttribute("aria-controls");
+          openButton.setAttribute("aria-label", `Show model reasoning for customer ${openButton.textContent}`);
+          openRow = null; openButton = null;
+        }
+        if (wasOpen) return;
+        const ex = table.insertRow(tr.rowIndex + 1);
+        ex.id = `risk-details-${i}`;
         ex.dataset.i = String(i);
         const cell = ex.insertCell();
         cell.colSpan = 6; cell.className = "why-cell";
@@ -628,6 +702,10 @@
         cell.textContent = "why: " + top5.map(([l, c]) =>
           `${l} (${c > 0 ? "+" : ""}${c.toFixed(2)})`).join(" · ");
         openRow = ex;
+        openButton = button;
+        button.setAttribute("aria-expanded", "true");
+        button.setAttribute("aria-controls", ex.id);
+        button.setAttribute("aria-label", `Hide model reasoning for customer ${ROWS.ids[i]}`);
       });
     }
   }
@@ -635,6 +713,7 @@
   /* ================= what-if scorer (the shipped model) ================= */
   const CONTROLS = ["Contract", "InternetService", "OnlineSecurity", "TechSupport",
                     "PaymentMethod", "PaperlessBilling", "SeniorCitizen", "Dependents"];
+  const INTERNET_FEATURES = ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"];
   const SLIDERS = { tenure: [0, 72, "months"], MonthlyCharges: [18, 119, "$ / month"] };
   const PRESETS = [
     ["Two-year veteran", { Contract: "Two year", tenure: 64, MonthlyCharges: 84,
@@ -656,7 +735,19 @@
       state[f.name] = f.kind === "numeric" ? Math.round(f.mean) : f.mode;
   }
 
+  function enforceDependencies() {
+    if (state.InternetService === "No") {
+      for (const name of INTERNET_FEATURES) state[name] = "No internet service";
+    } else {
+      for (const name of INTERNET_FEATURES) {
+        if (state[name] === "No internet service")
+          state[name] = MODEL.features.find((f) => f.name === name).mode;
+      }
+    }
+  }
+
   function score() {
+    enforceDependencies();
     let z = MODEL.intercept;
     const contribs = [];
     for (const f of MODEL.features) {
@@ -718,6 +809,8 @@
       valSpan.textContent = ` ${state[name]} ${unit}`;
       label.append(name + " —", valSpan);
       const input = document.createElement("input");
+      input.id = `score-${name}`;
+      label.htmlFor = input.id;
       input.type = "range"; input.min = lo; input.max = hi; input.value = state[name];
       input.addEventListener("input", () => {
         state[name] = Number(input.value);
@@ -732,34 +825,40 @@
       const div = document.createElement("div"); div.className = "ctl"; div.dataset.for = name;
       const label = document.createElement("label"); label.textContent = name;
       const sel = document.createElement("select");
+      sel.id = `score-${name}`;
+      label.htmlFor = sel.id;
       for (const v of f.values) {
         const o = document.createElement("option");
         o.value = v.value; o.textContent = v.value;
         sel.appendChild(o);
       }
       sel.value = state[name];
-      sel.addEventListener("change", () => { state[name] = sel.value; renderScore(); });
+      sel.addEventListener("change", () => { state[name] = sel.value; syncControls(); renderScore(); });
       div.append(label, sel);
       box.appendChild(div);
     }
-    const fixed = MODEL.features
-      .filter((f) => f.kind === "categorical" && !CONTROLS.includes(f.name))
-      .map((f) => `${f.name}=${f.mode}`);
-    $("fixed-note").textContent = "Held at dataset-typical values: " + fixed.join(", ") + ".";
+    syncControls();
   }
 
   function syncControls() {
+    enforceDependencies();
     document.querySelectorAll("#controls .ctl").forEach((div) => {
       const name = div.dataset.for;
       const input = div.querySelector("input, select");
       if (!input || state[name] === undefined) return;
       input.value = state[name];
+      input.disabled = state.InternetService === "No" && INTERNET_FEATURES.includes(name);
       const valSpan = div.querySelector(".val");
       if (valSpan) valSpan.textContent = ` ${state[name]} ${SLIDERS[name][2]}`;
     });
+    const fixed = MODEL.features
+      .filter((f) => f.kind === "categorical" && !CONTROLS.includes(f.name))
+      .map((f) => `${f.name}=${state[f.name]}`);
+    $("fixed-note").textContent = "Held at dataset-typical or dependent values: " + fixed.join(", ") + ".";
   }
 
   function buildPresets() {
+    $("presets").replaceChildren();
     for (const [name, preset] of PRESETS) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "chip"; b.textContent = name;
@@ -772,27 +871,53 @@
     }
   }
 
-  Promise.all([
-    fetch("model.json").then((r) => r.json()),
-    fetch("rows.json").then((r) => r.json()),
-  ]).then(([m, raw]) => {
-    MODEL = m;
-    ROWS = decode(raw);
-    const met = m.metrics;
-    $("kpi-auc").textContent = met.lr.auc.toFixed(3);
-    $("metrics-table").innerHTML = `
-      <tr><th>model</th><th>ROC AUC</th><th>avg precision</th><th>Brier</th><th>5-fold CV AUC</th></tr>
-      <tr><td>logistic regression (shipped)</td><td><b>${met.lr.auc.toFixed(3)}</b></td>
-          <td>${met.lr.avg_precision.toFixed(3)}</td><td>${met.lr.brier.toFixed(3)}</td>
-          <td>${met.lr.auc_cv_mean.toFixed(3)} ± ${met.lr.auc_cv_std.toFixed(3)}</td></tr>
-      <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
-          <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
-    renderDash();
-    defaults();
-    buildPresets();
-    buildControls();
-    renderScore();
-  });
+  function fetchJSON(url) {
+    return fetch(url).then((response) => {
+      if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+      return response.json().catch(() => { throw new Error(`${url} is not valid JSON`); });
+    });
+  }
+
+  function showLoadError(error) {
+    const box = $("load-error");
+    box.replaceChildren();
+    const message = document.createElement("span");
+    message.textContent = `Dashboard data could not be loaded: ${error.message}.`;
+    const retry = document.createElement("button");
+    retry.type = "button"; retry.className = "fclear"; retry.textContent = "retry";
+    retry.addEventListener("click", loadData);
+    box.append(message, retry);
+    box.classList.remove("hide");
+  }
+
+  function loadData() {
+    $("load-error").classList.add("hide");
+    Promise.all([
+      fetchJSON("model.json"),
+      fetchJSON("rows.json"),
+      fetchJSON("provenance.json"),
+    ]).then(([m, raw, provenance]) => {
+      MODEL = m;
+      ROWS = decode(raw);
+      PROVENANCE = provenance;
+      const met = m.metrics;
+      $("kpi-auc").textContent = met.lr.auc.toFixed(3);
+      $("metrics-table").innerHTML = `
+        <tr><th>model</th><th>ROC AUC</th><th>avg precision</th><th>Brier</th><th>5-fold CV AUC</th></tr>
+        <tr><td>logistic regression (shipped)</td><td><b>${met.lr.auc.toFixed(3)}</b></td>
+            <td>${met.lr.avg_precision.toFixed(3)}</td><td>${met.lr.brier.toFixed(3)}</td>
+            <td>${met.lr.auc_cv_mean.toFixed(3)} ± ${met.lr.auc_cv_std.toFixed(3)}</td></tr>
+        <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
+            <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
+      renderDash();
+      defaults();
+      buildPresets();
+      buildControls();
+      renderScore();
+    }).catch(showLoadError);
+  }
+
+  loadData();
 </script>
 <style>.hide{display:none}</style>
 </body>

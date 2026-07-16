@@ -3,7 +3,7 @@
  "selector": "app=checkout-api",
  "victim": "checkout-api-7f9c6b4d8-2xkfj",
  "resolved": true,
- "duration_s": 0.0,
+ "duration_s": 28.3,
  "timeline": [
   {
    "t": "page",
@@ -93,7 +93,7 @@
  ],
  "id": "oom-crashloop",
  "title": "checkout-api crash-looping after the 14:02 deploy",
- "tag": "prod · P2 · OOMKill",
+ "tag": "OOMKill",
  "recorded": "fixture-replay",
  "board": {
   "nodes": [

@@ -55,6 +55,8 @@
   /* charts */
   .chartwrap { position: relative; }
   .chartwrap svg { width: 100%; height: auto; display: block; }
+  .chartwrap svg[tabindex] { cursor: crosshair; touch-action: pan-y; }
+  .chartwrap svg[tabindex]:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: .66rem; border-radius: 8px; padding: .4rem .6rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; box-shadow: 3px 3px 0 rgba(28,26,23,.18); }
   .tip .t { color: #c9c2b4; }
   .tip .row { display: flex; align-items: center; gap: .35rem; }
@@ -107,8 +109,8 @@
   #brief .bline:before { content: "▸ "; color: var(--green); }
   #brief .caret2 { display: inline-block; width: .5em; background: var(--green); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
   .receipts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
-  .receipts a { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; text-decoration: none; }
-  .receipts a:before { content: "📎 "; }
+  .receipts a, .receipts time { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; text-decoration: none; }
+  .receipts a:before, .receipts time:before { content: "📎 "; }
   .receipts a:hover { color: var(--blue); border-color: var(--blue); }
   /* error state */
   .feed-err { border: 1.5px solid var(--coral); background: var(--coral-bg); border-radius: 10px; padding: .6rem .8rem; font-size: .74rem; }
@@ -128,7 +130,7 @@
     <span class="honesty"><b>everything on this page is fetched by your browser, right now,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between, no key, no cached copy: if a wire is down you'll see it down, and the numbers are whatever the world says they are at <b id="opened-at">—</b>.</span>
   </header>
 
-  <div class="wires" id="wires"></div>
+  <div class="wires" id="wires" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"></div>
 
   <div class="card hero" id="debt-hero">
     <div class="label">US federal debt — total public debt outstanding</div>
@@ -207,11 +209,14 @@
     { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
   function wireStrip() {
-    $("wires").innerHTML = WIRES.map(([k, label]) => {
+    const wires = $("wires");
+    wires.setAttribute("aria-busy", "true");
+    wires.innerHTML = WIRES.map(([k, label]) => {
       const st = state["wire_" + k] || "wait";
       const note = state["wirenote_" + k] || "dialing";
       return `<span class="wire ${st}" id="wire-${k}"><i></i><b>${label}</b> — ${note}</span>`;
     }).join("");
+    wires.setAttribute("aria-busy", "false");
   }
   function setWire(k, st, note) { state["wire_" + k] = st; state["wirenote_" + k] = note; wireStrip(); }
   wireStrip();
@@ -227,12 +232,24 @@
       return { j, ms: Math.round(performance.now() - t0) };
     } finally { clearTimeout(to); }
   }
-  const iso = (d) => d.toISOString().slice(0, 10);
+  const iso = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
   const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
   const fmtMoney = (x) => {
-    if (Math.abs(x) >= 1e12) return "$" + (x / 1e12).toFixed(2) + " trillion";
-    if (Math.abs(x) >= 1e9) return "$" + (x / 1e9).toFixed(1) + " billion";
-    return "$" + Math.round(x).toLocaleString();
+    const sign = x < 0 ? "-" : "", n = Math.abs(x);
+    if (n >= 1e12) return sign + "$" + (n / 1e12).toFixed(2) + " trillion";
+    if (n >= 1e9) return sign + "$" + (n / 1e9).toFixed(1) + " billion";
+    return sign + "$" + Math.round(n).toLocaleString();
+  };
+  const fmtDollars = (x) => (x < 0 ? "-" : "") + "$" + Math.round(Math.abs(x)).toLocaleString();
+  const easternPostingTime = (date) => {
+    const [year, month, day] = date.split("-").map(Number);
+    const target = Date.UTC(year, month - 1, day, 16);
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(target)).filter(p => p.type !== "literal").map(p => [p.type, p.value]));
+    const easternAtTarget = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+    return new Date(target + target - easternAtTarget);
   };
 
   function errBox(zone, host, retryFn) {
@@ -244,19 +261,26 @@
   }
 
   /* ================= FX ================= */
+  let fxRequestId = 0;
   async function loadFX() {
+    const requestId = ++fxRequestId;
     setWire("fx", "wait", "dialing");
     const zone = $("fx-chart-zone");
     try {
       const url = `https://api.frankfurter.dev/v1/${iso(daysAgo(state.fxDays))}..?base=USD&symbols=${ALL_SYMS.join(",")}`;
       const { j, ms } = await fetchJSON(url);
-      const dates = Object.keys(j.rates).sort();
-      if (!dates.length) throw new Error("empty series");
-      state.fx = { dates, series: Object.fromEntries(ALL_SYMS.map(s => [s, dates.map(d => j.rates[d][s])])) };
+      if (requestId !== fxRequestId) return;
+      const dates = Object.keys(j.rates || {}).sort();
+      if (dates.length < 2) throw new Error("empty series");
+      const entries = ALL_SYMS.map(s => [s, dates.map(d => j.rates[d]?.[s])])
+        .filter(([, values]) => values.every(Number.isFinite));
+      if (!entries.length) throw new Error("no complete series");
+      state.fx = { dates, series: Object.fromEntries(entries), syms: entries.map(([s]) => s) };
       setWire("fx", "up", `answered in ${ms} ms`);
       $("fx-when").textContent = `fetched ${new Date().toLocaleTimeString()} · latest rate day ${dates[dates.length - 1]}`;
       renderFXChart(); renderFXBoard(); renderBrief();
     } catch (e) {
+      if (requestId !== fxRequestId) return;
       setWire("fx", "down", "unreachable");
       state.fx = null;
       errBox(zone, "api.frankfurter.dev", loadFX);
@@ -266,14 +290,16 @@
   }
 
   function renderFXChart() {
-    const { dates, series } = state.fx;
+    const { dates, series, syms } = state.fx;
+    const chartSyms = CHART_SYMS.filter(s => syms.includes(s));
+    if (!chartSyms.length) chartSyms.push(...syms.slice(0, 5));
     const W = 940, H = 320, L = 46, R = 96, T = 16, B = 34;
     const idx = {};
-    for (const s of CHART_SYMS) {
+    for (const s of chartSyms) {
       const base = series[s].find(v => v != null);
       idx[s] = series[s].map(v => v == null ? null : 100 * v / base);
     }
-    const flat = CHART_SYMS.flatMap(s => idx[s]).filter(v => v != null);
+    const flat = chartSyms.flatMap(s => idx[s]).filter(v => v != null);
     let lo = Math.min(...flat), hi = Math.max(...flat);
     const pad = Math.max(0.4, (hi - lo) * 0.08); lo -= pad; hi += pad;
     const X = (i) => L + i * (W - L - R) / Math.max(1, dates.length - 1);
@@ -294,7 +320,7 @@
           <text x="${L + 4}" y="${Y(100) - 4}" font-size="8.5" fill="var(--dim)">100 = ${dates[0]}</text>`;
     // lines + end labels with collision nudge
     const ends = [];
-    for (const s of CHART_SYMS) {
+    for (const s of chartSyms) {
       const pts = idx[s].map((v, i) => v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`)
         .filter(Boolean).join(" ");
       g += `<polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-linejoin="round"/>`;
@@ -310,40 +336,61 @@
           <line id="fx-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
 
     const zone = $("fx-chart-zone");
+    const tableStart = Math.max(0, dates.length - 10);
     zone.innerHTML = `
-      <div class="legend">${CHART_SYMS.map(s => `<span><i style="background:${FXC[s]}"></i>${s}</span>`).join("")}
-        <span style="margin-left:auto">CAD on the board below</span></div>
-      <div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dollar strength, indexed">${g}</svg>
+      <div class="legend">${chartSyms.map(s => `<span><i style="background:${FXC[s]}"></i>${s}</span>`).join("")}
+        ${syms.includes("CAD") && !chartSyms.includes("CAD") ? '<span style="margin-left:auto">CAD on the board below</span>' : ""}</div>
+      <div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect dollar strength by rate day" aria-valuemin="0" aria-valuemax="${dates.length - 1}" aria-valuenow="${dates.length - 1}">${g}</svg>
         <div class="tip" id="fx-tip"></div></div>
       <details class="tbl"><summary>view as table (last 10 rate days)</summary><table>
-        <tr><th>date</th>${ALL_SYMS.map(s => `<th>${s}</th>`).join("")}</tr>
-        ${dates.slice(-10).map((d, k) => `<tr><td>${d}</td>${ALL_SYMS.map(s =>
-          `<td>${(series[s][dates.length - 10 + k] ?? "—")}</td>`).join("")}</tr>`).join("")}
+        <tr><th>date</th>${syms.map(s => `<th>${s}</th>`).join("")}</tr>
+        ${dates.slice(tableStart).map((d, k) => `<tr><td>${d}</td>${syms.map(s =>
+          `<td>${(series[s][tableStart + k] ?? "—")}</td>`).join("")}</tr>`).join("")}
       </table></details>`;
 
     const hover = zone.querySelector("#fx-hover"), cross = zone.querySelector("#fx-cross"),
           tip = $("fx-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
-    hover.addEventListener("mousemove", (ev) => {
-      const r = svg.getBoundingClientRect();
-      const fx = (ev.clientX - r.left) * (W / r.width);
-      const i = Math.max(0, Math.min(dates.length - 1,
-        Math.round((fx - L) / ((W - L - R) / (dates.length - 1)))));
+    let activeI = dates.length - 1;
+    const inspect = (i) => {
+      activeI = i;
+      svg.setAttribute("aria-valuenow", i);
+      svg.setAttribute("aria-valuetext", `${dates[i]}, ` + chartSyms.map(s => `${s} ${series[s][i]}`).join(", "));
       cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i));
       cross.setAttribute("opacity", ".55");
-      tip.innerHTML = `<div class="t">${dates[i]}</div>` + CHART_SYMS.map(s =>
+      tip.innerHTML = `<div class="t">${dates[i]}</div>` + chartSyms.map(s =>
         `<div class="row"><i style="background:${FXC[s]}"></i>${s} ${series[s][i] ?? "—"} · idx ${idx[s][i]?.toFixed(2) ?? "—"}</div>`).join("");
       tip.style.opacity = 1;
       const wr = wrapEl.getBoundingClientRect();
       const px = (X(i) / W) * wr.width;
       tip.style.left = Math.min(wr.width - 190, Math.max(0, px + 12)) + "px";
       tip.style.top = "12px";
+    };
+    const inspectPointer = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(dates.length - 1,
+        Math.round((fx - L) / ((W - L - R) / (dates.length - 1)))));
+      inspect(i);
+    };
+    const hide = () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); };
+    hover.addEventListener("pointerdown", inspectPointer);
+    hover.addEventListener("pointermove", inspectPointer);
+    hover.addEventListener("pointerleave", () => { if (document.activeElement !== svg) hide(); });
+    svg.addEventListener("focus", () => inspect(activeI));
+    svg.addEventListener("blur", hide);
+    svg.addEventListener("keydown", (ev) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) return;
+      ev.preventDefault();
+      if (ev.key === "Home") activeI = 0;
+      else if (ev.key === "End") activeI = dates.length - 1;
+      else activeI = Math.max(0, Math.min(dates.length - 1, activeI + (ev.key === "ArrowLeft" ? -1 : 1)));
+      inspect(activeI);
     });
-    hover.addEventListener("mouseleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); });
   }
 
   function renderFXBoard() {
-    const { dates, series } = state.fx;
-    $("fx-board").innerHTML = ALL_SYMS.map(s => {
+    const { dates, series, syms } = state.fx;
+    $("fx-board").innerHTML = syms.map(s => {
       const vals = series[s].filter(v => v != null);
       const last = vals[vals.length - 1], first = vals[0];
       const chg = 100 * (last - first) / first;
@@ -391,15 +438,18 @@
     const rows = state.debt;
     const first = rows[0], last = rows[rows.length - 1];
     const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
-    const perSec = (last.total - first.total) / (days * 86400);
-    const postedAt = new Date(last.date + "T16:00:00");   // Treasury posts each business day
-    $("debt-sub").innerHTML = `posted <b>${last.date}</b> · up <b>${fmtMoney(last.total - first.total)}</b> in ${Math.round(days)} days`;
+    const delta = last.total - first.total;
+    const direction = delta > 0 ? "up" : delta < 0 ? "down" : "unchanged by";
+    const paceDirection = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+    const perSec = delta / (days * 86400);
+    const postedAt = easternPostingTime(last.date);
+    $("debt-big").textContent = "$" + last.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $("debt-sub").innerHTML = `official posting <b>${last.date}</b> · ${direction} <b>${fmtMoney(Math.abs(delta))}</b> in ${Math.round(days)} days`;
     $("debt-pace").style.display = "inline-block";
-    $("debt-pace").textContent = `≈ $${Math.round(perSec).toLocaleString()} / second — extrapolated between daily postings at the observed pace`;
     clearInterval(paceTimer);
     const tick = () => {
       const est = last.total + Math.max(0, (Date.now() - postedAt) / 1000) * perSec;
-      $("debt-big").textContent = "$" + Math.round(est).toLocaleString();
+      $("debt-pace").textContent = `projection from ${last.date} 4:00 p.m. ET at the observed ${paceDirection} pace: ${fmtDollars(est)} (${fmtDollars(perSec)} / second)`;
     };
     tick();
     if (!REDUCED) paceTimer = setInterval(tick, 120);
@@ -425,7 +475,7 @@
           <rect id="dt-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
           <line id="dt-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
     const zone = $("debt-chart-zone");
-    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="US total public debt, one year">${g}</svg>
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect US total public debt by posting date" aria-valuemin="0" aria-valuemax="${rows.length - 1}" aria-valuenow="${rows.length - 1}">${g}</svg>
         <div class="tip" id="dt-tip"></div></div>
       <details class="tbl"><summary>view as table (monthly samples)</summary><table>
         <tr><th>date</th><th>total public debt</th></tr>
@@ -434,57 +484,122 @@
       </table></details>`;
     const hover = zone.querySelector("#dt-hover"), cross = zone.querySelector("#dt-cross"),
           tip = $("dt-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
-    hover.addEventListener("mousemove", (ev) => {
-      const r = svg.getBoundingClientRect();
-      const fx = (ev.clientX - r.left) * (W / r.width);
-      const i = Math.max(0, Math.min(rows.length - 1,
-        Math.round((fx - L) / ((W - L - R) / (rows.length - 1)))));
+    let activeI = rows.length - 1;
+    const inspect = (i) => {
+      activeI = i;
+      svg.setAttribute("aria-valuenow", i);
+      svg.setAttribute("aria-valuetext", `${rows[i].date}, ${fmtDollars(rows[i].total)}`);
       cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", ".55");
-      tip.innerHTML = `<div class="t">${rows[i].date}</div><div class="row"><i style="background:#3f5aa0"></i>$${rows[i].total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>`;
+      tip.innerHTML = `<div class="t">${rows[i].date}</div><div class="row"><i style="background:#3f5aa0"></i>${fmtDollars(rows[i].total)}</div>`;
       tip.style.opacity = 1;
       const wr = wrapEl.getBoundingClientRect();
       tip.style.left = Math.min(wr.width - 230, Math.max(0, (X(i) / W) * wr.width + 12)) + "px";
       tip.style.top = "10px";
+    };
+    const inspectPointer = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(rows.length - 1,
+        Math.round((fx - L) / ((W - L - R) / (rows.length - 1)))));
+      inspect(i);
+    };
+    const hide = () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); };
+    hover.addEventListener("pointerdown", inspectPointer);
+    hover.addEventListener("pointermove", inspectPointer);
+    hover.addEventListener("pointerleave", () => { if (document.activeElement !== svg) hide(); });
+    svg.addEventListener("focus", () => inspect(activeI));
+    svg.addEventListener("blur", hide);
+    svg.addEventListener("keydown", (ev) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) return;
+      ev.preventDefault();
+      if (ev.key === "Home") activeI = 0;
+      else if (ev.key === "End") activeI = rows.length - 1;
+      else activeI = Math.max(0, Math.min(rows.length - 1, activeI + (ev.key === "ArrowLeft" ? -1 : 1)));
+      inspect(activeI);
     });
-    hover.addEventListener("mouseleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", "0"); });
   }
 
   /* ================= WORLD BANK ================= */
-  async function loadWB() {
-    setWire("wb", "wait", "dialing");
-    try {
-      const base = "https://api.worldbank.org/v2/country";
-      const [g, c, p] = await Promise.all([
-        fetchJSON(`${base}/USA;CHN;DEU;WLD/indicator/NY.GDP.MKTP.KD.ZG?format=json&mrnev=1&per_page=20`),
-        fetchJSON(`${base}/USA;CHN;DEU;WLD/indicator/FP.CPI.TOTL.ZG?format=json&mrnev=1&per_page=20`),
-        fetchJSON(`${base}/USA/indicator/SP.POP.TOTL?format=json&mrnev=1&per_page=5`),
-      ]);
-      const parse = (j) => Object.fromEntries((j[1] || []).filter(r => r.value != null)
-        .map(r => [r.country.value, { year: r.date, value: Math.round(r.value * 100) / 100 }]));
-      state.gdp = parse(g.j); state.cpi = parse(c.j); state.pop = parse(p.j);
-      if (!Object.keys(state.gdp).length) throw new Error("empty");
-      setWire("wb", "up", `answered in ${g.ms} ms`);
-      $("wb-when").textContent = `fetched ${new Date().toLocaleTimeString()}`;
-      renderWB(); renderBrief();
-    } catch (e) {
-      setWire("wb", "down", "unreachable");
-      state.gdp = state.cpi = state.pop = null;
-      $("wb-grid").innerHTML = `<div class="feed-err"><b>World Bank wire down</b> — annuals unavailable this visit.
-        <button type="button">try the wire again</button></div>`;
-      $("wb-grid").querySelector("button").addEventListener("click", loadWB);
-      renderBrief();
-    }
+  const WB_BASE = "https://api.worldbank.org/v2/country";
+  // NOTE: mrnev=1 responses intermittently arrive without CORS headers from the
+  // World Bank CDN and the fetch dies in the browser; a plain year-range query is
+  // served reliably, so we fetch a window and pick the newest non-null per country.
+  const WB_YEARS = (() => { const y = new Date().getFullYear(); return `${y - 7}:${y}`; })();
+  const WB_INDICATORS = {
+    gdp: { label: "growth", url: `${WB_BASE}/USA;CHN;DEU;WLD/indicator/NY.GDP.MKTP.KD.ZG?format=json&date=${WB_YEARS}&per_page=60` },
+    cpi: { label: "inflation", url: `${WB_BASE}/USA;CHN;DEU;WLD/indicator/FP.CPI.TOTL.ZG?format=json&date=${WB_YEARS}&per_page=60` },
+    pop: { label: "population", url: `${WB_BASE}/USA/indicator/SP.POP.TOTL?format=json&date=${WB_YEARS}&per_page=10` },
+  };
+  // rows arrive newest-first per country; reverse so the newest year wins the key
+  const parseWB = (j) => Object.fromEntries((j[1] || []).filter(r => r.value != null).reverse()
+    .map(r => [r.country.value, { year: r.date, value: Math.round(r.value * 100) / 100 }]));
+
+  async function fetchWBIndicator(key) {
+    const { j, ms } = await fetchJSON(WB_INDICATORS[key].url);
+    const data = parseWB(j);
+    if (!Object.keys(data).length) throw new Error("empty indicator");
+    return { data, ms };
+  }
+
+  function updateWBWire() {
+    const keys = Object.keys(WB_INDICATORS);
+    const up = keys.filter(k => state["wb_" + k] === "up").length;
+    const pending = keys.some(k => state["wb_" + k] === "wait");
+    setWire("wb", pending ? "wait" : up ? "up" : "down", `${up}/${keys.length} indicators${pending ? " · dialing" : ""}`);
+  }
+
+  function applyWBResults(keys, results) {
+    results.forEach((result, i) => {
+      const key = keys[i];
+      if (result.status === "fulfilled") {
+        state[key] = result.value.data;
+        state["wb_" + key] = "up";
+      } else {
+        state[key] = null;
+        state["wb_" + key] = "down";
+      }
+    });
+    updateWBWire();
+    const up = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "up").length;
+    $("wb-when").textContent = up ? `fetched ${new Date().toLocaleTimeString()} · ${up}/3 indicators` : "all indicators unavailable";
+    renderWB(); renderBrief();
+  }
+
+  function settleWBIndicator(key) {
+    fetchWBIndicator(key).then(
+      (value) => applyWBResults([key], [{ status: "fulfilled", value }]),
+      (reason) => applyWBResults([key], [{ status: "rejected", reason }]),
+    );
+  }
+
+  function loadWB() {
+    const keys = Object.keys(WB_INDICATORS);
+    keys.forEach(k => { state[k] = null; state["wb_" + k] = "wait"; });
+    updateWBWire(); renderWB();
+    keys.forEach(settleWBIndicator);
+  }
+
+  function retryWB(key) {
+    state["wb_" + key] = "wait";
+    updateWBWire(); renderWB();
+    settleWBIndicator(key);
   }
 
   function renderWB() {
     const order = ["United States", "China", "Germany", "World"];
-    $("wb-grid").innerHTML = order.filter(c => state.gdp[c]).map(c => {
-      const g = state.gdp[c], i = (state.cpi || {})[c];
+    const tiles = order.filter(c => (state.gdp || {})[c] || (state.cpi || {})[c]).map(c => {
+      const g = (state.gdp || {})[c], i = (state.cpi || {})[c];
       return `<div class="wbtile"><div class="c">${c}</div>
-        <div class="v">growth <b class="${g.value >= 0 ? "up" : "dn"}">${g.value >= 0 ? "+" : ""}${g.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${g.year})</span></div>
+        ${g ? `<div class="v">growth <b class="${g.value >= 0 ? "up" : "dn"}">${g.value >= 0 ? "+" : ""}${g.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${g.year})</span></div>` : ""}
         ${i ? `<div class="v">inflation <b>${i.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${i.year})</span></div>` : ""}
       </div>`;
-    }).join("");
+    });
+    const errors = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "down").map(k =>
+      `<div class="feed-err"><b>${WB_INDICATORS[k].label} unavailable</b> — other World Bank indicators remain usable.<br>
+        <button type="button" data-wb-retry="${k}">try ${WB_INDICATORS[k].label} again</button></div>`);
+    $("wb-grid").innerHTML = [...tiles, ...errors].join("") || '<p class="skel">calling the indicator wires…</p>';
+    $("wb-grid").querySelectorAll("[data-wb-retry]").forEach(b =>
+      b.addEventListener("click", () => retryWB(b.dataset.wbRetry)));
   }
 
   /* ================= THE BRIEF ================= */
@@ -529,56 +644,69 @@
   function composeBrief() {
     const lines = [];
     if (state.fx) {
-      const { dates, series } = state.fx;
+      const { dates, series, syms } = state.fx;
       const mv = {};
-      for (const s of ALL_SYMS) {
+      for (const s of syms) {
         const v = series[s].filter(x => x != null);
         if (v.length > 1) mv[s] = 100 * (v[v.length - 1] - v[0]) / v[0];
       }
       const strongest = Object.keys(mv).reduce((a, b) => mv[a] > mv[b] ? a : b);
       const weakest = Object.keys(mv).reduce((a, b) => mv[a] < mv[b] ? a : b);
-      lines.push(`FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar gained most against ${strongest} (${mv[strongest] >= 0 ? "+" : ""}${mv[strongest].toFixed(1)}%) and did worst against ${weakest} (${mv[weakest] >= 0 ? "+" : ""}${mv[weakest].toFixed(1)}%).`);
-    } else lines.push("FX wire is down — no exchange-rate read this visit, and none will be made up.");
+      const move = (s) => `${mv[s] >= 0 ? "gained" : "weakened"} against ${s} (${mv[s] >= 0 ? "+" : ""}${mv[s].toFixed(1)}%)`;
+      let line = `FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar ${move(strongest)}.`;
+      if (strongest !== weakest)
+        line = `FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar ${move(strongest)}; against ${weakest}, it ${mv[weakest] >= 0 ? "gained" : "weakened"} (${mv[weakest] >= 0 ? "+" : ""}${mv[weakest].toFixed(1)}%).`;
+      lines.push(line);
+    } else if (state.wire_fx === "down") lines.push("FX wire is down — no exchange-rate read this visit, and none will be made up.");
+    else lines.push("FX wire is still answering.");
     if (state.debt) {
       const rows = state.debt, first = rows[0], last = rows[rows.length - 1];
       const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
-      const perDay = (last.total - first.total) / days;
-      let line = `US federal debt: ${fmtMoney(last.total)} as of ${last.date} — up ${fmtMoney(last.total - first.total)} over the window, about ${fmtMoney(perDay)} a day (≈ $${Math.round(perDay / 86400).toLocaleString()} every second).`;
+      const delta = last.total - first.total;
+      const direction = delta > 0 ? "up" : delta < 0 ? "down" : "unchanged by";
+      const perDay = Math.abs(delta / days);
+      let line = `US federal debt: ${fmtMoney(last.total)} as of ${last.date} — ${direction} ${fmtMoney(Math.abs(delta))} over the window, about ${fmtMoney(perDay)} a day over that span.`;
       if (state.pop) {
         const p = Object.values(state.pop)[0];
         line += ` That's $${Math.round(last.total / p.value).toLocaleString()} per US resident (World Bank population, ${p.year}).`;
       }
       lines.push(line);
-    } else lines.push("Treasury wire is down — no debt read this visit.");
+    } else if (state.wire_debt === "down") lines.push("Treasury wire is down — no debt read this visit.");
+    else lines.push("Treasury wire is still answering.");
+    const wb = [];
     if (state.gdp) {
-      const year = Object.values(state.gdp)[0].year;
       const gl = ["United States", "China", "Germany", "World"].filter(c => state.gdp[c])
-        .map(c => `${c} ${state.gdp[c].value >= 0 ? "+" : ""}${state.gdp[c].value.toFixed(1)}%`).join(", ");
-      let line = `Growth (World Bank annuals, ${year}): ${gl}.`;
-      if (state.cpi && Object.keys(state.cpi).length) {
-        const cl = ["United States", "China", "Germany", "World"].filter(c => state.cpi[c])
-          .map(c => `${c} ${state.cpi[c].value.toFixed(1)}%`).join(", ");
-        line += ` Inflation: ${cl}.`;
-      }
-      lines.push(line);
-    } else lines.push("World Bank wire is down — no growth or inflation read.");
-    const up = ["fx", "debt", "gdp"].filter(k => state[k]).length;
-    lines.push(`Wire check: ${up} of 3 sources answered your browser directly. Nothing on this page was cached, proxied, or typed in by a human.`);
+        .map(c => `${c} ${state.gdp[c].value >= 0 ? "+" : ""}${state.gdp[c].value.toFixed(1)}% (${state.gdp[c].year})`).join(", ");
+      wb.push(`Growth (World Bank annuals): ${gl}.`);
+    } else if (state.wb_gdp === "down") wb.push("World Bank growth is unavailable.");
+    else wb.push("World Bank growth is still answering.");
+    if (state.cpi) {
+      const cl = ["United States", "China", "Germany", "World"].filter(c => state.cpi[c])
+        .map(c => `${c} ${state.cpi[c].value.toFixed(1)}% (${state.cpi[c].year})`).join(", ");
+      wb.push(`Inflation: ${cl}.`);
+    } else if (state.wb_cpi === "down") wb.push("World Bank inflation is unavailable.");
+    else wb.push("World Bank inflation is still answering.");
+    lines.push(wb.join(" "));
+    const answered = WIRES.filter(([k]) => state["wire_" + k] === "up").length;
+    const pending = WIRES.filter(([k]) => !["up", "down"].includes(state["wire_" + k])).length;
+    lines.push(`Wire check: ${answered} of 3 sources answered your browser directly.${pending ? ` ${pending} ${pending === 1 ? "source is" : "sources are"} still answering.` : ""} Nothing on this page was cached, proxied, or typed in by a human.`);
     return lines;
   }
 
   let briefTyped = false, briefTimer = null;
   function renderBrief() {
-    const settled = ["fx", "debt", "gdp"].every(k => state["wire_" + (k === "gdp" ? "wb" : k)] !== "wait" && state["wire_" + (k === "gdp" ? "wb" : k)] !== undefined);
-    if (!settled) return;
+    clearInterval(briefTimer); briefTimer = null;
+    const firstSettled = WIRES.some(([k]) => ["up", "down"].includes(state["wire_" + k]));
+    if (!firstSettled) return;
     const lines = composeBrief();
     const el = $("brief");
+    const fetched = new Date();
     $("receipts").innerHTML = [
       ["Frankfurter — ECB reference rates", "https://frankfurter.dev"],
       ["US Treasury — Debt to the Penny", "https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny"],
       ["World Bank Open Data", "https://data.worldbank.org"],
-      ["fetched " + new Date().toLocaleTimeString(), "#"],
-    ].map(([t, h]) => `<a href="${h}" ${h !== "#" ? 'target="_blank" rel="noopener"' : ""}>${t}</a>`).join("");
+    ].map(([t, h]) => `<a href="${h}" target="_blank" rel="noopener">${t}</a>`).join("") +
+      `<time datetime="${fetched.toISOString()}">fetched ${fetched.toLocaleTimeString()}</time>`;
     if (briefTyped || REDUCED) {
       el.innerHTML = lines.map(l => `<div class="bline">${l}</div>`).join("");
       $("ag-an").className = "agent";
@@ -589,7 +717,6 @@
     $("ag-an").className = "agent working";
     $("st-an").innerHTML = 'typing it up<span class="dots"></span>';
     el.innerHTML = "";
-    clearInterval(briefTimer);
     let li = 0, ci = 0;
     let cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
     briefTimer = setInterval(() => {

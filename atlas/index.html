@@ -57,6 +57,7 @@
     cursor: pointer; transition: color .15s, border-color .15s;
   }
   .chip:hover { color: var(--accent); border-color: var(--accent); }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
     padding: 1.2rem 1.4rem; margin-bottom: 1rem;
@@ -79,7 +80,10 @@
     margin-top: .6rem;
   }
   .cite .n { color: var(--accent); font-weight: 700; margin-right: .45rem; }
-  .cite .where { color: var(--text); font-weight: 600; font-size: .84rem; }
+  .cite .where {
+    color: var(--text); font: inherit; font-weight: 600; font-size: .84rem;
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
   .cite .kind { color: var(--dim); font-size: .72rem; margin-left: .4rem; }
   .cite .kind.runbook { color: var(--map-runbook); }
   .cite .kind.incident { color: var(--map-incident); }
@@ -164,7 +168,8 @@
   }
   #file-list .doc {
     display: flex; gap: .45rem; align-items: baseline; padding: .3rem .5rem;
-    border-radius: 6px; cursor: pointer; font-size: .76rem;
+    border: 0; width: 100%; border-radius: 6px; cursor: pointer; font: inherit;
+    font-size: .76rem; color: var(--text); background: transparent; text-align: left;
   }
   #file-list .doc:hover { background: var(--panel); }
   #file-list .doc.sel { background: var(--panel); outline: 1px solid var(--accent); }
@@ -209,9 +214,9 @@
     <div class="dataset-bar hide" id="dataset-bar"></div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Atlas views">
-    <button id="tab-data" class="tab active" role="tab" aria-selected="true">▤ THE DATA</button>
-    <button id="tab-ask" class="tab" role="tab" aria-selected="false">? ASK ATLAS</button>
+  <nav class="tabs" aria-label="Atlas views">
+    <button id="tab-data" class="tab active">▤ THE DATA</button>
+    <button id="tab-ask" class="tab">? ASK ATLAS</button>
   </nav>
 
   <section id="view-data" class="view">
@@ -241,7 +246,7 @@
 
   <section class="card hide" id="answer-card">
     <h2>Answer</h2>
-    <div id="answer-text"></div>
+    <div id="answer-text" aria-live="polite"></div>
     <div id="answer-meta"></div>
     <div id="citations"></div>
   </section>
@@ -307,6 +312,26 @@
     "Postgres primary is unhealthy — how do I fail over?",
     "A pod is in CrashLoopBackOff, what do I check first?",
   ];
+  let askRequestId = 0;
+  let datasetRequestId = 0;
+
+  function setAskPending(pending) {
+    $("q").disabled = pending;
+    $("go").disabled = pending;
+    $("go").textContent = pending ? "…" : "ask";
+    for (const chip of document.querySelectorAll("#samples .chip")) chip.disabled = pending;
+  }
+
+  function showAskError(message) {
+    $("answer-card").classList.remove("hide");
+    $("answer-text").classList.remove("spin");
+    $("answer-text").replaceChildren();
+    const e = document.createElement("span");
+    e.className = "err"; e.textContent = message;
+    $("answer-text").appendChild(e);
+    $("answer-meta").replaceChildren();
+    $("citations").replaceChildren();
+  }
 
   function renderSamples(list) {
     const samplesBox = $("samples");
@@ -320,9 +345,10 @@
   }
   renderSamples(null);
 
-  async function loadMeta() {
+  async function loadMeta(requestId = datasetRequestId) {
     try {
       const h = await api.health();
+      if (requestId !== datasetRequestId) return;
       const badges = $("health-badges");
       badges.replaceChildren();
       const items = [
@@ -341,8 +367,10 @@
     } catch { /* health is cosmetic */ }
     try {
       const d = await api.docs();
+      if (requestId !== datasetRequestId) return;
       buildExplorer(d.docs);
     } catch {
+      if (requestId !== datasetRequestId) return;
       $("file-list").replaceChildren();
       const li = document.createElement("li");
       li.className = "err"; li.textContent = "failed to load corpus";
@@ -352,9 +380,12 @@
 
   async function askNow() {
     const q = $("q").value.trim();
-    if (q.length < 3) return;
-    const btn = $("go");
-    btn.disabled = true; btn.textContent = "…";
+    const requestId = ++askRequestId;
+    if (q.length < 3) {
+      showAskError(q ? "Enter at least 3 characters." : "Enter a question before asking Atlas.");
+      return;
+    }
+    setAskPending(true);
     $("answer-card").classList.remove("hide");
     $("answer-text").textContent = "thinking…";
     $("answer-text").classList.add("spin");
@@ -362,6 +393,7 @@
     $("citations").replaceChildren();
     try {
       const a = await api.ask(q);
+      if (requestId !== askRequestId) return;
       $("answer-text").classList.remove("spin");
       $("answer-text").textContent = a.answer;
 
@@ -375,7 +407,7 @@
       mk(a.latency_ms + " ms");
       mk(a.cached ? "cache hit" : "fresh", a.cached ? "hit" : "");
       mk("llm: " + a.mode.llm);
-      mk(a.retrieved + " sources");
+      mk(a.retrieved + " retrieved chunks");
 
       const cites = $("citations");
       for (const c of a.citations) {
@@ -384,7 +416,8 @@
         const head = document.createElement("div");
         const n = document.createElement("span");
         n.className = "n"; n.textContent = "[" + c.n + "]";
-        const where = document.createElement("span");
+        const where = document.createElement("button");
+        where.type = "button";
         where.className = "where";
         where.textContent = c.doc_title + " — " + c.section;
         where.title = "view raw source in the DATA tab";
@@ -409,13 +442,10 @@
       }
       if (typeof updateMapFromAnswer === "function") updateMapFromAnswer(a);
     } catch (err) {
-      $("answer-text").classList.remove("spin");
-      $("answer-text").textContent = "";
-      const e = document.createElement("span");
-      e.className = "err"; e.textContent = "error: " + err.message;
-      $("answer-text").appendChild(e);
+      if (requestId !== askRequestId) return;
+      showAskError("error: " + err.message);
     } finally {
-      btn.disabled = false; btn.textContent = "ask";
+      if (requestId === askRequestId) setAskPending(false);
     }
   }
 
@@ -430,8 +460,6 @@
     $("view-ask").classList.toggle("hide", data);
     $("tab-data").classList.toggle("active", data);
     $("tab-ask").classList.toggle("active", !data);
-    $("tab-data").setAttribute("aria-selected", String(data));
-    $("tab-ask").setAttribute("aria-selected", String(!data));
     if (!data) {
       sizeMap();
       if (!askArmed) {
@@ -471,7 +499,17 @@
   }
 
   async function switchDataset(slug) {
-    if (!(await api.setDataset(slug))) return;
+    const requestId = ++datasetRequestId;
+    askRequestId++;
+    setAskPending(false);
+    cancelPreview();
+    for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = true;
+    const changed = await api.setDataset(slug);
+    if (requestId !== datasetRequestId) return;
+    if (!changed) {
+      for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = false;
+      return;
+    }
     if (window.__renderDatasetBar) window.__renderDatasetBar(slug);
     // reset everything the old dataset touched
     for (const k of Object.keys(docsById)) delete docsById[k];
@@ -484,14 +522,23 @@
     MAP.query = null; MAP.retrieved = new Set();
     MAP.replayT0 = 0; askArmed = false;
     showTab("data");   // land back on the raw data — the story restarts
-    await loadMeta();
-    await loadMapData();
+    await Promise.all([loadMeta(requestId), loadMapData(requestId)]);
+    if (requestId !== datasetRequestId) return;
+    for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = false;
   }
   initDatasets();
 
   /* ---------------- data explorer ---------------- */
   const docsById = {};
   let selectedRow = null;
+  let previewRequestId = 0;
+  let previewController = null;
+
+  function cancelPreview() {
+    previewRequestId++;
+    if (previewController) previewController.abort();
+    previewController = null;
+  }
 
   const GROUP_LABEL = {
     runbooks: "runbooks (md)", incidents: "incidents (md)",
@@ -513,14 +560,17 @@
         ul.appendChild(g);
       }
       const li = document.createElement("li");
-      li.className = "doc";
-      li.dataset.docId = doc.id;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "doc";
+      button.dataset.docId = doc.id;
       const t = document.createElement("span");
       t.className = "t " + doc.type; t.textContent = doc.type;
       const title = document.createElement("span");
       title.textContent = doc.title;
-      li.append(t, title);
-      li.addEventListener("click", () => selectDoc(doc));
+      button.append(t, title);
+      button.addEventListener("click", () => selectDoc(doc));
+      li.appendChild(button);
       ul.appendChild(li);
     }
     // land on a spreadsheet — the "excel sheet" first impression
@@ -550,8 +600,44 @@
     return rows;
   }
 
+  function validateCSV(doc, rows) {
+    const columns = rows[0] || [];
+    const col = (name) => columns.indexOf(name);
+    const values = (name) => rows.slice(1).map((r) => r[col(name)] || "");
+    if (doc.id === "ds-oncall-rotation-2025h1") {
+      const weeks = values("week_start");
+      if (new Set(weeks).size !== weeks.length) throw new Error("duplicate week_start");
+      for (let i = 1; i < weeks.length; i++) {
+        const previous = Date.parse(weeks[i - 1] + "T00:00:00Z");
+        const current = Date.parse(weeks[i] + "T00:00:00Z");
+        if (current - previous !== 7 * 86400000) throw new Error("missing week_start");
+      }
+    } else if (doc.id === "sc-ds-order-history-2024") {
+      const order = col("order_date"), promised = col("promised_date"), shipped = col("shipped_date");
+      if (rows.slice(1).some((r) => r[order] > r[promised] || r[order] > r[shipped]))
+        throw new Error("order chronology is invalid");
+    } else if (doc.id === "sc-ds-shipments-2024") {
+      const shipped = col("ship_date"), eta = col("eta");
+      if (rows.slice(1).some((r) => !r[shipped].startsWith("2024-") || r[eta] < r[shipped]))
+        throw new Error("shipment date range is invalid");
+    } else if (doc.id === "ds-service-metrics-2024") {
+      const dates = new Map(), date = col("date"), service = col("service");
+      for (const r of rows.slice(1)) {
+        if (!dates.has(r[service])) dates.set(r[service], new Set());
+        dates.get(r[service]).add(r[date]);
+      }
+      if ([...dates.values()].some((d) => d.size !== 366 || !d.has("2024-02-29")))
+        throw new Error("daily metrics are incomplete");
+    }
+  }
+
   async function selectDoc(doc) {
     if (!doc || !doc.source) return;
+    cancelPreview();
+    const requestId = previewRequestId;
+    const controller = new AbortController();
+    previewController = controller;
+    const isCurrent = () => requestId === previewRequestId;
     if (selectedRow) selectedRow.classList.remove("sel");
     selectedRow = document.querySelector(`#file-list .doc[data-doc-id="${doc.id}"]`);
     if (selectedRow) { selectedRow.classList.add("sel"); selectedRow.scrollIntoView({ block: "nearest" }); }
@@ -566,17 +652,21 @@
     body.replaceChildren();
 
     const showText = async (u) => {
-      const res = await fetch(u);
+      const res = await fetch(u, { signal: controller.signal });
       if (!res.ok) throw new Error(res.statusText);
+      const text = await res.text();
+      if (!isCurrent()) return;
       const el = document.createElement("pre");
-      el.textContent = await res.text();
+      el.textContent = text;
       body.appendChild(el);
     };
     try {
       if (doc.format === "csv") {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(res.statusText);
         const rows = parseCSV(await res.text());
+        if (!isCurrent()) return;
+        validateCSV(doc, rows);
         const MAX_RENDER = 1500;
         const total = Math.max(0, rows.length - 1);
         const count = document.createElement("div");
@@ -612,11 +702,14 @@
       } else {
         await showText(url);
       }
-    } catch {
+    } catch (err) {
+      if (!isCurrent() || err.name === "AbortError") return;
       const el = document.createElement("div");
       el.className = "err";
       el.textContent = "failed to load raw source (" + doc.source + ")";
       body.appendChild(el);
+    } finally {
+      if (isCurrent()) previewController = null;
     }
   }
 
@@ -888,9 +981,10 @@
     if (!MAP.raf) MAP.raf = requestAnimationFrame(loop);
   }
 
-  async function loadMapData() {
+  async function loadMapData(requestId = datasetRequestId) {
     try {
       const d = await api.map();
+      if (requestId !== datasetRequestId) return;
       MAP.pts = d.points;
       if (!MAP.pts.length) { $("map-card").classList.add("hide"); return; }
       MAP.words = d.words; MAP.dims = d.dims; MAP.docCount = d.docs; MAP.formats = d.formats; MAP.rows = d.rows;
@@ -914,7 +1008,9 @@
         ` — nobody reads all this. The `, b("ASK ATLAS"), ` tab turns it into cited answers →`
       );
       // the ingest sequence arms when the ASK tab is first opened
-    } catch { $("map-card").classList.add("hide"); }
+    } catch {
+      if (requestId === datasetRequestId) $("map-card").classList.add("hide");
+    }
   }
 
   mapCanvas.addEventListener("click", () => {

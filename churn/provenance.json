@@ -1,0 +1,14 @@
+{
+  "rows_score": {
+    "method": "inference with the shipped model.json coefficients",
+    "coverage": "all 7043 rows",
+    "row_level_split_membership": "not available",
+    "eligible_for_evaluation": false,
+    "untouched_indices": null
+  },
+  "aggregate_evaluation": {
+    "split": "25% stratified hold-out",
+    "records": 1761,
+    "metrics_source": "model.json.metrics"
+  }
+}

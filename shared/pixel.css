@@ -1,0 +1,219 @@
+/* ============================================================
+   pixel.css — shared design system for the project pages
+   Retro window chrome consistent with the site shell.
+   Load AFTER the page's own reset, BEFORE page-specific styles:
+     <link rel="stylesheet" href="/shared/pixel.css">
+   Fonts (same set as the shell) must be linked by the page:
+     Press Start 2P · Pixelify Sans · Poppins · Caveat
+   Font roles:
+     --pi-font-title  → window titles + tiny critical labels ONLY
+     --pi-font-ui     → controls, chips, status, metric labels
+     --pi-font-body   → prose, explanations, table text
+     --pi-font-note   → at most ONE handwritten annotation layer
+     --pi-font-code   → SQL, terminal, logs, file paths
+   ============================================================ */
+
+:root {
+  /* paper + ink */
+  --pi-paper: #f6f1e4;
+  --pi-panel: #fffdf6;
+  --pi-ink:   #1e1a14;
+  --pi-muted: #6d6353;
+  --pi-line:  #cfc6b2;
+
+  /* one interface accent; pages may override --pi-accent */
+  --pi-accent:      #2547c9;
+  --pi-accent-soft: #e9edfb;
+
+  /* semantic — reserved for real state, never decoration */
+  --pi-ok:      #246b45;  /* AA on paper & panel */
+  --pi-ok-soft: #e0efe5;
+  --pi-warn:      #8a6200;
+  --pi-warn-soft: #f5ecd2;
+  --pi-err:      #b3372c;
+  --pi-err-soft: #f8e4e1;
+
+  /* terminal */
+  --pi-term-bg:   #14110c;
+  --pi-term-fg:   #e8e2d2;
+  --pi-term-dim:  #9a917e;  /* ≥4.5:1 on term-bg */
+  --pi-term-ok:   #8fd0a8;
+  --pi-term-err:  #eb9d94;
+
+  --pi-font-title: 'Press Start 2P', monospace;
+  --pi-font-ui:    'Pixelify Sans', 'Segoe UI', sans-serif;
+  --pi-font-body:  'Poppins', 'Segoe UI', sans-serif;
+  --pi-font-note:  'Caveat', cursive;
+  --pi-font-code:  ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --pi-shadow:   4px 4px 0 var(--pi-ink);
+  --pi-shadow-s: 3px 3px 0 var(--pi-ink);
+
+  /* spacing grid */
+  --pi-s1: 4px; --pi-s2: 8px; --pi-s3: 16px; --pi-s4: 24px;
+
+  /* type floor: nothing functional below 12px */
+  --pi-fs-min: 12px;
+}
+
+/* ---------- window chrome ---------- */
+.pwin {
+  background: var(--pi-panel);
+  border: 2px solid var(--pi-ink);
+  border-radius: 0;
+  box-shadow: var(--pi-shadow);
+}
+.pwin-title {
+  display: flex;
+  align-items: center;
+  gap: var(--pi-s2);
+  font-family: var(--pi-font-title);
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: lowercase;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--pi-ink);
+  background: var(--pi-accent-soft);
+  color: var(--pi-ink);
+}
+.pwin-title .pwin-lamp {
+  width: 8px; height: 8px;
+  background: var(--pi-muted);
+  border: 1.5px solid var(--pi-ink);
+  flex: none;
+}
+.pwin-title .pwin-lamp.on   { background: var(--pi-ok); }
+.pwin-title .pwin-lamp.warn { background: var(--pi-warn); }
+.pwin-title .pwin-lamp.err  { background: var(--pi-err); }
+.pwin-body { padding: var(--pi-s3); }
+
+/* ---------- controls ---------- */
+.pbtn {
+  font-family: var(--pi-font-ui);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--pi-ink);
+  background: var(--pi-panel);
+  border: 2px solid var(--pi-ink);
+  border-radius: 0;
+  box-shadow: var(--pi-shadow-s);
+  padding: 10px 14px;
+  min-height: 44px;
+  min-width: 44px;
+  cursor: pointer;
+}
+.pbtn:hover { background: var(--pi-accent-soft); }
+.pbtn:active,
+.pbtn[aria-pressed="true"],
+.pbtn.on {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--pi-ink);
+  background: var(--pi-accent-soft);
+}
+.pbtn.primary { background: var(--pi-accent); color: #fff; }
+.pbtn.primary:hover { filter: brightness(1.08); }
+.pbtn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* rectangular state flag — replaces 999px pills */
+.pchip {
+  display: inline-block;
+  font-family: var(--pi-font-ui);
+  font-size: 12px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--pi-ink);
+  background: var(--pi-paper);
+  border: 1.5px solid var(--pi-ink);
+  border-radius: 0;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.pchip.ok   { color: var(--pi-ok);   background: var(--pi-ok-soft);   border-color: var(--pi-ok); }
+.pchip.warn { color: var(--pi-warn); background: var(--pi-warn-soft); border-color: var(--pi-warn); }
+.pchip.err  { color: var(--pi-err);  background: var(--pi-err-soft);  border-color: var(--pi-err); }
+.pchip.acc  { color: var(--pi-accent); background: var(--pi-accent-soft); border-color: var(--pi-accent); }
+
+/* dense status strip, e.g. CORPUS 32 DOCS | SNAPSHOT 2025-01-09 */
+.pstrip {
+  font-family: var(--pi-font-code);
+  font-size: 12px;
+  letter-spacing: .03em;
+  color: var(--pi-muted);
+  border: 1.5px solid var(--pi-line);
+  background: var(--pi-paper);
+  padding: 6px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.pstrip b { color: var(--pi-ink); font-weight: 600; }
+
+/* ---------- terminal ---------- */
+.pterm {
+  font-family: var(--pi-font-code);
+  font-size: 13px;
+  background: var(--pi-term-bg);
+  color: var(--pi-term-fg);
+  border: 2px solid var(--pi-ink);
+  border-radius: 0;
+  box-shadow: var(--pi-shadow);
+  padding: var(--pi-s3);
+  overflow-x: auto;
+}
+.pterm .dim { color: var(--pi-term-dim); }
+.pterm .ok  { color: var(--pi-term-ok); }
+.pterm .err { color: var(--pi-term-err); }
+
+/* ---------- icons (sprite at /shared/icons.svg) ---------- */
+.pi-ic {
+  width: 16px; height: 16px;
+  display: inline-block;
+  vertical-align: -3px;
+  fill: currentColor;
+  image-rendering: pixelated;
+}
+
+/* ---------- handwritten annotation (use once per page) ---------- */
+.pnote {
+  font-family: var(--pi-font-note);
+  font-size: 19px;
+  color: var(--pi-muted);
+  transform: rotate(-1.2deg);
+}
+
+/* ---------- tables ---------- */
+.ptable-wrap { overflow-x: auto; }
+.ptable {
+  border-collapse: collapse;
+  font-family: var(--pi-font-body);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.ptable th {
+  font-family: var(--pi-font-ui);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--pi-muted);
+  text-align: left;
+  border-bottom: 2px solid var(--pi-ink);
+  padding: 6px 10px;
+}
+.ptable td { border-bottom: 1px solid var(--pi-line); padding: 6px 10px; }
+
+/* ---------- focus + motion ---------- */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--pi-accent);
+  outline-offset: 2px;
+}
+
+/* stepped motion — pixel work snaps, it doesn't ease */
+.pstep { transition-timing-function: steps(3, end); }
+@keyframes pi-blink { 50% { opacity: 0; } }
+.pcursor::after {
+  content: "▮";
+  animation: pi-blink 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pstep { transition: none !important; }
+  .pcursor::after { animation: none; }
+}

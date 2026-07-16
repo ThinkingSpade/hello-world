@@ -123,14 +123,23 @@
 
   function matchingStateLines(qWords, state) {
     if (!state || !qWords.size) return [];
+    const liveIntent = /\b(live|current|currently|right now|system state|status)\b/i;
+    const stateWords = new Set(
+      [...qWords].filter((w) => !/^(?:19|20)\d{2}$/.test(w))
+    );
+    const hasEntity = [...stateWords].some((w) =>
+      w.length >= 3 && state.toLowerCase().includes(w)
+    );
+    if (!liveIntent.test([...qWords].join(" ")) && !hasEntity) return [];
     const picked = [];
     let header = "", lastHeader = "";
     for (const line of state.split("\n")) {
       if (line && !line.startsWith(" ")) { header = line; continue; }
       const low = line.toLowerCase(), hlow = header.toLowerCase();
       const hit =
-        [...qWords].some((w) => w.length >= 3 && low.includes(w)) ||
-        [...qWords].some((w) => w.length >= 4 && hlow.includes(w));
+        (!hasEntity && liveIntent.test([...qWords].join(" "))) ||
+        [...stateWords].some((w) => w.length >= 3 && low.includes(w)) ||
+        [...stateWords].some((w) => w.length >= 4 && hlow.includes(w));
       if (hit) {
         if (header && header !== lastHeader) { picked.push(header); lastHeader = header; }
         picked.push(line);
@@ -178,23 +187,43 @@
   // ---- data loading + the api implementation ----------------------------
   // atlas-manifest.json lists the exported datasets; the first is default.
   let manifest = null;
+  let manifestPromise = null;
   let current = null;      // active dataset entry
   let dataPromise = null;
+  let dataEntry = null;
 
   async function loadManifest() {
-    if (!manifest) {
-      manifest = (await (await fetch("atlas-manifest.json")).json()).datasets;
-      current = manifest[0];
-      window.ATLAS_FILES_BASE = current.files;
-    }
-    return manifest;
+    if (manifest) return manifest;
+    if (!manifestPromise)
+      manifestPromise = fetch("atlas-manifest.json")
+        .then((r) => {
+          if (!r.ok) throw new Error(r.statusText);
+          return r.json();
+        })
+        .then((m) => {
+          manifest = m.datasets;
+          if (!current) current = manifest[0];
+          window.ATLAS_FILES_BASE = current.files;
+          return manifest;
+        })
+        .catch((err) => {
+          manifestPromise = null;
+          throw err;
+        });
+    return manifestPromise;
   }
 
-  function loadData() {
-    if (!dataPromise)
-      dataPromise = loadManifest()
-        .then(() => fetch(current.data))
-        .then((r) => r.json())
+  async function loadData() {
+    await loadManifest();
+    const entry = current;
+    if (!dataPromise || dataEntry !== entry) {
+      dataEntry = entry;
+      let pending;
+      pending = fetch(entry.data)
+        .then((r) => {
+          if (!r.ok) throw new Error(r.statusText);
+          return r.json();
+        })
         .then((d) => {
           for (const p of d.points) {
             const vec = new Float32Array(d.dims);
@@ -214,8 +243,19 @@
           for (const p of d.points)
             for (const w of p._words) d._df.set(w, (d._df.get(w) || 0) + 1);
           return d;
+        })
+        .catch((err) => {
+          if (dataPromise === pending) {
+            dataPromise = null;
+            dataEntry = null;
+          }
+          throw err;
         });
-    return dataPromise;
+      dataPromise = pending;
+    }
+    const loaded = await dataPromise;
+    if (entry !== current) throw new Error("Dataset changed while loading");
+    return loaded;
   }
 
   window.ATLAS_FILES_BASE = "corpus-files/";
@@ -231,6 +271,7 @@
       current = entry;
       window.ATLAS_FILES_BASE = entry.files;
       dataPromise = null;  // next loadData() fetches the new dataset
+      dataEntry = null;
       return true;
     },
     health: async () => {

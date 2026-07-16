@@ -4,13 +4,14 @@ title: Failing Over Postgres from db-primary-2 to the Streaming Replica
 type: runbook
 service: database
 tags: [postgres, failover, ha]
-updated: 2024-08-03
+updated: 2024-10-02
 ---
 
 ## Overview
 
-The Meridian primary Postgres cluster runs on `db-primary-2` with a streaming replica on
-`db-replica-2a`. This runbook covers a controlled failover: promoting `db-replica-2a` to
+The canonical topology is **Postgres HA architecture review v2024-10-02**: Postgres 16
+runs on `db-primary-2` with a streaming replica on `db-replica-1`. This runbook covers
+a controlled failover: promoting `db-replica-1` to
 primary, repointing pgbouncer, and rebuilding the old primary as a new replica. Expected
 write downtime is 30–90 seconds. Use this for planned maintenance or when `db-primary-2`
 is degraded but the replica is healthy. For data-loss scenarios, instead see: Restoring
@@ -18,7 +19,7 @@ Postgres from backup.
 
 ## Preconditions
 
-- SSH access to `db-primary-2`, `db-replica-2a`, and the `pgbouncer-*` hosts
+- SSH access to `db-primary-2`, `db-replica-1`, and the `pgbouncer-*` hosts
 - `postgres` OS user or equivalent sudo on both database hosts
 - Replication lag under 5 MB (checked in step 1) — abort if lag is large or growing
 - Incident channel open (`#inc-db-failover`) and **payments-api** on-call notified,
@@ -30,7 +31,7 @@ Postgres from backup.
 1. **Verify replication lag on the replica.** It must be near zero before promoting:
 
    ```sql
-   -- on db-replica-2a
+   -- on db-replica-1
    SELECT now() - pg_last_xact_replay_timestamp() AS replay_delay,
           pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn();
    ```
@@ -49,14 +50,14 @@ Postgres from backup.
 3. **Promote the replica:**
 
    ```shell
-   ssh db-replica-2a 'sudo -u postgres pg_ctl promote -D /var/lib/postgresql/16/main'
+   ssh db-replica-1 'sudo -u postgres pg_ctl promote -D /var/lib/postgresql/16/main'
    ```
 
 4. **Repoint pgbouncer at the new primary.** Update the host in `pgbouncer.ini` and
    reload without dropping pooled client connections:
 
    ```shell
-   ssh pgbouncer-1 "sudo sed -i 's/db-primary-2/db-replica-2a/' /etc/pgbouncer/pgbouncer.ini \
+   ssh pgbouncer-1 "sudo sed -i 's/db-primary-2/db-replica-1/' /etc/pgbouncer/pgbouncer.ini \
      && psql -p 6432 -U pgbouncer pgbouncer -c 'RELOAD;'"
    ```
 
@@ -67,13 +68,13 @@ Postgres from backup.
    ```shell
    ssh db-primary-2 'sudo -u postgres bash -c "\
      rm -rf /var/lib/postgresql/16/main && \
-     pg_basebackup -h db-replica-2a -D /var/lib/postgresql/16/main -U replicator -R -X stream -P && \
-     systemctl start postgresql"'
+     pg_basebackup -h db-replica-1 -D /var/lib/postgresql/16/main -U replicator -R -X stream -P"'
+   ssh db-primary-2 'sudo systemctl start postgresql'
    ```
 
 ## Verification
 
-- New primary accepts writes: `psql -h db-replica-2a -c "SELECT pg_is_in_recovery();"` → `f`
+- New primary accepts writes: `psql -h db-replica-1 -c "SELECT pg_is_in_recovery();"` → `f`
 - Old primary streams as replica: same query on `db-primary-2` returns `t`, and
   `pg_stat_replication` on the new primary lists it with `state = 'streaming'`
 - `payments-api` and `auth-svc` error rates return to baseline within 5 minutes

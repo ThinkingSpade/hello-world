@@ -29,32 +29,32 @@ below SLO for 43 minutes.
 
 ## Timeline
 
-- 13:02 UTC — Partner deploys a client change that retries every non-200
-  immediately, in a tight loop; edge traffic climbs from 3k to 18k req/s.
-- 13:11 UTC — Global limiter bucket exhausts; gateway begins returning 429 to
-  ALL callers, internal and external alike.
-- 13:14 UTC — Load balancer health checks (routed through the gateway) start
-  failing; payments-api instances marked unhealthy and drained. SEV1 declared.
-- 13:19 UTC — On-call confirms instances themselves are healthy:
+- 13:47 UTC — `PaymentsApiErrorRateHigh` fires as partner retry traffic climbs
+  to roughly six times normal volume; payments-api 5xx reaches 12%.
+- 13:49 UTC — Huy N. declares SEV1 and assumes incident command.
+- 13:53 UTC — Database health and replication are confirmed normal.
+- 13:55 UTC — On-call confirms payments-api instances themselves are healthy:
 
 ```shell
 kubectl -n payments get pods -l app=payments-api
 curl -s http://payments-api.payments.svc.cluster.local:8080/healthz
 ```
 
-- 13:26 UTC — Limiter identified as the fault: 429 counters show internal
-  `/healthz` requests consuming ~22% of the global bucket.
-- 13:34 UTC — Emergency config pushed: internal CIDR ranges and the health
-  check user agent excluded from the global bucket; gateway reloaded:
+- 13:59 UTC — The limiter is identified as the fault: internal health checks
+  consume more of the global bucket than the offending partner.
+- 14:05 UTC — Dana R. verifies the rollback is schema-safe and approves
+  rolling partner-gateway back from revision 84 to 83:
 
 ```shell
-helm upgrade edge-gateway charts/edge-gateway -n edge \
-  --reuse-values -f overrides/limiter-internal-exempt.yaml
+helm -n edge rollback partner-gateway 83 --wait --timeout 5m
 ```
 
-- 13:41 UTC — Offending partner's API key temporarily throttled to 50 req/s.
-- 13:57 UTC — payments-api instances pass health checks and rejoin the pool;
-  error rate returns to baseline. SEV1 downgraded at 14:05 UTC.
+- 14:11 UTC — Rollback completes; health checks stop incrementing the global
+  bucket, but the partner retry storm continues to degrade payments-api.
+- 14:21 UTC — Huy N. approves the per-tenant limiter configuration change.
+- 14:26 UTC — The scoped limiter is live; the global bucket falls to 34%.
+- 14:30 UTC — payments-api 5xx remains at the 0.2% baseline for three minutes;
+  Huy N. declares recovery and moves the status page to monitoring.
 - 15:50 UTC — Partner ships a fix with exponential backoff; throttle lifted.
 
 ## Root Cause

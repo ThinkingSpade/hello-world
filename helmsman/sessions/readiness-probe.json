@@ -3,7 +3,7 @@
  "selector": "app=notifications",
  "victim": "notifications-8d7c6b5f4-km3wz",
  "resolved": true,
- "duration_s": 0.0,
+ "duration_s": 29.5,
  "timeline": [
   {
    "t": "page",
@@ -92,7 +92,7 @@
  ],
  "id": "readiness-probe",
  "title": "notifications healthy but invisible — probe knocking on the wrong port",
- "tag": "prod · P3 · probe drift",
+ "tag": "probe drift",
  "recorded": "fixture-replay",
  "board": {
   "nodes": [

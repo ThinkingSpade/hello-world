@@ -4,12 +4,16 @@ title: Cold Chain Handling SOP
 type: runbook
 service: warehouse
 tags: [cold-chain, reefer, temperature]
-updated: 2024-06-27
+updated: 2024-09-16
 ---
 
 ## Overview
 
-Requirements for temperature-controlled product at PDX-1 and CMH-1 (RNO-1 carries no cold chain). Covers reefer inbound checks, data-logger practice, cold-room storage, and excursion response. Owner: Reyna M.; PDX-1 execution: Tom B.
+Requirements for temperature-controlled product at PDX-1, CMH-1, and RNO-1. RNO-1
+supports cold-chain transfers, reefer exception handling, and QA-hold storage in its cold
+room. This revision supersedes the 2024-06-27 SOP that incorrectly excluded RNO-1.
+Covers reefer inbound checks, data-logger practice, cold-room storage, and excursion
+response. Owner: Reyna M.; site execution: the local site lead.
 
 Temperature classes:
 
@@ -45,7 +49,7 @@ Temperature classes:
 6. **On any out-of-band reading, hold the lot immediately.** Do this before investigating:
 
    ```bash
-   ledger inventory hold --lot LOT-MK-24098 --reason TEMP_EXCURSION --scope dc:PDX-1
+   ledger inventory hold --lot LOT-MK-24098 --reason TEMP_EXCURSION --scope dc:<DC_CODE>
    ```
 
 7. **Document the excursion.** Record peak temperature, duration out of band, logger serials, and where the excursion occurred (transit vs. dock vs. storage). Move product into the correct temperature zone while it awaits disposition.
@@ -76,6 +80,7 @@ Temperature classes:
 
 ## Escalation
 
-1. Site lead (Tom B. at PDX-1) immediately on any excursion or reefer failure.
+1. Local site lead immediately on any excursion or reefer failure (Tom B. at PDX-1;
+   the RNO-1 site lead for RNO-1 loads).
 2. QA plus Reyna M. for any disposition involving more than $10,000 of product value.
 3. If an excursed lot has already shipped, invoke the Product Recall Execution Procedure decision review within 24 hours.

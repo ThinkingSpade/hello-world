@@ -22,14 +22,15 @@
   .wrap { max-width: 780px; margin: 0 auto; padding: 1.5rem 1.4rem 4rem; }
   .compose { font-family: var(--serif); font-size: clamp(1.5rem, 3.6vw, 2.15rem); line-height: 1.45; letter-spacing: -.01em; color: var(--text); margin: 1.5rem 0 1rem; }
   .compose .lead { color: var(--dim); }
-  .pick { color: var(--viz-accent); border-bottom: 2px solid rgba(63,90,160,.28); cursor: pointer; white-space: nowrap; position: relative; }
+  .pick { font: inherit; background: transparent; border: 0; padding: 0; color: var(--viz-accent); border-bottom: 2px solid rgba(63,90,160,.28); cursor: pointer; white-space: nowrap; position: relative; }
   .pick:hover { border-bottom-color: var(--viz-accent); }
+  .pick:focus-visible { outline: 3px solid rgba(63,90,160,.35); outline-offset: 3px; border-radius: 3px; }
   .pick.ph { color: var(--dim); border-bottom-style: dashed; font-style: italic; }
   .pick .car { font-size: .55em; vertical-align: .2em; color: var(--dim); margin-left: .12em; }
   .compose .opt { color: var(--dim); }
   .menu { position: absolute; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .35rem; box-shadow: 0 16px 40px rgba(33,29,24,.16); max-height: 340px; overflow: auto; min-width: 210px; font-family: -apple-system, system-ui, sans-serif; font-size: .9rem; }
   .menu button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: var(--text); font: inherit; padding: .35rem .6rem; border-radius: 8px; cursor: pointer; }
-  .menu button:hover { background: var(--chip); color: var(--viz-accent); }
+  .menu button:hover, .menu button:focus-visible { background: var(--chip); color: var(--viz-accent); outline: none; }
   .menu .grp { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; padding: .4rem .6rem .15rem; }
   .under { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; font-size: .82rem; color: var(--dim); flex-wrap: wrap; }
   .under button { font: inherit; font-size: .82rem; background: transparent; border: 0; color: var(--dim); cursor: pointer; border-bottom: 1px dashed var(--line); padding: 0 0 1px; }
@@ -49,6 +50,7 @@
   #load { text-align: center; color: var(--dim); margin: 5rem auto; max-width: 300px; font-family: var(--serif); font-size: 1.1rem; }
   #load .b { height: 5px; background: var(--chip); border-radius: 999px; overflow: hidden; margin-top: .7rem; }
   #load .b i { display: block; height: 100%; width: 0; background: var(--viz-accent); }
+  #load button { margin-top: .7rem; font: inherit; color: var(--viz-accent); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .3rem .7rem; cursor: pointer; }
   .mini { margin-top: 2.5rem; font-size: .82rem; color: var(--dim); display: flex; gap: 1.2rem; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 1rem; }
   .mini button { font: inherit; font-size: .82rem; background: transparent; border: 0; color: var(--viz-accent); cursor: pointer; }
   .mini button:hover { text-decoration: underline; }
@@ -83,20 +85,27 @@
   const TIME = ["last quarter","this quarter","q4 2025","q3 2025","2025","2024","ytd","last 6 months","june 2026","all time"];
   const st = { metric:null, dim:null, timeIdx:0, cmp:null };
   const tf=(p)=>Abacus.timeFromPhrase(p);
-  const prevOf=(t)=>{ const s=(iso,d)=>{const x=new Date(iso+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10)}; const n=Math.round((Date.parse(t.end)-Date.parse(t.start))/864e5)+1; return {start:s(t.start,-n),end:s(t.start,-1),label:"previous period"}; };
-  function compareAllowed(){ return !st.dim || Abacus.manifest.dimensions[st.dim].time; }
+  const prevOf=(t)=>Abacus.comparisonFor(t,"prev");
+  function compareAllowed(){ return !st.dim; }
   function curCompare(){ if(!st.cmp||!compareAllowed())return null; return tf(TIME[st.timeIdx]+(st.cmp==="yoy"?" vs last year":" vs previous period")).compare; }
   function plan(){ return { kind:"aggregate", metric:st.metric, dims: st.dim?[st.dim]:[], filters:[], time: tf(TIME[st.timeIdx]).time, top: st.dim==="product"?10:null, compare: curCompare() }; }
 
+  let closeMenu=null;
   function menu(anchor, groups, onPick){
-    document.querySelectorAll(".menu").forEach(m=>m.remove());
-    const m=document.createElement("div"); m.className="menu";
-    for(const g of groups){ if(g.label){const h=document.createElement("div");h.className="grp";h.textContent=g.label;m.appendChild(h);} for(const it of g.items){const b=document.createElement("button");b.textContent=it.label;b.addEventListener("click",()=>{m.remove();onPick(it.value);});m.appendChild(b);} }
+    if(closeMenu)closeMenu(false);
+    const m=document.createElement("div"); m.className="menu"; m.setAttribute("role","menu");
+    function outside(e){ if(!m.contains(e.target)&&!anchor.contains(e.target))close(); }
+    function close(focus=true){ document.removeEventListener("click",outside); if(m.isConnected)m.remove(); anchor.setAttribute("aria-expanded","false"); if(closeMenu===close)closeMenu=null; if(focus)anchor.focus(); }
+    closeMenu=close;
+    for(const g of groups){ if(g.label){const h=document.createElement("div");h.className="grp";h.textContent=g.label;m.appendChild(h);} for(const it of g.items){const b=document.createElement("button");b.type="button";b.setAttribute("role","menuitem");b.textContent=it.label;b.addEventListener("click",()=>{const id=anchor.id;close(false);onPick(it.value);$(id).focus();});m.appendChild(b);} }
     document.body.appendChild(m);
+    anchor.setAttribute("aria-expanded","true");
     const r=anchor.getBoundingClientRect();
     m.style.left=Math.min(r.left,window.innerWidth-m.offsetWidth-10)+"px";
     m.style.top=(r.bottom+6+window.scrollY)+"px";
-    setTimeout(()=>document.addEventListener("click",function h(e){ if(!m.contains(e.target)&&!anchor.contains(e.target)){m.remove();document.removeEventListener("click",h);} }), 0);
+    m.addEventListener("keydown",(e)=>{ const items=[...m.querySelectorAll("button")], i=items.indexOf(document.activeElement); if(e.key==="Escape"){e.preventDefault();close();} else if(e.key==="ArrowDown"){e.preventDefault();items[(i+1)%items.length].focus();} else if(e.key==="ArrowUp"){e.preventDefault();items[(i-1+items.length)%items.length].focus();} else if(e.key==="Home"){e.preventDefault();items[0].focus();} else if(e.key==="End"){e.preventDefault();items[items.length-1].focus();} });
+    m.querySelector("button").focus();
+    setTimeout(()=>document.addEventListener("click",outside), 0);
   }
 
   function renderCompose(){
@@ -105,9 +114,9 @@
     const dLabel = st.dim ? man.dimensions[st.dim].label : "everything";
     const wLabel = tf(TIME[st.timeIdx]).time.label;
     $("compose").innerHTML =
-      `<span class="lead">Show me</span> <span class="pick ${st.metric?"":"ph"}" id="p-metric">${mLabel}<span class="car">▾</span></span> ` +
-      `<span class="opt">by</span> <span class="pick ${st.dim?"":"ph"}" id="p-dim">${dLabel}<span class="car">▾</span></span> ` +
-      `<span class="opt">for</span> <span class="pick" id="p-win">${wLabel}<span class="car">▾</span></span><span class="lead">.</span>`;
+      `<span class="lead">Show me</span> <button type="button" class="pick ${st.metric?"":"ph"}" id="p-metric" aria-haspopup="menu" aria-expanded="false">${mLabel}<span class="car">▾</span></button> ` +
+      `<span class="opt">by</span> <button type="button" class="pick ${st.dim?"":"ph"}" id="p-dim" aria-haspopup="menu" aria-expanded="false">${dLabel}<span class="car">▾</span></button> ` +
+      `<span class="opt">for</span> <button type="button" class="pick" id="p-win" aria-haspopup="menu" aria-expanded="false">${wLabel}<span class="car">▾</span></button><span class="lead">.</span>`;
     $("p-metric").addEventListener("click",(e)=>menu(e.currentTarget,[{label:"measures",items:Object.entries(man.metrics).map(([k,v])=>({label:v.label,value:k}))}],v=>{st.metric=v;changed();}));
     $("p-dim").addEventListener("click",(e)=>menu(e.currentTarget,[{items:[{label:"— just the total —",value:"__none"}]},{label:"break down by",items:Object.entries(man.dimensions).map(([k,v])=>({label:v.label,value:k}))}],v=>{st.dim=v==="__none"?null:v;changed();}));
     $("p-win").addEventListener("click",(e)=>menu(e.currentTarget,[{label:"window",items:TIME.map((p,i)=>({label:tf(p).time.label,value:i}))}],v=>{st.timeIdx=v;changed();}));
@@ -116,14 +125,16 @@
     $("cmp-prev").style.opacity=$("cmp-yoy").style.opacity=compareAllowed()?1:.4;
   }
 
-  let tmr=null;
-  function changed(){ renderCompose(); if(st.metric){ clearTimeout(tmr); tmr=setTimeout(()=>runIt(plan()),260); } }
+  let tmr=null, requestToken=0;
+  function changed(){ requestToken++; clearTimeout(tmr); renderCompose(); if(st.metric)tmr=setTimeout(()=>runIt(plan()),260); }
 
   function runIt(p){
+    const token=++requestToken;
     const a=$("answer"); a.classList.add("show");
     const kick = {aggregate:"THE FIGURE",investigate:"THE INVESTIGATION",retention:"RETENTION",anomalies:"ANOMALY SCAN"}[p.kind]||"RESULT";
     a.innerHTML = `<div class="kicker">${kick}</div><div class="thinking"><span class="d">●</span><span class="d">●</span><span class="d">●</span></div>`;
     setTimeout(()=>{
+      if(token!==requestToken)return;
       const {result,story}=Abacus.runAny(p);
       a.innerHTML = `<div class="kicker">${kick}</div><div class="lede"></div><div class="mount"></div>`;
       Viz.renderCard(a.querySelector(".mount"), p, result, story, { chips:true, onWhy:null });
@@ -148,13 +159,20 @@
     if(b.dataset.r==="scan") runIt({kind:"anomalies",metric:null,dims:[],filters:[],time,top:null,compare:null});
   }));
 
-  (async()=>{
-    await Viz.boot((g,t)=>{ $("loadfill").style.width=Math.round(100*g/t)+"%"; });
-    $("load").style.display="none"; $("app").style.display="";
-    st.timeIdx=TIME.indexOf("last quarter");
-    renderCompose();
-    setTimeout(()=>{ if(!st.metric){ st.metric="revenue"; st.timeIdx=TIME.indexOf("q4 2025"); st.cmp="prev"; changed(); } }, 900);
-  })();
+  async function boot(){
+    const load=$("load"); load.style.display=""; load.innerHTML='preparing the studio…<div class="b"><i id="loadfill"></i></div>'; $("app").style.display="none";
+    try {
+      await Viz.boot((g,t)=>{ $("loadfill").style.width=Math.round(100*g/t)+"%"; });
+      load.style.display="none"; $("app").style.display="";
+      st.timeIdx=TIME.indexOf("last quarter");
+      renderCompose();
+      setTimeout(()=>{ if(!st.metric){ st.metric="revenue"; st.timeIdx=TIME.indexOf("q4 2025"); st.cmp="prev"; changed(); } }, 900);
+    } catch (e) {
+      load.innerHTML='Could not open the warehouse.<br><button id="retry" type="button">retry</button>'; load.title=e.message;
+      $("retry").addEventListener("click",boot);
+    }
+  }
+  boot();
 </script>
 </body>
 </html>

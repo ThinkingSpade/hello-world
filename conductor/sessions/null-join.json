@@ -173,10 +173,10 @@
   },
   {
    "t": "proposal",
-   "command": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.customer_id,\n+ CAST(REPLACE(o.customer_id, 'CUST-', '') AS INTEGER) AS customer_id,   -- normalize the new key format at staging",
-   "explain": "Normalize the key once, at staging — strip the new prefix and cast back to INTEGER so every downstream join matches again. Backfills today's partition on re-run; raw data untouched.",
+   "command": "--- tasks/quarantine_orders_bad_customer_id.sql\n+++ tasks/quarantine_orders_bad_customer_id.sql\n+ CREATE TABLE IF NOT EXISTS quarantine_orders_bad_customer_id (\n+   order_id INTEGER PRIMARY KEY, customer_id TEXT, reason TEXT NOT NULL,\n+   quarantined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n+ );\n+ INSERT OR IGNORE INTO quarantine_orders_bad_customer_id (order_id, customer_id, reason)\n+ SELECT o.order_id, CAST(o.customer_id AS TEXT), 'invalid customer_id format'\n+ FROM orders_raw AS o\n+ WHERE typeof(o.customer_id) <> 'integer'\n+   AND NOT (typeof(o.customer_id) = 'text'\n+     AND substr(o.customer_id, 1, 5) = 'CUST-'\n+     AND length(substr(o.customer_id, 6)) > 0\n+     AND substr(o.customer_id, 6) NOT GLOB '*[^0-9]*');\n--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n+ WITH valid_orders AS (\n+   SELECT o.* FROM orders_raw AS o\n+   WHERE typeof(o.customer_id) = 'integer'\n+      OR (typeof(o.customer_id) = 'text'\n+       AND substr(o.customer_id, 1, 5) = 'CUST-'\n+       AND length(substr(o.customer_id, 6)) > 0\n+       AND substr(o.customer_id, 6) NOT GLOB '*[^0-9]*')\n+ )\n- o.customer_id,\n+ CASE WHEN typeof(o.customer_id) = 'integer' THEN o.customer_id\n+      ELSE CAST(substr(o.customer_id, 6) AS INTEGER) END AS customer_id,\n- FROM orders_raw AS o\n+ FROM valid_orders AS o",
+   "explain": "Quarantine every non-integer key that does not exactly match CUST- followed by digits. Only validated rows reach staging, and the CASE casts the numeric suffix only after that validation; today's partition is then rebuilt with raw data untouched.",
    "risk": "medium",
-   "rollback": "Reverse the patch and re-run; the raw table was never modified.",
+   "rollback": "Reverse the valid_orders/CASE staging patch, disable the quarantine task, and re-run; orders_raw and its schema were never modified. Retain the quarantine table as audit evidence.",
    "followup": "File it upstream: key formats are a contract. Add a typeof() check at load so a format change pages at ingest, not at 2 a.m."
   },
   {
@@ -187,7 +187,7 @@
   {
    "t": "apply",
    "cmd": "patch tasks/stg_orders.sql",
-   "out": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.customer_id,\n+ CAST(REPLACE(o.customer_id, 'CUST-', '') AS INTEGER) AS customer_id,   -- normalize the new key format at staging"
+   "out": "--- tasks/quarantine_orders_bad_customer_id.sql\n+++ tasks/quarantine_orders_bad_customer_id.sql\n+ CREATE TABLE IF NOT EXISTS quarantine_orders_bad_customer_id (\n+   order_id INTEGER PRIMARY KEY, customer_id TEXT, reason TEXT NOT NULL,\n+   quarantined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n+ );\n+ INSERT OR IGNORE INTO quarantine_orders_bad_customer_id (order_id, customer_id, reason)\n+ SELECT o.order_id, CAST(o.customer_id AS TEXT), 'invalid customer_id format'\n+ FROM orders_raw AS o\n+ WHERE typeof(o.customer_id) <> 'integer'\n+   AND NOT (typeof(o.customer_id) = 'text'\n+     AND substr(o.customer_id, 1, 5) = 'CUST-'\n+     AND length(substr(o.customer_id, 6)) > 0\n+     AND substr(o.customer_id, 6) NOT GLOB '*[^0-9]*');\n--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n+ WITH valid_orders AS (\n+   SELECT o.* FROM orders_raw AS o\n+   WHERE typeof(o.customer_id) = 'integer'\n+      OR (typeof(o.customer_id) = 'text'\n+       AND substr(o.customer_id, 1, 5) = 'CUST-'\n+       AND length(substr(o.customer_id, 6)) > 0\n+       AND substr(o.customer_id, 6) NOT GLOB '*[^0-9]*')\n+ )\n- o.customer_id,\n+ CASE WHEN typeof(o.customer_id) = 'integer' THEN o.customer_id\n+      ELSE CAST(substr(o.customer_id, 6) AS INTEGER) END AS customer_id,\n- FROM orders_raw AS o\n+ FROM valid_orders AS o"
   },
   {
    "t": "think",

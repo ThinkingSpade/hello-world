@@ -10,6 +10,7 @@ updated: 2024-10-02
 ## What the diagram shows
 
 Architecture diagram of the Meridian Postgres high-availability topology.
+This v2024-10-02 diagram is the canonical source for Postgres 16 host and role names.
 Three application services — payments-api (12 pooled connections), auth-svc
 (8), and search-indexer (6) — all connect through a single pgbouncer in
 transaction pooling mode (pool of 40). pgbouncer sends writes and

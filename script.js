@@ -136,10 +136,29 @@
       ul.appendChild(li);
     });
   });
-  document.querySelectorAll(".win-max").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const open = btn.closest(".exp").classList.toggle("open");
+  const supportsInert = "inert" in HTMLElement.prototype;
+  document.querySelectorAll(".win-max").forEach((btn, index) => {
+    const card = btn.closest(".exp");
+    const panel = card && card.querySelector(".expand");
+    if (!card || !panel) return;
+    const name = btn.getAttribute("aria-label").replace(/^(Expand|Collapse)\s+/, "");
+    panel.id = panel.id || `project-details-${index + 1}`;
+    btn.setAttribute("aria-controls", panel.id);
+    const syncPanel = (open) => {
+      card.classList.toggle("open", open);
       btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.setAttribute("aria-label", `${open ? "Collapse" : "Expand"} ${name}`);
+      panel.setAttribute("aria-hidden", open ? "false" : "true");
+      if (supportsInert) {
+        panel.hidden = false;
+        panel.inert = !open;
+      } else {
+        panel.hidden = !open;
+      }
+    };
+    syncPanel(card.classList.contains("open"));
+    btn.addEventListener("click", () => {
+      syncPanel(!card.classList.contains("open"));
     });
   });
 
@@ -309,6 +328,56 @@
   // give every About-page term the new orbit animation on hover
   document.querySelectorAll(".term").forEach((t) => { if (!t.dataset.fx) t.dataset.fx = "orbit"; });
 
+  /* ---------- accessible about-page pop cards ---------- */
+  let openPop = null;
+  const setPop = (term, open) => {
+    const pop = term && term.querySelector(".pop");
+    if (!pop) return;
+    if (open && openPop && openPop !== term) setPop(openPop, false);
+    pop.hidden = !open;
+    pop.setAttribute("aria-hidden", open ? "false" : "true");
+    term.classList.toggle("pop-open", open);
+    term.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) openPop = term;
+    else if (openPop === term) openPop = null;
+  };
+  document.querySelectorAll(".term").forEach((term, index) => {
+    const pop = term.querySelector(".pop");
+    if (!pop) return;
+    pop.id = pop.id || `about-pop-${index + 1}`;
+    pop.hidden = true;
+    pop.setAttribute("aria-hidden", "true");
+    term.setAttribute("aria-controls", pop.id);
+    term.setAttribute("aria-describedby", pop.id);
+    term.setAttribute("aria-expanded", "false");
+    term.addEventListener("mouseenter", () => setPop(term, true));
+    term.addEventListener("mouseleave", () => {
+      if (!term._popPinned && document.activeElement !== term) setPop(term, false);
+    });
+    term.addEventListener("focus", () => setPop(term, true));
+    term.addEventListener("blur", () => {
+      term._popPinned = false;
+      setPop(term, false);
+    });
+    term.addEventListener("click", () => {
+      if (term.matches("a")) { setPop(term, true); return; }
+      term._popPinned = !term._popPinned;
+      setPop(term, term._popPinned);
+    });
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (openPop && !openPop.contains(e.target)) {
+      openPop._popPinned = false;
+      setPop(openPop, false);
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && openPop) {
+      openPop._popPinned = false;
+      setPop(openPop, false);
+    }
+  });
+
   document.querySelectorAll("[data-fx]").forEach((el) => {
     let last = 0;
     const fire = () => {
@@ -452,7 +521,16 @@
   /* ---------- hovering "breaking things" shatters the hero window like 3D glass ---------- */
   (function () {
     const trigger = document.querySelector("[data-shatter-window]");
-    if (!trigger || reduce) return;
+    if (!trigger) return;
+    if (reduce) {
+      let highlightTimer = null;
+      trigger.addEventListener("click", () => {
+        clearTimeout(highlightTimer);
+        trigger.style.boxShadow = "0 0 0 3px currentColor";
+        highlightTimer = setTimeout(() => trigger.style.removeProperty("box-shadow"), 500);
+      });
+      return;
+    }
     // just the hero window breaks: a crack web flashes out from the impact point,
     // then 24 panes (8 jittered spokes x 3 rings) fly apart in real 3D and glide home
     const SELECTOR = ".hero-window";
@@ -462,6 +540,7 @@
 
     let cache = null;   // prebuilt layers (appended, hidden), reused on every hover
     let busy = false;
+    let rebuildPending = false;
 
     function buildLayer(el) {
       const W = el.offsetWidth, H = el.offsetHeight;   // layout size: immune to tilt/reveal transforms
@@ -469,6 +548,7 @@
       const layer = document.createElement("div");
       layer.className = "win-shatter";
       layer.setAttribute("aria-hidden", "true");
+      layer.inert = true;
       layer.style.cssText = `left:0;top:0;width:${W}px;height:${H}px`;
       layer._el = el;
       layer._shards = [];
@@ -507,7 +587,13 @@
     // prebuild while the browser is idle so even the first hover is smooth
     (window.requestIdleCallback || ((f) => setTimeout(f, 250)))(() => { if (!cache) build(); });
     let rt;
-    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 200); }, { passive: true });
+    addEventListener("resize", () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => {
+        if (busy) { rebuildPending = true; return; }
+        build();
+      }, 200);
+    }, { passive: true });
 
     // crack web around the impact point: jittered spokes crossed by jittered rings
     function makeWeb(w, h, ex, ey) {
@@ -672,13 +758,15 @@
         });
         document.body.classList.remove("shattering");
         busy = false;
+        if (rebuildPending) { rebuildPending = false; build(); }
       }, BREAK_AT + DUR + MAXDELAY + 120);
     }
 
     trigger.addEventListener("mouseenter", fire);
+    trigger.addEventListener("click", fire);
   })();
 
-  // deter casual saving of the photo / logo
+  // deter casual saving of the portrait without interfering with links
   ["contextmenu", "dragstart"].forEach((ev) =>
-    document.addEventListener(ev, (e) => { if (e.target.closest(".no-save")) e.preventDefault(); }));
+    document.addEventListener(ev, (e) => { if (e.target.closest(".portrait-body")) e.preventDefault(); }));
 })();

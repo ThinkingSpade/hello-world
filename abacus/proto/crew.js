@@ -166,6 +166,7 @@ const Crew = (() => {
 
   async function run(plan, mount, opts = {}) {
     busy = true;
+    try {
     const man = Abacus.manifest;
     const analystKind = plan.kind && plan.kind !== "aggregate";
     nQ++; chip("analyst", `${nQ} QUESTION${nQ>1?"S":""}`);
@@ -195,11 +196,20 @@ const Crew = (() => {
     await sleep(300);
     Viz.renderCard(mount, plan, result, story, opts);
     nCharts++; chip("illustrator", `${nCharts} CHART${nCharts>1?"S":""}`);
-    stageClear();
     setDesk("illustrator","agent cheer","filed ✓");
     setTimeout(()=>setDesk("illustrator","agent","cleaning brushes"),1800);
-    busy = false;
     return { result, story };
+    } catch (e) {
+      mount.innerHTML = "";
+      const err = document.createElement("div"); err.className = "viz-story";
+      err.style.color = "var(--coral)"; err.textContent = "Could not run this query — " + e.message;
+      mount.appendChild(err);
+      setDesk("machinist", "agent", "query failed ✗");
+      return { error: e };
+    } finally {
+      busy = false;
+      stageClear();
+    }
   }
 
   return { mount, ready, run, get busy(){ return busy; } };

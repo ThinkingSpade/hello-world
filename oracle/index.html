@@ -293,11 +293,14 @@
   }
   .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
   .btn.ghost:hover { color: var(--violet); border-color: var(--violet); }
+  button:disabled, input:disabled { cursor: not-allowed; opacity: .5; }
   .spd { display: flex; gap: .25rem; }
   .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
   .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
   #scrub { flex: 1; accent-color: var(--violet); min-width: 140px; }
   .tclock { font-size: .7rem; color: var(--dim); min-width: 4.5rem; text-align: right; }
+  .load-state { color: var(--dim); font-size: .74rem; text-align: center; padding: 1rem; }
+  .load-state button { margin-left: .45rem; }
   /* verdict */
   #verdict { display: none; }
   #verdict.show { display: block; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
@@ -345,10 +348,10 @@
       <span id="intern-sprite"></span>
     </div>
     <div class="controls">
-      <button class="btn" id="play">▶ play</button>
-      <button class="btn ghost" id="restart">↺ restart</button>
+      <button class="btn" id="play" disabled>▶ play</button>
+      <button class="btn ghost" id="restart" disabled>↺ restart</button>
       <div class="spd" id="spd"></div>
-      <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
+      <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline" disabled>
       <span class="tclock" id="clock">0:00</span>
     </div>
   </div>
@@ -398,8 +401,69 @@
   const THINK_MIN = 800, THINK_MAX = 2600;
 
   let S = null;                    // session
-  let steps = [], idx = 0, playing = false, speed = 1, timer = null, typerStop = null;
+  let steps = [], idx = 0, playing = false, speed = 1, active = null;
   let elapsedBase = 0;
+  let gen = 0, timers = [], loadController = null, reconstructing = false, fidgetTimer = null;
+
+  function dropTimer(id) {
+    const i = timers.findIndex((t) => t.id === id);
+    if (i >= 0) timers.splice(i, 1);
+  }
+  function later(fn, ms, scheduledGen = gen) {
+    const id = setTimeout(() => {
+      dropTimer(id);
+      if (scheduledGen !== gen) return;
+      fn();
+    }, ms);
+    timers.push({ id, kind: "timeout" });
+    return id;
+  }
+  function repeat(fn, ms, scheduledGen = gen) {
+    const id = setInterval(() => {
+      if (scheduledGen !== gen) return;
+      fn();
+    }, ms);
+    timers.push({ id, kind: "interval" });
+    return id;
+  }
+  function clearRegisteredTimer(id) {
+    const i = timers.findIndex((t) => t.id === id);
+    if (i < 0) return;
+    const t = timers[i];
+    if (t.kind === "interval") clearInterval(id);
+    else clearTimeout(id);
+    timers.splice(i, 1);
+  }
+  function clearAllTimers() {
+    for (const t of timers) {
+      if (t.kind === "interval") clearInterval(t.id);
+      else clearTimeout(t.id);
+    }
+    timers = [];
+    fidgetTimer = null;
+  }
+  function clearDecorations() {
+    document.querySelectorAll(".spark").forEach((el) => el.remove());
+    const sprite = $("intern-sprite");
+    if (sprite) sprite.classList.remove("run");
+    const intern = $("ag-intern");
+    if (intern) {
+      intern.classList.remove("away", "speaking");
+      const status = $("st-intern");
+      if (status && status.textContent === PERSONA.intern.speak) status.textContent = PERSONA.intern.done;
+    }
+    const book = $("ag-book");
+    if (book && book.classList.contains("speaking")) {
+      book.classList.remove("speaking");
+      const vals = STATS ? Object.values(STATS.odds) : [];
+      const status = $("st-book");
+      if (status && vals.length) status.textContent = "line: " +
+        Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) + "% yes";
+    }
+    document.querySelectorAll(".agent").forEach((el) => el.classList.remove(
+      "cheer", "poked", "sip", "stretch", "wiggle", "yawn", "spin",
+      "knuckles", "shufflep", "bounce", "glance", "mumble", "look-left", "look-right"));
+  }
 
   // -------- pixel desk characters (inspired by tiny trading desks) --------
   const PERSONA = {
@@ -589,6 +653,9 @@
   const agentById = (id) => S.agents.find((a) => a.id === id);
 
   function renderShell() {
+    const dial = $("dial-arc");
+    dial.style.transition = "stroke-dashoffset 1.4s cubic-bezier(.34,1.2,.64,1)";
+    dial.style.strokeDashoffset = "540.35";
     $("q").textContent = "“" + S.question + "”";
     const rail = $("rail");
     rail.replaceChildren();
@@ -674,15 +741,16 @@
     tickClock(0);
   }
 
-  function setStatus(id, cls, text) {
+  function setStatus(id, state, text) {
     const el = $("ag-" + id);
     if (!el) return;
-    el.className = "agent " + cls + (id === "mod" ? "" : "");
+    el.classList.remove("thinking", "speaking", "working");
+    if (state) el.classList.add(state);
     $("st-" + id).innerHTML = text;
   }
   function allIdle(label) {
     for (const a of S.agents) {
-      $("ag-" + a.id).className = "agent";
+      $("ag-" + a.id).classList.remove("thinking", "speaking", "working", "look-left", "look-right");
       $("st-" + a.id).textContent = label || "listening";
     }
     const m = $("ag-mod");
@@ -719,25 +787,25 @@
     if (el) el.textContent = "LIVE ODDS " + line + "%";
     const wb = document.querySelector("#ag-book .workbub");
     if (wb) wb.textContent = line + "%? noted.";
-    setStatus("book", "agent speaking", PERSONA.book.speak);
-    setTimeout(() => setStatus("book", "agent", "line: " + line + "% yes"), 900 / speed);
+    setStatus("book", "speaking", PERSONA.book.speak);
+    later(() => setStatus("book", "", "line: " + line + "% yes"), 900 / speed);
   }
   function coffeeRun() {
     if (REDUCED) { STATS.coffees++; $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees; return; }
     const sp = $("intern-sprite");
     const desk = $("ag-intern");
     desk.classList.add("away");
-    setStatus("intern", "agent speaking", PERSONA.intern.speak);
+    setStatus("intern", "speaking", PERSONA.intern.speak);
     sp.classList.remove("run"); void sp.offsetWidth; sp.classList.add("run");
-    setTimeout(() => {
+    later(() => {
       STATS.coffees++;
       const el = $("sc-intern");
       if (el) el.textContent = "COFFEES SERVED " + STATS.coffees;
     }, 1500);
-    setTimeout(() => {
+    later(() => {
       sp.classList.remove("run");
       desk.classList.remove("away");
-      setStatus("intern", "agent", PERSONA.intern.done);
+      setStatus("intern", "", PERSONA.intern.done);
     }, 3100);
   }
   const CONCEDE_RE = /concede|fair hit|i'll take|i'll move|the math checks|accepting|granted|updating upward|persuadable/i;
@@ -774,14 +842,14 @@
       if (animate && !REDUCED) {
         el.classList.add(won ? "cheer" : "slump");
         // winners go back to fidgeting; losers stay slumped
-        if (won) setTimeout(() => el.classList.remove("cheer"), 1800);
+        if (won) later(() => el.classList.remove("cheer"), 1800);
       }
       $("st-" + aid).textContent = won ? "called it ★" : "demands a rematch";
     }
-    setStatus("steno", "agent", "transcript sealed ✓");
-    setStatus("book", "agent", "paying out at " + S.result.confidence + "%");
-    setStatus("intern", "agent", "victory espresso round ☕");
-    setStatus("scout", "agent", "sources archived ✓");
+    setStatus("steno", "", "transcript sealed ✓");
+    setStatus("book", "", "paying out at " + S.result.confidence + "%");
+    setStatus("intern", "", "victory espresso round ☕");
+    setStatus("scout", "", "sources archived ✓");
   }
 
   function phaseToast(name, ri) {
@@ -798,7 +866,15 @@
     $("cn-" + id).innerHTML = `self-confidence <b>${v}%</b>`;
   }
 
-  function bubble(ev) {
+  function feedNearEnd() {
+    const feed = $("feed");
+    if (feed.scrollHeight > feed.clientHeight + 1)
+      return feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 80;
+    const bottom = feed.getBoundingClientRect().bottom;
+    return bottom >= 0 && bottom <= window.innerHeight + 120;
+  }
+
+  function bubble(ev, autoScroll = true) {
     const FIXED = {
       mod: { name: (S.moderator && S.moderator.name) || "The Moderator", color: "green" },
       scout: { name: "The Researcher", color: "navy" },
@@ -832,8 +908,9 @@
     const tx = document.createElement("div");
     tx.className = "tx";
     div.append(who, tx);
+    const shouldScroll = autoScroll && !reconstructing && feedNearEnd();
     $("feed").appendChild(div);
-    div.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+    if (shouldScroll) div.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
     return tx;
   }
 
@@ -847,21 +924,6 @@
       d.appendChild(c);
     }
     tx.parentElement.appendChild(d);
-  }
-
-  function typeInto(tx, text, dur, done) {
-    if (REDUCED || speed >= 8) { tx.textContent = text; done(); return; }
-    const caret = document.createElement("span");
-    caret.className = "caret";
-    let i = 0, cancelled = false;
-    const perTick = Math.max(1, Math.round(text.length / (dur / 30)));
-    const iv = setInterval(() => {
-      i = Math.min(text.length, i + perTick);
-      tx.textContent = text.slice(0, i);
-      tx.appendChild(caret);
-      if (i >= text.length) { clearInterval(iv); caret.remove(); done(); }
-    }, 30);
-    typerStop = () => { cancelled = true; clearInterval(iv); caret.remove(); tx.textContent = text; };
   }
 
   function markPhase(ri) {
@@ -880,7 +942,13 @@
     $("v-conf").textContent = r.confidence + "%";
     const off = 540.35 * (1 - r.confidence / 100);
     if (animate && !REDUCED) {
-      requestAnimationFrame(() => requestAnimationFrame(() => { $("dial-arc").style.strokeDashoffset = off; }));
+      const scheduledGen = gen;
+      requestAnimationFrame(() => {
+        if (scheduledGen !== gen) return;
+        requestAnimationFrame(() => {
+          if (scheduledGen === gen) $("dial-arc").style.strokeDashoffset = off;
+        });
+      });
     } else {
       $("dial-arc").style.transition = "none";
       $("dial-arc").style.strokeDashoffset = off;
@@ -948,7 +1016,7 @@
       s.style.top = rect.top + (Math.random() * 40 - 10) + "px";
       s.style.animationDelay = (Math.random() * 0.4) + "s";
       document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1900);
+      later(() => s.remove(), 1900);
     }
   }
 
@@ -966,53 +1034,161 @@
   };
   const FIDGET_MS = { sip: 1100, stretch: 1300, wiggle: 1500, yawn: 1100, spin: 950,
                       knuckles: 950, shufflep: 950, bounce: 600, glance: 1400, mumble: 1700 };
-  setInterval(() => {
-    if (REDUCED || !S) return;
-    const ids = Object.keys(FIDGETS);
-    const n = 1 + (Math.random() < 0.35 ? 1 : 0);   // sometimes two at once
-    for (let k = 0; k < n; k++) {
-      const pick = ids[Math.floor(Math.random() * ids.length)];
-      const el = $("ag-" + pick);
-      if (!el || el.className !== "agent") continue;   // only fidget when idle
-      const pool = FIDGETS[pick];
-      const f = pool[Math.floor(Math.random() * pool.length)];
-      if (f === "glance") {
-        const dir = Math.random() < 0.5 ? "look-left" : "look-right";
-        el.classList.add(dir);
-        setTimeout(() => el.classList.remove(dir), FIDGET_MS.glance);
-      } else {
-        el.classList.add(f);
-        setTimeout(() => el.classList.remove(f), FIDGET_MS[f]);
+  function startFidgets() {
+    if (fidgetTimer !== null) return;
+    fidgetTimer = repeat(() => {
+      if (REDUCED || !S) return;
+      const ids = Object.keys(FIDGETS);
+      const n = 1 + (Math.random() < 0.35 ? 1 : 0);   // sometimes two at once
+      for (let k = 0; k < n; k++) {
+        const pick = ids[Math.floor(Math.random() * ids.length)];
+        const el = $("ag-" + pick);
+        if (!el || el.className !== "agent") continue;   // only fidget when idle
+        const pool = FIDGETS[pick];
+        const f = pool[Math.floor(Math.random() * pool.length)];
+        if (f === "glance") {
+          const dir = Math.random() < 0.5 ? "look-left" : "look-right";
+          el.classList.add(dir);
+          later(() => el.classList.remove(dir), FIDGET_MS.glance);
+        } else {
+          el.classList.add(f);
+          later(() => el.classList.remove(f), FIDGET_MS[f]);
+        }
       }
-    }
-  }, 3200);
+    }, 3200);
+  }
 
   function tickClock(ms) {
     const sec = Math.round(ms / 1000);
     $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
   }
 
-  function runStep() {
-    if (!playing) return;
-    if (idx >= steps.length) { playing = false; $("play").textContent = "▶ replay"; return; }
-    const s = steps[idx];
+  function renderTyping(op, showCaret) {
+    const progress = op.total ? 1 - op.remaining / op.total : 1;
+    const chars = Math.min(op.text.length, Math.floor(op.text.length * progress));
+    op.tx.textContent = op.text.slice(0, chars);
+    if (showCaret && chars < op.text.length) op.tx.appendChild(op.caret);
+  }
+
+  function updateActive(now = performance.now()) {
+    const op = active;
+    if (!op || op.startedAt === null) return;
+    op.remaining = Math.max(0, op.remainingAtStart - (now - op.startedAt) * op.speedAtStart);
+    if (op.kind === "typing") renderTyping(op, playing);
+  }
+
+  function clearActiveTimer(op) {
+    if (!op || op.timerId === null) return;
+    clearRegisteredTimer(op.timerId);
+    op.timerId = null;
+  }
+
+  function resumeActive() {
+    const op = active;
+    if (!playing || !op) return;
+    if (op.remaining <= 0) { op.complete(); return; }
+    op.remainingAtStart = op.remaining;
+    op.startedAt = performance.now();
+    op.speedAtStart = speed;
+    if (op.kind === "wait") {
+      op.timerId = later(() => {
+        if (active !== op || !playing) return;
+        op.timerId = null;
+        op.remaining = 0;
+        op.startedAt = null;
+        op.complete();
+      }, op.remaining / speed);
+    } else {
+      renderTyping(op, true);
+      op.timerId = repeat(() => {
+        if (active !== op || !playing) return;
+        updateActive();
+        if (op.remaining <= 0) {
+          clearActiveTimer(op);
+          op.startedAt = null;
+          renderTyping(op, false);
+          op.complete();
+        }
+      }, 30);
+    }
+  }
+
+  function finishPlayback() {
+    playing = false;
+    active = null;
+    if (fidgetTimer !== null) clearRegisteredTimer(fidgetTimer);
+    fidgetTimer = null;
+    $("scrub").value = steps.length;
+    $("play").textContent = "▶ replay";
+  }
+
+  function startContinuation(ms) {
+    const op = { kind: "wait", remaining: ms, timerId: null, startedAt: null };
+    op.complete = () => {
+      if (active !== op) return;
+      active = null;
+      runStep();
+    };
+    active = op;
+    resumeActive();
+  }
+
+  function completeStep(op, finalize, nextDelay) {
+    if (active !== op || op.finalized) return;
+    op.finalized = true;
+    clearActiveTimer(op);
+    active = null;
+    finalize();
+    idx++;
     $("scrub").value = idx;
+    if (idx >= steps.length) { finishPlayback(); return; }
+    if (playing) startContinuation(nextDelay);
+  }
+
+  function startStepWait(ms, finalize, nextDelay = 0) {
+    const op = { kind: "wait", remaining: ms, timerId: null, startedAt: null,
+                 stepIndex: idx, finalized: false };
+    op.complete = () => completeStep(op, finalize, nextDelay);
+    active = op;
+    resumeActive();
+  }
+
+  function startTyping(tx, text, finalize) {
+    const total = typeDur(text);
+    const caret = document.createElement("span");
+    caret.className = "caret";
+    const op = { kind: "typing", tx, text, caret, total, remaining: total,
+                 timerId: null, startedAt: null, stepIndex: idx, finalized: false };
+    op.complete = () => completeStep(op, finalize, 350);
+    active = op;
+    if (REDUCED) {
+      op.remaining = 0;
+      renderTyping(op, false);
+      op.complete();
+    } else resumeActive();
+  }
+
+  function runStep() {
+    if (!playing || active) return;
+    if (idx >= steps.length) { finishPlayback(); return; }
+    const s = steps[idx];
     if (s.t === "phase") {
       markPhase(s.ri);
       phaseToast(s.name, s.ri);
       if (s.ri > 0) coffeeRun();
       allIdle(s.ri === 0 ? "waiting for the brief"
         : s.name === "Opening positions" ? "reading the brief" : "listening");
-      idx++; timer = setTimeout(runStep, (REDUCED ? 300 : 1100) / speed);
+      startStepWait(REDUCED ? 300 : 1100, () => {});
     } else if (s.t === "think") {
       const p = PERSONA[s.agent] || PERSONA.mod;
-      setStatus(s.agent, "agent thinking", p.think + '<span class="dots"></span>');
-      idx++; timer = setTimeout(runStep, s.ms / speed);
-      elapsedBase += s.ms;
-      tickClock(elapsedBase);
+      setStatus(s.agent, "thinking", p.think + '<span class="dots"></span>');
+      startStepWait(s.ms, () => {
+        elapsedBase += s.ms;
+        tickClock(elapsedBase);
+      });
     } else if (s.t === "speak") {
       const ev = s.ev;
-      setStatus(ev.agent, "agent speaking", (PERSONA[ev.agent] || PERSONA.mod).speak);
+      setStatus(ev.agent, "speaking", (PERSONA[ev.agent] || PERSONA.mod).speak);
       // everyone else looks at the speaker; the stenographer gets typing
       const order = S.agents.map((a) => a.id);
       const si = order.indexOf(ev.agent);
@@ -1023,72 +1199,77 @@
         if (si >= 0) el.classList.add(order.indexOf(a.id) < si ? "look-right" : "look-left");
       }
       $("ag-steno").classList.add("working");
-      setStatus("steno", "agent working", PERSONA.steno.speak);
+      setStatus("steno", "working", PERSONA.steno.speak);
       if (ev.target && !REDUCED) {
         const t = $("ag-" + ev.target);
         t.classList.add("poked");
-        setTimeout(() => t.classList.remove("poked"), 600);
+        later(() => t.classList.remove("poked"), 600);
       }
       const tx = bubble(ev);
-      const dur = typeDur(ev.text) / speed;
-      elapsedBase += typeDur(ev.text);
       applySpeakStats(ev);
-      typeInto(tx, ev.text, dur, () => {
-        typerStop = null;
+      startTyping(tx, ev.text, () => {
         addSources(tx, ev);
-        setStatus(ev.agent, "agent", (PERSONA[ev.agent] || PERSONA.mod).done);
+        setStatus(ev.agent, "", (PERSONA[ev.agent] || PERSONA.mod).done);
         if (ev.agent !== "mod" && ev.confidence !== undefined) { setConf(ev.agent, ev.confidence); setOdds(ev.agent, ev.confidence); }
         addWords(ev.text.split(/\s+/).length);
         $("ag-steno").classList.remove("working");
-        setStatus("steno", "agent", PERSONA.steno.done);
+        setStatus("steno", "", PERSONA.steno.done);
         for (const a of S.agents) $("ag-" + a.id).classList.remove("look-left", "look-right");
+        elapsedBase += typeDur(ev.text);
         tickClock(elapsedBase);
-        idx++;
-        if (playing) timer = setTimeout(runStep, 350 / speed);
       });
     } else if (s.t === "verdict") {
       for (let i = 0; i <= S.rounds.length; i++) $("ph-" + i).className = "ph done";
       STATS.mod.done = true; updateStatChips();
       allIdle("adjourned ☕");
-      setStatus("mod", "agent", "gavel down ⚖");
+      setStatus("mod", "", "gavel down ⚖");
       applyVerdictReactions(true);
       showVerdict(true);
       idx++;
-      playing = false;
-      $("play").textContent = "▶ replay";
+      $("scrub").value = steps.length;
+      finishPlayback();
     }
   }
 
   function seek(to) {
+    if (!S) return;
+    gen++;
     pause();
-    renderShell();
-    // instantly apply everything before `to`
-    for (let i = 0; i < to && i < steps.length; i++) {
-      const s = steps[i];
-      if (s.t === "phase") {
-        markPhase(s.ri);
-        if (s.ri > 0) {   // no coffee during the briefing; every act after gets one
-          STATS.coffees++;
-          $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees;
+    active = null;
+    to = Math.max(0, Math.min(steps.length, to));
+    reconstructing = true;
+    try {
+      renderShell();
+      // instantly apply everything before `to`
+      for (let i = 0; i < to && i < steps.length; i++) {
+        const s = steps[i];
+        if (s.t === "phase") {
+          markPhase(s.ri);
+          if (s.ri > 0) {   // no coffee during the briefing; every act after gets one
+            STATS.coffees++;
+            $("sc-intern").textContent = "COFFEES SERVED " + STATS.coffees;
+          }
+        }
+        else if (s.t === "speak") {
+          elapsedBase += typeDur(s.ev.text);
+          const tx = bubble(s.ev, false);
+          tx.textContent = s.ev.text;
+          addSources(tx, s.ev);
+          applySpeakStats(s.ev);
+          addWords(s.ev.text.split(/\s+/).length);
+          if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
+        } else if (s.t === "think") elapsedBase += s.ms;
+        else if (s.t === "verdict") {
+          showVerdict(false);
+          for (let k = 0; k <= S.rounds.length; k++) $("ph-" + k).className = "ph done";
+          STATS.mod.done = true; updateStatChips();
+          allIdle("adjourned ☕");
+          setStatus("mod", "", "gavel down ⚖");
+          applyVerdictReactions(false);
         }
       }
-      else if (s.t === "speak") {
-        elapsedBase += typeDur(s.ev.text);
-        const tx = bubble(s.ev);
-        tx.textContent = s.ev.text;
-        addSources(tx, s.ev);
-        applySpeakStats(s.ev);
-        addWords(s.ev.text.split(/\s+/).length);
-        if (s.ev.agent !== "mod" && s.ev.confidence !== undefined) setConf(s.ev.agent, s.ev.confidence);
-      } else if (s.t === "think") elapsedBase += s.ms;
-      else if (s.t === "verdict") {
-        showVerdict(false);
-        for (let k = 0; k <= S.rounds.length; k++) $("ph-" + k).className = "ph done";
-        STATS.mod.done = true; updateStatChips();
-        allIdle("adjourned ☕");
-        setStatus("mod", "agent", "gavel down ⚖");
-        applyVerdictReactions(false);
-      }
+    } finally {
+      reconstructing = false;
     }
     const vals = Object.values(STATS.odds);
     if (vals.length) $("sc-book").textContent =
@@ -1099,51 +1280,150 @@
   }
 
   function play() {
+    if (!S) return;
     if (idx >= steps.length) { seek(0); }
     playing = true;
     $("play").textContent = "⏸ pause";
-    runStep();
+    startFidgets();
+    if (active) resumeActive();
+    else runStep();
   }
   function pause() {
+    if (active) updateActive();
     playing = false;
-    clearTimeout(timer);
-    if (typerStop) { typerStop(); typerStop = null; idx++; }
+    clearAllTimers();
+    if (active) {
+      active.timerId = null;
+      active.startedAt = null;
+      if (active.kind === "typing") renderTyping(active, false);
+    }
+    clearDecorations();
+    $("play").textContent = "▶ play";
+  }
+
+  function teardownPlayback() {
+    playing = false;
+    clearAllTimers();
+    active = null;
+    clearDecorations();
     $("play").textContent = "▶ play";
   }
 
   $("play").addEventListener("click", () => (playing ? pause() : play()));
-  $("restart").addEventListener("click", () => { seek(0); play(); });
+  $("restart").addEventListener("click", () => {
+    if (!S) return;
+    gen++;
+    teardownPlayback();
+    seek(0);
+    play();
+  });
   $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
 
   const spd = $("spd");
   for (const s of [1, 2, 4]) {
     const b = document.createElement("button");
+    b.type = "button";
     b.textContent = s + "×";
+    b.setAttribute("aria-pressed", String(s === 1));
     if (s === 1) b.className = "on";
     b.addEventListener("click", () => {
+      const op = active;
+      if (playing && op) {
+        updateActive();
+        clearActiveTimer(op);
+        op.startedAt = null;
+      }
       speed = s;
-      [...spd.children].forEach((x) => x.classList.remove("on"));
-      b.classList.add("on");
+      [...spd.children].forEach((x) => {
+        const selected = x === b;
+        x.classList.toggle("on", selected);
+        x.setAttribute("aria-pressed", String(selected));
+      });
+      if (playing && active === op) resumeActive();
     });
     spd.appendChild(b);
   }
 
   /* ---------------- sessions ---------------- */
+  function setControlsEnabled(enabled) {
+    $("play").disabled = !enabled;
+    $("restart").disabled = !enabled;
+    $("scrub").disabled = !enabled;
+    [...spd.children].forEach((b) => { b.disabled = !enabled; });
+  }
+
+  function selectSession(file) {
+    [...$("picker").children].forEach((el) => {
+      const selected = el.dataset.f === file;
+      el.classList.toggle("active", selected);
+      el.setAttribute("aria-pressed", String(selected));
+    });
+  }
+
+  function renderLoadState(message, retryFile) {
+    $("q").textContent = message;
+    for (const id of ["rail", "council", "modrow", "backoffice", "intern-sprite"])
+      $(id).replaceChildren();
+    $("verdict").classList.remove("show");
+    $("verdict").style.display = "none";
+    $("feed").replaceChildren();
+    const state = document.createElement("div");
+    state.className = "load-state";
+    state.setAttribute("role", retryFile ? "alert" : "status");
+    state.textContent = retryFile ? "That replay could not be loaded." : "Loading replay…";
+    if (retryFile) {
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "btn ghost";
+      retry.textContent = "retry";
+      retry.addEventListener("click", () => loadSession(retryFile));
+      state.appendChild(retry);
+    }
+    $("feed").appendChild(state);
+    $("scrub").value = 0;
+    tickClock(0);
+  }
+
   async function loadSession(file) {
-    S = await (await fetch("sessions/" + file)).json();
-    [...$("picker").children].forEach((el) => el.classList.toggle("active", el.dataset.f === file));
-    renderShell();
-    buildSteps();
-    play();
+    const loadGen = ++gen;
+    if (loadController) loadController.abort();
+    loadController = new AbortController();
+    teardownPlayback();
+    S = null;
+    steps = [];
+    setControlsEnabled(false);
+    selectSession(file);
+    renderLoadState("Loading replay…");
+    try {
+      const response = await fetch("sessions/" + file, { signal: loadController.signal });
+      if (!response.ok) throw new Error("Session request failed with " + response.status);
+      const session = await response.json();
+      if (loadGen !== gen) return;
+      loadController = null;
+      S = session;
+      renderShell();
+      buildSteps();
+      setControlsEnabled(true);
+      play();
+    } catch (error) {
+      if (loadGen !== gen || error.name === "AbortError") return;
+      loadController = null;
+      S = null;
+      steps = [];
+      setControlsEnabled(false);
+      renderLoadState("Replay unavailable", file);
+    }
   }
 
   for (const [file, label, tag] of SESSIONS) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "sess"; b.dataset.f = file;
+    b.setAttribute("aria-pressed", "false");
     b.innerHTML = `${label}<small>${tag} · scripted sample</small>`;
     b.addEventListener("click", () => loadSession(file));
     $("picker").appendChild(b);
   }
+  setControlsEnabled(false);
   loadSession(SESSIONS[0][0]);
 </script>
 </body>

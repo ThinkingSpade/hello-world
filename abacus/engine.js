@@ -1,6 +1,6 @@
 /* Abacus browser engine — a faithful port of abacus/parser.py +
  * semantics.py + engine.py, driven by the same manifest.json. The
- * 30-question golden eval (goldens.json, frozen by the Python engine)
+ * 35-question golden eval (goldens.json, frozen by the Python engine)
  * pins the two implementations together; the page lets you run it live.
  * Exposes window.Abacus. */
 "use strict";
@@ -28,6 +28,20 @@ const Abacus = (() => {
     return d.toISOString().slice(0, 10);
   };
   const prevPeriod = (t) => {
+    const sy = +t.start.slice(0, 4), sm = +t.start.slice(5, 7);
+    if (/^\d{4}$/.test(t.label) && t.start === `${sy}-01-01` && t.end === `${sy}-12-31`)
+      return { start: `${sy - 1}-01-01`, end: `${sy - 1}-12-31`, label: "previous year" };
+    if (/^Q[1-4]\s+\d{4}/.test(t.label)) {
+      const q = Math.floor((sm - 1) / 3) + 1;
+      const [y, pq] = q > 1 ? [sy, q - 1] : [sy - 1, 4];
+      const [start, end] = qBounds(y, pq);
+      return { start, end, label: "previous quarter" };
+    }
+    if (t.start.endsWith("-01") && t.end === mBounds(sy, sm)[1]) {
+      const [y, m] = sm > 1 ? [sy, sm - 1] : [sy - 1, 12];
+      const [start, end] = mBounds(y, m);
+      return { start, end, label: "previous month" };
+    }
     const n = Math.round((Date.parse(t.end) - Date.parse(t.start)) / 86400000) + 1;
     return { start: dshift(t.start, -n), end: dshift(t.start, -1), label: "previous period" };
   };
@@ -157,8 +171,14 @@ const Abacus = (() => {
     const metric = mhits[0][0];
 
     const qd = stripTime(q);
+    const dimHits = [];
+    for (const hit of find(qd, MAN.dimensions).sort((a, b) => (b[2] - a[2]) || (a[1] - b[1]))) {
+      const overlaps = dimHits.some((kept) => hit[1] < kept[1] + kept[2] && kept[1] < hit[1] + hit[2]);
+      if (!overlaps) dimHits.push(hit);
+    }
+    dimHits.sort((a, b) => a[1] - b[1]);
     const dims = [];
-    for (const [key, pos, _len, syn] of find(qd, MAN.dimensions).sort((a, b) => a[1] - b[1])) {
+    for (const [key, pos, _len, syn] of dimHits) {
       const spec = MAN.dimensions[key];
       const before = qd.slice(Math.max(0, pos - 12), pos);
       if (/\bby\s+$|\bper\s+$|\bacross\s+$|\btop\s+\d+\s*$/.test(before) || spec.time
@@ -183,9 +203,12 @@ const Abacus = (() => {
       if (!dims.length) dims.push("product");
     }
     if (dims.length > 2) dims.length = 2;
-    if (compare && dims.some((d) => !MAN.dimensions[d].time)) compare = null;
+    if (compare && dims.length) compare = null;
+    const plan = { kind: "aggregate", metric, dims, filters, time, top, compare };
+    if (plan.dims.includes("product") && plan.dims.length > 1)
+      throw new Error("product cannot be combined with another dimension");
 
-    return { kind: "aggregate", metric, dims, filters, time, top, compare };
+    return plan;
   }
 
   /* ---------------- compiler (mirrors semantics.py) ---------------- */
@@ -196,6 +219,8 @@ const Abacus = (() => {
   function compilePlan(plan) {
     const metric = MAN.metrics[plan.metric];
     if (!metric) throw new Error("unknown metric: " + plan.metric);
+    if ((plan.dims || []).includes("product") && plan.dims.length > 1)
+      throw new Error("product cannot be combined with another dimension");
     const dims = (plan.dims || []).map((d) => {
       if (!MAN.dimensions[d]) throw new Error("unknown dimension: " + d);
       return MAN.dimensions[d];
@@ -208,7 +233,13 @@ const Abacus = (() => {
     const { start, end } = plan.time;
     const msql = metric.sql.replaceAll("{start}", start).replaceAll("{end}", end);
     const dsqls = dims.map((d) => d.sql);
-    const fsqls = filters.map((f) => `${MAN.dimensions[f.dim].sql} = '${f.value}'`);
+    const groupedFilters = new Map();
+    for (const f of filters) {
+      if (!groupedFilters.has(f.dim)) groupedFilters.set(f.dim, []);
+      groupedFilters.get(f.dim).push(f.value);
+    }
+    const fsqls = [...groupedFilters].map(([dim, values]) =>
+      `${MAN.dimensions[dim].sql} IN (${values.map((v) => `'${v}'`).join(", ")})`);
     const fAll = plan.metric === "new_customers" ? [...fsqls, "c.customer_id IS NOT NULL"] : fsqls;
     const chunks = [msql, ...dsqls, ...fsqls];
     const joins = ["p", "c"].filter((a) => chunks.some((ch) => ch && ch.includes(a + ".")))
@@ -242,7 +273,7 @@ const Abacus = (() => {
   function runPlan(plan) {
     const sql = compilePlan(plan);
     const out = { sql, ...exec(sql) };
-    if (plan.compare) {
+    if (plan.compare && !(plan.dims || []).length) {
       const prior = { ...plan, time: plan.compare, compare: null };
       const psql = compilePlan(prior);
       const pr = exec(psql);
@@ -325,14 +356,28 @@ Question: ${question}`;
     let obj = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     obj = JSON.parse(obj);
     if (!MAN.metrics[obj.metric]) throw new Error(`model picked unknown metric "${obj.metric}"`);
-    const dims = (obj.dims || []).filter((d) => MAN.dimensions[d]).slice(0, 2);
-    const filters = (obj.filters || []).filter((f) =>
-      MAN.values[f.dim] && MAN.values[f.dim].includes(f.value));
+    if (obj.dims !== undefined && obj.dims !== null && !Array.isArray(obj.dims))
+      throw new Error("model returned invalid dimensions");
+    const dims = obj.dims ?? [];
+    if (dims.length > 2) throw new Error("model returned more than two dimensions");
+    for (const d of dims)
+      if (!MAN.dimensions[d]) throw new Error(`model picked unknown dimension "${d}"`);
+    if (dims.includes("product") && dims.length > 1)
+      throw new Error("product cannot be combined with another dimension");
+    if (obj.filters !== undefined && obj.filters !== null && !Array.isArray(obj.filters))
+      throw new Error("model returned invalid filters");
+    const filters = obj.filters ?? [];
+    for (const f of filters)
+      if (!f || !MAN.values[f.dim] || !MAN.values[f.dim].includes(f.value))
+        throw new Error(`model picked unknown filter ${JSON.stringify(f)}`);
     const phrase = `${obj.time_phrase || "all time"} ${obj.compare_phrase || ""}`.toLowerCase();
     const [time, compare0] = parseTime(phrase);
     let compare = compare0;
-    if (compare && dims.some((d) => !MAN.dimensions[d].time)) compare = null;
-    const top = Number.isInteger(obj.top) && obj.top > 0 && obj.top <= 50 ? obj.top : null;
+    if (compare && dims.length) compare = null;
+    if (obj.top !== null && obj.top !== undefined &&
+        (!Number.isInteger(obj.top) || obj.top <= 0 || obj.top > 50))
+      throw new Error("model returned invalid top value");
+    const top = obj.top || null;
     return { metric: obj.metric, dims, filters, time, top, compare };
   }
 
@@ -342,6 +387,7 @@ Question: ${question}`;
     if (cfg.provider === "anthropic") {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
+        signal: cfg.signal,
         headers: {
           "content-type": "application/json",
           "x-api-key": cfg.key,
@@ -358,6 +404,7 @@ Question: ${question}`;
     } else {
       const r = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
+        signal: cfg.signal,
         headers: { "content-type": "application/json", authorization: `Bearer ${cfg.key}` },
         body: JSON.stringify({ model: cfg.model,
           messages: [{ role: "user", content: llmPrompt(question) }],
@@ -449,7 +496,9 @@ Question: ${question}`;
     const m = MAN.metrics[plan.metric], kind = m.fmt;
     const pct = inv.prior ? 100 * inv.delta / Math.abs(inv.prior) : 0;
     const verb = inv.delta > 0 ? "rose" : "fell";
-    let line = `${m.label} ${verb} ${nf(Math.abs(pct), 1, 1)}% in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`;
+    let line = inv.prior === 0
+      ? `${m.label} ${inv.cur === 0 ? "held at zero" : `${verb} from zero`} in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`
+      : `${m.label} ${verb} ${nf(Math.abs(pct), 1, 1)}% in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`;
     if (inv.additive && inv.drivers.length) {
       const d0 = inv.drivers[0];
       const share = inv.delta ? 100 * d0.delta / inv.delta : 0;
@@ -460,15 +509,18 @@ Question: ${question}`;
     }
     const vp = inv.vol_price;
     if (vp && inv.delta) {
-      line += ` Volume vs price: order count explains ${Math.round(100 * vp.volume_effect / inv.delta)}% of it (orders ${vp.orders_prior.toLocaleString("en-US")} → ${vp.orders_cur.toLocaleString("en-US")}), basket size ${Math.round(100 * vp.price_effect / inv.delta)}% (AOV ${fmt(vp.aov_prior, "money2")} → ${fmt(vp.aov_cur, "money2")}).`;
+      if (inv.prior === 0)
+        line += ` Volume vs price has no percentage baseline; the interaction/remainder is ${fmt(vp.interaction, kind)}.`;
+      else
+        line += ` Volume vs price: order count explains ${Math.round(100 * vp.volume_effect / inv.delta)}% of it (orders ${vp.orders_prior.toLocaleString("en-US")} → ${vp.orders_cur.toLocaleString("en-US")}), basket size ${Math.round(100 * vp.price_effect / inv.delta)}% (AOV ${fmt(vp.aov_prior, "money2")} → ${fmt(vp.aov_cur, "money2")}).`;
     }
     if (!inv.additive) line += " (Rate metric — showing level shifts per dimension rather than additive contributions.)";
     return line;
   }
 
-  function retention() {
-    const firsts = exec("SELECT customer_id, first_order_date FROM dim_customer WHERE first_order_date IS NOT NULL").rows;
-    const active = exec("SELECT DISTINCT customer_id, CAST(strftime('%Y', order_date) AS INTEGER) * 4 + (CAST(strftime('%m', order_date) AS INTEGER) + 2) / 3 - 1 FROM fact_orders").rows;
+  function retention(time) {
+    const firsts = exec(`SELECT customer_id, first_order_date FROM dim_customer WHERE first_order_date >= '${time.start}' AND first_order_date <= '${time.end}'`).rows;
+    const active = exec(`SELECT DISTINCT customer_id, CAST(strftime('%Y', order_date) AS INTEGER) * 4 + (CAST(strftime('%m', order_date) AS INTEGER) + 2) / 3 - 1 FROM fact_orders WHERE order_date >= '${time.start}' AND order_date <= '${time.end}'`).rows;
     const qidx = (d) => (+d.slice(0, 4)) * 4 + Math.floor((+d.slice(5, 7) + 2) / 3) - 1;
     const qlabel = (i) => `${Math.floor(i / 4)}-Q${i % 4 + 1}`;
     const cohorts = new Map();
@@ -478,11 +530,10 @@ Question: ${question}`;
       cohorts.get(k).add(cid);
     }
     const actBy = new Map();
-    let maxper = 0;
+    const maxper = qidx(time.end);
     for (const [cid, per] of active) {
       if (!actBy.has(per)) actBy.set(per, new Set());
       actBy.get(per).add(cid);
-      if (per > maxper) maxper = per;
     }
     const matrix = [];
     for (const c of [...cohorts.keys()].sort((a, b) => a - b)) {
@@ -573,7 +624,7 @@ Question: ${question}`;
       return { result: inv, story: narrateInvestigation(plan, inv) };
     }
     if (kind === "retention") {
-      const ret = retention();
+      const ret = retention(plan.time);
       return { result: ret, story: narrateRetention(ret) };
     }
     if (kind === "anomalies") {
@@ -597,6 +648,19 @@ Question: ${question}`;
     throw new Error(kind);
   }
 
+  function canonicalPlan(plan) {
+    const time = (t) => t ? { start: t.start, end: t.end } : null;
+    const filters = (plan.filters || []).map((f) => ({ dim: f.dim, value: f.value }))
+      .sort((a, b) => (a.dim + "\0" + a.value).localeCompare(b.dim + "\0" + b.value));
+    return { kind: plan.kind || "aggregate", metric: plan.metric || null,
+      dims: [...(plan.dims || [])], filters, time: time(plan.time),
+      top: plan.top || null, compare: time(plan.compare) };
+  }
+
+  function plansEqual(a, b) {
+    return JSON.stringify(canonicalPlan(a)) === JSON.stringify(canonicalPlan(b));
+  }
+
   // The Plan Board builds plan objects directly; it needs the same time
   // grammar the parser uses, so a window phrase → {time, compare} once.
   function timeFromPhrase(phrase) {
@@ -604,8 +668,12 @@ Question: ${question}`;
     return { time, compare };
   }
 
-  return { init, parse, compilePlan, runPlan, runAny, canonicalCheck,
-           narrate, fmt, llmPlan, llmPrompt, timeFromPhrase,
+  function comparisonFor(time, mode) {
+    return mode === "yoy" ? shiftYear(time) : prevPeriod(time);
+  }
+
+  return { init, parse, compilePlan, runPlan, runAny, canonicalCheck, canonicalPlan, plansEqual,
+           narrate, fmt, llmPlan, llmPrompt, timeFromPhrase, comparisonFor,
            exec, get manifest() { return MAN; } };
 })();
 window.Abacus = Abacus;
