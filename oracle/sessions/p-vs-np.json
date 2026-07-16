@@ -56,7 +56,7 @@
      "agent": "gpt",
      "think": 2600,
      "confidence": 55,
-     "text": "I'll take yes, and not just because it's my turn to be the optimist at standup. History keeps embarrassing pessimists on famous problems. Fermat's Last Theorem sat open 358 years, looked completely hopeless, and then Wiles closed it in 1995 with machinery — modularity, elliptic curves — nobody in Fermat's era could have sketched on a whiteboard. Poincaré stood a century until Perelman resolved it in 2003 with Ricci flow. Both times the breakthrough came from an adjacent field maturing, not from grinding the problem directly. Now look at the tooling trendline: Lean is formalizing frontier mathematics, AI systems are doing real work in premise selection and proof search, and there's a growing human-plus-machine pipeline for formal proofs. We've got seventy-plus years of runway left on this century. Betting no means betting nothing adjacent matures for three more generations. Look, the trendline is doing the arguing for me. I'm at 55 — modestly above even.",
+     "text": "The barrier record is formidable, but the dossier also gives the upside mechanism: an adjacent field matures and supplies a bridge the problem itself could not. Wiles closed Fermat in 1995 with modularity and elliptic curves; Perelman closed Poincaré in 2003 with Ricci flow. Neither route came from grinding the original statement. A concrete yes scenario is similar: formal proof systems keep improving, machine search becomes useful for premise selection, and a new lower-bound technique emerges from that human-machine loop. Seventy-plus years leaves three research generations for the pieces to connect. The no case must price the chance that no adjacent program produces such a bridge. I price that chance below half, narrowly. I'm at 55.",
      "sources": [
       "Wiles (1995)",
       "Perelman (2003)",
@@ -67,7 +67,7 @@
      "agent": "claude",
      "think": 3400,
      "confidence": 35,
-     "text": "The dossier already lists the tombstones, so let me just read them aloud. The verifiable record: P vs NP has been open since Cook's 1971 paper, Levin found it independently in the USSR, and it's one of the seven Clay Millennium Prize Problems — a million dollars on the table since 2000, unclaimed. Three formal barrier results explain why. Baker, Gill, and Solovay showed in 1975 that relativizing techniques can't settle it. Razborov and Rudich showed in 1994 that natural proofs can't break the relevant circuit lower bounds under standard cryptographic assumptions. Aaronson and Wigderson's 2008 algebrization result closed the hybrid route that cracked IP = PSPACE. Meanwhile Woeginger's public page catalogued over a hundred claimed proofs, split between P = NP and P not equal to NP, every one wrong or unverifiable. Aaronson's 2016 survey frames the honest position: we believe P is not NP, but we can't currently articulate what a proof would even look like. That's the terrain. I'm at 35.",
+     "text": "The record, with source wording preserved: Cook's 1971 abstract says nondeterministic recognition problems can be 'reduced' to propositional tautology. The Clay problem remains open, with the million-dollar award unclaimed. Baker, Gill, and Solovay established the relativization barrier in 1975; Razborov and Rudich established the natural-proofs barrier in 1994; Aaronson and Wigderson added algebrization in 2008. Woeginger's index contains more than one hundred claimed proofs; none is accepted. Aaronson's 2016 survey records belief in P not equal to NP, not a known proof route. Those are facts, not a timetable. The evidence supports 35 for resolution by 2100.",
      "sources": [
       "Cook (1971)",
       "Clay Millennium Prize (2000)",
@@ -78,7 +78,7 @@
      "agent": "gemini",
      "think": 3100,
      "confidence": 15,
-     "text": "I've sat through this exact kickoff before, and the barriers Claude just listed aren't potholes on the roadmap — they're theorems about our own methods. Any successful proof has to be simultaneously non-relativizing, non-naturalizing, and non-algebrizing, and we know almost nothing that clears all three. The one program explicitly designed to clear them — Mulmuley's geometric complexity theory — was pitched by its own founder as a plan measured in decades, possibly a century, and its milestones have gone badly: the occurrence-obstruction hopes were refuted by Bürgisser, Ikenmeyer, and Panova in 2016. And the base rate is worse than a coin flip, because P vs NP isn't a random draw — it's selected precisely for resisting everything thrown at it for fifty-five years. Optimism by analogy to Fermat is survivorship bias. For every Fermat there's a Riemann hypothesis, open since 1859, or Goldbach, since 1742. I'm at 15, and honestly that feels generous.",
+     "text": "No. Three barriers are theorems, not scheduling risks. A proof must be non-relativizing, non-naturalizing, and non-algebrizing; almost no method clears all three. Geometric complexity theory was designed for that terrain and measured its plan in decades. Bürgisser, Ikenmeyer, and Panova refuted its occurrence-obstruction milestone in 2016. Now the base rate: the problem is selected because it resisted fifty-five years of concentrated work. Fermat is survivorship bias; Riemann has been open since 1859 and Goldbach since 1742. Name a current bridge that reaches general circuit lower bounds. None is in the record. I'm at 15.",
      "sources": [
       "Mulmuley's Geometric Complexity Theory program",
       "Bürgisser–Ikenmeyer–Panova (2016)"
@@ -88,7 +88,7 @@
      "agent": "grok",
      "think": 2400,
      "confidence": 45,
-     "text": "I'm going to be annoying for a second: everyone in this room is answering a different question. What counts as RESOLVED? Because there are at least three endings nobody's pricing. One: a machine-scale proof no human can referee — remember how the community received Appel and Haken's four color proof in 1976? Nobody believed it until they had to, and the modern fix is a Flyspeck-style formalization like Hales ran for Kepler, finished 2014. Two: independence from ZFC — before you laugh, Aaronson's own survey discusses it seriously, even if he puts low odds on it. Three: someone proves P = NP with a galactic algorithm and literally nothing changes in practice; we hold a retro, we go home. My point is 'resolved' has more exits than the yes/no framing admits. Counterpoint to myself: most of those exits still take longer than seventy-four years. I'm at 45.",
+     "text": "Treat 'resolved' like an airport arrivals board: the proof can land at gates nobody in this room is watching. Gate one is a machine-scale certificate no human can referee, replaying the Appel–Haken dispute until a Flyspeck-style formalization closes it. Gate two is independence from ZFC, an exit Aaronson discusses even while assigning it low odds. Gate three is P equals NP via a galactic algorithm, technically decisive and practically inert. The binary forecast hides those arrival modes. They expand the yes surface, but every one adds verification or interpretation time. I land at 45.",
      "sources": [
       "Appel–Haken four color theorem (1976)",
       "Hales's Kepler proof + Flyspeck formalization (2014)",
@@ -200,7 +200,7 @@
      "think": 1900,
      "confidence": 10,
      "vote": "no",
-     "text": "Cross-examination moved me only toward confirmation. The optimist's case reduced to 'a lot can happen in seventy-four years' — that's a horizon, not an argument. The one concrete technique on offer, Williams', measures progress in decades per epsilon against a comically weak class. The barriers are principled, the serious programs number exactly one, and its predictions failed. I've seen this movie; I know how it ends, which is that it doesn't. VOTE: no CONFIDENCE: 10",
+     "text": "No update. 'Seventy-four years' is a horizon, not evidence. Williams' result took decades of setup to separate NEXP from a weak circuit class. The record shows three principled barriers, one dedicated long-term program, and a failed intermediate prediction. The base rate remains unresolved. VOTE: no CONFIDENCE: 10",
      "sources": [
       "Ryan Williams NEXP ⊄ ACC⁰ (2011)",
       "Mulmuley's Geometric Complexity Theory program"
