@@ -4,175 +4,224 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conductor — data-pipeline reliability agent</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
+<link rel="icon" href="/shared/icons.svg#i-signal" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css">
 <style>
   :root {
-    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
-    --text: #1c1a17; --dim: #5f5a51;
-    --navy: #20416b; --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58;
-    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
-    --term: #161a20; --term-text: #c9d4e4;
+    --pi-accent: #8a6200;
+    --pi-accent-soft: #f5ecd2;
+    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: #eee7d6; --line: var(--pi-line);
+    --text: var(--pi-ink); --dim: var(--pi-muted);
+    --navy: #263b50; --blue: #2547c9; --gold: var(--pi-warn); --green: var(--pi-ok);
+    --coral: var(--pi-err); --green-bg: var(--pi-ok-soft); --coral-bg: var(--pi-err-soft);
+    --term: var(--pi-term-bg); --term-text: var(--pi-term-fg);
   }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
+  body {
+    background-color: var(--bg);
+    background-image: linear-gradient(rgba(30,26,20,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(30,26,20,.035) 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: var(--text);
+    font-family: var(--pi-font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 24px 16px 48px;
+  }
   .wrap { max-width: 1060px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 1.1rem; }
-  h1 { font-size: 1.7rem; letter-spacing: .06em; }
-  h1 .dot { color: var(--gold); animation: caret .9s steps(2) infinite; }
-  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
-  .honesty { display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim); border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem; background: var(--panel); }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 { font-family: var(--pi-font-title); font-size: clamp(20px, 4vw, 28px); line-height: 1.5; letter-spacing: .06em; }
+  h1 .dot { color: var(--gold); }
+  .tagline { max-width: 780px; margin: 6px auto 0; color: var(--dim); font-size: 14px; }
+  .honesty { display: inline-block; max-width: 900px; margin-top: 12px; font-size: 12px; color: var(--dim); border: 2px dashed var(--pi-ink); border-radius: 0; padding: 8px 12px; background: var(--panel); }
   .honesty b { color: var(--green); }
-  .honesty code { background: var(--panel-2); padding: 0 .3rem; border-radius: 4px; }
-  .picker { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
-  .sess { font: inherit; font-size: .74rem; text-align: left; cursor: pointer; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: .5rem .8rem; color: var(--text); max-width: 300px; }
-  .sess small { display: block; color: var(--dim); font-size: .64rem; margin-top: .1rem; }
-  .sess.active { border-color: var(--gold); box-shadow: 3px 3px 0 rgba(143,111,29,.22); }
-  .loadstate { width: fit-content; margin: -.45rem auto 1rem; border: 1px solid var(--line); border-radius: 8px; padding: .35rem .6rem; color: var(--dim); font-size: .7rem; background: var(--panel); }
+  .honesty code { font-family: var(--pi-font-code); color: var(--text); background: var(--panel-2); padding: 1px 4px; border-radius: 0; }
+  .picker { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+  .sess { flex: 1 1 230px; max-width: 300px; height: auto; min-height: 54px; text-align: left; }
+  .sess small { display: block; color: var(--dim); font-family: var(--pi-font-body); font-size: 12px; line-height: 1.35; margin-top: 2px; }
+  .sess.active { color: var(--text); background: var(--pi-accent-soft); border-color: var(--gold); box-shadow: 1px 1px 0 var(--pi-ink); transform: translate(2px, 2px); }
+  .loadstate { width: fit-content; max-width: 100%; margin: -8px auto 20px; border: 2px solid var(--pi-ink); border-radius: 0; padding: 8px 10px; color: var(--dim); font-size: 12px; background: var(--panel); box-shadow: var(--pi-shadow-s); overflow-wrap: anywhere; }
   .loadstate[hidden] { display: none; }
-  .loadstate button { font: inherit; margin-left: .5rem; border: 1px solid var(--line); border-radius: 6px; padding: .15rem .45rem; color: var(--gold); background: var(--panel); cursor: pointer; }
-  .card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(28,26,23,.05); }
-  .card h2 { font-size: .95rem; letter-spacing: .04em; margin-bottom: .6rem; }
-  .incident-title { font-size: .95rem; font-weight: 700; margin-bottom: .55rem; }
-  .incident-title .tag { color: var(--dim); font-weight: 400; font-size: .72rem; margin-left: .5rem; }
+  .loadstate button { margin-left: 8px; }
+  .card { padding: 0; margin-bottom: 24px; overflow: visible; }
+  .card h2, .incident-title { min-height: 38px; margin: 0; }
+  .card h2 { font-size: 11px; }
+  .incident-title { flex-wrap: wrap; font-size: 11px; line-height: 1.6; }
+  .incident-title .tag { color: var(--dim); font-family: var(--pi-font-body); font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; margin-left: auto; }
   /* yard */
-  .bridge { display: grid; grid-template-columns: 250px 250px 1fr; gap: .8rem; align-items: stretch; margin-bottom: .9rem; }
-  @media (max-width: 900px) { .bridge { grid-template-columns: 1fr 1fr; } .boardcard { grid-column: 1 / -1; } }
-  @media (max-width: 560px) { .bridge { grid-template-columns: 1fr; } }
-  .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(28,26,23,.05); transition: border-color .3s; }
-  .agent.speaking, .agent.working { border-color: var(--ac); }
-  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; position: relative; }
+  .stagewrap { position: relative; padding: 16px 16px 0; }
+  .bridge { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 16px; }
+  .boardcard { grid-column: 1 / -1; grid-row: 1; }
+  #ag-cond { grid-column: 1; grid-row: 2; }
+  #ag-disp { grid-column: 2; grid-row: 2; }
+  .agent {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 10px;
+    align-items: center;
+    min-width: 0;
+    padding: 10px 12px 10px 16px;
+    text-align: left;
+    position: relative;
+    background: var(--panel);
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow-s);
+    transition: border-color .15s steps(2, end), background-color .15s steps(2, end);
+  }
+  .agent.speaking, .agent.working, .agent.thinking { border-color: var(--ac); background: var(--pi-accent-soft); }
+  .agent .ava { grid-column: 1; grid-row: 1 / 4; width: 28px; height: 25px; margin: 0; position: relative; overflow: hidden; }
   .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
-  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
-  .agent .nm { font-weight: 800; font-size: .84rem; }
-  .agent .rl { font-size: .66rem; color: var(--ac); font-weight: 700; }
-  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
-  .agent .chipstat { display: inline-block; margin-top: .3rem; font-size: .6rem; font-weight: 700; letter-spacing: .05em; color: var(--ac); border: 1.5px solid var(--ac); border-radius: 999px; padding: .08rem .5rem; background: #fff; }
-  .agent .st { font-size: .62rem; color: var(--dim); min-height: 1.1em; margin-top: .18rem; }
-  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
-  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
-  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
-  @keyframes caret { 50% { opacity: 0; } }
-  .eye { animation: blink 4.6s infinite; transform-origin: center; }
-  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
-  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
-  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
-  @keyframes ponder { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
-  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
-  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
-  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-  .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
-  @keyframes cheer { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-9px); } }
-  .agent.sip .person { animation: sipping 1s ease-in-out 1; }
-  @keyframes sipping { 0%,100% { transform: rotate(0); } 35%,65% { transform: rotate(-3.5deg) translateY(-2px); } }
-  .agent.sip .sipsteam { opacity: 1; }
-  .sipsteam { opacity: 0; transition: opacity .3s; }
-  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
-  .steam rect:nth-child(2) { animation-delay: 1.3s; }
-  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
-  .thought { position: absolute; top: -12px; right: 2px; display: none; background: #fff; border: 1.5px solid var(--ac); border-radius: 8px; padding: .1rem .45rem; font-size: .74rem; color: var(--ac); font-weight: 700; box-shadow: 2px 2px 0 rgba(28,26,23,.12); z-index: 5; }
-  .thought:after { content: ""; position: absolute; left: 8px; bottom: -9px; width: 6px; height: 6px; background: #fff; border: 1.5px solid var(--ac); border-radius: 50%; }
-  .agent.thinking .thought { display: block; animation: ponder 1.6s ease-in-out infinite; }
-  .thought .td { display: inline-block; animation: tdb 1s ease-in-out infinite; }
-  .thought .td:nth-child(2) { animation-delay: .15s; }
-  .thought .td:nth-child(3) { animation-delay: .3s; }
-  @keyframes tdb { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-3px); } }
-  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
-  @keyframes mflow { to { stroke-dashoffset: -120; } }
-  .scr { animation: flick 7.3s steps(1) infinite; }
-  @keyframes flick { 0%, 93%, 100% { opacity: 1; } 94%, 96% { opacity: .72; } }
+  .agent .person, .agent .eye, .agent .mchart, .agent .scr, .agent .hands rect { animation: none; }
+  .sipsteam, .steam, .thought { display: none !important; }
+  .agent .nm { grid-column: 2; grid-row: 1; font-family: var(--pi-font-ui); font-size: 15px; font-weight: 700; line-height: 1.1; }
+  .agent .rl { grid-column: 2; grid-row: 2; font-family: var(--pi-font-ui); font-size: 12px; line-height: 1.25; color: var(--ac); font-weight: 700; }
+  .agent .tg { display: none; }
+  .agent .chipstat { grid-column: 3; grid-row: 1 / 3; align-self: center; color: var(--ac); border-color: var(--ac); background: var(--panel); }
+  .agent .st { grid-column: 2 / 4; grid-row: 3; min-width: 0; margin-top: 3px; font-family: var(--pi-font-body); font-size: 12px; color: var(--dim); overflow-wrap: anywhere; }
+  .agent .st .dots:after { content: "..."; }
   /* the yard signal */
-  .signal { position: absolute; top: .5rem; left: .6rem; width: 14px; height: 30px; background: #3a3f4d; border-radius: 4px; padding: 2px; }
-  .signal i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #23272f; margin-bottom: 2px; }
-  .signal.red i:nth-child(1) { background: var(--coral); animation: klax .5s steps(2) infinite; box-shadow: 0 0 10px rgba(184,70,58,.8); }
-  .signal.green i:nth-child(2) { background: var(--green); box-shadow: 0 0 8px rgba(47,138,88,.7); }
-  @keyframes klax { 50% { opacity: .35; } }
+  .signal { position: absolute; top: 7px; left: 5px; width: 8px; height: 20px; background: var(--pi-ink); border-radius: 0; padding: 2px; }
+  .signal i { display: block; width: 4px; height: 6px; border-radius: 0; background: var(--pi-muted); margin-bottom: 2px; }
+  .signal.red i:nth-child(1) { background: var(--coral); animation: signal-change .8s steps(1, end) infinite; }
+  .signal.green i:nth-child(2) { background: var(--green); }
+  @keyframes signal-change { 50% { opacity: .45; } }
   /* rail map */
-  .boardcard { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem .8rem; box-shadow: 3px 3px 0 rgba(28,26,23,.05); }
-  .boardcard h3 { font-size: .68rem; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; margin-bottom: .4rem; }
-  #railmap { width: 100%; height: auto; }
+  .boardcard { background: var(--panel); border: 2px solid var(--pi-ink); border-radius: 0; box-shadow: var(--pi-shadow-s); overflow: hidden; }
+  .boardcard h3 { min-height: 36px; padding: 9px 12px; border-bottom: 2px solid var(--pi-ink); background: var(--pi-accent-soft); color: var(--text); font-family: var(--pi-font-title); font-size: 10px; line-height: 1.5; letter-spacing: .04em; text-transform: lowercase; }
+  #railmap { display: block; width: 100%; height: clamp(190px, 28vw, 260px); padding: 8px 10px 10px; }
   .stn rect.box { fill: var(--panel-2); stroke: var(--line); stroke-width: 1.5; }
-  .stn text { font-family: inherit; font-size: 9.5px; fill: var(--text); font-weight: 700; }
-  .stn text.rows { font-size: 8px; fill: var(--dim); font-weight: 400; }
-  .stn circle.led { fill: #b8b2a4; }
+  .stn text { font-family: var(--pi-font-ui); font-size: 12px; fill: var(--text); font-weight: 700; }
+  .stn text.rows { font-family: var(--pi-font-code); font-size: 10px; fill: var(--dim); font-weight: 400; }
+  .stn circle.led { fill: var(--pi-muted); }
   .stn.ok circle.led { fill: var(--green); }
-  .stn.run circle.led { fill: var(--gold); animation: ledrun .6s steps(2) infinite; }
+  .stn.run circle.led { fill: var(--gold); animation: signal-change .8s steps(1, end) infinite; }
   .stn.fail rect.box { stroke: var(--coral); fill: var(--coral-bg); }
-  .stn.fail circle.led { fill: var(--coral); animation: ledrun .45s steps(2) infinite; }
+  .stn.fail circle.led { fill: var(--coral); animation: signal-change .8s steps(1, end) infinite; }
   .stn.fixed rect.box { stroke: var(--green); fill: var(--green-bg); }
   .stn.fixed circle.led { fill: var(--green); }
-  @keyframes ledrun { 50% { opacity: .25; } }
-  .track { stroke: #b8b2a4; stroke-width: 3; fill: none; }
+  .track { stroke: var(--pi-muted); stroke-width: 3; fill: none; }
   .ties { stroke: var(--line); stroke-width: 7; stroke-dasharray: 1.5 7; fill: none; }
+  .rail-list { display: none; list-style: none; padding: 12px; }
+  .rail-stn { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; padding: 0 0 14px; font-size: 14px; }
+  .rail-stn:not(:last-child)::after { content: ""; position: absolute; left: 7px; top: 18px; bottom: 0; width: 2px; background: var(--pi-line); }
+  .rail-stn .pi-ic { position: relative; z-index: 1; padding: 2px; background: var(--panel); border: 1px solid var(--pi-ink); }
+  .rail-node-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; font-family: var(--pi-font-ui); font-size: 15px; font-weight: 700; }
+  .rail-state { font-size: 12px; color: var(--dim); text-transform: uppercase; }
+  .rail-rows { display: block; margin-top: 2px; color: var(--dim); font-family: var(--pi-font-code); font-size: 12px; overflow-wrap: anywhere; }
+  .rail-stn.ok .rail-state, .rail-stn.fixed .rail-state { color: var(--green); }
+  .rail-stn.run .rail-state { color: var(--gold); }
+  .rail-stn.fail .rail-state { color: var(--coral); }
   /* terminal */
-  .term { background: var(--term); color: var(--term-text); border-radius: 10px; border: 1.5px solid #0d1014; padding: .7rem .9rem; font-size: .72rem; max-height: 340px; overflow-y: auto; line-height: 1.5; }
-  .term .bar { display: flex; gap: .3rem; margin-bottom: .5rem; }
-  .term .bar i { width: 9px; height: 9px; border-radius: 50%; }
-  .term .bar i:nth-child(1) { background: #b8463a; } .term .bar i:nth-child(2) { background: #8f6f1d; } .term .bar i:nth-child(3) { background: #2f8a58; }
-  .term .ln { white-space: pre-wrap; word-break: break-all; }
-  .term .p { color: #7fbf6a; }
+  .term { border-radius: 0; padding: 0 14px 14px; font-family: var(--pi-font-code); font-size: 13px; max-height: 340px; overflow: auto; line-height: 1.55; box-shadow: none; }
+  .term .bar { display: flex; align-items: center; gap: 4px; min-height: 34px; margin: 0 -14px 12px; padding: 7px 10px; border-bottom: 2px solid var(--pi-ink); background: #252018; }
+  .term .bar::after { content: "conductor terminal"; margin-left: 5px; color: var(--pi-term-fg); font-family: var(--pi-font-title); font-size: 10px; letter-spacing: .04em; }
+  .term .bar i { width: 7px; height: 7px; border: 1px solid var(--pi-term-dim); border-radius: 0; background: transparent; }
+  .term .ln { white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; }
+  .term .p { color: #e7c979; }
   .term .cmdtxt { color: #e8e4d8; font-weight: 700; }
-  .term .note { color: #5a6478; font-style: italic; }
-  .term .out { color: #9fb0c8; }
-  .term .out .err { color: #e07a6a; }
-  .term .out .warn { color: #e0c36a; }
-  .term .caret { display: inline-block; width: .55em; height: .9em; background: #7fbf6a; vertical-align: -1px; animation: caret .8s steps(2) infinite; }
+  .term .note { color: var(--pi-term-dim); font-style: italic; }
+  .term .out { color: var(--pi-term-fg); }
+  .term .out .err { color: var(--pi-term-err); }
+  .term .out .warn { color: #e7c979; }
+  .term .caret { display: inline-block; width: .55em; height: .9em; background: #e7c979; vertical-align: -1px; animation: caret .8s steps(1, end) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
   /* feed */
-  #feed { display: flex; flex-direction: column; gap: .7rem; max-height: 560px; overflow-y: auto; }
-  .ev { border: 1.5px solid var(--line); border-radius: 12px; padding: .65rem .85rem; background: var(--panel); animation: pop .28s cubic-bezier(.34,1.56,.64,1); font-size: .78rem; position: relative; }
-  @keyframes pop { 0% { transform: scale(.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  .ev .hd { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: .3rem; }
+  #feed { display: flex; flex-direction: column; gap: 14px; max-height: 620px; overflow-y: auto; padding: 16px; }
+  .ev { border-radius: 0; padding: 12px 14px 14px; background: var(--panel); animation: pop .2s steps(3, end); font-family: var(--pi-font-body); font-size: 14px; position: relative; box-shadow: var(--pi-shadow-s); overflow: visible; }
+  @keyframes pop { 0% { transform: translateY(4px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .ev .hd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 36px; margin: -12px -14px 12px; padding: 8px 10px; border-bottom: 2px solid var(--pi-ink); background: var(--panel-2); color: var(--text); font-family: var(--pi-font-title); font-size: 10px; line-height: 1.5; letter-spacing: .04em; text-transform: lowercase; }
   .ev.page { border-color: var(--coral); background: var(--coral-bg); }
-  .ev.page .hd { color: var(--coral); }
-  .ev.dq .hd { color: var(--gold); }
-  .ev.dq table { width: 100%; border-collapse: collapse; font-size: .7rem; }
-  .ev.dq td { padding: .15rem .4rem; border-top: 1px dashed var(--line); }
+  .ev.page .hd { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .ev.dq .hd { color: var(--gold); background: var(--pi-warn-soft); }
+  .check-table-wrap { width: 100%; overflow-x: auto; }
+  .ev.dq table { width: 100%; min-width: 620px; }
+  .ev.dq td { padding: 7px 8px; border-top: 1px solid var(--line); vertical-align: top; }
   .ev.dq td.ok { color: var(--green); font-weight: 700; }
   .ev.dq td.bad { color: var(--coral); font-weight: 700; }
-  .ev.diag .hd { color: var(--navy); }
+  .ev.diag .hd { color: var(--navy); background: #e5eaf0; }
   .ev.diag { border-color: var(--navy); }
-  .ev .receipts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; }
-  .ev .receipts span { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; }
-  .ev .receipts span:before { content: "⌕ "; }
-  .ev .confbadge { float: right; font-size: .62rem; color: var(--navy); font-weight: 700; }
+  .ev .receipts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .ev .receipts span { color: var(--dim); background: var(--panel-2); border-color: var(--line); text-transform: none; white-space: normal; overflow-wrap: anywhere; }
+  .ev .confbadge { margin-left: auto; color: var(--navy); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
   .ev.prop { border-color: var(--gold); }
-  .ev.prop .hd { color: var(--gold); }
+  .ev.prop .hd { color: var(--gold); background: var(--pi-warn-soft); border-color: var(--gold); }
   .ev.prop.approved { border-color: var(--green); }
-  .risk { display: inline-block; font-size: .6rem; font-weight: 800; border-radius: 999px; padding: .05rem .55rem; color: #fff; margin-left: .45rem; vertical-align: 1px; }
-  .risk.low { background: var(--green); } .risk.medium { background: var(--gold); } .risk.high { background: var(--coral); }
-  .ev .code { background: var(--term); color: #e8e4d8; border-radius: 8px; padding: .45rem .6rem; font-size: .68rem; margin: .4rem 0; white-space: pre-wrap; word-break: break-all; }
-  .ev .code .add { color: #7fbf6a; } .ev .code .del { color: #e07a6a; }
-  .ev .sub { font-size: .7rem; color: var(--dim); margin-top: .25rem; }
+  .risk { margin-left: 4px; vertical-align: 1px; }
+  .risk.low { color: var(--green); background: var(--green-bg); border-color: var(--green); }
+  .risk.medium { color: var(--gold); background: var(--pi-warn-soft); border-color: var(--gold); }
+  .risk.high { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .ev .code { background: var(--term); color: var(--pi-term-fg); border: 2px solid var(--pi-ink); border-radius: 0; padding: 10px 12px; font-family: var(--pi-font-code); font-size: 13px; line-height: 1.55; margin: 10px 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; overflow-x: auto; }
+  .ev .code .add { color: var(--pi-term-ok); } .ev .code .del { color: var(--pi-term-err); }
+  .ev .sub { font-size: 14px; color: var(--dim); margin-top: 6px; }
   .ev .sub b { color: var(--text); }
-  .stamp { position: absolute; top: .4rem; right: .8rem; transform: rotate(-12deg) scale(0); border: 3px solid var(--green); color: var(--green); font-weight: 800; font-size: .8rem; letter-spacing: .12em; padding: .1rem .5rem; border-radius: 6px; text-transform: uppercase; opacity: .9; }
-  .stamp.show { animation: stampin .45s cubic-bezier(.34,1.8,.64,1) forwards; }
+  .stamp { position: static; display: flex; align-items: center; gap: 4px; min-height: 34px; width: fit-content; margin: 0 0 8px auto; transform: rotate(-2deg); visibility: hidden; border: 3px solid var(--green); border-radius: 0; padding: 1px 8px; color: var(--green); font-family: var(--pi-font-note); font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: .03em; text-transform: uppercase; opacity: 0; }
+  .stamp.show { visibility: visible; animation: stampin .32s steps(3, end) forwards; }
   .stamp.held { border-color: var(--coral); color: var(--coral); }
-  @keyframes stampin { 0% { transform: rotate(-12deg) scale(2.2); opacity: 0; } 100% { transform: rotate(-12deg) scale(1); opacity: .9; } }
+  @keyframes stampin { 0% { transform: translateY(-6px) rotate(-2deg) scale(1.2); opacity: 0; } 100% { transform: rotate(-2deg) scale(1); opacity: 1; } }
   .ev.verify.green { border-color: var(--green); background: var(--green-bg); }
-  .ev.verify.green .hd { color: var(--green); }
+  .ev.verify.green .hd { color: var(--green); background: var(--green-bg); border-color: var(--green); }
   .ev.verify.held { border-color: var(--coral); background: var(--coral-bg); }
-  .postm { font-size: .68rem; color: var(--dim); margin-top: .35rem; }
+  .ev.verify.held .hd { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .postm { font-size: 12px; color: var(--dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
   .postm b { color: var(--text); }
-  .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .9rem; }
-  .btn { font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; background: var(--gold); color: #fff; border: 0; border-radius: 8px; padding: .45rem 1rem; }
-  .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 0; padding: 16px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn.ghost { background: var(--panel); color: var(--dim); }
   .btn.ghost:hover { color: var(--gold); border-color: var(--gold); }
   .btn:disabled, .spd button:disabled, #scrub:disabled { opacity: .5; cursor: not-allowed; }
-  .spd { display: flex; gap: .25rem; }
-  .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
-  .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
-  #scrub { flex: 1; accent-color: var(--gold); min-width: 140px; }
-  .tclock { font-size: .7rem; color: var(--dim); min-width: 4.5rem; text-align: right; }
-  #toast { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); background: var(--text); color: #fff; font-size: .8rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; padding: .55rem 1.3rem; border-radius: 10px; opacity: 0; pointer-events: none; z-index: 10; box-shadow: 5px 5px 0 rgba(28,26,23,.2); }
-  #toast.show { animation: toast 1.4s cubic-bezier(.34,1.3,.64,1) 1; }
+  .spd { display: flex; gap: 6px; }
+  .spd button { padding: 8px 10px; color: var(--dim); }
+  .spd button.on { background: var(--pi-accent-soft); color: var(--text); border-color: var(--gold); }
+  #scrub { flex: 1; min-width: 160px; min-height: 44px; accent-color: var(--gold); cursor: pointer; }
+  .tclock { min-width: 4.5rem; text-align: right; color: var(--dim); font-family: var(--pi-font-code); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #toast { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); max-width: calc(100% - 32px); background: var(--text); color: #fff; border: 2px solid var(--pi-ink); border-radius: 0; padding: 10px 16px; font-family: var(--pi-font-ui); font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-align: center; opacity: 0; pointer-events: none; z-index: 10; box-shadow: var(--pi-shadow); }
+  #toast.show { animation: toast 1.4s steps(4, end) 1; }
   @keyframes toast { 0% { opacity: 0; } 18% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
-  .stagewrap { position: relative; }
-  .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
-  @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
+  .spark { display: none; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 32px; }
   a { color: var(--blue); }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  @media (max-width: 700px) {
+    body { padding: 16px 12px 40px; }
+    .picker { flex-direction: column; }
+    .sess { width: 100%; max-width: none; flex-basis: auto; }
+    .bridge { grid-template-columns: 1fr; }
+    .boardcard { grid-column: 1; grid-row: 1; }
+    #ag-cond { grid-column: 1; grid-row: 2; }
+    #ag-disp { grid-column: 1; grid-row: 3; }
+    #railmap { display: none; }
+    .rail-list { display: block; }
+    .controls { align-items: stretch; }
+    .controls > .btn { flex: 1 1 130px; }
+    .spd { flex: 1 1 auto; }
+    .spd button { flex: 1; }
+    #scrub { flex-basis: 100%; order: 4; }
+    .tclock { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+    .check-table-wrap { overflow: visible; }
+    .ev.dq table, .ev.dq tbody, .ev.dq tr, .ev.dq td { display: block; min-width: 0; width: 100%; }
+    .ev.dq tr { padding: 8px 0; border-top: 2px solid var(--line); }
+    .ev.dq tr:first-child { border-top: 0; padding-top: 0; }
+    .ev.dq td { display: grid; grid-template-columns: minmax(72px, 34%) minmax(0, 1fr); gap: 8px; padding: 3px 0; border: 0; overflow-wrap: anywhere; }
+    .ev.dq td::before { content: attr(data-label); color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  }
+  @media (max-width: 430px) {
+    .stagewrap, #feed, .controls { padding-left: 10px; padding-right: 10px; }
+    .agent { grid-template-columns: 32px minmax(0, 1fr); padding-left: 16px; }
+    .agent .ava { width: 24px; height: 21px; }
+    .agent .chipstat { grid-column: 2; grid-row: 3; justify-self: start; margin-top: 5px; }
+    .agent .st { grid-column: 2; grid-row: 4; }
+    .incident-title .tag { width: 100%; margin-left: 0; }
+    .ev .hd { font-size: 10px; }
+    .ev .confbadge { width: 100%; margin-left: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    .stamp.show { transform: rotate(-2deg); opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -186,48 +235,49 @@
   <div class="picker" id="picker" role="group" aria-label="Incident scenario"></div>
   <div class="loadstate" id="loadstate" role="status" aria-live="polite" hidden></div>
 
-  <div class="card">
-    <div class="incident-title" id="ititle">—</div>
+  <div class="card pwin">
+    <div class="incident-title pwin-title" id="ititle">—</div>
     <div class="stagewrap">
       <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="bridge">
         <div class="agent" id="ag-cond">
           <span class="signal" id="signal"><i></i><i></i></span>
-          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> ⌕</span>
+          <span class="thought"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg></span>
           <div class="ava" id="av-cond"></div>
           <div class="nm">The Conductor</div>
           <div class="rl">Agent on the night shift</div>
           <div class="tg">reads the ledger so you can sleep</div>
-          <span class="chipstat" id="sc-cond">0 QUERIES RUN</span>
+          <span class="chipstat pchip" id="sc-cond">0 QUERIES RUN</span>
           <div class="st" id="st-cond">watching the board</div>
         </div>
         <div class="agent" id="ag-disp">
-          <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span> 🚦</span>
+          <span class="thought"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg></span>
           <div class="ava" id="av-disp"></div>
           <div class="nm">The Dispatcher</div>
           <div class="rl">Clears every signal</div>
           <div class="tg">no repair rolls without the stamp</div>
-          <span class="chipstat" id="sc-disp">STAMPS 0</span>
+          <span class="chipstat pchip" id="sc-disp">STAMPS 0</span>
           <div class="st" id="st-disp">coffee in hand</div>
         </div>
         <div class="boardcard">
           <h3>the yard — nightly-revenue</h3>
-          <svg id="railmap" viewBox="0 0 470 190"></svg>
+          <svg id="railmap" viewBox="0 0 470 190" role="img" aria-label="nightly-revenue rail map"></svg>
+          <ol class="rail-list" id="rail-list" aria-label="nightly-revenue rail map stations"></ol>
         </div>
       </div>
-      <div class="term" id="term" role="log" aria-live="polite" aria-relevant="additions"><div class="bar"><i></i><i></i><i></i></div></div>
+      <div class="term pterm" id="term" role="log" aria-live="polite" aria-relevant="additions"><div class="bar"><i></i><i></i><i></i></div></div>
     </div>
     <div class="controls">
-      <button class="btn" id="play" disabled>▶ play</button>
-      <button class="btn ghost" id="restart" disabled>↺ restart</button>
+      <button class="btn pbtn primary" id="play" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg> play</button>
+      <button class="btn ghost pbtn" id="restart" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg> restart</button>
       <div class="spd" id="spd" role="group" aria-label="Playback speed; changes apply from the next replay step" title="Speed changes apply from the next replay step"></div>
       <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline" disabled>
       <span class="tclock" id="clock">0:00</span>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Incident ledger</h2>
+  <div class="card pwin">
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> Incident ledger</h2>
     <div id="feed" role="log" aria-live="polite" aria-relevant="additions"></div>
   </div>
 
@@ -243,6 +293,10 @@
 <script>
   "use strict";
   const $ = (id) => document.getElementById(id);
+  const icon = (id) => `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"/></svg>`;
+  function setPlayLabel(label) {
+    $("play").innerHTML = `${icon(label === "pause" ? "i-pause" : "i-play")} ${label}`;
+  }
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const SESSIONS = ["schema-drift.json", "null-join.json", "dup-load.json"];
   const CPS = 60;
@@ -299,7 +353,7 @@
   /* ---------- pixel characters ---------- */
   function pixelChar(kind) {
     const ink = "#1c1a17", suit = "#2e3442", skin = kind === "cond" ? "#dfa77e" : "#d59a72";
-    const ac = kind === "cond" ? "#20416b" : "#8f6f1d";
+    const ac = kind === "cond" ? "#263b50" : "#8a6200";
     const cap = kind === "cond"
       ? `<rect x="48" y="12" width="36" height="8" fill="${ac}"/>
          <rect x="48" y="18" width="36" height="3" fill="#e0c36a"/>
@@ -312,8 +366,8 @@
       <g>
         <rect x="103" y="42" width="4" height="34" fill="#3a3f4d"/>
         <rect x="98" y="40" width="14" height="6" fill="${ink}"/>
-        <rect x="100" y="34" width="4" height="6" fill="#b8463a"/>
-        <rect x="106" y="34" width="4" height="6" fill="#2f8a58"/>
+        <rect x="100" y="34" width="4" height="6" fill="#6d6353"/>
+        <rect x="106" y="34" width="4" height="6" fill="#eee7d6"/>
       </g>` : `
       <g>
         <rect x="98" y="52" width="20" height="14" fill="#8a7d64"/>
@@ -329,7 +383,7 @@
     const mustache = kind === "disp" ? `<rect x="58" y="44" width="16" height="3" fill="#6b4a2f"/>` : "";
     const chart = kind === "cond"
       ? `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`
-      : `<g class="mchart"><rect x="15" y="50" width="8" height="4" fill="#e0c36a"/><rect x="26" y="50" width="12" height="4" fill="#7fbf6a"/><rect x="15" y="58" width="12" height="4" fill="#e07a6a"/></g>`;
+      : `<g class="mchart"><rect x="15" y="50" width="8" height="4" fill="#e0c36a"/><rect x="26" y="50" width="12" height="4" fill="#c9c2b4"/><rect x="15" y="58" width="12" height="4" fill="#8a7d64"/></g>`;
     return `<svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         ${cap}
@@ -349,7 +403,7 @@
       ${kind === "cond" ? `<g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
       <rect x="48" y="75" width="26" height="4" fill="#23272f"/>` : ""}
       <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
-      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#14110c"/>
       ${chart}
       <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
       ${extra}
@@ -370,10 +424,11 @@
   const POS = {};   // node id -> {x, y}
   function renderMap() {
     const svg = $("railmap");
+    const list = $("rail-list");
     const cols = {};
     for (const n of S.board.nodes) (cols[n.col] = cols[n.col] || []).push(n);
     const W = 470, colX = { 0: 12, 1: 178, 2: 344 };
-    let parts = [];
+    let parts = ["<title>nightly-revenue rail map</title>"];
     for (const [ci, nodes] of Object.entries(cols)) {
       nodes.forEach((n, i) => {
         const x = colX[ci], y = 22 + i * 74 + (ci == 2 ? 37 : 0);
@@ -391,21 +446,35 @@
     for (const n of S.board.nodes) {
       const p = POS[n.id];
       parts.push(`<g class="stn" id="stn-${n.id}" transform="translate(${p.x},${p.y})">
-        <rect class="box" width="114" height="44" rx="7"/>
+        <rect class="box" width="114" height="44" rx="0"/>
         <circle class="led" cx="102" cy="11" r="4.5"/>
         <text x="9" y="19">${n.label}</text>
         <text class="rows" x="9" y="34" id="rows-${n.id}">${n.kind === "source" ? "raw feed" : "—"}</text>
       </g>`);
     }
     svg.innerHTML = parts.join("");
+    list.innerHTML = S.board.nodes.map((n) => `
+      <li class="rail-stn" id="rail-stn-${n.id}">
+        ${icon("i-signal")}
+        <div>
+          <span class="rail-node-head"><span>${esc(n.label)}</span><span class="rail-state" id="rail-state-${n.id}">waiting</span></span>
+          <span class="rail-rows" id="rail-rows-${n.id}">${n.kind === "source" ? "raw feed" : "—"}</span>
+        </div>
+      </li>`).join("");
   }
   function stnState(id, cls) {
     const el = $("stn-" + id);
     if (el) el.setAttribute("class", "stn" + (cls ? " " + cls : ""));
+    const item = $("rail-stn-" + id);
+    if (item) item.className = "rail-stn" + (cls ? " " + cls : "");
+    const state = $("rail-state-" + id);
+    if (state) state.textContent = cls === "fail" ? "failed" : cls === "run" ? "running" : cls === "ok" || cls === "fixed" ? "verified" : "waiting";
   }
   function stnRows(id, text) {
     const el = $("rows-" + id);
     if (el) el.textContent = text;
+    const mobile = $("rail-rows-" + id);
+    if (mobile) mobile.textContent = text;
   }
 
   /* ---------- terminal ---------- */
@@ -430,7 +499,7 @@
     const feed = $("feed");
     const nearEnd = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
     const d = document.createElement("div");
-    d.className = "ev " + cls;
+    d.className = "ev pwin " + cls;
     d.innerHTML = html;
     feed.appendChild(d);
     if (!reconstructing && nearEnd) feed.scrollTo({ top: feed.scrollHeight, behavior: REDUCED ? "auto" : "smooth" });
@@ -492,7 +561,7 @@
     }, 30, commandGen);
   }
 
-  function riskBadge(r) { return `<span class="risk ${r}">${r} risk</span>`; }
+  function riskBadge(r) { return `<span class="risk pchip ${r}">${r} risk</span>`; }
   function diffHtml(text) {
     return esc(text).split("\n").map((l) =>
       l.startsWith("+") ? `<span class="add">${l}</span>` :
@@ -502,28 +571,18 @@
     const st = document.querySelector(".ev.prop:last-of-type .stamp");
     const pc = document.querySelector(".ev.prop:last-of-type");
     if (!st) return;
-    st.textContent = decision === "approved" ? "cleared ✓" : "held ✗";
+    st.innerHTML = decision === "approved" ? `${icon("i-check")} cleared` : `${icon("i-hold")} held`;
     if (decision !== "approved") st.classList.add("held");
     if (pc && decision === "approved") pc.classList.add("approved");
     st.classList.add("show");
-    if (instant) { st.style.animation = "none"; st.style.transform = "rotate(-12deg) scale(1)"; }
-  }
-  function sparkle() {
-    if (REDUCED) return;
-    const sparkleGen = gen;
-    const rect = $("railmap").getBoundingClientRect();
-    for (let i = 0; i < 6; i++) {
-      const s = document.createElement("span");
-      s.className = "spark";
-      s.textContent = ["✦", "✧", "◆"][i % 3];
-      s.style.color = ["#2f8a58", "#8f6f1d", "#20416b"][i % 3];
-      s.style.left = rect.left + Math.random() * rect.width + "px";
-      s.style.top = rect.top + Math.random() * rect.height * 0.7 + "px";
-      s.style.animationDelay = (Math.random() * 0.3) + "s";
-      document.body.appendChild(s);
-      later(() => s.remove(), 1700, sparkleGen);
+    if (instant) {
+      st.style.animation = "none";
+      st.style.transform = "rotate(-2deg) scale(1)";
+      st.style.opacity = "1";
+      st.style.visibility = "visible";
     }
   }
+  function sparkle() {}
   function toast(text) {
     const t = $("toast");
     t.textContent = text;
@@ -544,7 +603,7 @@
     switch (s.t) {
       case "page":
         $("signal").className = "signal red";
-        card("page", `<div class="hd">🔔 derailment paged</div>${esc(ev.text)}`);
+        card("page", `<div class="hd pwin-title">${icon("i-alert")} derailment paged</div>${esc(ev.text)}`);
         if (!instant) toast("derailment paged");
         setStatus("cond", "agent thinking", "acknowledging the page");
         setStatus("disp", "agent", "watching the signal");
@@ -561,10 +620,10 @@
         const bad = ev.results.some((r) => r.status === "fail");
         if (bad || !instant) {
           const rows = ev.results.map((r) =>
-            `<tr><td>${esc(r.name)}</td><td>${esc(r.table)}</td>` +
-            `<td class="${r.status === "pass" ? "ok" : "bad"}">${r.status === "pass" ? "✓ pass" : "✗ FAIL"}</td>` +
-            `<td>${esc(r.detail)}</td></tr>`).join("");
-          if (bad) card("dq", `<div class="hd">data-quality checks — ${esc(ev.task)}</div><table>${rows}</table>`);
+            `<tr><td data-label="check">${esc(r.name)}</td><td data-label="table">${esc(r.table)}</td>` +
+            `<td data-label="state" class="${r.status === "pass" ? "ok" : "bad"}">${r.status === "pass" ? `${icon("i-check")} pass` : `${icon("i-x")} FAIL`}</td>` +
+            `<td data-label="detail">${esc(r.detail)}</td></tr>`).join("");
+          if (bad) card("dq", `<div class="hd pwin-title">${icon("i-chart")} data-quality checks — ${esc(ev.task)}</div><div class="check-table-wrap"><table class="ptable">${rows}</table></div>`);
         }
         return fin();
       }
@@ -583,15 +642,15 @@
         return typeCmd(ev.cmd, ev.out, ev.note, () => { setStatus("cond", "agent", "reading the result"); fin(); });
       case "diagnosis":
         card("diag", `
-          <div class="hd">diagnosis — ${esc(ev.signature)}${ev.signature !== "unknown" ? `<span class="confbadge">${ev.confidence}% CONFIDENT</span>` : ""}</div>
+          <div class="hd pwin-title">${icon("i-search")} diagnosis — ${esc(ev.signature)}${ev.signature !== "unknown" ? `<span class="confbadge">${ev.confidence}% CONFIDENT</span>` : ""}</div>
           ${esc(ev.cause)}
-          ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span>${esc(r)}</span>`).join("")}</div>` : ""}`);
+          ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span class="pchip">${icon("i-doc")} ${esc(r)}</span>`).join("")}</div>` : ""}`);
         setStatus("cond", "agent", "diagnosis on the table");
         return fin();
       case "proposal":
         card("prop", `
-          <div class="hd">proposed repair ${riskBadge(ev.risk)}</div>
-          <span class="stamp">cleared ✓</span>
+          <div class="hd pwin-title">${icon("i-doc")} proposed repair ${riskBadge(ev.risk)}</div>
+          <span class="stamp">${icon("i-check")} cleared</span>
           <div class="code">${diffHtml(ev.command)}</div>
           <div class="sub">${esc(ev.explain)}</div>
           <div class="sub"><b>rollback, staged:</b> ${esc(ev.rollback)}</div>
@@ -608,7 +667,7 @@
         gateBlocked = !ok;
         applyStamp(ev.decision, instant);
         $("sc-disp").textContent = "STAMPS 1";
-        setStatus("disp", ok ? "agent cheer" : "agent", ok ? "signal cleared ✓" : "holding the signal ✗");
+        setStatus("disp", ok ? "agent cheer" : "agent", ok ? `${icon("i-check")} signal cleared` : `${icon("i-hold")} holding the signal`);
         setStatus("cond", "agent", ok ? "cleared to repair" : "standing down — read-only");
         if (ok) runsSeen = 1;      // stations rebuilt after this render as "fixed"
         return fin();
@@ -627,11 +686,11 @@
         $("signal").className = "signal " + (green ? "green" : "red");
         const nq = S.timeline.filter((x) => x.t === "cmd").length;
         card("verify " + (green ? "green" : "held"), `
-          <div class="hd">${green ? "✓ back on the rails" : ev.result === "held" ? "✗ held at the signal" : "✗ still derailed"}</div>
+          <div class="hd pwin-title">${green ? `${icon("i-check")} back on the rails` : ev.result === "held" ? `${icon("i-hold")} held at the signal` : `${icon("i-x")} still derailed`}</div>
           ${esc(ev.text)}
           <div class="postm">postmortem: <b>${nq} probe queries</b> · <b>1 human decision</b> · evidence receipts above · rollback stayed staged the whole time</div>`);
         if (green) {
-          setStatus("cond", "agent cheer", "right on schedule ✓");
+          setStatus("cond", "agent cheer", `${icon("i-check")} right on schedule`);
           setStatus("disp", "agent", "back to the coffee");
           if (!instant) { toast("back on the rails"); sparkle(); }
         } else {
@@ -680,7 +739,7 @@
     clearPendingTimers();
     idx = steps.length;
     $("scrub").value = $("scrub").max;
-    $("play").textContent = "▶ replay";
+    setPlayLabel("replay");
     $("a11y-status").textContent = "Replay complete.";
   }
 
@@ -692,7 +751,7 @@
     if (s.t === "approval" && gateBlocked) {
       playing = false;
       clearPendingTimers();
-      $("play").textContent = "▶ replay";
+      setPlayLabel("replay");
       return;
     }
     if (idx >= steps.length) {
@@ -718,8 +777,8 @@
   function resetStage() {
     $("av-cond").innerHTML = pixelChar("cond");
     $("av-disp").innerHTML = pixelChar("disp");
-    $("ag-cond").style.setProperty("--ac", "#20416b");
-    $("ag-disp").style.setProperty("--ac", "#8f6f1d");
+    $("ag-cond").style.setProperty("--ac", "#263b50");
+    $("ag-disp").style.setProperty("--ac", "var(--pi-accent)");
     $("sc-cond").textContent = "0 QUERIES RUN";
     $("sc-disp").textContent = "STAMPS 0";
     setStatus("cond", "agent", "watching the board");
@@ -766,33 +825,20 @@
       resetStage();
     }
     playing = true;
-    $("play").textContent = "⏸ pause";
-    scheduleCoffee();
+    setPlayLabel("pause");
     runStep();
   }
   function pause() {
     playing = false;
     if (activeCommand) activeCommand.complete();
     clearPendingTimers();
-    $("play").textContent = "▶ play";
+    setPlayLabel("play");
   }
   function restartPlayback() {
     if (!S) return;
     invalidatePlayback();
     resetStage();
     play();
-  }
-  function scheduleCoffee(expectedGen = gen) {
-    if (REDUCED) return;
-    later(() => {
-      if (!playing) return;
-      const el = $(Math.random() < 0.5 ? "ag-cond" : "ag-disp");
-      if (el && el.className === "agent") {
-        el.classList.add("sip");
-        later(() => el.classList.remove("sip"), 1100, expectedGen);
-      }
-      scheduleCoffee(expectedGen);
-    }, 4600, expectedGen);
   }
   function setControlsDisabled(disabled) {
     $("play").disabled = disabled;
@@ -807,10 +853,11 @@
   const spd = $("spd");
   for (const s of [1, 2, 4]) {
     const b = document.createElement("button");
+    b.className = "pbtn";
     b.textContent = s + "×";
     b.disabled = true;
     b.setAttribute("aria-pressed", String(s === 1));
-    if (s === 1) b.className = "on";
+    if (s === 1) b.classList.add("on");
     b.addEventListener("click", () => {
       speed = s;
       [...spd.children].forEach((x) => {
@@ -836,6 +883,7 @@
     if (file) {
       const retry = document.createElement("button");
       retry.type = "button";
+      retry.className = "pbtn";
       retry.textContent = "retry";
       retry.addEventListener("click", () => loadSession(file));
       state.appendChild(retry);
@@ -880,7 +928,7 @@
         meta = { title: file.replace(/\.json$/, ""), tag: "scenario unavailable" };
       }
       const b = document.createElement("button");
-      b.type = "button"; b.className = "sess"; b.dataset.f = file;
+      b.type = "button"; b.className = "sess pbtn"; b.dataset.f = file;
       b.setAttribute("aria-pressed", "false");
       b.innerHTML = `${meta.title}<small>${meta.tag} · scenario-replay</small>`;
       b.addEventListener("click", () => { userPickedSession = true; loadSession(file); });

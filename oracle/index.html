@@ -4,13 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Oracle — a council of debating agents</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%236a47a0'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%232547c9'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css">
 <style>
   :root {
-    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
-    --text: #1c1a17; --dim: #5f5a51;
-    --blue: #3f5aa0; --gold: #8f6f1d; --violet: #6a47a0; --green: #2f8a58; --coral: #b8463a;
-    --blue-bg: #e3e9f5; --gold-bg: #f3ecd9; --violet-bg: #ece4f4; --green-bg: #e0efe6;
+    --bg: #f6f1e4; --panel: #fffdf6; --panel-2: #f6f1e4; --line: #cfc6b2;
+    --text: #1e1a14; --dim: #6d6353;
+    --blue: #2547c9; --gold: #8a6200; --violet: #2547c9; --green: #246b45; --coral: #b3372c;
+    --blue-bg: #e9edfb; --gold-bg: #f5ecd2; --violet-bg: #e9edfb; --green-bg: #e0efe5;
   }
   * { box-sizing: border-box; margin: 0; }
   body {
@@ -18,7 +22,7 @@
     background-image: radial-gradient(rgba(28,26,23,.055) 1px, transparent 1px);
     background-size: 22px 22px;
     color: var(--text);
-    font: 14px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font: 14px/1.55 var(--pi-font-body);
     min-height: 100vh; padding: 1.8rem 1rem 4rem;
   }
   .wrap { max-width: 1040px; margin: 0 auto; }
@@ -28,12 +32,12 @@
   .tagline { color: var(--dim); font-size: .82rem; margin-top: .3rem; }
   .honesty {
     display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim);
-    background: var(--panel); border: 1px dashed var(--line); border-radius: 999px;
+    background: var(--panel); border: 1px dashed var(--line); border-radius: 0;
     padding: .3rem .9rem;
   }
   .honesty b { color: var(--violet); }
   .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--panel); border: 2px solid var(--text); border-radius: 0;
     padding: 1rem 1.2rem; margin-bottom: .9rem;
     box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
   }
@@ -43,7 +47,7 @@
   .sess {
     font: inherit; font-size: .74rem; cursor: pointer; text-align: left;
     background: var(--panel); color: var(--text); border: 1px solid var(--line);
-    border-radius: 10px; padding: .5rem .8rem; max-width: 300px;
+    border-radius: 0; padding: .5rem .8rem; max-width: 300px;
     box-shadow: 3px 3px 0 rgba(28,26,23,.05);
   }
   .sess small { display: block; color: var(--dim); font-size: .64rem; margin-top: .15rem; }
@@ -54,27 +58,26 @@
   .rail { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
   .ph {
     font-size: .64rem; text-transform: uppercase; letter-spacing: .07em;
-    border: 1px solid var(--line); border-radius: 999px; padding: .22rem .7rem;
+    border: 1px solid var(--line); border-radius: 0; padding: .22rem .7rem;
     color: var(--dim); background: var(--panel); transition: all .3s;
   }
   .ph.now { color: #fff; background: var(--violet); border-color: var(--violet); font-weight: 700; }
   .ph.done { color: var(--green); border-color: var(--green); }
-  .ph.done:before { content: "✓ "; }
+  .ph.done:before { content: none; }
   /* council */
   .council { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: .9rem; }
   @media (max-width: 1000px) { .council { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 560px) { .council { grid-template-columns: 1fr; } }
   .agent {
-    background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px;
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 0;
     padding: .8rem; text-align: center; position: relative; transition: border-color .3s;
     box-shadow: 3px 3px 0 rgba(28,26,23,.05);
   }
   .agent.speaking { border-color: var(--ac); }
   .agent .ava { width: 132px; height: 116px; margin: 0 auto .3rem; position: relative; }
   .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
-  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
-  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
-  .agent.speaking .person { animation: lean .6s ease-in-out infinite alternate; }
+  .agent .person { transform-origin: 66px 80px; animation: none; }
+  .agent.thinking .person, .agent.speaking .person { animation: none; }
   .agent.poked .ava { animation: shake .45s ease-in-out 1; }
   @keyframes ponder { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
@@ -86,12 +89,12 @@
   @keyframes chew { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
   @keyframes chew2 { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
   /* monitor charts idle-animate forever */
-  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  .mchart { stroke-dasharray: 60; animation: none; }
   @keyframes mflow { to { stroke-dashoffset: -120; } }
   /* thought bubble */
   .thought {
     position: absolute; top: -14px; right: 0px; display: none;
-    background: #fff; border: 1.5px solid var(--ac); border-radius: 8px;
+    background: #fff; border: 1.5px solid var(--ac); border-radius: 0;
     padding: .12rem .45rem; font-size: .78rem; color: var(--ac); font-weight: 700;
     box-shadow: 2px 2px 0 rgba(28,26,23,.12);
   }
@@ -99,8 +102,8 @@
     content: ""; position: absolute; left: 8px; bottom: -9px; width: 6px; height: 6px;
     background: #fff; border: 1.5px solid var(--ac); border-radius: 50%;
   }
-  .agent.thinking .thought { display: block; animation: ponder 1.6s ease-in-out infinite; }
-  .thought .td { display: inline-block; animation: tdb 1s ease-in-out infinite; }
+  .agent.thinking .thought { display: block; animation: none; }
+  .thought .td { display: inline-block; animation: none; }
   .thought .td:nth-child(2) { animation-delay: .15s; }
   .thought .td:nth-child(3) { animation-delay: .3s; }
   @keyframes tdb { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-3px); } }
@@ -117,14 +120,14 @@
   .agent .chipstat {
     display: inline-block; margin-top: .35rem; font-size: .6rem; font-weight: 700;
     letter-spacing: .05em; color: var(--ac); border: 1.5px solid var(--ac);
-    border-radius: 999px; padding: .1rem .55rem; background: #fff;
+    border-radius: 0; padding: .1rem .55rem; background: #fff;
   }
   /* phase toast */
   #toast {
     position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(.8);
     background: var(--text); color: #fff; font-size: .8rem; font-weight: 800;
     letter-spacing: .14em; text-transform: uppercase; padding: .55rem 1.3rem;
-    border-radius: 10px; opacity: 0; pointer-events: none; z-index: 10;
+    border-radius: 0; opacity: 0; pointer-events: none; z-index: 10;
     box-shadow: 5px 5px 0 rgba(28,26,23,.2);
   }
   #toast.show { animation: toast 1.4s cubic-bezier(.34,1.3,.64,1) 1; }
@@ -145,15 +148,15 @@
   .backoffice .rl { font-size: .62rem; }
   .bo-label { grid-column: 1 / -1; font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .12em; text-align: center; margin: .1rem 0 -.2rem; }
   /* coffee steam */
-  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect { animation: none; opacity: 0; }
   .steam rect:nth-child(2) { animation-delay: 1.3s; }
   @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
   /* stenographer typing hands */
   .hands rect { animation: none; }
-  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
-  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  .agent.working .hands rect:nth-child(1),
+  .agent.working .hands rect:nth-child(2) { animation: none; }
   @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
+  .agent.working .person { animation: none; }
   /* listeners' eyes track the speaker */
   .agent.look-left .eye rect { transform: translateX(-1.6px); }
   .agent.look-right .eye rect { transform: translateX(1.6px); }
@@ -185,12 +188,11 @@
   .agent.bounce .person { animation: hop .55s ease-in-out 1; }
   @keyframes hop { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
   /* muttering: the mouth actually moves */
-  .agent.mumble .mouth-open { animation: chew .38s steps(1) infinite; }
-  .agent.mumble .mouth-closed { animation: chew2 .38s steps(1) infinite; }
+  .agent.mumble .mouth-open, .agent.mumble .mouth-closed { animation: none; }
   /* tiny pixel speech bubble over the desk */
   .workbub {
     position: absolute; top: -12px; left: 0; display: none; z-index: 5;
-    background: #fff; border: 1.5px solid var(--ac); border-radius: 8px;
+    background: #fff; border: 1.5px solid var(--ac); border-radius: 0;
     padding: .08rem .4rem; font-size: .64rem; font-weight: 700; color: var(--ac);
     white-space: nowrap; box-shadow: 2px 2px 0 rgba(28,26,23,.12);
   }
@@ -199,22 +201,22 @@
     background: #fff; border-right: 1.5px solid var(--ac); border-bottom: 1.5px solid var(--ac);
     transform: rotate(45deg);
   }
-  .workbub .td { display: inline-block; animation: tdb 1s ease-in-out infinite; }
+  .workbub .td { display: inline-block; animation: none; }
   .agent.working .workbub, .agent.mumble .workbub, .agent.away .workbub,
-  #ag-book.speaking .workbub { display: block; animation: ponder 1.4s ease-in-out infinite; }
+  #ag-book.speaking .workbub { display: block; animation: none; }
   /* typing hard: the paper stack jiggles too */
-  .agent.working .stack { animation: shufflep .5s steps(2) infinite; }
+  .agent.working .stack { animation: none; }
   /* thinking hard: the monitor chart cranks faster */
   .agent.thinking .mchart { animation-duration: 1.2s; }
   /* screens flicker like old CRTs */
-  .scr { animation: flick 7.3s steps(1) infinite; }
+  .scr { animation: none; }
   @keyframes flick { 0%, 93%, 100% { opacity: 1; } 94%, 96% { opacity: .72; } }
   @media (prefers-reduced-motion: reduce) {
     .agent .person, .scr, .workbub, .mchart, .steam rect, .eye,
     .agent.working .stack { animation: none !important; }
   }
   /* speaking gesture: right arm bounces */
-  .agent.speaking .arm-r { animation: gesture .5s ease-in-out infinite alternate; transform-origin: left center; }
+  .agent.speaking .arm-r { animation: none; transform-origin: left center; }
   @keyframes gesture { from { transform: translateY(0); } to { transform: translateY(-4px); } }
   /* verdict reactions */
   .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
@@ -231,8 +233,7 @@
   #intern-sprite.run { display: block; animation: coffeerun 3s linear 1 forwards; }
   @keyframes coffeerun { from { left: -70px; } to { left: calc(100% + 20px); } }
   #intern-sprite svg { width: 100%; height: 100%; image-rendering: pixelated; }
-  #intern-sprite .legA { animation: step1 .28s steps(1) infinite; }
-  #intern-sprite .legB { animation: step2 .28s steps(1) infinite; }
+  #intern-sprite .legA, #intern-sprite .legB { animation: none; }
   @keyframes step1 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes step2 { 0%,100% { transform: translateY(-3px); } 50% { transform: translateY(0); } }
   .agent.away .person { opacity: .18; }
@@ -241,25 +242,25 @@
     position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ac);
     opacity: 0; pointer-events: none;
   }
-  .agent.speaking .ring { animation: ring 1s ease-out infinite; }
+  .agent.speaking .ring { animation: none; }
   @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.25); opacity: 0; } }
   .agent .nm { font-weight: 800; font-size: .84rem; }
   .agent .rl { font-size: .68rem; color: var(--ac); font-weight: 700; }
   .agent .st { font-size: .64rem; color: var(--dim); min-height: 1.1em; margin-top: .2rem; }
   .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
   @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
-  .conf { margin-top: .45rem; height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .conf { margin-top: .45rem; height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 0; overflow: hidden; }
   .conf i { display: block; height: 100%; width: 0; background: var(--ac); transition: width .8s cubic-bezier(.34,1.3,.64,1); }
   .conf-n { font-size: .64rem; color: var(--dim); margin-top: .2rem; }
   .conf-n b { color: var(--ac); }
   /* eyes blink */
-  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  .eye { animation: none; transform-origin: center; }
   @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
   /* transcript */
   #feed { display: flex; flex-direction: column; gap: .6rem; min-height: 120px; }
   .bub {
     max-width: 86%; border: 1.5px solid var(--ac); background: var(--panel);
-    border-radius: 12px; padding: .6rem .85rem; position: relative;
+    border-radius: 0; padding: .6rem .85rem; position: relative;
     animation: pop .28s cubic-bezier(.34,1.56,.64,1);
     box-shadow: 3px 3px 0 rgba(28,26,23,.05); font-size: .8rem;
   }
@@ -268,7 +269,7 @@
   .bub .who .at { color: var(--dim); font-weight: 400; }
   .bub .who .vt {
     float: right; font-size: .62rem; color: #fff; background: var(--ac);
-    border-radius: 999px; padding: .06rem .5rem; margin-left: .5rem;
+    border-radius: 0; padding: .06rem .5rem; margin-left: .5rem;
   }
   .bub .who .ts { float: right; font-size: .62rem; color: var(--dim); font-weight: 400; }
   .bub.right { align-self: flex-end; }
@@ -280,22 +281,22 @@
   .bub .srcs span {
     font-size: .6rem; font-weight: 700; color: var(--dim);
     background: var(--panel-2); border: 1px solid var(--line);
-    border-radius: 999px; padding: .06rem .5rem;
+    border-radius: 0; padding: .06rem .5rem;
   }
-  .bub .srcs span:before { content: "📎 "; }
+  .bub .srcs span:before { content: "DOC "; }
   .bub.mod { align-self: center; max-width: 94%; background: var(--green-bg); }
   .bub.scout { align-self: center; max-width: 94%; background: var(--panel-2); border-style: dashed; }
   /* controls */
   .controls { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
   .btn {
     font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer;
-    background: var(--violet); color: #fff; border: 0; border-radius: 8px; padding: .45rem 1rem;
+    background: var(--violet); color: #fff; border: 0; border-radius: 0; padding: .45rem 1rem;
   }
   .btn.ghost { background: var(--panel); color: var(--dim); border: 1px solid var(--line); font-weight: 400; }
   .btn.ghost:hover { color: var(--violet); border-color: var(--violet); }
   button:disabled, input:disabled { cursor: not-allowed; opacity: .5; }
   .spd { display: flex; gap: .25rem; }
-  .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .25rem .55rem; cursor: pointer; }
+  .spd button { font: inherit; font-size: .68rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 0; padding: .25rem .55rem; cursor: pointer; }
   .spd button.on { background: var(--text); color: #fff; border-color: var(--text); }
   #scrub { flex: 1; accent-color: var(--violet); min-width: 140px; }
   .tclock { font-size: .7rem; color: var(--dim); min-width: 4.5rem; text-align: right; }
@@ -314,8 +315,8 @@
   .v-answer { font-size: .95rem; font-weight: 700; line-height: 1.5; }
   .v-meta { margin-top: .6rem; font-size: .74rem; color: var(--dim); }
   .v-votes { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
-  .v-vote { font-size: .7rem; border-radius: 999px; padding: .2rem .7rem; color: #fff; }
-  .v-formula { margin-top: .7rem; font-size: .72rem; background: var(--panel-2); border: 1px dashed var(--line); border-radius: 8px; padding: .45rem .7rem; }
+  .v-vote { font-size: .7rem; border-radius: 0; padding: .2rem .7rem; color: #fff; }
+  .v-formula { margin-top: .7rem; font-size: .72rem; background: var(--panel-2); border: 1px dashed var(--line); border-radius: 0; padding: .45rem .7rem; }
   .v-dissent { margin-top: .55rem; font-size: .74rem; color: var(--coral); }
   #arc-chart { width: 100%; height: auto; margin-top: 1rem; }
   .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
@@ -325,64 +326,619 @@
   @media (prefers-reduced-motion: reduce) {
     .agent .ava, .bub, .ring, .eye, #verdict.show { animation: none !important; }
   }
+
+  /* ==========================================================
+     Oracle / pixel-system skin. Legacy selectors remain because
+     playback JS addresses them directly; this layer owns visuals.
+     ========================================================== */
+  :root {
+    --pi-accent: #2547c9;
+    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: var(--pi-paper);
+    --line: var(--pi-line); --text: var(--pi-ink); --dim: var(--pi-muted);
+    --blue: var(--pi-accent); --gold: var(--pi-warn); --violet: var(--pi-accent);
+    --green: var(--pi-ok); --coral: var(--pi-err);
+    --blue-bg: var(--pi-accent-soft); --gold-bg: var(--pi-warn-soft);
+    --violet-bg: var(--pi-accent-soft); --green-bg: var(--pi-ok-soft);
+  }
+  html { background: var(--pi-paper); }
+  body {
+    overflow-x: clip;
+    background: var(--pi-paper);
+    background-image: none;
+    color: var(--pi-ink);
+    font: 14px/1.6 var(--pi-font-body);
+    padding: 24px 16px 56px;
+  }
+  .wrap { max-width: 1200px; }
+  .site-head { text-align: left; margin: 0 0 24px; }
+  h1 {
+    font: 24px/1.4 var(--pi-font-title);
+    letter-spacing: .12em;
+    padding-left: 0;
+  }
+  h1 .dot { color: var(--pi-accent); }
+  .tagline {
+    max-width: 850px;
+    margin-top: 8px;
+    color: var(--pi-muted);
+    font: 15px/1.6 var(--pi-font-body);
+  }
+  .honesty {
+    display: block;
+    width: fit-content;
+    max-width: 880px;
+    margin-top: 12px;
+    padding: 6px 10px 6px 14px;
+    color: var(--pi-muted);
+    background: transparent;
+    border: 0;
+    border-left: 3px solid var(--pi-accent);
+    border-radius: 0;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .honesty b { color: var(--pi-accent); }
+  code { font-family: var(--pi-font-code); font-size: .85em; }
+  a { color: var(--pi-accent); }
+
+  .picker {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .sess {
+    width: 100%;
+    max-width: none;
+    min-height: 64px;
+    padding: 8px 12px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow-s);
+    background: var(--pi-panel);
+    color: var(--pi-ink);
+    font: 14px/1.25 var(--pi-font-ui);
+  }
+  .sess small {
+    margin-top: 4px;
+    color: var(--pi-muted);
+    font: 12px/1.2 var(--pi-font-body);
+  }
+  .sess:hover { border-color: var(--pi-accent); background: var(--pi-accent-soft); }
+  .sess.active {
+    outline: 0;
+    border-color: var(--pi-accent);
+    background: var(--pi-accent-soft);
+    box-shadow: 3px 3px 0 var(--pi-accent);
+  }
+  .sess:focus-visible, #verdict > summary:focus-visible {
+    outline: 3px solid var(--pi-accent);
+    outline-offset: 3px;
+  }
+
+  .debate-window { margin-bottom: 20px; }
+  .debate-window > .pwin-title { min-height: 44px; }
+  .playback-state { margin-left: auto; }
+  .debate-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+    padding: 0;
+    min-width: 0;
+  }
+  .card {
+    background: var(--pi-panel);
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .debate-window .card {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .stage-card {
+    order: 2;
+    min-width: 0;
+    border-left: 2px solid var(--pi-ink) !important;
+  }
+  .transcript-card { order: 1; min-width: 0; padding: 0 !important; }
+  .transcript-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    margin: 0;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--pi-ink);
+    color: var(--pi-ink);
+    background: var(--pi-paper);
+    font: 10px/1.4 var(--pi-font-title);
+    letter-spacing: .04em;
+    text-transform: lowercase;
+  }
+  .question {
+    margin: 0 0 12px;
+    text-align: left;
+    font: 700 16px/1.4 var(--pi-font-body);
+  }
+  .rail {
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 28px;
+    margin-bottom: 12px;
+  }
+  .ph {
+    min-height: 28px;
+    padding: 4px 8px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-panel);
+    color: var(--pi-muted);
+    font: 12px/1.4 var(--pi-font-ui);
+    letter-spacing: .04em;
+    transition: none;
+  }
+  .ph.now { border-color: var(--pi-accent); background: var(--pi-accent); color: #fff; }
+  .ph.done { border-color: var(--pi-ok); background: var(--pi-ok-soft); color: var(--pi-ok); }
+  .ph.done::before { content: none; }
+
+  .stagewrap {
+    position: relative;
+    min-height: 548px;
+    overflow: clip;
+  }
+  .council { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
+  .modrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0; }
+  .modrow .agent { width: auto; }
+  .backoffice { display: none; }
+  .agent {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-areas:
+      "ava name"
+      "ava role"
+      "ava chip"
+      "status status"
+      "meter meter"
+      "meter-label meter-label";
+    gap: 1px 8px;
+    min-width: 0;
+    min-height: 100px;
+    padding: 7px 8px;
+    text-align: left;
+    background: var(--pi-panel);
+    border: 1.5px solid var(--pi-ink);
+    border-left: 2px solid var(--ac);
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--pi-ink);
+    transition: none;
+  }
+  .agent.speaking { border-color: var(--pi-ink); border-left-color: var(--ac); background: var(--pi-accent-soft); }
+  .agent.thinking { border-left-style: dashed; background: var(--pi-paper); }
+  .agent .ava {
+    grid-area: ava;
+    align-self: start;
+    width: 56px;
+    height: 50px;
+    margin: 0;
+    overflow: hidden;
+  }
+  .agent .nm {
+    grid-area: name;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font: 700 15px/1.1 var(--pi-font-ui);
+  }
+  .agent .rl {
+    grid-area: role;
+    min-width: 0;
+    color: var(--pi-muted);
+    font: 12px/1.2 var(--pi-font-ui);
+  }
+  .agent .tg { display: none; font: 12px/1.3 var(--pi-font-body); }
+  .agent .chipstat {
+    grid-area: chip;
+    justify-self: start;
+    max-width: 100%;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--pi-ink);
+    background: var(--pi-paper);
+    border: 1px solid var(--pi-ink);
+    border-radius: 0;
+    padding: 1px 5px;
+    font: 12px/1.35 var(--pi-font-ui);
+    letter-spacing: .02em;
+    white-space: nowrap;
+  }
+  .agent .st {
+    grid-area: status;
+    min-height: 16px;
+    margin-top: 4px;
+    color: var(--pi-muted);
+    font: 12px/1.25 var(--pi-font-ui);
+  }
+  .conf {
+    grid-area: meter;
+    height: 6px;
+    margin-top: 4px;
+    overflow: hidden;
+    background: var(--pi-paper);
+    border: 1px solid var(--pi-ink);
+    border-radius: 0;
+  }
+  .conf i { background: var(--ac); transition: width .25s steps(4, end); }
+  .conf-n { grid-area: meter-label; margin-top: 1px; color: var(--pi-muted); font: 12px/1.2 var(--pi-font-ui); }
+  .conf-n b { color: var(--pi-ink); }
+  .modrow .agent {
+    grid-template-columns: 42px minmax(0, 1fr);
+    min-height: 82px;
+  }
+  .modrow .ava { width: 42px; height: 38px; }
+  .modrow .st { display: none; }
+  .modrow .chipstat { white-space: normal; }
+  .modrow .conf, .modrow .conf-n { display: none; }
+
+  .thought, .workbub, .exclaim, .star, .agent .ring { display: none !important; }
+  #intern-sprite.run { display: none !important; animation: none !important; }
+  #toast {
+    position: fixed;
+    /* bottom-anchored so it never overlaps the sticky control block */
+    top: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+    left: 50%;
+    z-index: 100;
+    padding: 8px 12px;
+    border: 2px solid var(--pi-panel);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow);
+    background: var(--pi-ink);
+    color: var(--pi-panel);
+    font: 700 13px/1.3 var(--pi-font-ui);
+    transform: translateX(-50%);
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--pi-ink);
+    background: var(--pi-panel);
+  }
+  .btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow-s);
+    font: 700 14px/1 var(--pi-font-ui);
+  }
+  .btn.ghost { background: var(--pi-panel); color: var(--pi-ink); border: 2px solid var(--pi-ink); font-weight: 700; }
+  .btn.ghost:hover { border-color: var(--pi-accent); background: var(--pi-accent-soft); color: var(--pi-accent); }
+  .spd { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .spd button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--pi-ink);
+    background: var(--pi-panel);
+    color: var(--pi-ink);
+    font: 14px/1 var(--pi-font-ui);
+  }
+  .spd button.on { border-color: var(--pi-accent); background: var(--pi-accent); color: #fff; }
+  #scrub { grid-column: 1; width: 100%; min-width: 0; min-height: 44px; accent-color: var(--pi-accent); }
+  .tclock { grid-column: 2; min-width: 0; color: var(--pi-muted); font: 12px/1 var(--pi-font-code); }
+  button:disabled, input:disabled { opacity: .45; }
+
+  #feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: clamp(560px, 68vh, 720px);
+    min-height: 560px;
+    padding: 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--pi-accent) var(--pi-paper);
+  }
+  .bub {
+    width: min(92%, 760px);
+    max-width: 92%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--pi-ink);
+    border-left: 2px solid var(--ac);
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--pi-ink);
+    background: var(--pi-panel);
+    font: 14px/1.65 var(--pi-font-body);
+    animation: none;
+  }
+  .bub.mod { max-width: 96%; background: var(--pi-ok-soft); }
+  .bub.scout { max-width: 96%; background: var(--pi-paper); border-style: solid; border-left-style: dashed; }
+  .bub .who {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 8px;
+    min-width: 0;
+    margin-bottom: 6px;
+    font: 700 13px/1.35 var(--pi-font-ui);
+  }
+  .bub .who-main { grid-column: 1; grid-row: 1; min-width: 0; overflow-wrap: anywhere; color: var(--ac); }
+  .bub .who .at { display: block; color: var(--pi-muted); font: 12px/1.35 var(--pi-font-ui); }
+  .bub .who .ts { grid-column: 2; grid-row: 1; float: none; color: var(--pi-muted); font: 12px/1.35 var(--pi-font-code); white-space: nowrap; }
+  .bub .who .vt {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    float: none;
+    margin: 0;
+    padding: 2px 6px;
+    border: 1px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    color: var(--pi-ink);
+    font: 12px/1.3 var(--pi-font-ui);
+  }
+  .bub .tx { overflow-wrap: anywhere; }
+  .bub .srcs { gap: 4px; margin-top: 8px; animation: none; }
+  .bub .srcs span {
+    padding: 2px 6px;
+    border: 1px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    color: var(--pi-muted);
+    font: 12px/1.35 var(--pi-font-ui);
+  }
+  .bub .srcs span::before { content: "DOC "; color: var(--pi-accent); }
+  .load-state {
+    display: grid;
+    place-items: center;
+    min-height: 160px;
+    color: var(--pi-muted);
+    font: 14px/1.5 var(--pi-font-ui);
+  }
+  .loading-agent { border-left-color: var(--pi-line); }
+  .loading-agent .load-block { display: block; height: 10px; background: var(--pi-line); }
+  .loading-agent .load-avatar { grid-area: ava; width: 48px; height: 44px; }
+  .loading-agent .load-name { grid-area: name; width: 68%; margin-top: 3px; }
+  .loading-agent .load-meta { grid-area: role; width: 88%; margin-top: 4px; }
+  .loading-agent .load-status { grid-area: status; width: 55%; margin-top: 8px; }
+
+  #verdict {
+    margin-top: 20px;
+    padding: 0;
+  }
+  #verdict.show { display: block; animation: none; }
+  #verdict > summary { min-height: 44px; cursor: pointer; list-style: none; }
+  #verdict > summary::-webkit-details-marker { display: none; }
+  #verdict > summary::after { content: "[–]"; margin-left: auto; font-family: var(--pi-font-code); }
+  #verdict:not([open]) > summary::after { content: "[+]"; }
+  .verdict-body { padding: 16px; }
+  .v-grid {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    padding: 16px;
+  }
+  .dial { width: auto; height: auto; margin: 0; border-right: 1px solid var(--pi-term-dim); }
+  .dial > svg { display: none; }
+  .dial .num { position: static; align-items: flex-start; justify-content: flex-start; gap: 6px; }
+  .dial .num b { color: var(--pi-term-fg); font: 700 36px/1 var(--pi-font-ui); }
+  .dial .num span { color: var(--pi-term-dim); font: 12px/1.4 var(--pi-font-ui); letter-spacing: .05em; }
+  .score-ledger {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 3px 10px;
+    margin-bottom: 12px;
+    color: var(--pi-term-dim);
+    font: 12px/1.45 var(--pi-font-code);
+  }
+  .score-ledger b { color: var(--pi-term-fg); font-weight: 600; }
+  .v-answer { color: var(--pi-term-fg); font: 600 15px/1.6 var(--pi-font-body); }
+  .v-meta { margin-top: 8px; color: var(--pi-term-dim); font: 13px/1.5 var(--pi-font-code); }
+  .v-votes { gap: 6px; margin-top: 8px; }
+  .v-vote { border-radius: 0; font-size: 12px; }
+  .v-formula {
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid var(--pi-term-dim);
+    border-radius: 0;
+    background: transparent;
+    color: var(--pi-term-fg);
+    font: 12px/1.5 var(--pi-font-code);
+  }
+  .v-dissent { margin-top: 8px; color: var(--pi-term-err); font: 13px/1.55 var(--pi-font-body); }
+  .chart-scroll {
+    margin-top: 16px;
+    overflow-x: auto;
+    border: 2px solid var(--pi-ink);
+    background: var(--pi-panel);
+  }
+  .chart-scroll:focus-visible { outline: 3px solid var(--pi-accent); outline-offset: 2px; }
+  #arc-chart { display: block; width: 100%; min-width: 720px; height: auto; margin: 0; }
+  .spark { display: none !important; }
+  footer { margin-top: 28px; color: var(--pi-muted); font: 12px/1.5 var(--pi-font-body); }
+
+  /* Ambient motion is neutral. Playback-state motion is stepped and scoped. */
+  .agent .person, .agent .mouth-open, .agent .mouth-closed, .agent .arm-r,
+  .agent .ava, .agent .eye, .mchart, .steam rect, .hands rect, .scr,
+  .sipsteam, .deskstuff, .agent.working .stack, .workbub .td, .thought .td {
+    animation: none !important;
+    transition: none !important;
+  }
+  @keyframes pi-think { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  @keyframes pi-speak { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  @keyframes pi-pop { from { transform: translate(2px, 2px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pi-toast { 0% { opacity: 0; } 20%, 75% { opacity: 1; } 100% { opacity: 0; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .agent.thinking .person { animation: pi-think .7s steps(2, end) infinite !important; }
+    .agent.speaking .person { animation: pi-speak .45s steps(2, end) infinite !important; }
+    .agent.speaking .mouth-open { animation: chew .34s steps(1) infinite !important; }
+    .agent.speaking .mouth-closed { animation: chew2 .34s steps(1) infinite !important; }
+    .agent.poked .ava { animation: shake .35s steps(3, end) 1 !important; }
+    .bub { animation: pi-pop .18s steps(2, end) 1; }
+    #toast.show { animation: pi-toast 1.2s steps(4, end) 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; }
+    .bub .tx .caret, #toast.show { animation: none !important; }
+    #dial-arc { transition: none !important; }
+  }
+
+  @media (max-width: 780px) {
+    body { padding: 16px 10px 40px; }
+    h1 { font-size: 19px; }
+    .tagline { font-size: 14px; }
+    .honesty { font-size: 17px; }
+    .picker { grid-template-columns: 1fr; }
+    .sess { min-height: 56px; }
+    .debate-layout { grid-template-columns: minmax(0, 1fr); }
+    .stage-card {
+      order: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px !important;
+      border-left: 0 !important;
+      border-bottom: 2px solid var(--pi-ink) !important;
+    }
+    .question { order: 1; }
+    .rail { order: 2; overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 4px; }
+    .ph { flex: none; }
+    .controls {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      order: 3;
+      margin: 0 -12px 12px;
+      padding: 10px 12px;
+      border-top: 2px solid var(--pi-ink);
+      border-bottom: 2px solid var(--pi-ink);
+      box-shadow: 0 3px 0 var(--pi-ink);
+    }
+    .stagewrap { order: 4; min-height: 430px; }
+    .transcript-card { order: 2; }
+    #feed { height: min(72vh, 620px); min-height: 460px; }
+    .council { grid-template-columns: 1fr; }
+    .agent, .modrow .agent {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "name meter-label"
+        "role role"
+        "status status";
+      min-height: 66px;
+      padding: 6px 8px;
+    }
+    .agent .ava, .agent .tg, .agent .chipstat, .agent .conf,
+    .loading-agent .load-avatar { display: none; }
+    .agent .nm { font-size: 15px; }
+    .agent .rl { font-size: 12px; }
+    .agent .st { display: block; margin-top: 2px; }
+    .agent .conf-n { justify-self: end; margin: 0; }
+    .modrow { grid-template-columns: 1fr 1fr; }
+    .modrow .agent {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "name" "role" "status";
+      min-height: 68px;
+    }
+    .modrow .st { display: block; }
+    .bub { width: 100%; max-width: 100%; }
+    .v-grid { grid-template-columns: 1fr; }
+    .dial { padding-bottom: 12px; border-right: 0; border-bottom: 1px solid var(--pi-term-dim); }
+    .score-ledger { grid-template-columns: 1fr; gap: 1px; }
+    .score-ledger b { margin-bottom: 5px; }
+  }
+  @media (max-width: 420px) {
+    .debate-window > .pwin-title { align-items: flex-start; flex-wrap: wrap; }
+    .playback-state { margin-left: 0; }
+    .modrow { grid-template-columns: 1fr; }
+    .stagewrap { min-height: 500px; }
+    .bub .who { grid-template-columns: minmax(0, 1fr); }
+    .bub .who .ts { grid-column: 1; grid-row: 2; justify-self: start; }
+    .bub .who .vt { grid-row: 3; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="site-head">
     <h1>ORACLE<span class="dot">_</span></h1>
     <p class="tagline">a skeptic, an optimist, a fact-checker and a wildcard walk into a debate — confidence is scored from where they disagree</p>
-    <span class="honesty"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
+    <span class="honesty pnote"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
   </header>
 
   <div class="picker" id="picker"></div>
 
-  <div class="card">
-    <div class="question" id="q">—</div>
-    <div class="rail" id="rail"></div>
-    <div class="stagewrap">
-      <div id="toast"></div>
-      <div class="council" id="council"></div>
-      <div class="modrow" id="modrow"></div>
-      <div class="backoffice" id="backoffice"></div>
-      <span id="intern-sprite"></span>
+  <section class="pwin debate-window" aria-labelledby="oracle-window-title">
+    <div class="pwin-title">
+      <span class="pwin-lamp warn" id="playback-lamp" aria-hidden="true"></span>
+      <span id="oracle-window-title">oracle.exe / council replay</span>
+      <span class="pchip warn playback-state" id="playback-state" role="status" aria-live="polite">loading</span>
     </div>
-    <div class="controls">
-      <button class="btn" id="play" disabled>▶ play</button>
-      <button class="btn ghost" id="restart" disabled>↺ restart</button>
-      <div class="spd" id="spd"></div>
-      <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline" disabled>
-      <span class="tclock" id="clock">0:00</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>The debate</h2>
-    <div id="feed"></div>
-  </div>
-
-  <div class="card" id="verdict">
-    <h2>The verdict — disagreement is the metric</h2>
-    <div class="v-grid">
-      <div class="dial">
-        <svg width="200" height="200" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="86" fill="none" stroke="#f1eee6" stroke-width="14"/>
-          <circle id="dial-arc" cx="100" cy="100" r="86" fill="none" stroke="#6a47a0" stroke-width="14"
-                  stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"
-                  style="transition: stroke-dashoffset 1.4s cubic-bezier(.34,1.2,.64,1)"/>
-        </svg>
-        <div class="num"><b id="v-conf">—</b><span>oracle confidence</span></div>
+    <div class="debate-layout pwin-body">
+      <div class="card stage-card">
+        <div class="question" id="q">—</div>
+        <div class="rail" id="rail"></div>
+        <div class="stagewrap">
+          <div id="toast"></div>
+          <div class="council" id="council"></div>
+          <div class="modrow" id="modrow"></div>
+          <div class="backoffice" id="backoffice"></div>
+          <span id="intern-sprite"></span>
+        </div>
+        <div class="controls">
+          <button class="btn pbtn primary" id="play" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg> play</button>
+          <button class="btn ghost pbtn" id="restart" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg> restart</button>
+          <div class="spd" id="spd"></div>
+          <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline" disabled>
+          <span class="tclock" id="clock">0:00</span>
+        </div>
       </div>
-      <div>
-        <div class="v-answer" id="v-answer"></div>
-        <div class="v-meta" id="v-consensus"></div>
-        <div class="v-votes" id="v-votes"></div>
-        <div class="v-formula" id="v-formula"></div>
-        <div class="v-dissent" id="v-dissent"></div>
+
+      <div class="card transcript-card">
+        <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> The debate</h2>
+        <div id="feed"></div>
       </div>
     </div>
-    <svg id="arc-chart" viewBox="0 0 720 190" role="img" aria-label="Each agent's confidence per round"></svg>
-  </div>
+  </section>
+
+  <details class="card pwin evidence-pane" id="verdict">
+    <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> The verdict — disagreement is the metric</summary>
+    <div class="verdict-body pwin-body">
+      <div class="v-grid pterm">
+        <div class="dial">
+          <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="86" fill="none" stroke="#f1eee6" stroke-width="14"/>
+            <circle id="dial-arc" cx="100" cy="100" r="86" fill="none" stroke="#2547c9" stroke-width="14"
+                    stroke-linecap="square" stroke-dasharray="540.35" stroke-dashoffset="540.35"
+                    style="transition: stroke-dashoffset .5s steps(8, end)"/>
+          </svg>
+          <div class="num"><b id="v-conf">—</b><span>oracle confidence</span></div>
+        </div>
+        <div>
+          <div class="score-ledger" id="v-ledger"></div>
+          <div class="v-answer" id="v-answer"></div>
+          <div class="v-meta" id="v-consensus"></div>
+          <div class="v-votes" id="v-votes"></div>
+          <div class="v-formula" id="v-formula"></div>
+          <div class="v-dissent" id="v-dissent"></div>
+        </div>
+      </div>
+      <div class="chart-scroll" tabindex="0" role="region" aria-label="Confidence chart; scroll horizontally on small screens">
+        <svg id="arc-chart" viewBox="0 0 720 190" role="img" aria-label="Each agent's confidence per round"></svg>
+      </div>
+    </div>
+  </details>
 
   <footer>oracle · three models, three temperaments, one confidence score ·
     <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/oracle" target="_blank" rel="noopener">engine source ↗</a></footer>
@@ -391,7 +947,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const COLORS = { blue: "#3f5aa0", gold: "#8f6f1d", violet: "#6a47a0", green: "#2f8a58", coral: "#b8463a", navy: "#20416b" };
+  const COLORS = { blue: "#2547c9", gold: "#8a6200", violet: "#5c3b8f", green: "#246b45", coral: "#b3372c", navy: "#20416b" };
   const SESSIONS = [
     ["microservices.json", "Should we rewrite our monolith as microservices?", "engineering"],
     ["p-vs-np.json", "Will P vs NP be resolved this century?", "computer science"],
@@ -404,6 +960,24 @@
   let steps = [], idx = 0, playing = false, speed = 1, active = null;
   let elapsedBase = 0;
   let gen = 0, timers = [], loadController = null, reconstructing = false, fidgetTimer = null;
+
+  const icon = (id) => `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"/></svg>`;
+  function setPlayButton(mode) {
+    const labels = {
+      play: ["i-play", "play"], pause: ["i-pause", "pause"], replay: ["i-restart", "replay"],
+    };
+    const [id, label] = labels[mode] || labels.play;
+    $("play").innerHTML = `${icon(id)} ${label}`;
+  }
+  function setPlaybackState(label, tone = "acc") {
+    const state = $("playback-state");
+    const lamp = $("playback-lamp");
+    if (state) {
+      state.className = "pchip playback-state " + tone;
+      state.textContent = label;
+    }
+    if (lamp) lamp.className = "pwin-lamp" + (tone === "ok" ? " on" : tone === "warn" ? " warn" : tone === "err" ? " err" : "");
+  }
 
   function dropTimer(id) {
     const i = timers.findIndex((t) => t.id === id);
@@ -463,36 +1037,38 @@
     document.querySelectorAll(".agent").forEach((el) => el.classList.remove(
       "cheer", "poked", "sip", "stretch", "wiggle", "yawn", "spin",
       "knuckles", "shufflep", "bounce", "glance", "mumble", "look-left", "look-right"));
+    const toast = $("toast");
+    if (toast) { toast.classList.remove("show"); toast.style.opacity = ""; }
   }
 
   // -------- pixel desk characters (inspired by tiny trading desks) --------
   const PERSONA = {
     gpt:    { skin: "#e8b98a", hair: "#a9743a", style: "spiky",  chart: "up",
-              tagline: "ships first, doubts later", glyph: "↑", bub: "big if true ↑",
+              tagline: "ships first, doubts later", glyph: "UP", bub: "big if true",
               think: "compounding optimism", speak: "making the case…", done: "rests case, beaming" },
     claude: { skin: "#d9a06b", hair: "#2a2622", style: "neat",   chart: "bars", glasses: true,
-              tagline: "brings receipts", glyph: "✎", bub: "per the data…",
-              think: "checking sources", speak: "citing the record…", done: "receipts filed ✓" },
+              tagline: "brings receipts", glyph: "DOC", bub: "per the data…",
+              think: "checking sources", speak: "citing the record…", done: "receipts filed" },
     gemini: { skin: "#c98f66", hair: "#4a3d63", style: "beanie", chart: "down",
               tagline: "has questions. so many questions.", glyph: "?", bub: "objection?",
-              think: "sharpening objections", speak: "objecting…", done: "objection noted ✓" },
+              think: "sharpening objections", speak: "objecting…", done: "objection noted" },
     grok:   { skin: "#dfa77e", hair: "#1c1a17", style: "mohawk", phones: true, chart: "zig",
-              tagline: "argues with the premise", glyph: "⚡", bub: "hot take:",
-              think: "cooking a take", speak: "dropping the take…", done: "take shipped 🔥" },
+              tagline: "argues with the premise", glyph: "ALT", bub: "hot take:",
+              think: "cooking a take", speak: "dropping the take…", done: "take shipped" },
     mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
-              tagline: "keeps the peace, scores the war", glyph: "⚖", bub: "order, order",
+              tagline: "keeps the peace, scores the war", glyph: "MOD", bub: "order, order",
               think: "weighing the arguments", speak: "synthesizing…", done: "gavel down" },
     scout:  { skin: "#e2b088", hair: "#6b4a2f", style: "curly",  chart: "docs", glasses: true,
-              tagline: "reads everything, believes half of it", glyph: "⌕", bub: "hm, source?",
-              think: "pulling the file", speak: "circulating the dossier…", done: "dossier filed ✓" },
+              tagline: "reads everything, believes half of it", glyph: "SRC", bub: "hm, source?",
+              think: "pulling the file", speak: "circulating the dossier…", done: "dossier filed" },
     steno:  { skin: "#d59a72", hair: "#3a2f28", style: "bun",    chart: "lines",
-              tagline: "types faster than they think", glyph: "⌨", bub: "tk tk tk",
-              think: "flexing fingers", speak: "transcribing…", done: "caught up ✓" },
+              tagline: "types faster than they think", glyph: "REC", bub: "tk tk tk",
+              think: "flexing fingers", speak: "transcribing…", done: "caught up" },
     book:   { skin: "#e5b184", hair: "#20416b", style: "visor",  chart: "odds",
               tagline: "will quote you a price on anything", glyph: "%", bub: "taking bets",
               think: "reading the room", speak: "adjusting the line…", done: "line set" },
     intern: { skin: "#caa27e", hair: "#5a4632", style: "cap",    chart: "off",
-              tagline: "powered by errands", glyph: "☕", bub: "brb! ☕",
+              tagline: "powered by errands", glyph: "RUN", bub: "brb!",
               think: "waiting for orders", speak: "on a coffee run!", done: "back at desk" },
   };
 
@@ -585,7 +1161,7 @@
     <span class="thought"><span class="td">·</span><span class="td">·</span><span class="td">·</span><span class="glyph">${p.glyph}</span></span>
     <span class="workbub">${bubTxt}</span>
     <span class="exclaim">!!</span>
-    <span class="star">★</span>
+    <span class="star"></span>
     <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         ${hair}
@@ -653,15 +1229,19 @@
   const agentById = (id) => S.agents.find((a) => a.id === id);
 
   function renderShell() {
+    const windowEl = document.querySelector(".debate-window");
+    if (windowEl) { windowEl.classList.remove("is-loading"); windowEl.setAttribute("aria-busy", "false"); }
+    setPlaybackState("ready");
+    setPlayButton("play");
     const dial = $("dial-arc");
-    dial.style.transition = "stroke-dashoffset 1.4s cubic-bezier(.34,1.2,.64,1)";
+    dial.style.transition = "stroke-dashoffset .5s steps(8, end)";
     dial.style.strokeDashoffset = "540.35";
     $("q").textContent = "“" + S.question + "”";
     const rail = $("rail");
     rail.replaceChildren();
     [...S.rounds.map((r) => r.phase), "Verdict"].forEach((p, i) => {
       const el = document.createElement("span");
-      el.className = "ph"; el.id = "ph-" + i; el.textContent = p;
+      el.className = "ph pchip"; el.id = "ph-" + i; el.textContent = p;
       rail.appendChild(el);
     });
     const council = $("council");
@@ -676,7 +1256,7 @@
         <div class="nm">${a.name}</div>
         <div class="rl">${a.role}</div>
         <div class="tg">${(PERSONA[a.id] || {}).tagline || ""}</div>
-        <span class="chipstat" id="sc-${a.id}">—</span>
+        <span class="chipstat pchip" id="sc-${a.id}">—</span>
         <div class="st" id="st-${a.id}">waiting for the gavel</div>
         <div class="conf"><i id="cf-${a.id}"></i></div>
         <div class="conf-n" id="cn-${a.id}">self-confidence —</div>`;
@@ -692,7 +1272,7 @@
       <div class="nm">The Researcher</div>
       <div class="rl">Compiles the dossier</div>
       <div class="tg">${PERSONA.scout.tagline}</div>
-      <span class="chipstat" id="sc-scout">DOSSIER PENDING</span>
+      <span class="chipstat pchip" id="sc-scout">DOSSIER PENDING</span>
       <div class="st" id="st-scout">sharpening pencils</div>`;
     modrow.appendChild(scoutDiv);
     const modDiv = document.createElement("div");
@@ -703,7 +1283,7 @@
       <div class="nm">The Moderator</div>
       <div class="rl">Keeper of the score</div>
       <div class="tg">${PERSONA.mod.tagline}</div>
-      <span class="chipstat" id="sc-mod">SCORE PENDING</span>
+      <span class="chipstat pchip" id="sc-mod">SCORE PENDING</span>
       <div class="st" id="st-mod">observing quietly</div>`;
     modrow.appendChild(modDiv);
     const bo = $("backoffice");
@@ -726,7 +1306,7 @@
         <div class="nm">${nm}</div>
         <div class="rl">${rl}</div>
         <div class="tg">${PERSONA[id].tagline}</div>
-        <span class="chipstat" id="sc-${id}">${chip}</span>
+        <span class="chipstat pchip" id="sc-${id}">${chip}</span>
         <div class="st" id="st-${id}">settling in</div>`;
       bo.appendChild(div);
     }
@@ -755,7 +1335,7 @@
     }
     const m = $("ag-mod");
     if (m && !m.classList.contains("thinking")) $("st-mod").textContent =
-      label === "adjourned ☕" ? "gavel down ⚖" : "taking notes";
+      label === "adjourned" ? "gavel down" : "taking notes";
   }
 
   /* -------- live personality stats (like tiny desk badges) -------- */
@@ -844,12 +1424,12 @@
         // winners go back to fidgeting; losers stay slumped
         if (won) later(() => el.classList.remove("cheer"), 1800);
       }
-      $("st-" + aid).textContent = won ? "called it ★" : "demands a rematch";
+      $("st-" + aid).textContent = won ? "called it" : "demands a rematch";
     }
-    setStatus("steno", "", "transcript sealed ✓");
+    setStatus("steno", "", "transcript sealed");
     setStatus("book", "", "paying out at " + S.result.confidence + "%");
-    setStatus("intern", "", "victory espresso round ☕");
-    setStatus("scout", "", "sources archived ✓");
+    setStatus("intern", "", "victory espresso round");
+    setStatus("scout", "", "sources archived");
   }
 
   function phaseToast(name, ri) {
@@ -888,13 +1468,16 @@
     div.style.setProperty("--ac", c);
     const who = document.createElement("div");
     who.className = "who";
-    who.textContent = a.name + (a.role ? " · " + a.role : ev.agent === "scout" ? " · shared briefing" : "");
+    const whoMain = document.createElement("span");
+    whoMain.className = "who-main";
+    whoMain.textContent = a.name + (a.role ? " · " + a.role : ev.agent === "scout" ? " · shared briefing" : "");
     if (ev.target) {
       const at = document.createElement("span");
       at.className = "at";
       at.textContent = "  → rebutting " + agentById(ev.target).name;
-      who.appendChild(at);
+      whoMain.appendChild(at);
     }
+    who.appendChild(whoMain);
     if (ev.vote) {
       const vt = document.createElement("span");
       vt.className = "vt"; vt.textContent = "votes: " + ev.vote;
@@ -903,14 +1486,17 @@
     const ts = document.createElement("span");
     ts.className = "ts";
     const sec = Math.round(elapsedBase / 1000);
-    ts.textContent = "⏱ " + Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+    ts.textContent = "T+" + Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
     who.appendChild(ts);
     const tx = document.createElement("div");
     tx.className = "tx";
     div.append(who, tx);
     const shouldScroll = autoScroll && !reconstructing && feedNearEnd();
     $("feed").appendChild(div);
-    if (shouldScroll) div.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+    if (shouldScroll) {
+      const feed = $("feed");
+      feed.scrollTo({ top: feed.scrollHeight, behavior: REDUCED ? "auto" : "smooth" });
+    }
     return tx;
   }
 
@@ -930,7 +1516,7 @@
     for (let i = 0; i <= S.rounds.length; i++) {
       const el = $("ph-" + i);
       if (!el) continue;
-      el.className = "ph" + (i < ri ? " done" : i === ri ? " now" : "");
+      el.className = "ph pchip" + (i < ri ? " done" : i === ri ? " now" : "");
     }
   }
 
@@ -938,6 +1524,7 @@
     const r = S.result;
     const v = $("verdict");
     v.style.display = "block";
+    v.open = true;
     if (animate) v.classList.add("show");
     $("v-conf").textContent = r.confidence + "%";
     const off = 540.35 * (1 - r.confidence / 100);
@@ -955,108 +1542,74 @@
     }
     $("v-answer").textContent = r.answer;
     $("v-consensus").textContent = "consensus: " + r.consensus;
+    const ledger = $("v-ledger");
+    ledger.replaceChildren();
+    const opening = S.agents.map((a) => r.confidence_by_round[a.id][0]);
+    const final = S.agents.map((a) => r.confidence_by_round[a.id][2]);
+    const openingSpread = Math.max(...opening) - Math.min(...opening);
+    const finalSpread = Math.max(...final) - Math.min(...final);
+    const convergence = openingSpread - finalSpread;
+    const ledgerRows = [
+      ["VOTE DISTRIBUTION", r.consensus],
+      ["PROBABILITY RANGE", `${Math.min(...final)}–${Math.max(...final)}%`],
+      ["CONVERGENCE Δ", `${convergence >= 0 ? "+" : ""}${convergence} pts (${openingSpread} → ${finalSpread})`],
+    ];
+    for (const [label, value] of ledgerRows) {
+      const key = document.createElement("span");
+      const val = document.createElement("b");
+      key.textContent = label;
+      val.textContent = value;
+      ledger.append(key, val);
+    }
     const votes = $("v-votes");
     votes.replaceChildren();
     for (const [id, vote] of Object.entries(r.votes)) {
       const a = agentById(id);
       const chip = document.createElement("span");
-      chip.className = "v-vote";
-      chip.style.background = COLORS[a.color];
+      chip.className = "v-vote pchip " + (/yes/i.test(vote) ? "ok" : /no/i.test(vote) ? "err" : "warn");
       chip.textContent = `${a.name}: ${vote}`;
       votes.appendChild(chip);
     }
     $("v-formula").textContent = "how it's scored → " + r.how_scored;
     $("v-dissent").textContent = "unresolved: " + r.dissent;
     drawArcChart(r.confidence_by_round, animate);
-    if (animate && !REDUCED) sparkle();
   }
 
   function drawArcChart(cbr, animate) {
     const svg = $("arc-chart");
-    const W = 720, H = 190, L = 46, R = 130, T = 16, B = 30;
+    const W = 720, H = 190, L = 50, R = 150, T = 22, B = 34;
     const xs = [0, 1, 2].map((i) => L + (i * (W - L - R)) / 2);
     const Y = (v) => T + (1 - v / 100) * (H - T - B);
     let out = "";
     for (let g = 0; g <= 4; g++) {
       const y = Y(g * 25);
-      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#e5e1d6" stroke-width="0.8"/>
-              <text x="${L - 7}" y="${y + 3}" font-size="9" fill="#5f5a51" text-anchor="end">${g * 25}</text>`;
+      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#cfc6b2" stroke-width="1"/>
+              <text x="${L - 8}" y="${y + 4}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353" text-anchor="end">${g * 25}</text>`;
     }
     ["openings", "after cross-exam", "final"].forEach((lb, i) => {
-      out += `<text x="${xs[i]}" y="${H - 10}" font-size="9.5" fill="#5f5a51" text-anchor="middle">${lb}</text>`;
+      out += `<text x="${xs[i]}" y="${H - 8}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353" text-anchor="middle">${lb}</text>`;
     });
     // nudge end labels apart when final confidences are close
     const ends = S.agents.map((a) => ({ a, y: Y(cbr[a.id][2]) }))
       .sort((p, q) => p.y - q.y);
     for (let i = 1; i < ends.length; i++)
-      if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
+      if (ends[i].y - ends[i - 1].y < 17) ends[i].y = ends[i - 1].y + 17;
     const labelY = Object.fromEntries(ends.map((e) => [e.a.id, e.y]));
     for (const a of S.agents) {
       const c = COLORS[a.color];
       const pts = cbr[a.id].map((v, i) => `${xs[i]},${Y(v)}`).join(" ");
-      out += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.4"
-                ${animate && !REDUCED ? 'stroke-dasharray="600" stroke-dashoffset="600"><animate attributeName="stroke-dashoffset" from="600" to="0" dur="1.2s" fill="freeze"/></polyline>' : "/>"}`;
+      out += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.4"/>`;
       cbr[a.id].forEach((v, i) => {
         out += `<circle cx="${xs[i]}" cy="${Y(v)}" r="3.6" fill="${c}"/>`;
       });
-      out += `<text x="${W - R + 8}" y="${labelY[a.id] + 3}" font-size="10.5" font-weight="bold" fill="${c}">${a.role.replace("The ", "")} · ${cbr[a.id][2]}%</text>`;
+      out += `<text x="${W - R + 8}" y="${labelY[a.id] + 4}" font-size="12" font-family="Pixelify Sans, sans-serif" font-weight="bold" fill="${c}">${a.role.replace("The ", "")} · ${cbr[a.id][2]}%</text>`;
     }
-    out += `<text x="${L}" y="${12}" font-size="9.5" fill="#5f5a51">self-confidence per round — converging lines mean a trustworthy verdict</text>`;
+    out += `<text x="${L}" y="${14}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353">self-confidence per round — converging lines mean a trustworthy verdict</text>`;
     svg.innerHTML = out;
   }
 
-  function sparkle() {
-    const rect = $("v-conf").getBoundingClientRect();
-    for (let i = 0; i < 7; i++) {
-      const s = document.createElement("span");
-      s.className = "spark";
-      s.textContent = ["✦", "✧", "◆"][i % 3];
-      s.style.color = [COLORS.violet, COLORS.gold, COLORS.blue][i % 3];
-      s.style.left = rect.left + rect.width / 2 + (Math.random() * 120 - 60) + "px";
-      s.style.top = rect.top + (Math.random() * 40 - 10) + "px";
-      s.style.animationDelay = (Math.random() * 0.4) + "s";
-      document.body.appendChild(s);
-      later(() => s.remove(), 1900);
-    }
-  }
-
-  /* -------- idle fidget engine: nobody just sits there -------- */
-  const FIDGETS = {
-    gpt:    ["sip", "stretch", "wiggle", "glance", "mumble", "bounce"],
-    claude: ["sip", "glance", "wiggle", "shufflep", "mumble", "yawn"],
-    gemini: ["sip", "stretch", "glance", "mumble", "yawn", "wiggle"],
-    grok:   ["wiggle", "bounce", "sip", "glance", "mumble", "stretch"],
-    scout:  ["shufflep", "glance", "sip", "mumble", "yawn"],
-    mod:    ["sip", "yawn", "glance", "shufflep", "mumble"],
-    steno:  ["knuckles", "sip", "glance", "stretch", "mumble"],
-    book:   ["shufflep", "sip", "glance", "mumble", "wiggle"],
-    intern: ["spin", "sip", "bounce", "glance", "mumble", "yawn"],
-  };
-  const FIDGET_MS = { sip: 1100, stretch: 1300, wiggle: 1500, yawn: 1100, spin: 950,
-                      knuckles: 950, shufflep: 950, bounce: 600, glance: 1400, mumble: 1700 };
-  function startFidgets() {
-    if (fidgetTimer !== null) return;
-    fidgetTimer = repeat(() => {
-      if (REDUCED || !S) return;
-      const ids = Object.keys(FIDGETS);
-      const n = 1 + (Math.random() < 0.35 ? 1 : 0);   // sometimes two at once
-      for (let k = 0; k < n; k++) {
-        const pick = ids[Math.floor(Math.random() * ids.length)];
-        const el = $("ag-" + pick);
-        if (!el || el.className !== "agent") continue;   // only fidget when idle
-        const pool = FIDGETS[pick];
-        const f = pool[Math.floor(Math.random() * pool.length)];
-        if (f === "glance") {
-          const dir = Math.random() < 0.5 ? "look-left" : "look-right";
-          el.classList.add(dir);
-          later(() => el.classList.remove(dir), FIDGET_MS.glance);
-        } else {
-          el.classList.add(f);
-          later(() => el.classList.remove(f), FIDGET_MS[f]);
-        }
-      }
-    }, 3200);
-  }
+  /* Ambient fidgets and verdict sparkles are intentionally absent. */
+  function startFidgets() {}
 
   function tickClock(ms) {
     const sec = Math.round(ms / 1000);
@@ -1119,7 +1672,8 @@
     if (fidgetTimer !== null) clearRegisteredTimer(fidgetTimer);
     fidgetTimer = null;
     $("scrub").value = steps.length;
-    $("play").textContent = "▶ replay";
+    setPlayButton("replay");
+    setPlaybackState("complete", "ok");
   }
 
   function startContinuation(ms) {
@@ -1219,10 +1773,10 @@
         tickClock(elapsedBase);
       });
     } else if (s.t === "verdict") {
-      for (let i = 0; i <= S.rounds.length; i++) $("ph-" + i).className = "ph done";
+      for (let i = 0; i <= S.rounds.length; i++) $("ph-" + i).className = "ph pchip done";
       STATS.mod.done = true; updateStatChips();
-      allIdle("adjourned ☕");
-      setStatus("mod", "", "gavel down ⚖");
+      allIdle("adjourned");
+      setStatus("mod", "", "gavel down");
       applyVerdictReactions(true);
       showVerdict(true);
       idx++;
@@ -1261,10 +1815,10 @@
         } else if (s.t === "think") elapsedBase += s.ms;
         else if (s.t === "verdict") {
           showVerdict(false);
-          for (let k = 0; k <= S.rounds.length; k++) $("ph-" + k).className = "ph done";
+          for (let k = 0; k <= S.rounds.length; k++) $("ph-" + k).className = "ph pchip done";
           STATS.mod.done = true; updateStatChips();
-          allIdle("adjourned ☕");
-          setStatus("mod", "", "gavel down ⚖");
+          allIdle("adjourned");
+          setStatus("mod", "", "gavel down");
           applyVerdictReactions(false);
         }
       }
@@ -1283,7 +1837,8 @@
     if (!S) return;
     if (idx >= steps.length) { seek(0); }
     playing = true;
-    $("play").textContent = "⏸ pause";
+    setPlayButton("pause");
+    setPlaybackState("playing");
     startFidgets();
     if (active) resumeActive();
     else runStep();
@@ -1298,7 +1853,8 @@
       if (active.kind === "typing") renderTyping(active, false);
     }
     clearDecorations();
-    $("play").textContent = "▶ play";
+    setPlayButton("play");
+    if (S) setPlaybackState("paused", "warn");
   }
 
   function teardownPlayback() {
@@ -1306,7 +1862,8 @@
     clearAllTimers();
     active = null;
     clearDecorations();
-    $("play").textContent = "▶ play";
+    setPlayButton("play");
+    if (S) setPlaybackState("paused", "warn");
   }
 
   $("play").addEventListener("click", () => (playing ? pause() : play()));
@@ -1325,7 +1882,7 @@
     b.type = "button";
     b.textContent = s + "×";
     b.setAttribute("aria-pressed", String(s === 1));
-    if (s === 1) b.className = "on";
+    b.className = "pbtn" + (s === 1 ? " on" : "");
     b.addEventListener("click", () => {
       const op = active;
       if (playing && op) {
@@ -1360,11 +1917,30 @@
     });
   }
 
+  function makeLoadingAgent() {
+    const agent = document.createElement("div");
+    agent.className = "agent loading-agent";
+    agent.setAttribute("aria-hidden", "true");
+    agent.innerHTML = `<span class="load-block load-avatar"></span>
+      <span class="load-block load-name"></span>
+      <span class="load-block load-meta"></span>
+      <span class="load-block load-status"></span>`;
+    return agent;
+  }
+
   function renderLoadState(message, retryFile) {
+    const windowEl = document.querySelector(".debate-window");
+    if (windowEl) { windowEl.classList.add("is-loading"); windowEl.setAttribute("aria-busy", "true"); }
+    setPlayButton("play");
+    setPlaybackState(retryFile ? "unavailable" : "loading", retryFile ? "err" : "warn");
     $("q").textContent = message;
-    for (const id of ["rail", "council", "modrow", "backoffice", "intern-sprite"])
-      $(id).replaceChildren();
+    $("rail").replaceChildren();
+    $("council").replaceChildren(...Array.from({ length: 4 }, makeLoadingAgent));
+    $("modrow").replaceChildren(...Array.from({ length: 2 }, makeLoadingAgent));
+    $("backoffice").replaceChildren();
+    $("intern-sprite").replaceChildren();
     $("verdict").classList.remove("show");
+    $("verdict").open = false;
     $("verdict").style.display = "none";
     $("feed").replaceChildren();
     const state = document.createElement("div");
@@ -1374,7 +1950,7 @@
     if (retryFile) {
       const retry = document.createElement("button");
       retry.type = "button";
-      retry.className = "btn ghost";
+      retry.className = "btn ghost pbtn";
       retry.textContent = "retry";
       retry.addEventListener("click", () => loadSession(retryFile));
       state.appendChild(retry);
@@ -1417,7 +1993,7 @@
 
   for (const [file, label, tag] of SESSIONS) {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "sess"; b.dataset.f = file;
+    b.type = "button"; b.className = "sess pbtn"; b.dataset.f = file;
     b.setAttribute("aria-pressed", "false");
     b.innerHTML = `${label}<small>${tag} · scripted sample</small>`;
     b.addEventListener("click", () => loadSession(file));

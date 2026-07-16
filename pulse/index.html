@@ -4,182 +4,463 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pulse — the morning brief that writes itself</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<link rel="icon" type="image/png" href="/huy-avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css">
 <style>
-  :root {
-    --bg: #F7F5EF; --panel: #fffdf8; --panel-2: #f3f0e9; --line: #d9d4c8;
-    --text: #1c1a17; --dim: #5f5a51; --grid: #e5e1d6;
-    --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58; --violet: #6a47a0;
-    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
-  }
+  /* Pulse desk: page-specific composition on top of shared pixel chrome. */
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
-  .wrap { max-width: 1060px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 1rem; }
-  h1 { font-size: 1.7rem; letter-spacing: .06em; }
-  h1 .dot { color: var(--green); animation: caret .9s steps(2) infinite; }
-  @keyframes caret { 50% { opacity: 0; } }
-  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
-  .honesty { display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim); border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem; background: var(--panel); max-width: 720px; }
-  .honesty b { color: var(--green); }
-  .card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(28,26,23,.05); }
-  .card h2 { font-size: .92rem; letter-spacing: .04em; margin-bottom: .2rem; }
-  .card .src { font-size: .64rem; color: var(--dim); margin-bottom: .6rem; }
-  .card .src a { color: var(--blue); }
-  /* wire strip */
-  .wires { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
-  .wire { display: flex; align-items: center; gap: .45rem; background: var(--panel); border: 1.5px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: .68rem; color: var(--dim); }
-  .wire i { width: 9px; height: 9px; border-radius: 50%; background: #b8b2a4; }
-  .wire.up i { background: var(--green); }
-  .wire.down i { background: var(--coral); animation: blinkled .6s steps(2) infinite; }
-  .wire.wait i { background: var(--gold); animation: blinkled 1s steps(2) infinite; }
-  @keyframes blinkled { 50% { opacity: .25; } }
-  .wire b { color: var(--text); }
-  /* hero debt */
-  .hero { text-align: center; padding: 1.3rem 1rem 1.1rem; }
-  .hero .label { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-  .hero .big { font-size: clamp(1.6rem, 5.2vw, 3rem); font-weight: 800; letter-spacing: .01em; margin: .2rem 0; font-variant-numeric: tabular-nums; }
-  .hero .sub { font-size: .72rem; color: var(--dim); }
-  .hero .sub b { color: var(--text); }
-  .hero .pace { display: inline-block; margin-top: .5rem; font-size: .66rem; color: var(--coral); border: 1.5px solid var(--coral); border-radius: 999px; padding: .08rem .6rem; font-weight: 700; }
-  /* fx board */
-  .fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem; }
-  .fxtile { border: 1.5px solid var(--line); border-radius: 10px; padding: .5rem .65rem; background: var(--panel); position: relative; }
-  .fxtile .sym { font-weight: 800; font-size: .8rem; }
-  .fxtile .sym i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: .35rem; vertical-align: 0; }
-  .fxtile .rate { font-size: .95rem; font-weight: 700; margin-top: .1rem; font-variant-numeric: tabular-nums; }
-  .fxtile .chg { font-size: .66rem; font-weight: 700; }
-  .fxtile .chg.up { color: var(--green); } .fxtile .chg.dn { color: var(--coral); }
-  .fxtile svg { width: 100%; height: 30px; margin-top: .25rem; }
-  .fxtile .per { font-size: .6rem; color: var(--dim); }
-  /* charts */
-  .chartwrap { position: relative; }
-  .chartwrap svg { width: 100%; height: auto; display: block; }
-  .chartwrap svg[tabindex] { cursor: crosshair; touch-action: pan-y; }
-  .chartwrap svg[tabindex]:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-  .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: .66rem; border-radius: 8px; padding: .4rem .6rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; box-shadow: 3px 3px 0 rgba(28,26,23,.18); }
-  .tip .t { color: #c9c2b4; }
-  .tip .row { display: flex; align-items: center; gap: .35rem; }
-  .tip .row i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
-  .legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .68rem; color: var(--dim); margin: .3rem 0 .1rem; }
-  .legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .3rem; vertical-align: -1px; }
-  .ranges { display: inline-flex; gap: .25rem; margin-left: .6rem; }
-  .ranges button { font: inherit; font-size: .64rem; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 6px; padding: .12rem .5rem; cursor: pointer; }
-  .ranges button.on { background: var(--text); color: #fff; border-color: var(--text); }
-  details.tbl { margin-top: .5rem; font-size: .68rem; color: var(--dim); }
-  details.tbl summary { cursor: pointer; }
-  details.tbl table { border-collapse: collapse; margin-top: .4rem; width: 100%; font-variant-numeric: tabular-nums; }
-  details.tbl th, details.tbl td { border: 1px solid var(--line); padding: .15rem .45rem; text-align: right; }
-  details.tbl th:first-child, details.tbl td:first-child { text-align: left; }
-  /* world bank tiles */
-  .wbgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .6rem; }
-  .wbtile { border: 1.5px solid var(--line); border-radius: 10px; padding: .55rem .7rem; background: var(--panel); }
-  .wbtile .c { font-weight: 800; font-size: .78rem; }
-  .wbtile .v { font-size: .72rem; margin-top: .2rem; }
-  .wbtile .v b { font-variant-numeric: tabular-nums; }
-  .wbtile .v .up { color: var(--green); } .wbtile .v .dn { color: var(--coral); }
-  /* analyst + brief */
-  .briefrow { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; align-items: start; }
-  @media (max-width: 760px) { .briefrow { grid-template-columns: 1fr; } }
-  .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(28,26,23,.05); }
-  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; }
+  :root {
+    --pi-accent: #2547c9;
+    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: var(--pi-paper);
+    --line: var(--pi-line); --text: var(--pi-ink); --dim: var(--pi-muted); --grid: var(--pi-line);
+    --blue: var(--pi-accent); --gold: var(--pi-warn); --green: var(--pi-ok);
+    --violet: var(--pi-accent); --coral: var(--pi-err);
+    --green-bg: var(--pi-ok-soft); --coral-bg: var(--pi-err-soft);
+  }
+  body {
+    min-width: 320px;
+    padding: 24px 16px 48px;
+    background: var(--pi-paper);
+    color: var(--pi-ink);
+    font-family: var(--pi-font-body);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  header { margin-bottom: 16px; text-align: center; }
+  code { font-family: var(--pi-font-code); }
+  h1 {
+    font-family: var(--pi-font-title);
+    font-size: clamp(20px, 4vw, 30px);
+    line-height: 1.5;
+    letter-spacing: .08em;
+  }
+  h1 .dot { color: var(--pi-accent); animation: none; }
+  .tagline { margin-top: 4px; color: var(--pi-muted); font: 14px/1.5 var(--pi-font-body); }
+  .honesty {
+    display: block;
+    max-width: 840px;
+    margin: 12px auto 0;
+    padding: 8px 12px;
+    border: 1.5px solid var(--pi-line);
+    border-left: 6px solid var(--pi-accent);
+    border-radius: 0;
+    background: var(--pi-panel);
+    color: var(--pi-muted);
+    font: 12px/1.55 var(--pi-font-code);
+    text-align: left;
+  }
+  .honesty b { color: var(--pi-ink); }
+
+  .desk-top {
+    display: grid;
+    grid-template-columns: 224px minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 24px;
+  }
+  .wires {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 12px;
+    background: var(--pi-accent-soft);
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    box-shadow: var(--pi-shadow);
+  }
+  .wire {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    align-content: center;
+    gap: 2px 8px;
+    min-height: 52px;
+    padding: 7px 8px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-panel);
+    color: var(--pi-muted);
+    font: 12px/1.35 var(--pi-font-code);
+  }
+  .wire b { color: var(--pi-ink); font: 13px/1.25 var(--pi-font-ui); }
+  .wire .wire-ic { grid-row: 1 / span 2; align-self: center; color: var(--pi-muted); }
+  .wire.up .wire-ic { color: var(--pi-ok); }
+  .wire.down .wire-ic { color: var(--pi-err); }
+  .wire.wait .wire-ic { color: var(--pi-warn); animation: wire-handshake .8s steps(2, end) infinite; }
+  @keyframes wire-handshake { 50% { transform: translateX(3px); } }
+
+  .card {
+    margin: 0;
+    padding: 0 16px 16px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-panel);
+    box-shadow: var(--pi-shadow-s);
+  }
+  .brief-card { min-width: 0; box-shadow: var(--pi-shadow); }
+  .card h2,
+  .hero .label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 34px;
+    margin: 0 -16px 12px;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--pi-ink);
+    background: var(--pi-accent-soft);
+    color: var(--pi-ink);
+    font: 11px/1.45 var(--pi-font-title);
+    letter-spacing: .04em;
+    text-align: left;
+    text-transform: lowercase;
+  }
+  .card h2 .pi-ic,
+  .hero .label .pi-ic { flex: none; color: var(--pi-accent); }
+  .card .src {
+    margin-bottom: 12px;
+    color: var(--pi-muted);
+    font: 12px/1.55 var(--pi-font-body);
+  }
+  .card .src a { color: var(--pi-accent); }
+
+  .evidence {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background-color: var(--pi-panel);
+    background-image:
+      linear-gradient(var(--pi-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--pi-line) 1px, transparent 1px);
+    background-size: 16px 16px;
+    box-shadow: var(--pi-shadow);
+  }
+  .hero { padding: 0 16px 16px; text-align: center; }
+  .hero .label { justify-content: center; }
+  .hero .big {
+    margin: 12px 0 4px;
+    color: var(--pi-ink);
+    font: 700 clamp(32px, 6vw, 60px)/1.08 var(--pi-font-ui);
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
+  .hero .sub { color: var(--pi-muted); font: 13px/1.5 var(--pi-font-body); }
+  .hero .sub b { color: var(--pi-ink); }
+  .hero .pace {
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border: 1.5px solid var(--pi-accent);
+    border-radius: 0;
+    background: var(--pi-accent-soft);
+    color: var(--pi-accent);
+    font: 700 12px/1.45 var(--pi-font-ui);
+  }
+  .hero .pace.up { color: var(--pi-ok); border-color: var(--pi-ok); background: var(--pi-ok-soft); }
+  .hero .pace.dn { color: var(--pi-err); border-color: var(--pi-err); background: var(--pi-err-soft); }
+
+  .fxgrid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fxtile {
+    grid-column: span 3;
+    min-width: 0;
+    padding: 10px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    box-shadow: 2px 2px 0 var(--pi-ink);
+  }
+  .fxtile:nth-child(-n+2) { grid-column: span 6; }
+  .fxtile .sym { font: 700 16px/1.2 var(--pi-font-ui); }
+  .fxtile .sym i { display: inline-block; width: 14px; height: 4px; margin-right: 6px; border-radius: 0; background: var(--pi-accent) !important; }
+  .fxtile .rate { margin-top: 4px; font: 700 24px/1.1 var(--pi-font-ui); }
+  .fxtile .chg { font: 700 13px/1.4 var(--pi-font-ui); }
+  .fxtile .chg.up { color: var(--pi-ok); }
+  .fxtile .chg.dn { color: var(--pi-err); }
+  .fxtile svg { width: 100%; height: 36px; margin-top: 6px; }
+  .fxtile .per { color: var(--pi-muted); font: 12px/1.4 var(--pi-font-body); }
+
+  .chartwrap {
+    position: relative;
+    max-width: 100%;
+    overflow-x: auto;
+    border-top: 1px solid var(--pi-line);
+    border-bottom: 1px solid var(--pi-line);
+    scrollbar-color: var(--pi-accent) var(--pi-accent-soft);
+  }
+  .chartwrap svg { display: block; width: max(100%, 940px); min-width: 940px; height: auto; }
+  .chartwrap svg[tabindex] { cursor: crosshair; touch-action: pan-x pan-y; }
+  .chartwrap svg[tabindex]:focus-visible { outline: 2px solid var(--pi-accent); outline-offset: -2px; }
+  .tip {
+    position: absolute;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    padding: 8px 10px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-term-bg);
+    box-shadow: 3px 3px 0 var(--pi-ink);
+    color: var(--pi-term-fg);
+    font: 12px/1.5 var(--pi-font-code);
+    transition: opacity .12s steps(2, end);
+  }
+  .tip .t { color: var(--pi-term-dim); }
+  .tip .row { display: flex; align-items: center; gap: 6px; }
+  .tip .row i { display: inline-block; width: 12px; height: 3px; border-radius: 0; background: var(--pi-accent) !important; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 8px; color: var(--pi-muted); font: 12px/1.4 var(--pi-font-ui); }
+  .legend span i { display: inline-block; width: 18px; height: 0; margin-right: 5px; border-top: 3px solid var(--pi-accent); border-radius: 0; background: none !important; vertical-align: 3px; }
+  .ranges { display: inline-flex; gap: 6px; margin: 0 0 0 auto; }
+  .ranges button,
+  .feed-err button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-panel);
+    box-shadow: var(--pi-shadow-s);
+    color: var(--pi-ink);
+    font: 14px/1 var(--pi-font-ui);
+    cursor: pointer;
+  }
+  .ranges button:hover,
+  .feed-err button:hover { background: var(--pi-accent-soft); }
+  .ranges button:active,
+  .ranges button.on,
+  .feed-err button:active {
+    transform: translate(2px, 2px);
+    border-color: var(--pi-ink);
+    background: var(--pi-accent);
+    box-shadow: 1px 1px 0 var(--pi-ink);
+    color: #fff;
+  }
+  details.tbl { margin-top: 10px; color: var(--pi-muted); font: 13px/1.5 var(--pi-font-body); }
+  details.tbl summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--pi-accent);
+    font: 14px/1.4 var(--pi-font-ui);
+    cursor: pointer;
+  }
+  details.tbl table { width: max-content; min-width: 100%; margin-top: 0; }
+  details.tbl th,
+  details.tbl td { min-width: 82px; padding: 7px 10px; border: 1px solid var(--pi-line); text-align: right; }
+  details.tbl th:first-child,
+  details.tbl td:first-child { min-width: 112px; text-align: left; }
+
+  .wbgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .wbtile {
+    padding: 10px 12px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+  }
+  .wbtile .c { font: 700 16px/1.3 var(--pi-font-ui); }
+  .wbtile .v { margin-top: 5px; font: 13px/1.5 var(--pi-font-body); }
+  .wbtile .v .up { color: var(--pi-ok); }
+  .wbtile .v .dn { color: var(--pi-err); }
+
+  .briefrow {
+    display: grid;
+    grid-template-columns: 144px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .agent {
+    position: relative;
+    padding: 8px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    box-shadow: none;
+    text-align: center;
+  }
+  .agent .ava { width: 92px; height: 81px; margin: 0 auto 4px; }
   .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; }
-  .agent .person { transform-origin: 66px 80px; animation: breathe 3.6s ease-in-out infinite; }
-  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
-  .agent .nm { font-weight: 800; font-size: .84rem; }
-  .agent .rl { font-size: .66rem; color: var(--green); font-weight: 700; }
-  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
-  .agent .st { font-size: .62rem; color: var(--dim); margin-top: .2rem; min-height: 1.1em; }
-  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  .agent .person,
+  .agent.working .person,
+  .agent.working .hands rect,
+  .eye,
+  .steam rect,
+  .mchart { animation: none; }
+  .agent .nm { font: 700 15px/1.25 var(--pi-font-ui); }
+  .agent .rl { color: var(--pi-accent); font: 700 12px/1.35 var(--pi-font-ui); }
+  .agent .tg { color: var(--pi-muted); font: italic 12px/1.4 var(--pi-font-body); }
+  .agent .st { min-height: 1.4em; margin-top: 4px; color: var(--pi-muted); font: 12px/1.4 var(--pi-font-code); }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4, end) infinite; }
   @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
-  .agent.working .person { animation: lean .5s ease-in-out infinite alternate; }
-  @keyframes lean { from { transform: translateY(0); } to { transform: translateY(-2px); } }
-  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
-  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
-  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-  .eye { animation: blink 4.6s infinite; transform-origin: center; }
-  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
-  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
-  .steam rect:nth-child(2) { animation-delay: 1.3s; }
-  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
-  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
-  @keyframes mflow { to { stroke-dashoffset: -120; } }
-  #brief { font-size: .8rem; }
-  #brief .bline { margin-bottom: .55rem; padding-left: 1rem; text-indent: -1rem; }
-  #brief .bline:before { content: "▸ "; color: var(--green); }
-  #brief .caret2 { display: inline-block; width: .5em; background: var(--green); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
-  .receipts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
-  .receipts a, .receipts time { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; text-decoration: none; }
-  .receipts a:before, .receipts time:before { content: "📎 "; }
-  .receipts a:hover { color: var(--blue); border-color: var(--blue); }
-  /* error state */
-  .feed-err { border: 1.5px solid var(--coral); background: var(--coral-bg); border-radius: 10px; padding: .6rem .8rem; font-size: .74rem; }
-  .feed-err b { color: var(--coral); }
-  .feed-err button { font: inherit; font-size: .68rem; margin-top: .35rem; cursor: pointer; border: 1px solid var(--coral); color: var(--coral); background: transparent; border-radius: 6px; padding: .15rem .6rem; }
-  .skel { color: var(--dim); font-size: .74rem; }
-  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
-  a { color: var(--blue); }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  @keyframes caret { 50% { opacity: 0; } }
+  #brief { color: var(--pi-ink); font: 14px/1.65 var(--pi-font-body); }
+  #brief .bline { margin-bottom: 10px; padding-left: 18px; text-indent: -18px; }
+  #brief .bline:before { content: "▸ "; color: var(--pi-accent); }
+  #brief .caret2 { display: inline-block; width: .5em; height: .95em; vertical-align: -2px; background: var(--pi-accent); animation: caret .8s steps(2, end) infinite; }
+  .receipts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .receipts a,
+  .receipts time {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 32px;
+    padding: 4px 8px;
+    border: 1.5px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    color: var(--pi-muted);
+    font: 700 12px/1.3 var(--pi-font-ui);
+    text-decoration: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .receipts a { min-height: 44px; }
+  .receipts a:before,
+  .receipts time:before { content: none; }
+  .receipts a:hover { border-color: var(--pi-accent); color: var(--pi-accent); }
+
+  .feed-err {
+    padding: 10px 12px;
+    border: 2px solid var(--pi-err);
+    border-radius: 0;
+    background: var(--pi-err-soft);
+    color: var(--pi-ink);
+    font: 13px/1.55 var(--pi-font-body);
+  }
+  .feed-err b { color: var(--pi-err); }
+  .feed-err button { margin-top: 8px; color: var(--pi-err); border-color: var(--pi-err); }
+  .skel { color: var(--pi-muted); font: 13px/1.5 var(--pi-font-code); }
+  footer { margin-top: 28px; color: var(--pi-muted); font: 12px/1.6 var(--pi-font-body); text-align: center; }
+  a { color: var(--pi-accent); }
+
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform;
+  }
+  .cursor svg { display: block; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.28)); }
+  .cursor.down svg { transform: scale(.82); }
+  body.cursor-on { cursor: none; }
+  body.cursor-on :is(a, button, summary, svg[tabindex]) { cursor: none; }
+
+  @media (max-width: 760px) {
+    body { padding: 16px 10px 36px; }
+    .desk-top { grid-template-columns: 1fr; }
+    .wires { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .wire { min-width: 0; }
+    .briefrow { grid-template-columns: 1fr; }
+    .agent {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      column-gap: 10px;
+      align-items: center;
+      text-align: left;
+    }
+    .agent .ava { grid-row: 1 / span 4; width: 72px; height: 64px; margin: 0; }
+    .fxtile,
+    .fxtile:nth-child(-n+2) { grid-column: span 6; }
+  }
+  @media (max-width: 520px) {
+    .honesty { font-size: 12px; }
+    .wires { grid-template-columns: 1fr; }
+    .evidence { padding: 8px; gap: 12px; }
+    .card { padding: 0 10px 12px; }
+    .card h2,
+    .hero .label { margin-right: -10px; margin-left: -10px; }
+    .ranges { width: 100%; margin-left: 0; }
+    .ranges button { flex: 1; }
+    .hero .big[data-compact] { font-size: 0; }
+    .hero .big[data-compact]::after { content: attr(data-compact); display: block; font: 700 clamp(32px, 13vw, 48px)/1.05 var(--pi-font-ui); }
+    .fxtile,
+    .fxtile:nth-child(-n+2) { grid-column: 1 / -1; }
+    .wbgrid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wire.wait .wire-ic,
+    .agent .st .dots:after,
+    #brief .caret2 { animation: none !important; }
+    .tip { transition: none; }
+  }
 </style>
 </head>
-<body data-palette="#3f5aa0,#8f6f1d,#2f8a58,#6a47a0,#b8463a">
+<body data-palette="#2547c9,#246b45,#b3372c">
 <div class="wrap">
   <header>
     <h1>PULSE<span class="dot">_</span></h1>
     <p class="tagline">the morning brief that writes itself — live numbers, narrated on the spot</p>
-    <span class="honesty"><b>everything on this page is fetched by your browser, right now,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between, no key, no cached copy: if a wire is down you'll see it down, and the numbers are whatever the world says they are at <b id="opened-at">—</b>.</span>
+    <span class="honesty pstrip"><b>everything on this page is fetched by your browser, right now,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between, no key, no cached copy: if a wire is down you'll see it down, and the numbers are whatever the world says they are at <b id="opened-at">—</b>.</span>
   </header>
 
-  <div class="wires" id="wires" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"></div>
+  <div class="desk-top">
+    <div class="wires pwin" id="wires" role="status" aria-label="Source status" aria-live="polite" aria-atomic="true" aria-busy="true"></div>
 
-  <div class="card hero" id="debt-hero">
-    <div class="label">US federal debt — total public debt outstanding</div>
-    <div class="big" id="debt-big">loading the ledger…</div>
-    <div class="sub" id="debt-sub">&nbsp;</div>
-    <div class="pace" id="debt-pace" style="display:none"></div>
-  </div>
-
-  <div class="card">
-    <h2>The dollar, indexed <span class="ranges" id="fx-ranges"></span></h2>
-    <div class="src">units of each currency per 1 USD, indexed to 100 at window start — up = stronger dollar · source: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a> (ECB reference rates) · <span id="fx-when">fetching…</span></div>
-    <div id="fx-chart-zone"><p class="skel">calling the FX wire…</p></div>
-  </div>
-
-  <div class="card">
-    <h2>FX board</h2>
-    <div class="src">latest ECB reference rate per 1 USD, with the window's path</div>
-    <div class="fxgrid" id="fx-board"><p class="skel">…</p></div>
-  </div>
-
-  <div class="card">
-    <h2>The debt, one year back</h2>
-    <div class="src">daily total public debt outstanding · source: <a href="https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny" target="_blank" rel="noopener">US Treasury Fiscal Data</a> · <span id="debt-when">fetching…</span></div>
-    <div id="debt-chart-zone"><p class="skel">calling the Treasury wire…</p></div>
-  </div>
-
-  <div class="card">
-    <h2>Growth &amp; prices — latest World Bank annuals</h2>
-    <div class="src">annual figures, labeled by their year — these move yearly, not daily · source: <a href="https://data.worldbank.org" target="_blank" rel="noopener">World Bank Open Data</a> · <span id="wb-when">fetching…</span></div>
-    <div class="wbgrid" id="wb-grid"><p class="skel">…</p></div>
-  </div>
-
-  <div class="card">
-    <h2>The brief</h2>
-    <div class="src">composed in your browser from the numbers above — templates plus arithmetic, no model, no tokens, every claim traceable to a wire</div>
-    <div class="briefrow">
-      <div class="agent" id="ag-an">
-        <div class="ava" id="av-an"></div>
-        <div class="nm">The Analyst</div>
-        <div class="rl">Files before your coffee cools</div>
-        <div class="tg">reads three wires, writes one page</div>
-        <div class="st" id="st-an">waiting on the wires<span class="dots"></span></div>
-      </div>
-      <div>
-        <div id="brief"><p class="skel">the brief starts typing once at least one wire answers…</p></div>
-        <div class="receipts" id="receipts"></div>
+    <div class="card brief-card pwin">
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>The brief</h2>
+      <div class="src">composed in your browser from the numbers above — templates plus arithmetic, no model, no tokens, every claim traceable to a wire</div>
+      <div class="briefrow">
+        <div class="agent" id="ag-an">
+          <div class="ava" id="av-an"></div>
+          <div class="nm">The Analyst</div>
+          <div class="rl">Files before your coffee cools</div>
+          <div class="tg">reads three wires, writes one page</div>
+          <div class="st" id="st-an">waiting on the wires<span class="dots"></span></div>
+        </div>
+        <div>
+          <div id="brief"><p class="skel">the brief starts typing once at least one wire answers…</p></div>
+          <div class="receipts" id="receipts"></div>
+        </div>
       </div>
     </div>
   </div>
+
+  <section class="evidence pwin" aria-label="Evidence workspace">
+    <div class="card hero" id="debt-hero">
+      <div class="label"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>US federal debt — total public debt outstanding</div>
+      <div class="big" id="debt-big">loading the ledger…</div>
+      <div class="sub" id="debt-sub">&nbsp;</div>
+      <div class="pace" id="debt-pace" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>The dollar, indexed <span class="ranges" id="fx-ranges"></span></h2>
+      <div class="src">units of each currency per 1 USD, indexed to 100 at window start — up = stronger dollar · source: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a> (ECB reference rates) · <span id="fx-when">fetching…</span></div>
+      <div id="fx-chart-zone"><p class="skel">calling the FX wire…</p></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>FX board</h2>
+      <div class="src">latest ECB reference rate per 1 USD, with the window's path</div>
+      <div class="fxgrid" id="fx-board"><p class="skel">…</p></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>The debt, one year back</h2>
+      <div class="src">daily total public debt outstanding · source: <a href="https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny" target="_blank" rel="noopener">US Treasury Fiscal Data</a> · <span id="debt-when">fetching…</span></div>
+      <div id="debt-chart-zone"><p class="skel">calling the Treasury wire…</p></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>Growth &amp; prices — latest World Bank annuals</h2>
+      <div class="src">annual figures, labeled by their year — these move yearly, not daily · source: <a href="https://data.worldbank.org" target="_blank" rel="noopener">World Bank Open Data</a> · <span id="wb-when">fetching…</span></div>
+      <div class="wbgrid" id="wb-grid"><p class="skel">…</p></div>
+    </div>
+  </section>
 
   <footer>
     PULSE · fetch → compute → narrate, all client-side ·
@@ -192,8 +473,70 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // fixed categorical assignment — color follows the currency, never its rank
-  const FXC = { EUR: "#3f5aa0", GBP: "#8f6f1d", JPY: "#2f8a58", MXN: "#6a47a0", CNY: "#b8463a", CAD: "#5f5a51" };
+  const FINE_POINTER = window.matchMedia("(pointer: fine)").matches;
+
+  // Reuse the site shell's crisp pointer without loading its unrelated page effects.
+  function pixelArrowSVG() {
+    const W = 12, H = 18, S = 2.4;
+    const poly = [[0,0],[0,16],[4,12],[6,17],[8,16],[6,11],[11,11]];
+    const inside = (x, y) => {
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c;
+      }
+      return c;
+    };
+    const fillGrid = [], outGrid = [];
+    for (let y = 0; y < H; y++) {
+      fillGrid[y] = [];
+      for (let x = 0; x < W; x++) fillGrid[y][x] = inside(x + .5, y + .5) ? 1 : 0;
+    }
+    for (let y = 0; y < H; y++) {
+      outGrid[y] = [];
+      for (let x = 0; x < W; x++) {
+        if (fillGrid[y][x]) { outGrid[y][x] = 0; continue; }
+        let near = false;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const ny = y + dy, nx = x + dx;
+          if (ny >= 0 && ny < H && nx >= 0 && nx < W && fillGrid[ny][nx]) near = true;
+        }
+        outGrid[y][x] = near ? 1 : 0;
+      }
+    }
+    let rects = "";
+    const px = (x, y, color) => `<rect x="${x}" y="${y}" width="1.03" height="1.03" fill="${color}"/>`;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (outGrid[y][x]) rects += px(x, y, "#fff");
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fillGrid[y][x]) rects += px(x, y, "#1e1a14");
+    return `<svg width="${W * S}" height="${H * S}" viewBox="-1 -1 ${W + 1} ${H + 1}" shape-rendering="crispEdges">${rects}</svg>`;
+  }
+  function initPixelCursor() {
+    document.body.classList.add("cursor-on");
+    const cur = document.createElement("div");
+    cur.className = "cursor";
+    cur.setAttribute("aria-hidden", "true");
+    cur.innerHTML = pixelArrowSVG();
+    document.body.append(cur);
+    // event-driven: one rAF per pointer move, no free-running loop
+    let raf = 0, mx = innerWidth / 2, my = innerHeight / 2;
+    addEventListener("mousemove", (e) => {
+      mx = e.clientX; my = e.clientY;
+      cur.style.opacity = "1";
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        cur.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+      });
+    }, { passive: true });
+    addEventListener("mousedown", () => cur.classList.add("down"));
+    addEventListener("mouseup", () => cur.classList.remove("down"));
+    document.addEventListener("mouseleave", () => { cur.style.opacity = "0"; });
+  }
+  if (FINE_POINTER && !REDUCED) initPixelCursor();
+
+  // One interface hue; labels and dash patterns identify currency series.
+  const FXC = { EUR: "#2547c9", GBP: "#2547c9", JPY: "#2547c9", MXN: "#2547c9", CNY: "#2547c9", CAD: "#2547c9" };
+  const FXD = { EUR: "", GBP: "8 4", JPY: "2 3", MXN: "10 3 2 3", CNY: "5 3", CAD: "1 3" };
   const CHART_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY"];       // 5 series max on one chart
   const ALL_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY", "CAD"];
   const PER = { EUR: "€ per $", GBP: "£ per $", JPY: "¥ per $", MXN: "MX$ per $", CNY: "¥ per $", CAD: "C$ per $" };
@@ -214,7 +557,8 @@
     wires.innerHTML = WIRES.map(([k, label]) => {
       const st = state["wire_" + k] || "wait";
       const note = state["wirenote_" + k] || "dialing";
-      return `<span class="wire ${st}" id="wire-${k}"><i></i><b>${label}</b> — ${note}</span>`;
+      const icon = st === "up" ? "i-check" : st === "down" ? "i-x" : "i-hold";
+      return `<span class="wire pstrip ${st}" id="wire-${k}"><svg class="pi-ic wire-ic" aria-hidden="true"><use href="/shared/icons.svg#${icon}"/></svg><b>${label}</b><span>— ${note}</span></span>`;
     }).join("");
     wires.setAttribute("aria-busy", "false");
   }
@@ -256,7 +600,7 @@
     zone.innerHTML = `<div class="feed-err"><b>wire unreachable</b> — your browser
       couldn't reach <b>${host}</b> just now (this page talks to the source directly;
       there is no server in between to blame). <br>
-      <button type="button">try the wire again</button></div>`;
+      <button class="pbtn" type="button">try the wire again</button></div>`;
     zone.querySelector("button").addEventListener("click", retryFn);
   }
 
@@ -309,44 +653,54 @@
     for (let k = 0; k <= ySteps; k++) {
       const v = lo + k * (hi - lo) / ySteps, y = Y(v);
       g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>
-            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${v.toFixed(1)}</text>`;
+            <text x="${L - 6}" y="${y + 4}" font-size="12" fill="var(--dim)" text-anchor="end">${v.toFixed(1)}</text>`;
     }
     const nx = 5;
     for (let k = 0; k < nx; k++) {
       const i = Math.round(k * (dates.length - 1) / (nx - 1));
-      g += `<text x="${X(i)}" y="${H - 12}" font-size="9" fill="var(--dim)" text-anchor="middle">${dates[i].slice(5)}</text>`;
+      g += `<text x="${X(i)}" y="${H - 10}" font-size="12" fill="var(--dim)" text-anchor="middle">${dates[i].slice(5)}</text>`;
     }
     g += `<line x1="${L}" y1="${Y(100)}" x2="${W - R}" y2="${Y(100)}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="3 4"/>
-          <text x="${L + 4}" y="${Y(100) - 4}" font-size="8.5" fill="var(--dim)">100 = ${dates[0]}</text>`;
-    // lines + end labels with collision nudge
+          <text x="${L + 4}" y="${Y(100) - 5}" font-size="12" fill="var(--dim)">100 = ${dates[0]}</text>`;
+    // Lines + end labels distributed in both directions and clamped to the plot.
     const ends = [];
     for (const s of chartSyms) {
       const pts = idx[s].map((v, i) => v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`)
         .filter(Boolean).join(" ");
-      g += `<polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-linejoin="round"/>`;
+      g += `<polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-dasharray="${FXD[s]}" stroke-linejoin="round"/>`;
       const lastV = [...idx[s]].reverse().find(v => v != null);
       ends.push({ s, y: Y(lastV), v: lastV });
     }
     ends.sort((a, b) => a.y - b.y);
-    for (let i = 1; i < ends.length; i++)
-      if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+    const minLabelY = T + 8, maxLabelY = H - B - 8, labelGap = 16;
+    ends.forEach(e => { e.y = Math.max(minLabelY, Math.min(maxLabelY, e.y)); });
+    for (let i = 1; i < ends.length; i++) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + labelGap);
+    if (ends.length && ends[ends.length - 1].y > maxLabelY) {
+      const shift = ends[ends.length - 1].y - maxLabelY;
+      ends.forEach(e => { e.y -= shift; });
+    }
+    for (let i = ends.length - 2; i >= 0; i--) ends[i].y = Math.min(ends[i].y, ends[i + 1].y - labelGap);
+    if (ends.length && ends[0].y < minLabelY) {
+      ends[0].y = minLabelY;
+      for (let i = 1; i < ends.length; i++) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + labelGap);
+    }
     for (const e of ends)
-      g += `<text x="${W - R + 7}" y="${e.y + 3}" font-size="10" font-weight="bold" fill="${FXC[e.s]}">${e.s} ${e.v.toFixed(1)}</text>`;
+      g += `<text x="${W - R + 7}" y="${e.y + 4}" font-size="12" font-weight="bold" fill="${FXC[e.s]}">${e.s} ${e.v.toFixed(1)}</text>`;
     g += `<rect id="fx-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
           <line id="fx-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
 
     const zone = $("fx-chart-zone");
     const tableStart = Math.max(0, dates.length - 10);
     zone.innerHTML = `
-      <div class="legend">${chartSyms.map(s => `<span><i style="background:${FXC[s]}"></i>${s}</span>`).join("")}
+      <div class="legend">${chartSyms.map(s => `<span><i style="border-top-style:${FXD[s] ? "dashed" : "solid"}"></i>${s}</span>`).join("")}
         ${syms.includes("CAD") && !chartSyms.includes("CAD") ? '<span style="margin-left:auto">CAD on the board below</span>' : ""}</div>
       <div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect dollar strength by rate day" aria-valuemin="0" aria-valuemax="${dates.length - 1}" aria-valuenow="${dates.length - 1}">${g}</svg>
         <div class="tip" id="fx-tip"></div></div>
-      <details class="tbl"><summary>view as table (last 10 rate days)</summary><table>
+      <details class="tbl"><summary>view as table (last 10 rate days)</summary><div class="ptable-wrap"><table class="ptable">
         <tr><th>date</th>${syms.map(s => `<th>${s}</th>`).join("")}</tr>
         ${dates.slice(tableStart).map((d, k) => `<tr><td>${d}</td>${syms.map(s =>
           `<td>${(series[s][tableStart + k] ?? "—")}</td>`).join("")}</tr>`).join("")}
-      </table></details>`;
+      </table></div></details>`;
 
     const hover = zone.querySelector("#fx-hover"), cross = zone.querySelector("#fx-cross"),
           tip = $("fx-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
@@ -360,9 +714,9 @@
       tip.innerHTML = `<div class="t">${dates[i]}</div>` + chartSyms.map(s =>
         `<div class="row"><i style="background:${FXC[s]}"></i>${s} ${series[s][i] ?? "—"} · idx ${idx[s][i]?.toFixed(2) ?? "—"}</div>`).join("");
       tip.style.opacity = 1;
-      const wr = wrapEl.getBoundingClientRect();
-      const px = (X(i) / W) * wr.width;
-      tip.style.left = Math.min(wr.width - 190, Math.max(0, px + 12)) + "px";
+      const wr = wrapEl.getBoundingClientRect(), sr = svg.getBoundingClientRect();
+      const px = sr.left - wr.left + (X(i) / W) * sr.width;
+      tip.style.left = wrapEl.scrollLeft + Math.min(Math.max(0, wrapEl.clientWidth - 190), Math.max(0, px + 12)) + "px";
       tip.style.top = "12px";
     };
     const inspectPointer = (ev) => {
@@ -401,7 +755,7 @@
         <div class="sym"><i style="background:${FXC[s]}"></i>${s}</div>
         <div class="rate">${last}</div>
         <div class="per">${PER[s]}</div>
-        <svg viewBox="0 0 140 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2"/></svg>
+        <svg viewBox="0 0 140 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-dasharray="${FXD[s]}"/></svg>
         <div class="chg ${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "▲" : "▼"} ${chg.toFixed(1)}% vs ${dates[0]}</div>
       </div>`;
     }).join("");
@@ -426,6 +780,7 @@
     } catch (e) {
       setWire("debt", "down", "unreachable");
       state.debt = null;
+      delete $("debt-big").dataset.compact;
       $("debt-big").textContent = "Treasury wire unreachable";
       $("debt-sub").textContent = "no number will be invented in its place";
       errBox(zone, "api.fiscaldata.treasury.gov", loadDebt);
@@ -444,7 +799,9 @@
     const perSec = delta / (days * 86400);
     const postedAt = easternPostingTime(last.date);
     $("debt-big").textContent = "$" + last.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $("debt-big").dataset.compact = "$" + (last.total / 1e12).toFixed(1) + "T";
     $("debt-sub").innerHTML = `official posting <b>${last.date}</b> · ${direction} <b>${fmtMoney(Math.abs(delta))}</b> in ${Math.round(days)} days`;
+    $("debt-pace").className = "pace " + (delta > 0 ? "dn" : delta < 0 ? "up" : "");
     $("debt-pace").style.display = "inline-block";
     clearInterval(paceTimer);
     const tick = () => {
@@ -463,25 +820,25 @@
     for (let k = 0; k <= 4; k++) {
       const v = lo + k * (hi - lo) / 4, y = Y(v);
       g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>
-            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">$${(v / 1e12).toFixed(2)}T</text>`;
+            <text x="${L - 6}" y="${y + 4}" font-size="12" fill="var(--dim)" text-anchor="end">$${(v / 1e12).toFixed(2)}T</text>`;
     }
     for (let k = 0; k < 5; k++) {
       const i = Math.round(k * (rows.length - 1) / 4);
-      g += `<text x="${X(i)}" y="${H - 10}" font-size="9" fill="var(--dim)" text-anchor="middle">${rows[i].date.slice(0, 7)}</text>`;
+      g += `<text x="${X(i)}" y="${H - 8}" font-size="12" fill="var(--dim)" text-anchor="middle">${rows[i].date.slice(0, 7)}</text>`;
     }
     const line = rows.map((r, i) => `${X(i).toFixed(1)},${Y(r.total).toFixed(1)}`).join(" ");
-    g += `<polygon points="${L},${H - B} ${line} ${W - R},${H - B}" fill="#3f5aa0" opacity=".12"/>
-          <polyline points="${line}" fill="none" stroke="#3f5aa0" stroke-width="2" stroke-linejoin="round"/>
+    g += `<polygon points="${L},${H - B} ${line} ${W - R},${H - B}" fill="var(--blue)" opacity=".12"/>
+          <polyline points="${line}" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linejoin="round"/>
           <rect id="dt-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
           <line id="dt-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
     const zone = $("debt-chart-zone");
     zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect US total public debt by posting date" aria-valuemin="0" aria-valuemax="${rows.length - 1}" aria-valuenow="${rows.length - 1}">${g}</svg>
         <div class="tip" id="dt-tip"></div></div>
-      <details class="tbl"><summary>view as table (monthly samples)</summary><table>
+      <details class="tbl"><summary>view as table (monthly samples)</summary><div class="ptable-wrap"><table class="ptable">
         <tr><th>date</th><th>total public debt</th></tr>
         ${rows.filter((r, i) => i % 21 === 0 || i === rows.length - 1).map(r =>
           `<tr><td>${r.date}</td><td>$${r.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`).join("")}
-      </table></details>`;
+      </table></div></details>`;
     const hover = zone.querySelector("#dt-hover"), cross = zone.querySelector("#dt-cross"),
           tip = $("dt-tip"), svg = zone.querySelector("svg"), wrapEl = zone.querySelector(".chartwrap");
     let activeI = rows.length - 1;
@@ -490,10 +847,11 @@
       svg.setAttribute("aria-valuenow", i);
       svg.setAttribute("aria-valuetext", `${rows[i].date}, ${fmtDollars(rows[i].total)}`);
       cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", ".55");
-      tip.innerHTML = `<div class="t">${rows[i].date}</div><div class="row"><i style="background:#3f5aa0"></i>${fmtDollars(rows[i].total)}</div>`;
+      tip.innerHTML = `<div class="t">${rows[i].date}</div><div class="row"><i></i>${fmtDollars(rows[i].total)}</div>`;
       tip.style.opacity = 1;
-      const wr = wrapEl.getBoundingClientRect();
-      tip.style.left = Math.min(wr.width - 230, Math.max(0, (X(i) / W) * wr.width + 12)) + "px";
+      const wr = wrapEl.getBoundingClientRect(), sr = svg.getBoundingClientRect();
+      const px = sr.left - wr.left + (X(i) / W) * sr.width;
+      tip.style.left = wrapEl.scrollLeft + Math.min(Math.max(0, wrapEl.clientWidth - 230), Math.max(0, px + 12)) + "px";
       tip.style.top = "10px";
     };
     const inspectPointer = (ev) => {
@@ -596,7 +954,7 @@
     });
     const errors = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "down").map(k =>
       `<div class="feed-err"><b>${WB_INDICATORS[k].label} unavailable</b> — other World Bank indicators remain usable.<br>
-        <button type="button" data-wb-retry="${k}">try ${WB_INDICATORS[k].label} again</button></div>`);
+        <button class="pbtn" type="button" data-wb-retry="${k}">try ${WB_INDICATORS[k].label} again</button></div>`);
     $("wb-grid").innerHTML = [...tiles, ...errors].join("") || '<p class="skel">calling the indicator wires…</p>';
     $("wb-grid").querySelectorAll("[data-wb-retry]").forEach(b =>
       b.addEventListener("click", () => retryWB(b.dataset.wbRetry)));
@@ -604,7 +962,7 @@
 
   /* ================= THE BRIEF ================= */
   function pixelAnalyst() {
-    const ink = "#1c1a17", skin = "#d9a06b", ac = "#2f8a58";
+    const ink = "#1e1a14", skin = "#d9a06b", ac = "#2547c9";
     return `<svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         <rect x="50" y="13" width="32" height="9" fill="#4a3520"/>
@@ -627,7 +985,7 @@
       <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
       <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
       <rect x="13" y="47" width="28" height="20" fill="#161a20"/>
-      <polyline class="mchart" points="14,62 20,55 25,58 31,50 38,46" fill="none" stroke="#7fbf6a" stroke-width="2"/>
+      <polyline class="mchart" points="14,62 20,55 25,58 31,50 38,46" fill="none" stroke="#2547c9" stroke-width="2"/>
       <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
       <rect x="4" y="76" width="124" height="9" fill="${ac}"/>
       <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
@@ -705,12 +1063,12 @@
       ["Frankfurter — ECB reference rates", "https://frankfurter.dev"],
       ["US Treasury — Debt to the Penny", "https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny"],
       ["World Bank Open Data", "https://data.worldbank.org"],
-    ].map(([t, h]) => `<a href="${h}" target="_blank" rel="noopener">${t}</a>`).join("") +
-      `<time datetime="${fetched.toISOString()}">fetched ${fetched.toLocaleTimeString()}</time>`;
+    ].map(([t, h]) => `<a class="pchip" href="${h}" target="_blank" rel="noopener"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>${t}</a>`).join("") +
+      `<time class="pchip" datetime="${fetched.toISOString()}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>fetched ${fetched.toLocaleTimeString()}</time>`;
     if (briefTyped || REDUCED) {
       el.innerHTML = lines.map(l => `<div class="bline">${l}</div>`).join("");
       $("ag-an").className = "agent";
-      $("st-an").textContent = "brief filed ✓";
+      $("st-an").textContent = "brief filed";
       return;
     }
     briefTyped = true;
@@ -727,7 +1085,7 @@
         if (li >= lines.length) {
           clearInterval(briefTimer);
           $("ag-an").className = "agent";
-          $("st-an").textContent = "brief filed ✓";
+          $("st-an").textContent = "brief filed";
           return;
         }
         cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
@@ -739,8 +1097,9 @@
   const rangesEl = $("fx-ranges");
   for (const d of [30, 90, 365]) {
     const b = document.createElement("button");
+    b.className = "pbtn pstep";
     b.textContent = d + "d";
-    if (d === 90) b.className = "on";
+    if (d === 90) b.classList.add("on");
     b.addEventListener("click", () => {
       state.fxDays = d; briefTyped = true;    // don't re-type the brief on range flips
       [...rangesEl.children].forEach(x => x.classList.remove("on"));

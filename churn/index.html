@@ -5,152 +5,238 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Churn Radar — analytics & live scoring</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23b8463a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css">
 <style>
+  /* Page-specific use of the shared pixel system. */
   :root {
-    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
-    --text: #1c1a17; --dim: #5f5a51; --blue: #3f5aa0; --gold: #8f6f1d;
-    --green: #2f8a58; --coral: #b8463a; --violet: #6a47a0;
+    --pi-accent: #b3372c;
+    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: var(--pi-accent-soft); --line: var(--pi-line);
+    --text: var(--pi-ink); --dim: var(--pi-muted); --blue: #2547c9; --gold: var(--pi-warn);
+    --green: var(--pi-ok); --coral: var(--pi-err); --violet: var(--blue);
   }
-  * { box-sizing: border-box; margin: 0; }
+  html { color-scheme: light; }
   body {
-    background: var(--bg); color: var(--text);
-    font: 14px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-    min-height: 100vh; padding: 1.6rem 1rem 4rem;
+    background-color: var(--bg); color: var(--text);
+    background-image:
+      linear-gradient(to right, rgba(30, 26, 20, .035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(30, 26, 20, .035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font: 14px/1.6 var(--pi-font-body);
+    min-height: 100vh; padding: 24px 16px 64px;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 1.2rem; }
-  h1 { font-size: 1.8rem; letter-spacing: .4em; padding-left: .4em; }
+  .wrap { max-width: 1180px; min-width: 0; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 { font: 20px/1.5 var(--pi-font-title); letter-spacing: .14em; padding-left: 0; white-space: nowrap; }
   h1 .dot { color: var(--coral); }
-  .tagline { color: var(--dim); font-size: .8rem; margin-top: .25rem; }
+  .tagline { color: var(--dim); font-size: 13px; margin-top: 8px; }
+  .datalinks { font-size: 12px; color: var(--dim); margin-top: 8px; }
   .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    padding: 1rem 1.15rem; box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
+    min-width: 0; background: var(--panel); border: 2px solid var(--text); border-radius: 0;
+    padding: 16px; box-shadow: var(--pi-shadow);
   }
   .card h2 {
-    font-size: .7rem; color: var(--dim); text-transform: uppercase;
-    letter-spacing: .11em; margin-bottom: .6rem;
+    display: flex; align-items: center; min-height: 38px;
+    font: 11px/1.55 var(--pi-font-title); color: var(--text); text-transform: uppercase;
+    letter-spacing: .04em; margin: -16px -16px 16px; padding: 8px 12px;
+    background: var(--panel-2); border-bottom: 2px solid var(--text);
   }
-  /* filter bar */
+  .card h2:not(:first-child) { margin-top: 16px; border-top: 2px solid var(--text); }
+
   .filterbar {
-    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
-    margin-bottom: .9rem; min-height: 2rem;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px; min-height: 52px; padding: 6px 10px;
+    background: var(--panel); border: 2px solid var(--text); box-shadow: var(--pi-shadow-s);
   }
-  .filterbar .lbl { font-size: .7rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .filterbar .lbl { font: 700 12px/1 var(--pi-font-ui); color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  #active-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .fchip, .fclear, .chip { font-family: var(--pi-font-ui); border-radius: 0; }
   .fchip {
-    font-size: .72rem; background: var(--blue); color: #fff; border: 0;
-    border-radius: 999px; padding: .22rem .7rem; cursor: pointer;
+    min-height: 44px; min-width: 44px; font: 600 13px/1 var(--pi-font-ui); background: var(--blue); color: #fff;
+    border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--text); padding: 8px 10px; cursor: pointer;
   }
-  .fchip:after { content: " ✕"; opacity: .8; }
+  .fchip:after { content: " [remove]"; opacity: .9; }
+  .fchip:active { transform: translate(2px, 2px); box-shadow: none; }
   .fclear {
-    font: inherit; font-size: .7rem; color: var(--dim); background: none;
-    border: 1px solid var(--line); border-radius: 999px; padding: .2rem .7rem; cursor: pointer;
+    min-height: 44px; min-width: 44px; font: 600 13px/1 var(--pi-font-ui); color: var(--text); background: var(--panel);
+    border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--text); padding: 8px 12px; cursor: pointer;
   }
   .fclear:hover { color: var(--coral); border-color: var(--coral); }
-  .hint { font-size: .7rem; color: var(--dim); }
-  /* KPI tiles */
-  .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8rem; margin-bottom: .8rem; }
-  @media (max-width: 1060px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 400px) { .kpis { grid-template-columns: 1fr; } }
-  .kpi { border-top: 3px solid var(--blue); min-width: 0; }
-  .kpi .num { font-size: 1.7rem; font-weight: 800; line-height: 1.15; }
-  .kpi .cap { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
-  .kpi .sub { font-size: .68rem; color: var(--dim); margin-top: .15rem; }
-  .kpi.rate { border-top-color: var(--coral); }
-  .kpi.money { border-top-color: var(--gold); }
-  .kpi.model { border-top-color: var(--green); }
-  /* chart grid */
-  .charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .8rem; }
-  @media (max-width: 1000px) { .charts { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 680px) { .charts { grid-template-columns: 1fr; } }
-  .hrow { display: grid; grid-template-columns: 118px 1fr 74px; gap: .5rem; align-items: center; padding: .22rem 0; cursor: pointer; border: 0; border-radius: 4px; background: none; color: inherit; font: inherit; text-align: initial; width: 100%; }
+  .hint { font-size: 12px; color: var(--dim); }
+
+  .kpis {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;
+    margin-bottom: 16px; background: var(--panel); border: 2px solid var(--text); box-shadow: var(--pi-shadow);
+  }
+  .kpi.card {
+    min-width: 0; padding: 12px; border: 0; border-top: 4px solid var(--blue);
+    border-right: 1px solid var(--line); border-radius: 0; box-shadow: none;
+  }
+  .kpi:last-child { border-right: 0; }
+  .kpi.rate, .kpi.money, .kpi.predicted { border-top-color: var(--coral); }
+  .kpi.model { border-top-color: var(--blue); }
+  .kpi .num { font: 700 25px/1.15 var(--pi-font-ui); font-variant-numeric: tabular-nums; }
+  .kpi .cap { font: 700 12px/1.25 var(--pi-font-ui); color: var(--text); text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .sub { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+  .charts { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .charts > section { grid-column: span 4; }
+  .charts > section:first-child { grid-column: span 6; }
+  .charts > section:nth-child(2), .charts > section:nth-child(3) { grid-column: span 3; }
+  .hrow {
+    display: grid; grid-template-columns: 118px minmax(40px, 1fr) 74px; gap: 8px; align-items: center;
+    min-height: 44px; padding: 4px; cursor: pointer; border: 0; border-radius: 0; background: none;
+    color: inherit; font: 13px/1.25 var(--pi-font-ui); text-align: initial; width: 100%;
+  }
   .hrow:hover { background: var(--panel-2); }
   .hrow:focus-visible, .vbar:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-  .hrow .cat { font-size: .7rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hrow .track { height: 14px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
-  .hrow .track i { display: block; height: 100%; background: var(--blue); border-radius: 3px 0 0 3px; transition: width .25s; }
-  .hrow .pct { font-size: .7rem; color: var(--text); font-weight: 700; text-align: right; white-space: nowrap; }
-  .hrow .pct small { color: var(--dim); font-weight: 400; }
+  .hrow .cat { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hrow .track { height: 16px; background: var(--pi-paper); border: 1px solid var(--line); border-radius: 0; overflow: hidden; }
+  .hrow .track i { display: block; height: 100%; background: var(--blue); border-radius: 0; transition: width .16s steps(4, end); }
+  .hrow .pct { font-size: 12px; color: var(--text); font-weight: 700; text-align: right; white-space: nowrap; }
+  .hrow .pct small { color: var(--dim); font-size: 12px; font-weight: 400; }
   .hrow.sel .track i { background: var(--coral); }
-  .hrow.dim2 { opacity: .45; }
-  .vchart { display: flex; align-items: flex-end; gap: .5rem; height: 128px; padding-top: .4rem; }
-  .vbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; height: 100%; border: 0; padding: 0; background: none; color: inherit; font: inherit; }
-  .vbar i { width: 100%; background: var(--blue); border-radius: 3px 3px 0 0; transition: height .25s; }
+  .hrow.dim2, .vbar.dim2 { opacity: .45; }
+  .vchart { display: flex; align-items: flex-end; gap: 8px; height: 154px; padding-top: 8px; }
+  .vbar {
+    flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    cursor: pointer; min-width: 0; height: 100%; border: 0; padding: 0; background: none;
+    color: inherit; font: 13px/1.2 var(--pi-font-ui);
+  }
+  .vbar i { width: 100%; background: var(--blue); border-radius: 0; transition: height .16s steps(4, end); }
   .vbar.sel i { background: var(--coral); }
-  .vbar.dim2 { opacity: .45; }
-  .vbar .v { font-size: .64rem; font-weight: 700; margin-bottom: .15rem; }
-  .vbar .c { font-size: .6rem; color: var(--dim); margin-top: .25rem; text-align: center; }
-  .chart-note { font-size: .64rem; color: var(--dim); margin-top: .5rem; }
-  .mini-lbl { font-size: .62rem; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .1rem; }
-  .datalinks { font-size: .7rem; color: var(--dim); margin-top: .45rem; }
-  .kpi.predicted { border-top-color: var(--violet); }
+  .vbar .v { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .vbar .c { font-size: 12px; color: var(--dim); margin-top: 4px; text-align: center; }
+  .chart-note { font-size: 12px; color: var(--dim); margin-top: 8px; }
+  .charts > section:nth-child(4) .chart-note { font: 18px/1.2 var(--pi-font-note); transform: rotate(-1deg); }
+  .mini-lbl { font: 600 12px/1.3 var(--pi-font-ui); color: var(--dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
   #km, #profit { width: 100%; height: auto; display: block; }
-  .dec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-  @media (max-width: 860px) { .dec-grid { grid-template-columns: 1fr; } }
-  .dec-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: .7rem; }
-  .dec-out div { border: 1px solid var(--line); border-radius: 8px; padding: .45rem .6rem; background: var(--panel-2); }
-  .dec-out b { display: block; font-size: 1.05rem; }
-  .dec-out span { font-size: .6rem; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  .card svg text { font-family: var(--pi-font-ui); font-size: 12px; }
+
+  .dec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .dec-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .dec-out div { border: 2px solid var(--text); border-radius: 0; padding: 8px; background: var(--pi-paper); }
+  .dec-out b { display: block; font: 700 18px/1.15 var(--pi-font-ui); font-variant-numeric: tabular-nums; }
+  .dec-out span { font: 600 12px/1.25 var(--pi-font-ui); color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
   .dec-net { color: var(--green); }
   .dec-net.neg { color: var(--coral); }
-  .risk-table-wrap { overflow-x: auto; }
-  .risk-table { border-collapse: collapse; width: 100%; font-size: .74rem; }
-  .risk-table th { background: var(--panel-2); text-transform: uppercase; font-size: .62rem; letter-spacing: .06em; text-align: left; }
-  .risk-table th, .risk-table td { border: 1px solid var(--line); padding: .3rem .55rem; }
+
+  .risk-table-wrap { max-width: 100%; overflow-x: auto; border: 2px solid var(--text); }
+  .risk-table { border-collapse: collapse; width: 100%; min-width: 760px; font: 12px/1.45 var(--pi-font-body); font-variant-numeric: tabular-nums; }
+  .risk-table th { background: var(--panel-2); text-transform: uppercase; font: 600 12px/1.3 var(--pi-font-ui); letter-spacing: .05em; text-align: left; }
+  .risk-table th, .risk-table td { border: 1px solid var(--line); padding: 6px 10px; }
   .risk-table tr.r:hover td { background: var(--panel-2); }
   .risk-table .p { font-weight: 700; }
   .risk-table .p.high { color: var(--coral); }
   .risk-table .why-cell { background: var(--panel-2); }
-  .disclose { border: 0; padding: 0; background: none; color: var(--blue); font: inherit; cursor: pointer; text-decoration: underline; }
+  .disclose { min-height: 44px; border: 0; padding: 4px; background: none; color: var(--blue); font: 600 12px/1.3 var(--pi-font-ui); cursor: pointer; text-decoration: underline; }
   .disclose:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-  .load-error { border-color: var(--coral); color: var(--dim); margin-bottom: .9rem; }
-  .load-error button { margin-left: .5rem; }
-  /* tooltip */
+  .load-error { border-color: var(--coral); color: var(--dim); margin-bottom: 16px; }
+  .load-error button { margin-left: 8px; }
   #tip {
     position: fixed; display: none; z-index: 30; pointer-events: none;
-    background: var(--text); color: #fff; font-size: .7rem; line-height: 1.4;
-    padding: .4rem .6rem; border-radius: 6px; max-width: 240px;
+    background: var(--pi-term-bg); color: var(--pi-term-fg); font: 12px/1.45 var(--pi-font-body);
+    padding: 8px 10px; border: 2px solid var(--text); border-radius: 0; box-shadow: 3px 3px 0 var(--text); max-width: 240px;
   }
-  /* scorer */
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: .8rem; }
-  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
-  .presets { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .chip {
-    font-size: .72rem; color: var(--dim); background: var(--panel);
-    border: 1px solid var(--line); border-radius: 999px; padding: .26rem .7rem; cursor: pointer;
+    min-height: 44px; min-width: 44px; font: 600 13px/1 var(--pi-font-ui); color: var(--text); background: var(--panel);
+    border: 2px solid var(--text); box-shadow: var(--pi-shadow-s); padding: 9px 12px; cursor: pointer;
   }
   .chip:hover { color: var(--blue); border-color: var(--blue); }
-  .ctl { margin-bottom: .65rem; }
-  .ctl label { display: block; font-size: .64rem; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .2rem; }
+  .chip:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
+  .ctl { margin-bottom: 10px; }
+  .ctl label { display: block; font: 600 12px/1.4 var(--pi-font-ui); color: var(--dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
   .ctl select, .ctl input[type=range] { width: 100%; font: inherit; }
-  .ctl select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: .3rem .5rem; font-size: .78rem; }
-  .ctl .val { color: var(--text); font-size: .74rem; font-weight: 700; }
+  .ctl select { min-height: 44px; background: var(--panel); color: var(--text); border: 2px solid var(--text); border-radius: 0; padding: 7px 8px; font: 13px/1.3 var(--pi-font-body); }
+  .ctl input[type=range] { min-height: 44px; }
+  .ctl .val { color: var(--text); font-size: 13px; font-weight: 700; }
   input[type=range] { accent-color: var(--blue); }
-  .verdict { text-align: center; padding: .4rem 0 .9rem; }
-  .prob { font-size: 3rem; font-weight: 800; line-height: 1.1; }
+  .verdict { text-align: center; padding: 8px 0 16px; }
+  .prob { font: 700 48px/1.1 var(--pi-font-ui); font-variant-numeric: tabular-nums; }
   .prob.low { color: var(--green); } .prob.mid { color: var(--gold); } .prob.high { color: var(--coral); }
-  .band { font-size: .74rem; color: var(--dim); }
+  .band { font: 13px/1.4 var(--pi-font-ui); color: var(--dim); }
   .band b.low { color: var(--green); } .band b.mid { color: var(--gold); } .band b.high { color: var(--coral); }
-  .meter { height: 10px; border: 1px solid var(--line); border-radius: 999px; margin: .6rem auto 0; max-width: 400px; overflow: hidden; background: var(--panel-2); position: relative; }
-  .meter i { display: block; height: 100%; background: var(--coral); transition: width .25s; }
+  .meter { height: 14px; border: 2px solid var(--text); border-radius: 0; margin: 10px auto 0; max-width: 400px; overflow: hidden; background: var(--pi-paper); position: relative; }
+  .meter i { display: block; height: 100%; background: var(--coral); transition: width .16s steps(4, end); }
   .meter .base { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--dim); }
-  .meter-label { font-size: .62rem; color: var(--dim); margin-top: .3rem; }
-  .crow { display: grid; grid-template-columns: 190px 1fr 56px; gap: .55rem; align-items: center; font-size: .72rem; padding: .16rem 0; }
+  .meter-label { font: 12px/1.3 var(--pi-font-ui); color: var(--dim); margin-top: 4px; }
+  .crow { display: grid; grid-template-columns: 190px 1fr 56px; gap: 8px; align-items: center; font: 12px/1.3 var(--pi-font-ui); padding: 3px 0; }
   .crow .name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cbar { position: relative; height: 12px; }
   .cbar .zero { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line); }
-  .cbar i { position: absolute; top: 1px; height: 10px; border-radius: 3px; }
-  .crow .num { text-align: right; color: var(--dim); font-size: .68rem; }
-  .note { font-size: .68rem; color: var(--dim); margin-top: .7rem; line-height: 1.5; }
-  .model-card table { border-collapse: collapse; font-size: .74rem; width: 100%; }
-  .model-card td, .model-card th { border: 1px solid var(--line); padding: .3rem .55rem; text-align: left; }
-  .model-card th { background: var(--panel-2); font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; }
-  .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .6rem; }
-  @media (max-width: 860px) { .imgs { grid-template-columns: 1fr; } }
-  .imgs img { width: 100%; border: 1px solid var(--line); border-radius: 8px; }
-  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  .cbar i { position: absolute; top: 1px; height: 10px; border-radius: 0; transition: width .16s steps(4, end); }
+  .crow .num { text-align: right; color: var(--dim); font-size: 12px; }
+  .note { font-size: 12px; color: var(--dim); margin-top: 12px; line-height: 1.55; }
+
+  .model-table-wrap { overflow-x: auto; border: 2px solid var(--text); }
+  .model-card table { border-collapse: collapse; min-width: 680px; width: 100%; font: 12px/1.45 var(--pi-font-body); font-variant-numeric: tabular-nums; }
+  .model-card td, .model-card th { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+  .model-card th { background: var(--panel-2); font: 600 12px/1.3 var(--pi-font-ui); text-transform: uppercase; letter-spacing: .05em; }
+  .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .model-figure { min-width: 0; background: var(--pi-paper); border: 2px solid var(--text); }
+  .model-figure svg { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; }
+  .model-figure .axis { stroke: var(--text); stroke-width: 2; shape-rendering: crispEdges; }
+  .model-figure .grid { stroke: var(--line); stroke-width: 1; shape-rendering: crispEdges; }
+  .model-figure text { fill: var(--dim); font-size: 12px; }
+  .model-figure .label { fill: var(--text); font-weight: 700; }
+  .model-figure .label.blue { fill: var(--blue); }
+  footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 32px; }
   a { color: var(--blue); }
-  .mb { margin-bottom: .8rem; }
+  .mb { margin-bottom: 16px; }
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline-color: var(--blue); }
+
+  @keyframes selection-flash {
+    0% { background: var(--pi-err-soft); }
+    100% { background: transparent; }
+  }
+  .hrow.sel, .vbar.sel { animation: selection-flash .18s steps(2, end) 1; }
+
+  @media (max-width: 1000px) {
+    .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .charts > section, .charts > section:first-child,
+    .charts > section:nth-child(2), .charts > section:nth-child(3) { grid-column: auto; }
+    .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .kpi.card { border-bottom: 1px solid var(--line); }
+  }
+  @media (max-width: 860px) {
+    .dec-grid, .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .charts { grid-template-columns: 1fr; }
+    .imgs { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 599px) {
+    body { padding: 16px 8px 48px; }
+    header { margin-bottom: 16px; }
+    h1 { font-size: 16px; letter-spacing: .08em; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kpi.card { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .kpi:nth-child(2n) { border-right: 0; }
+    .kpi:last-child { grid-column: 1 / -1; border-right: 0; border-bottom: 0; }
+    .dec-out { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .crow { grid-template-columns: minmax(0, 1fr) 56px; }
+    .crow .cbar { grid-column: 1 / -1; grid-row: 2; }
+    .crow .num { grid-column: 2; grid-row: 1; }
+  }
+  @media (max-width: 400px) {
+    h1 { font-size: 13px; letter-spacing: .045em; }
+    .hrow { grid-template-columns: 92px minmax(36px, 1fr) 64px; gap: 6px; }
+  }
+  @media (max-width: 360px) {
+    .kpis { grid-template-columns: 1fr; }
+    .kpi.card, .kpi:nth-child(2n) { grid-column: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+    .kpi:last-child { border-bottom: 0; }
+    .dec-out { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hrow.sel, .vbar.sel { animation: none; }
+    .hrow .track i, .vbar i, .meter i, .cbar i { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -170,7 +256,7 @@
   <div class="filterbar">
     <span class="lbl">Filters</span>
     <span id="active-filters"></span>
-    <button class="fclear hide" id="clear-filters" type="button">clear all</button>
+    <button class="fclear pbtn hide" id="clear-filters" type="button">clear all</button>
     <span class="hint" id="filter-hint">none — click any bar below to slice the data</span>
   </div>
   <div class="card load-error hide" id="load-error" role="alert"></div>
@@ -237,8 +323,8 @@
 
   <section class="card mb">
     <h2>Top at-risk active customers in view — who to call Monday morning</h2>
-    <div class="risk-table-wrap" role="region" aria-label="Top at-risk active customers" tabindex="0">
-      <table class="risk-table" id="risk-table"></table>
+    <div class="risk-table-wrap ptable-wrap" role="region" aria-label="Top at-risk active customers" tabindex="0">
+      <table class="risk-table ptable" id="risk-table"></table>
     </div>
     <p class="chart-note">Real customer IDs from the dataset, scored by the shipped model, respecting your
       filters. Customers with recorded churn are excluded; use each customer button for the model's reasoning.</p>
@@ -270,14 +356,47 @@
 
   <section class="card model-card mb">
     <h2>Model card — honest numbers on held-out data</h2>
-    <table id="metrics-table"></table>
+    <div class="model-table-wrap ptable-wrap"><table class="ptable" id="metrics-table"></table></div>
     <p class="note">Plain logistic regression, shipped as coefficients
       (<a href="model.json">model.json</a>) and scored in ~30 lines of JS.
       Trained on the public IBM Telco dataset; 25% stratified hold-out;
       TotalCharges dropped as collinear with tenure × monthly charges.</p>
     <div class="imgs">
-      <img src="assets/roc.png" alt="ROC curves — logistic regression vs gradient boosting">
-      <img src="assets/top-drivers.png" alt="Top model drivers by log-odds">
+      <figure class="model-figure">
+        <svg viewBox="0 0 640 400" role="img" aria-label="ROC curves — logistic regression vs gradient boosting">
+          <line class="grid" x1="56" y1="330" x2="616" y2="330"/><line class="grid" x1="56" y1="270" x2="616" y2="270"/>
+          <line class="grid" x1="56" y1="210" x2="616" y2="210"/><line class="grid" x1="56" y1="150" x2="616" y2="150"/>
+          <line class="grid" x1="56" y1="90" x2="616" y2="90"/><line class="grid" x1="56" y1="30" x2="616" y2="30"/>
+          <line class="axis" x1="56" y1="30" x2="56" y2="330"/><line class="axis" x1="56" y1="330" x2="616" y2="330"/>
+          <path d="M56 330 L616 30" fill="none" stroke="var(--pi-line)" stroke-width="2" stroke-dasharray="8 6"/>
+          <polyline points="56,330 62,283 70,248 78,217 92,181 112,151 140,121 168,97 205,75 242,59 298,45 354,37 410,29 466,27 522,25 602,22" fill="none" stroke="var(--blue)" stroke-width="4" stroke-linejoin="miter"/>
+          <polyline points="56,330 63,276 72,240 82,207 98,173 118,146 146,119 178,96 212,76 252,61 304,48 360,41 416,32 472,28 536,25 580,24" fill="none" stroke="var(--text)" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="miter"/>
+          <text x="80" y="352">0.0</text><text x="187" y="352">0.2</text><text x="299" y="352">0.4</text><text x="411" y="352">0.6</text><text x="523" y="352">0.8</text><text x="600" y="352">1.0</text>
+          <text x="28" y="334">0</text><text x="20" y="274">.2</text><text x="20" y="214">.4</text><text x="20" y="154">.6</text><text x="20" y="94">.8</text><text x="18" y="34">1.0</text>
+          <text class="label blue" x="382" y="92">logistic regression / AUC 0.845</text>
+          <text class="label" x="382" y="118">gradient boosting / AUC 0.830</text>
+          <text x="286" y="382">false positive rate</text>
+          <text x="18" y="230" transform="rotate(-90 18 230)">true positive rate</text>
+        </svg>
+      </figure>
+      <figure class="model-figure">
+        <svg viewBox="0 0 640 400" role="img" aria-label="Top model drivers by log-odds">
+          <line class="axis" x1="380" y1="24" x2="380" y2="374"/>
+          <line class="grid" x1="200" y1="24" x2="200" y2="374"/><line class="grid" x1="290" y1="24" x2="290" y2="374"/>
+          <line class="grid" x1="470" y1="24" x2="470" y2="374"/><line class="grid" x1="560" y1="24" x2="560" y2="374"/>
+          <text x="180" y="52" text-anchor="end">Contract: Two year</text><rect x="191" y="38" width="189" height="18" fill="var(--blue)"/>
+          <text x="180" y="87" text-anchor="end">InternetService: Fiber optic</text><rect x="380" y="73" width="176" height="18" fill="var(--coral)"/>
+          <text x="180" y="122" text-anchor="end">tenure</text><rect x="261" y="108" width="119" height="18" fill="var(--blue)"/>
+          <text x="180" y="157" text-anchor="end">Contract: One year</text><rect x="277" y="143" width="103" height="18" fill="var(--blue)"/>
+          <text x="180" y="192" text-anchor="end">PhoneService: Yes</text><rect x="311" y="178" width="69" height="18" fill="var(--blue)"/>
+          <text x="180" y="227" text-anchor="end">StreamingMovies: Yes</text><rect x="380" y="213" width="64" height="18" fill="var(--coral)"/>
+          <text x="180" y="262" text-anchor="end">PaperlessBilling: Yes</text><rect x="380" y="248" width="61" height="18" fill="var(--coral)"/>
+          <text x="180" y="297" text-anchor="end">MultipleLines: Yes</text><rect x="380" y="283" width="56" height="18" fill="var(--coral)"/>
+          <text x="180" y="332" text-anchor="end">StreamingTV: Yes</text><rect x="380" y="318" width="55" height="18" fill="var(--coral)"/>
+          <text x="180" y="367" text-anchor="end">PaymentMethod: Electronic check</text><rect x="380" y="353" width="53" height="18" fill="var(--coral)"/>
+          <text x="190" y="392">-1.25</text><text x="366" y="392">0</text><text x="550" y="392">1.25</text>
+        </svg>
+      </figure>
     </div>
   </section>
 
@@ -359,8 +478,14 @@
   function showTip(ev, html) {
     tip.innerHTML = html;
     tip.style.display = "block";
-    tip.style.left = Math.min(ev.clientX + 14, window.innerWidth - 250) + "px";
-    tip.style.top = (ev.clientY + 14) + "px";
+    const margin = 8;
+    const rect = tip.getBoundingClientRect();
+    const left = Math.max(margin, Math.min(ev.clientX + 14, window.innerWidth - rect.width - margin));
+    const below = ev.clientY + 14;
+    const above = ev.clientY - rect.height - 14;
+    const top = below + rect.height <= window.innerHeight - margin ? below : Math.max(margin, above);
+    tip.style.left = left + "px";
+    tip.style.top = Math.min(top, window.innerHeight - rect.height - margin) + "px";
   }
   function showTipFor(el, html) {
     const rect = el.getBoundingClientRect();
@@ -389,7 +514,7 @@
       row.setAttribute("aria-label", `${dim}: ${v}, ${(rate * 100).toFixed(1)}% churn, ${fmt(tot)} customers in view`);
       const cat = document.createElement("span"); cat.className = "cat"; cat.textContent = v;
       const track = document.createElement("span"); track.className = "track";
-      const fill = document.createElement("i"); fill.style.width = (rate * 100 * 1.6) + "%";
+      const fill = document.createElement("i"); fill.style.width = (rate * 100) + "%";
       track.appendChild(fill);
       const pct = document.createElement("span"); pct.className = "pct";
       pct.innerHTML = `${(rate * 100).toFixed(0)}% <small>· ${fmt(tot)}</small>`;
@@ -474,7 +599,7 @@
           : dim === "charges" ? `charges ${CHARGE_BUCKETS[key][2]}`
           : `${dim}: ${ROWS[dim].values[key]}`;
         const b = document.createElement("button");
-        b.type = "button"; b.className = "fchip"; b.textContent = label;
+        b.type = "button"; b.className = "fchip pchip"; b.textContent = label;
         b.addEventListener("click", () => toggleFilter(dim, key));
         box.appendChild(b);
       }
@@ -489,7 +614,7 @@
   });
 
   /* ================= Kaplan-Meier survival by contract ================= */
-  const KM_COLORS = ["#3f5aa0", "#8f6f1d", "#2f8a58"];
+  const KM_COLORS = ["var(--coral)", "var(--text)", "var(--blue)"];
 
   function kmCurve(indices) {
     // events/at-risk per tenure month; S(t) = Π (1 - d_t / n_t)
@@ -519,11 +644,11 @@
     let out = "";
     for (let g = 0; g <= 4; g++) {
       const y = Y(g / 4);
-      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#d9d4c8" stroke-width="0.7"/>`;
-      out += `<text x="${L - 6}" y="${y + 3}" font-size="9" fill="#5f5a51" text-anchor="end">${g * 25}%</text>`;
+      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
+      out += `<text x="${L - 6}" y="${y + 3}" font-size="12" fill="var(--dim)" text-anchor="end">${g * 25}%</text>`;
     }
     for (const t of [0, 12, 24, 36, 48, 60, 72])
-      out += `<text x="${X(t)}" y="${H - 8}" font-size="9" fill="#5f5a51" text-anchor="middle">${t}</text>`;
+      out += `<text x="${X(t)}" y="${H - 8}" font-size="12" fill="var(--dim)" text-anchor="middle">${t}</text>`;
     const contract = ROWS.cats.Contract;
     contract.values.forEach((cv, ci) => {
       // survival respects every filter EXCEPT contract (it stratifies by it)
@@ -543,9 +668,9 @@
       }
       d += ` L ${X(72)} ${Y(last)}`;
       out += `<path d="${d}" fill="none" stroke="${KM_COLORS[ci]}" stroke-width="2"/>`;
-      out += `<text x="${W - R + 6}" y="${Y(last) + 3}" font-size="10" font-weight="bold" fill="${KM_COLORS[ci]}">${cv} · ${(last * 100).toFixed(0)}%</text>`;
+      out += `<text x="${W - R + 6}" y="${Y(last) + 3}" font-size="12" font-weight="bold" fill="${KM_COLORS[ci]}">${cv} · ${(last * 100).toFixed(0)}%</text>`;
     });
-    out += `<text x="${L}" y="${H - 8}" font-size="9" fill="#5f5a51">months →</text>`;
+    out += `<text x="${L}" y="${H - 8}" font-size="12" fill="var(--dim)">months →</text>`;
     svg.innerHTML = out;
   }
 
@@ -621,25 +746,25 @@
     }
     const empty = VIEW.length === 0 || !VIEW.some((i) => !ROWS.churn[i]);
     if (empty) {
-      $("profit").innerHTML = `<text x="180" y="78" font-size="10" fill="#5f5a51" text-anchor="middle">No targetable customers in view</text>`;
+      $("profit").innerHTML = `<text x="180" y="78" font-size="12" fill="var(--dim)" text-anchor="middle">No targetable customers in view</text>`;
       return;
     }
     const lo = Math.min(...pts.map((p) => p[1]), 0), hi = Math.max(...pts.map((p) => p[1]), 1);
     const W = 360, H = 150, L = 8, R = 8, T = 10, B = 18;
     const X = (t) => L + ((t - 0.05) / 0.85) * (W - L - R);
     const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
-    let out = `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="#d9d4c8"/>`;
-    out += `<path d="M ${pts.map(([t, v]) => `${X(t)} ${Y(v)}`).join(" L ")}" fill="none" stroke="#2f8a58" stroke-width="2"/>`;
+    let out = `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="var(--line)"/>`;
+    out += `<path d="M ${pts.map(([t, v]) => `${X(t)} ${Y(v)}`).join(" L ")}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
     const optima = pts.filter((p) => Math.abs(p[1] - best[1]) < 0.000001);
     if (optima.length === 1) {
-      out += `<circle cx="${X(best[0])}" cy="${Y(best[1])}" r="4" fill="#b8463a"/>`;
-      out += `<text x="${X(best[0])}" y="${Y(best[1]) - 8}" font-size="9" fill="#b8463a" text-anchor="middle">optimum τ=${(best[0] * 100).toFixed(0)}%</text>`;
+      out += `<circle cx="${X(best[0])}" cy="${Y(best[1])}" r="4" fill="var(--coral)"/>`;
+      out += `<text x="${X(best[0])}" y="${Y(best[1]) - 8}" font-size="12" fill="var(--coral)" text-anchor="middle">optimum τ=${(best[0] * 100).toFixed(0)}%</text>`;
     } else {
-      out += `<text x="${W / 2}" y="${T + 9}" font-size="9" fill="#5f5a51" text-anchor="middle">no unique optimum</text>`;
+      out += `<text x="${W / 2}" y="${T + 9}" font-size="12" fill="var(--dim)" text-anchor="middle">no unique optimum</text>`;
     }
-    out += `<line x1="${X(tau)}" y1="${T}" x2="${X(tau)}" y2="${H - B}" stroke="#3f5aa0" stroke-dasharray="3 3"/>`;
-    out += `<text x="${L}" y="${H - 4}" font-size="9" fill="#5f5a51">τ 5%</text>`;
-    out += `<text x="${W - R}" y="${H - 4}" font-size="9" fill="#5f5a51" text-anchor="end">90%</text>`;
+    out += `<line x1="${X(tau)}" y1="${T}" x2="${X(tau)}" y2="${H - B}" stroke="var(--blue)" stroke-dasharray="3 3"/>`;
+    out += `<text x="${L}" y="${H - 4}" font-size="12" fill="var(--dim)">τ 5%</text>`;
+    out += `<text x="${W - R}" y="${H - 4}" font-size="12" fill="var(--dim)" text-anchor="end">90%</text>`;
     $("profit").innerHTML = out;
   }
   for (const id of ["in-tau", "in-cost", "in-save", "in-hor"])
@@ -861,7 +986,7 @@
     $("presets").replaceChildren();
     for (const [name, preset] of PRESETS) {
       const b = document.createElement("button");
-      b.type = "button"; b.className = "chip"; b.textContent = name;
+      b.type = "button"; b.className = "chip pbtn"; b.textContent = name;
       b.addEventListener("click", () => {
         defaults();
         if (preset) Object.assign(state, preset);
@@ -884,7 +1009,7 @@
     const message = document.createElement("span");
     message.textContent = `Dashboard data could not be loaded: ${error.message}.`;
     const retry = document.createElement("button");
-    retry.type = "button"; retry.className = "fclear"; retry.textContent = "retry";
+    retry.type = "button"; retry.className = "fclear pbtn"; retry.textContent = "retry";
     retry.addEventListener("click", loadData);
     box.append(message, retry);
     box.classList.remove("hide");

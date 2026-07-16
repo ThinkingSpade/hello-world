@@ -18,7 +18,7 @@
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="index.html">HOME</a>
-      <a href="work.html" class="active is-work">PROJECTS</a>
+      <a href="work.html" class="active is-work">WORK</a>
       <a href="about.html">ABOUT</a>
     </nav>
     <span class="nav-spacer" aria-hidden="true"></span>
@@ -44,7 +44,9 @@
             <p class="exp-desc">A data analyst you can interrogate — and it doesn't just answer, it investigates. Ask "why did revenue jump?" and it decomposes the change across every dimension into a waterfall that reconciles to the dollar; ask for cohort retention or an anomaly scan and it computes those too, live, on a 125,000-row warehouse running on SQLite-in-WebAssembly in your browser. A pixel crew of four narrates each step, a public 35-question eval proves the browser engine matches its Python twin to the cent, and pasting your own API key puts a live LLM in the planner's seat — guardrailed so it can never write raw SQL.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Python, SQL, SQLite, WebAssembly, JavaScript, Claude API, OpenAI API, pytest"></ul>
+              <ul class="chips-tech" data-stack="Python, SQL, SQLite, WebAssembly, JavaScript, Claude API, OpenAI API, pytest">
+                <li><span>Python</span></li><li><span>SQL</span></li><li><span>SQLite</span></li><li><span>WebAssembly</span></li><li><span>JavaScript</span></li><li><span>Claude API</span></li><li><span>OpenAI API</span></li><li><span>pytest</span></li>
+              </ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>The semantic layer defines every metric exactly once for both engines; the deterministic parser and the LLM planner both emit the same plan schema, validated key-by-key before the guarded compiler writes any SQL. Your key stays in your tab — calls go straight from the browser to the provider.</p>
@@ -68,7 +70,9 @@
             <p class="exp-desc">A council of debating agents, a skeptic, an optimist, a fact-checker, and a wildcard, each one running on a different frontier model, argue over your data until they reach consensus, then hand back the answer with a confidence score drawn straight from where they disagreed.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Grok 4.1, Python, LangGraph, FastAPI"></ul>
+              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Grok 4.1, Python, LangGraph, FastAPI">
+                <li><span>Claude Opus 4.8</span></li><li><span>GPT-5.5</span></li><li><span>Gemini 3.1 Pro</span></li><li><span>Grok 4.1</span></li><li><span>Python</span></li><li><span>LangGraph</span></li><li><span>FastAPI</span></li>
+              </ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>Each agent is a LangGraph node wired to a different model, Claude, GPT, Gemini, and Grok, so they genuinely disagree; a moderator node weighs the arguments and turns the spread of opinion into the confidence score, so the disagreement <em>is</em> the metric.</p>
@@ -92,7 +96,9 @@
             <p class="exp-desc">A control plane for running fleets of real browsers as a managed service. Operators compose multi-tenant campaigns in a React console, a scheduler spreads them across the day, and every run drives a live Chromium session by handing the page's accessibility tree to a frontier model that replies with one schema-checked action.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker"></ul>
+              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker">
+                <li><span>Claude Opus 4.8</span></li><li><span>GPT</span></li><li><span>Ollama</span></li><li><span>Python</span></li><li><span>FastAPI</span></li><li><span>Celery</span></li><li><span>Playwright</span></li><li><span>Postgres</span></li><li><span>Redis</span></li><li><span>React</span></li><li><span>Docker</span></li>
+              </ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>Under the hood is the unglamorous platform that keeps it alive: a scheduler with cron, jitter, and ramp-up, warmed persistent identities pulled from a pool, health-scored proxies that disable themselves, classified failures with alerting, and cost metered against a hard ceiling so a runaway run halts itself. Every action is a strict JSON schema, so the model can only click, fill, scroll, or stop, and I can VNC straight into any live worker to watch it think. All of it on Postgres and Redis, running unattended on a single Mac Mini in the corner.</p>

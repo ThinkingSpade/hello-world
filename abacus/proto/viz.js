@@ -106,17 +106,25 @@ const Viz = (() => {
 
   function heatmap(zone, matrix) {
     const maxCols = Math.max(...matrix.map((r) => r.cells.length));
-    const mix = (t) => { const a = [243, 240, 233], b = [63, 90, 160]; const c = a.map((x, i) => Math.round(x + (b[i] - x) * t)); return `rgb(${c[0]},${c[1]},${c[2]})`; };
+    const mix = (t) => { const a = [243, 240, 233], b = [37, 71, 201]; return a.map((x, i) => Math.round(x + (b[i] - x) * t)); };
+    const luminance = (rgb) => {
+      const [r, g, b] = rgb.map((v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
     let head = `<tr><th style="text-align:left">cohort</th><th>size</th>`;
     for (let k = 0; k < maxCols; k++) head += `<th>+Q${k}</th>`;
     head += "</tr>";
     const body = matrix.map((r) => {
       let tds = `<td class="lab" style="font-weight:700">${escH(r.cohort)}</td><td class="lab">${r.size.toLocaleString("en-US")}</td>`;
-      r.cells.forEach((c) => { const t = Math.min(1, c / 100); tds += `<td style="background:${mix(t)};color:${t > 0.55 ? "#fff" : "var(--text)"}" title="${c}% still active">${Math.round(c)}%</td>`; });
+      r.cells.forEach((c) => {
+        const rgb = mix(Math.min(1, c / 100)), lum = luminance(rgb);
+        const text = 1.05 / (lum + 0.05) >= 4.5 ? "#fff" : "#000";
+        tds += `<td style="background:rgb(${rgb.join(",")});color:${text}" title="${c}% still active">${Math.round(c)}%</td>`;
+      });
       if (maxCols > r.cells.length) tds += `<td class="lab" colspan="${maxCols - r.cells.length}"></td>`;
       return `<tr>${tds}</tr>`;
     }).join("");
-    zone.innerHTML = `<div style="overflow-x:auto"><table class="heat">${head}${body}</table></div><div class="ramp">0% <i></i> 100% still ordering &nbsp;·&nbsp; cohort = quarter of first purchase · +Q0 is 100% by construction</div>`;
+    zone.innerHTML = `<div class="table-scroll"><table class="heat">${head}${body}</table></div><div class="ramp">0% <i></i> 100% still ordering &nbsp;·&nbsp; cohort = quarter of first purchase · +Q0 is 100% by construction</div>`;
   }
 
   function sparkline(points, idx, up) {
@@ -130,24 +138,24 @@ const Viz = (() => {
 
   function anomalyList(zone, an) {
     if (!an.flags.length) { zone.innerHTML = `<div style="font-size:.8rem;color:var(--dim);padding:.4rem 0">no series moved more than 2σ in ${escH(an.window)} — steady as she goes.</div>`; return; }
-    zone.innerHTML = `<table><tr><th style="text-align:left">series</th><th>month</th><th>MoM</th><th>z</th><th style="text-align:left">shape</th></tr>` +
+    zone.innerHTML = `<div class="table-scroll"><table><tr><th style="text-align:left">series</th><th>month</th><th>MoM</th><th>z</th><th style="text-align:left">shape</th></tr>` +
       an.flags.map((f) => `<tr><td style="text-align:left">${escH(f.series)}</td><td>${escH(f.month)}</td>
         <td style="font-weight:700;color:${f.mom_pct >= 0 ? "var(--green)" : "var(--coral)"}">${f.mom_pct >= 0 ? "+" : ""}${f.mom_pct}%</td>
         <td style="font-weight:700">${f.z >= 0 ? "+" : ""}${f.z}σ</td>
         <td style="text-align:left">${sparkline(f.points, f.idx, f.mom_pct >= 0)}</td></tr>`).join("") +
-      `</table><div style="font-size:.66rem;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
+      `</table></div><div style="font-size:.66rem;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
   }
 
   function driverDrilldown(inv, kind) {
     return `<details class="viz-details"><summary>every dimension's contribution (each partitions the exact delta)</summary>` +
-      Object.entries(inv.by_dim).map(([dim, rows]) => `<table style="margin-top:.4rem"><tr><th style="text-align:left">${escH(dim)}</th><th>prior</th><th>current</th><th>Δ</th></tr>
-        ${rows.map((r) => `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td><td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${r.delta >= 0 ? "+" : "−"}${F(Math.abs(r.delta), kind)}</td></tr>`).join("")}</table>`).join("") + `</details>`;
+      Object.entries(inv.by_dim).map(([dim, rows]) => `<div class="table-scroll"><table style="margin-top:.4rem"><tr><th style="text-align:left">${escH(dim)}</th><th>prior</th><th>current</th><th>Δ</th></tr>
+        ${rows.map((r) => `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td><td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${r.delta >= 0 ? "+" : "−"}${F(Math.abs(r.delta), kind)}</td></tr>`).join("")}</table></div>`).join("") + `</details>`;
   }
 
   function resultTable(result, kind) {
     const head = result.columns.map((c) => `<th>${escH(c)}</th>`).join("");
     const body = result.rows.slice(0, 40).map((r) => `<tr>${r.map((v, i) => `<td>${i === r.length - 1 ? F(v, kind) : escH(v)}</td>`).join("")}</tr>`).join("");
-    return `<details class="viz-details"><summary>result table (${result.rows.length} rows)</summary><table><tr>${head}</tr>${body}</table></details>`;
+    return `<details class="viz-details"><summary>result table (${result.rows.length} rows)</summary><div class="table-scroll"><table><tr>${head}</tr>${body}</table></div></details>`;
   }
 
   function planChips(plan) {
@@ -212,18 +220,19 @@ const Viz = (() => {
   // Baseline CSS for chart internals — identical everywhere; themes set the vars.
   function injectCSS() {
     const css = `
-      .chartwrap { position: relative; margin-top: .4rem; }
-      .chartwrap svg { width: 100%; height: auto; display: block; }
+      .chartwrap { position: relative; margin-top: .4rem; overflow-x: auto; }
+      .chartwrap svg { width: 100%; min-width: 860px; height: auto; display: block; }
       .tip { position: absolute; pointer-events: none; background: var(--text); color: var(--panel, #fff); font-size: .66rem; border-radius: 8px; padding: .35rem .55rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; }
       .bar { transition: opacity .15s; } .bar:hover { opacity: .78; }
-      .viz-zone table { border-collapse: collapse; width: 100%; font-size: .72rem; font-variant-numeric: tabular-nums; margin-top: .3rem; }
+      .table-scroll { width: 100%; overflow-x: auto; }
+      .viz-zone table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .72rem; font-variant-numeric: tabular-nums; margin-top: .3rem; }
       .viz-zone th, .viz-zone td { border: 1px solid var(--grid); padding: .18rem .45rem; text-align: right; }
       .viz-zone th:first-child, .viz-zone td:first-child { text-align: left; }
       .viz-zone table.heat { border-spacing: 3px; border-collapse: separate; }
       .viz-zone table.heat td, .viz-zone table.heat th { border: 0; border-radius: 6px; padding: .3rem .35rem; min-width: 2.4rem; text-align: center; font-weight: 700; font-size: .66rem; }
       .viz-zone table.heat th { color: var(--dim); font-weight: 400; } .viz-zone table.heat td.lab { text-align: left; }
       .ramp { display: inline-flex; align-items: center; gap: .35rem; font-size: .62rem; color: var(--dim); margin-top: .3rem; }
-      .ramp i { width: 60px; height: 8px; border-radius: 4px; display: inline-block; background: linear-gradient(90deg, #f3f0e9, #3f5aa0); }
+      .ramp i { width: 60px; height: 8px; border-radius: 4px; display: inline-block; background: linear-gradient(90deg, #f3f0e9, #2547c9); }
       .stat { text-align: center; padding: .6rem 0 .3rem; }
       .stat .lbl { font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: .15rem; }
       .stat .big { font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
