@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cue | live call copilot</title>
+<link rel="icon" href="/shared/icons.svg#i-signal" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/pixel.css">
+<style>
+  :root {
+    --pi-accent: #4338a8;
+    --pi-accent-soft: #eceafa;
+    --cue-violet: #4338a8;
+    --cue-violet-dark: #2d277f;
+    --cue-blue-soft: #e6eff8;
+    --cue-grid: rgba(30, 26, 20, .035);
+  }
+
+  * { box-sizing: border-box; }
+  html { min-width: 0; background: var(--pi-paper); }
+  body {
+    min-width: 0;
+    margin: 0;
+    overflow-x: hidden;
+    background-color: var(--pi-paper);
+    background-image:
+      linear-gradient(var(--cue-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--cue-grid) 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: var(--pi-ink);
+    font-family: var(--pi-font-body);
+    font-size: 14px;
+    line-height: 1.55;
+    padding: 24px 16px 48px;
+  }
+
+  button, input { font: inherit; }
+  button { color: inherit; }
+  .wrap { width: min(1220px, calc(100% - 4px)); margin: 0 auto; min-width: 0; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .site-head { text-align: center; margin: 0 auto 22px; }
+  .site-head h1 {
+    margin: 0;
+    font-family: var(--pi-font-title);
+    font-size: clamp(22px, 5vw, 32px);
+    line-height: 1.45;
+    letter-spacing: .08em;
+  }
+  .site-head h1 span { color: var(--cue-violet); }
+  .tagline { max-width: 760px; margin: 7px auto 0; color: var(--pi-muted); font-size: 14px; }
+  .honesty { width: fit-content; max-width: 100%; margin: 12px auto 0; border-style: dashed; text-align: left; }
+
+  .scenario-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 760px;
+    margin: 0 auto 16px;
+  }
+  .scenario-button { min-width: 0; min-height: 58px; text-align: left; line-height: 1.25; }
+  .scenario-button strong { display: block; font-family: var(--pi-font-ui); font-size: 16px; }
+  .scenario-button small { display: block; margin-top: 3px; color: var(--pi-muted); font-size: 12px; }
+
+  .async-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 44px;
+    margin: 0 auto 16px;
+    padding: 8px 12px;
+    overflow-wrap: anywhere;
+    color: var(--pi-muted);
+    background: var(--pi-panel);
+    border: 2px solid var(--pi-ink);
+    box-shadow: var(--pi-shadow-s);
+    font-size: 12px;
+  }
+  .async-state[hidden] { display: none; }
+
+  .call-shell { min-width: 0; overflow: hidden; }
+  .call-title {
+    min-height: 44px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    font-size: 12px;
+    text-transform: none;
+  }
+  .call-title-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .call-title-main span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .call-meta { color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; letter-spacing: 0; }
+
+  .screen-context {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    margin: 14px 14px 0;
+    border-color: var(--pi-ink);
+    background: var(--cue-blue-soft);
+    color: var(--pi-ink);
+  }
+  .screen-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--pi-font-ui); font-weight: 700; }
+  .screen-copy { min-width: 0; overflow-wrap: anywhere; }
+  .screen-copy strong { font-family: var(--pi-font-ui); font-size: 14px; }
+  .screen-copy span { margin-left: 5px; color: var(--pi-muted); }
+  .screen-phase { color: var(--pi-muted); white-space: nowrap; }
+
+  .workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
+    gap: 14px;
+    min-width: 0;
+    padding: 14px;
+  }
+  .pane { min-width: 0; box-shadow: var(--pi-shadow-s); overflow: hidden; }
+  .pane > .pwin-title { min-height: 44px; font-size: 12px; }
+  .pane-title-count { margin-left: auto; color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; letter-spacing: 0; }
+  .feed {
+    height: 520px;
+    max-height: 62vh;
+    min-height: 390px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 14px;
+    scrollbar-color: var(--pi-muted) var(--pi-paper);
+  }
+
+  .empty-state {
+    display: grid;
+    place-items: center;
+    min-height: 150px;
+    padding: 20px;
+    color: var(--pi-muted);
+    text-align: center;
+    border: 2px dashed var(--pi-line);
+    background: var(--pi-paper);
+    font-size: 13px;
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1.5px solid var(--pi-line);
+  }
+  .turn:first-child { padding-top: 0; }
+  .turn:last-child { border-bottom: 0; }
+  .turn-time { padding-top: 2px; color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; }
+  .turn-body { min-width: 0; }
+  .speaker { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; font-family: var(--pi-font-ui); font-size: 15px; font-weight: 700; }
+  .speaker::before { content: ""; width: 9px; height: 9px; flex: none; border: 1.5px solid var(--pi-ink); background: var(--pi-panel); }
+  .turn.rep .speaker { color: var(--cue-violet-dark); }
+  .turn.rep .speaker::before { background: var(--pi-accent-soft); }
+  .turn.customer .speaker::before { background: var(--pi-ink); }
+  .turn p { margin: 0; overflow-wrap: anywhere; }
+
+  .assist-feed { display: flex; flex-direction: column; gap: 12px; }
+  .assist-card { min-width: 0; box-shadow: 3px 3px 0 var(--pi-ink); }
+  .assist-card .pwin-title { min-height: 40px; flex-wrap: wrap; font-size: 12px; text-transform: none; }
+  .assist-status { margin-left: auto; }
+  .assist-body { padding: 12px; }
+  .assist-copy { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .assist-reason { margin: 10px 0 0; padding-top: 9px; border-top: 1.5px solid var(--pi-line); color: var(--pi-muted); font-size: 12px; overflow-wrap: anywhere; }
+  .assist-reason strong { color: var(--pi-ink); font-family: var(--pi-font-ui); font-size: 13px; }
+  .usage-marker {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1.5px solid currentColor;
+    font-family: var(--pi-font-ui);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .usage-marker.used { color: var(--pi-ok); background: var(--pi-ok-soft); }
+  .usage-marker.unused { color: var(--pi-warn); background: var(--pi-warn-soft); }
+
+  .controls {
+    display: grid;
+    grid-template-columns: auto auto auto minmax(140px, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 0 14px 16px;
+  }
+  .control-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+  .speed-group { display: flex; gap: 6px; }
+  .speed-group .pbtn { padding: 8px 10px; }
+  #scrub { width: 100%; min-width: 0; min-height: 44px; accent-color: var(--pi-accent); cursor: pointer; }
+  .clock { min-width: 94px; color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+
+  .recap { margin-top: 18px; overflow: hidden; }
+  .recap[hidden] { display: none; }
+  .recap > .pwin-title { min-height: 44px; font-size: 12px; }
+  .recap-body { display: grid; gap: 16px; padding: 16px; }
+  .recap-summary { display: flex; flex-wrap: wrap; gap: 8px; }
+  .recap-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(250px, .75fr); gap: 16px; }
+  .recap-section { min-width: 0; }
+  .recap-section h3 { margin: 0 0 8px; font-family: var(--pi-font-ui); font-size: 16px; }
+  .recap-table-wrap { overflow-x: auto; }
+  .recap-table { width: 100%; min-width: 520px; }
+  .recap-table td { vertical-align: top; overflow-wrap: anywhere; }
+  .gap-log { min-height: 100%; margin: 0; box-shadow: none; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .balance { display: grid; gap: 10px; }
+  .balance-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) 48px; align-items: center; gap: 8px; }
+  .balance-label { font-family: var(--pi-font-ui); font-size: 13px; font-weight: 700; }
+  .balance-track { height: 16px; border: 1.5px solid var(--pi-ink); background: var(--pi-paper); }
+  .balance-fill { height: 100%; background: var(--pi-accent); }
+  .balance-row.customer .balance-fill { background: var(--pi-ink); }
+  .balance-value { font-family: var(--pi-font-code); font-size: 12px; text-align: right; }
+
+  footer { margin-top: 26px; color: var(--pi-muted); font-size: 12px; text-align: center; }
+
+  @media (max-width: 860px) {
+    .workbench { grid-template-columns: 1fr; }
+    .feed { height: auto; max-height: 480px; min-height: 320px; }
+    .recap-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 650px) {
+    body { padding: 16px 12px 40px; }
+    .scenario-picker { grid-template-columns: 1fr; }
+    .screen-context { grid-template-columns: auto minmax(0, 1fr); }
+    .screen-phase { grid-column: 2; }
+    .screen-copy span { display: block; margin: 2px 0 0; }
+    .workbench { padding: 12px; }
+    .feed { max-height: 430px; padding: 12px; }
+    .controls { grid-template-columns: 1fr 1fr; padding: 0 12px 14px; }
+    .controls > .control-button { width: 100%; }
+    .speed-group { grid-column: 1 / -1; }
+    .speed-group .pbtn { flex: 1; }
+    #scrub { grid-column: 1 / -1; }
+    .clock { grid-column: 1 / -1; min-height: 24px; text-align: center; }
+    .recap-table-wrap { overflow: visible; }
+    .recap-table, .recap-table tbody, .recap-table tr, .recap-table td { display: block; width: 100%; min-width: 0; }
+    .recap-table thead { display: none; }
+    .recap-table tr { padding: 9px 0; border-bottom: 2px solid var(--pi-line); }
+    .recap-table tr:last-child { border-bottom: 0; }
+    .recap-table td { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; padding: 3px 0; border: 0; }
+    .recap-table td::before { content: attr(data-label); color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+  }
+
+  @media (max-width: 390px) {
+    .call-meta { width: 100%; }
+    .turn { grid-template-columns: 46px minmax(0, 1fr); gap: 8px; }
+    .balance-row { grid-template-columns: 66px minmax(0, 1fr) 42px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition-duration: .001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="site-head">
+    <h1>CU<span>E</span></h1>
+    <p class="tagline">Cue follows the conversation and the rep screen. It surfaces useful context while the call is still moving.</p>
+    <div class="honesty pstrip">interactive recreation of the private system, replaying recorded fixtures</div>
+  </header>
+
+  <div class="scenario-picker" id="scenario-picker" role="group" aria-label="Call fixture"></div>
+  <div class="async-state" id="load-state" role="status" aria-live="polite">Loading recorded call.</div>
+
+  <section class="call-shell pwin" aria-labelledby="call-title">
+    <div class="call-title pwin-title">
+      <div class="call-title-main">
+        <span class="pwin-lamp" id="call-lamp" aria-hidden="true"></span>
+        <span id="call-title">Recorded call</span>
+      </div>
+      <span class="call-meta" id="call-meta">Waiting for fixture</span>
+    </div>
+
+    <div class="screen-context pstrip" id="screen-context">
+      <span class="screen-label"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"></use></svg> rep screen</span>
+      <span class="screen-copy" id="screen-copy">Waiting for screen context.</span>
+      <span class="screen-phase" id="screen-phase"></span>
+    </div>
+
+    <div class="workbench">
+      <section class="pane pwin" aria-labelledby="transcript-title">
+        <div class="pwin-title" id="transcript-title">
+          <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg>
+          live transcript
+          <span class="pane-title-count" id="transcript-count">0 turns</span>
+        </div>
+        <div class="feed" id="transcript-feed" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </section>
+
+      <section class="pane pwin" aria-labelledby="assist-title">
+        <div class="pwin-title" id="assist-title">
+          <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-lamp"></use></svg>
+          assist rail
+          <span class="pane-title-count" id="assist-count">0 cards</span>
+        </div>
+        <div class="feed assist-feed" id="assist-feed" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </section>
+    </div>
+
+    <div class="controls" aria-label="Replay controls">
+      <button class="control-button pbtn primary" id="play" type="button" disabled>
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"></use></svg>
+        <span>play</span>
+      </button>
+      <button class="control-button pbtn" id="restart" type="button" disabled>
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"></use></svg>
+        <span>restart</span>
+      </button>
+      <div class="speed-group" id="speed-group" role="group" aria-label="Playback speed"></div>
+      <input id="scrub" type="range" min="0" max="1" value="0" step="0.1" aria-label="Scrub call replay" disabled>
+      <output class="clock" id="clock" for="scrub">0:00 / 0:00</output>
+    </div>
+  </section>
+
+  <section class="recap pwin" id="recap" aria-labelledby="recap-title" hidden>
+    <div class="pwin-title" id="recap-title">
+      <span class="pwin-lamp on" aria-hidden="true"></span>
+      call recap
+    </div>
+    <div class="recap-body" id="recap-body"></div>
+  </section>
+
+  <div class="sr-only" id="player-status" role="status" aria-live="polite" aria-atomic="true"></div>
+  <footer>Fixture values drive every time, percentage, and recap result shown here.</footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const FIXTURES = [
+    { file: "pricing-discovery.json", title: "Pricing objection", note: "New hire discovery call" },
+    { file: "renewal-save.json", title: "Renewal save", note: "Upset customer renewal call" }
+  ];
+  const TYPE_LABELS = {
+    suggested_answer: "suggested answer",
+    account_detail: "account detail",
+    objection_response: "objection response",
+    next_step: "next step"
+  };
+  const TYPE_ICONS = {
+    suggested_answer: "i-lamp",
+    account_detail: "i-doc",
+    objection_response: "i-arrow-r",
+    next_step: "i-check"
+  };
+
+  let fixture = null;
+  let activeFile = FIXTURES[0].file;
+  let currentTime = 0;
+  let speed = 1;
+  let playing = false;
+  let generation = 0;
+  let pendingTimers = [];
+  let lastWallTime = 0;
+  let transcriptKey = "";
+  let assistKey = "";
+  let screenKey = "";
+  let recapVisible = false;
+
+  function svgIcon(id) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "pi-ic");
+    svg.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", `/shared/icons.svg#${id}`);
+    svg.appendChild(use);
+    return svg;
+  }
+
+  function formatTime(seconds) {
+    const safe = Math.max(0, Math.round(Number(seconds) || 0));
+    const minutes = Math.floor(safe / 60);
+    const remainder = String(safe % 60).padStart(2, "0");
+    return `${minutes}:${remainder}`;
+  }
+
+  function untrackTimer(id) {
+    pendingTimers = pendingTimers.filter((pending) => pending !== id);
+  }
+
+  function later(fn, delay, expectedGeneration = generation) {
+    const id = setTimeout(() => {
+      untrackTimer(id);
+      if (expectedGeneration !== generation) return;
+      fn();
+    }, delay);
+    pendingTimers.push(id);
+    return id;
+  }
+
+  function clearPendingTimers() {
+    pendingTimers.forEach((id) => clearTimeout(id));
+    pendingTimers = [];
+  }
+
+  function invalidatePlayback() {
+    generation += 1;
+    playing = false;
+    clearPendingTimers();
+    return generation;
+  }
+
+  function setPlayButton(mode) {
+    const button = $("play");
+    button.replaceChildren();
+    button.appendChild(svgIcon(mode === "pause" ? "i-pause" : mode === "replay" ? "i-restart" : "i-play"));
+    const label = document.createElement("span");
+    label.textContent = mode;
+    button.appendChild(label);
+  }
+
+  function setControlsDisabled(disabled) {
+    $("play").disabled = disabled;
+    $("restart").disabled = disabled;
+    $("scrub").disabled = disabled;
+    Array.from($("speed-group").children).forEach((button) => {
+      button.disabled = disabled;
+    });
+  }
+
+  function showLoadState(message, retryFile = null) {
+    const state = $("load-state");
+    state.replaceChildren(document.createTextNode(message));
+    if (retryFile) {
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "pbtn";
+      retry.textContent = "retry";
+      retry.addEventListener("click", () => loadFixture(retryFile));
+      state.appendChild(retry);
+    }
+    state.hidden = false;
+  }
+
+  function updateScenarioSelection(file) {
+    Array.from($("scenario-picker").children).forEach((button) => {
+      const selected = button.dataset.file === file;
+      button.classList.toggle("on", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+  }
+
+  function makeEmpty(message) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = message;
+    return empty;
+  }
+
+  function resetRenderKeys() {
+    transcriptKey = "";
+    assistKey = "";
+    screenKey = "";
+  }
+
+  function setReplayLive(value) {
+    $("transcript-feed").setAttribute("aria-live", value);
+    $("assist-feed").setAttribute("aria-live", value);
+  }
+
+  function renderTranscript(visibleTurns) {
+    const key = visibleTurns.map((turn) => `${turn.at}:${turn.speaker}`).join("|");
+    if (key === transcriptKey) return;
+    const previousCount = transcriptKey ? transcriptKey.split("|").length : 0;
+    transcriptKey = key;
+
+    const feed = $("transcript-feed");
+    feed.replaceChildren();
+    if (!fixture.transcript.length) {
+      feed.appendChild(makeEmpty("This fixture has no transcript events."));
+    } else if (!visibleTurns.length) {
+      feed.appendChild(makeEmpty("The call has not started yet."));
+    } else {
+      visibleTurns.forEach((turn) => {
+        const item = document.createElement("article");
+        item.className = `turn ${turn.role === "rep" ? "rep" : "customer"}`;
+
+        const time = document.createElement("time");
+        time.className = "turn-time";
+        time.textContent = formatTime(turn.at);
+
+        const body = document.createElement("div");
+        body.className = "turn-body";
+        const speaker = document.createElement("div");
+        speaker.className = "speaker";
+        speaker.textContent = turn.speaker;
+        const copy = document.createElement("p");
+        copy.textContent = turn.text;
+        body.append(speaker, copy);
+        item.append(time, body);
+        feed.appendChild(item);
+      });
+    }
+    $("transcript-count").textContent = `${visibleTurns.length} ${visibleTurns.length === 1 ? "turn" : "turns"}`;
+    if (playing && visibleTurns.length > previousCount) {
+      feed.scrollTop = feed.scrollHeight;
+      const latest = visibleTurns[visibleTurns.length - 1];
+      $("player-status").textContent = `${latest.speaker}: ${latest.text}`;
+    }
+  }
+
+  function suggestionStatus(suggestion, atEnd) {
+    if (suggestion.usedAt !== null && suggestion.usedAt <= currentTime) return "used";
+    if (atEnd && suggestion.usedAt === null) return "unused";
+    return "ready";
+  }
+
+  function renderAssist(visibleSuggestions, atEnd) {
+    const key = visibleSuggestions.map((suggestion) => `${suggestion.id}:${suggestionStatus(suggestion, atEnd)}`).join("|");
+    if (key === assistKey) return;
+    const previous = assistKey;
+    assistKey = key;
+
+    const feed = $("assist-feed");
+    feed.replaceChildren();
+    if (!fixture.suggestions.length) {
+      feed.appendChild(makeEmpty("This fixture has no assist suggestions."));
+    } else if (!visibleSuggestions.length) {
+      feed.appendChild(makeEmpty("No suggestion yet. Cue is following the call and the rep screen."));
+    } else {
+      visibleSuggestions.forEach((suggestion) => {
+        const status = suggestionStatus(suggestion, atEnd);
+        const card = document.createElement("article");
+        card.className = "assist-card pwin";
+
+        const title = document.createElement("div");
+        title.className = "pwin-title";
+        title.appendChild(svgIcon(TYPE_ICONS[suggestion.type] || "i-lamp"));
+        const type = document.createElement("span");
+        type.textContent = TYPE_LABELS[suggestion.type] || "suggestion";
+        title.appendChild(type);
+        const statusChip = document.createElement("span");
+        statusChip.className = `assist-status pchip ${status === "used" ? "ok" : status === "unused" ? "warn" : "acc"}`;
+        statusChip.textContent = status;
+        title.appendChild(statusChip);
+
+        const body = document.createElement("div");
+        body.className = "assist-body";
+        const heading = document.createElement("strong");
+        heading.className = "speaker";
+        heading.textContent = suggestion.title;
+        const content = document.createElement("p");
+        content.className = "assist-copy";
+        content.textContent = suggestion.content;
+        const reason = document.createElement("p");
+        reason.className = "assist-reason";
+        const reasonLabel = document.createElement("strong");
+        reasonLabel.textContent = "Why now: ";
+        reason.append(reasonLabel, document.createTextNode(suggestion.reason));
+        body.append(heading, content, reason);
+
+        if (status === "used") {
+          const marker = document.createElement("div");
+          marker.className = "usage-marker used";
+          marker.append(svgIcon("i-check"), document.createTextNode(suggestion.useEvidence));
+          body.appendChild(marker);
+        } else if (status === "unused") {
+          const marker = document.createElement("div");
+          marker.className = "usage-marker unused";
+          marker.append(svgIcon("i-x"), document.createTextNode("Not used in a later rep turn."));
+          body.appendChild(marker);
+        }
+
+        card.append(title, body);
+        feed.appendChild(card);
+      });
+    }
+    $("assist-count").textContent = `${visibleSuggestions.length} ${visibleSuggestions.length === 1 ? "card" : "cards"}`;
+    if (playing && previous && key !== previous && visibleSuggestions.length) {
+      const latest = visibleSuggestions[visibleSuggestions.length - 1];
+      const latestStatus = suggestionStatus(latest, atEnd);
+      $("player-status").textContent = latestStatus === "used"
+        ? `Suggestion marked used: ${latest.title}.`
+        : `Cue surfaced: ${latest.title}.`;
+      feed.scrollTop = feed.scrollHeight;
+    }
+  }
+
+  function renderScreen(screenEvents) {
+    const active = screenEvents.length ? screenEvents[screenEvents.length - 1] : null;
+    const key = active ? `${active.at}:${active.app}:${active.screen}` : "empty";
+    if (key === screenKey) return;
+    screenKey = key;
+
+    const copy = $("screen-copy");
+    copy.replaceChildren();
+    if (!fixture.screenEvents.length) {
+      copy.textContent = "This fixture has no screen context events.";
+      $("screen-phase").textContent = "";
+      return;
+    }
+    if (!active) {
+      copy.textContent = "Waiting for the first screen event.";
+      $("screen-phase").textContent = "";
+      return;
+    }
+
+    const strong = document.createElement("strong");
+    strong.textContent = `${active.app}: ${active.screen}`;
+    const detail = document.createElement("span");
+    detail.textContent = active.detail;
+    copy.append(strong, detail);
+    $("screen-phase").textContent = `screen ${screenEvents.length} of ${fixture.screenEvents.length}`;
+    if (playing) $("player-status").textContent = `Rep screen changed to ${active.app}, ${active.screen}.`;
+  }
+
+  function makeTableCell(label, text) {
+    const cell = document.createElement("td");
+    cell.dataset.label = label;
+    cell.textContent = text;
+    return cell;
+  }
+
+  function renderRecap() {
+    const recap = $("recap");
+    const body = $("recap-body");
+    body.replaceChildren();
+
+    if (!fixture.recap) {
+      body.appendChild(makeEmpty("This fixture has no recap data."));
+      recap.hidden = false;
+      recapVisible = true;
+      return;
+    }
+
+    const used = fixture.suggestions.filter((suggestion) => suggestion.usedAt !== null);
+    const unused = fixture.suggestions.filter((suggestion) => suggestion.usedAt === null);
+    const summary = document.createElement("div");
+    summary.className = "recap-summary";
+    const usedChip = document.createElement("span");
+    usedChip.className = "pchip ok";
+    usedChip.textContent = `${used.length} used`;
+    const unusedChip = document.createElement("span");
+    unusedChip.className = unused.length ? "pchip warn" : "pchip";
+    unusedChip.textContent = `${unused.length} ignored`;
+    summary.append(usedChip, unusedChip);
+
+    const recapGrid = document.createElement("div");
+    recapGrid.className = "recap-grid";
+    const suggestionSection = document.createElement("section");
+    suggestionSection.className = "recap-section";
+    const suggestionHeading = document.createElement("h3");
+    suggestionHeading.textContent = "Suggestion results";
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "recap-table-wrap ptable-wrap";
+    const table = document.createElement("table");
+    table.className = "recap-table ptable";
+    const tableHead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    ["Type", "Suggestion", "Result"].forEach((label) => {
+      const cell = document.createElement("th");
+      cell.scope = "col";
+      cell.textContent = label;
+      headRow.appendChild(cell);
+    });
+    tableHead.appendChild(headRow);
+    const tableBody = document.createElement("tbody");
+    fixture.suggestions.forEach((suggestion) => {
+      const row = document.createElement("tr");
+      row.append(
+        makeTableCell("Type", TYPE_LABELS[suggestion.type] || "suggestion"),
+        makeTableCell("Suggestion", suggestion.title),
+        makeTableCell("Result", suggestion.usedAt === null ? "Ignored" : `Used at ${formatTime(suggestion.usedAt)}`)
+      );
+      tableBody.appendChild(row);
+    });
+    table.append(tableHead, tableBody);
+    tableWrap.appendChild(table);
+    suggestionSection.append(suggestionHeading, tableWrap);
+
+    const gapSection = document.createElement("section");
+    gapSection.className = "recap-section";
+    const gapHeading = document.createElement("h3");
+    gapHeading.textContent = "Response gaps";
+    const gapLog = document.createElement("div");
+    gapLog.className = "gap-log pterm";
+    if (fixture.recap.gaps && fixture.recap.gaps.length) {
+      fixture.recap.gaps.forEach((gap, index) => {
+        const line = document.createElement("div");
+        const count = document.createElement("span");
+        count.className = "dim";
+        count.textContent = `${String(index + 1).padStart(2, "0")}  `;
+        const copy = document.createTextNode(`${gap.seconds}s after ${gap.after}. Cue helped with ${gap.helpedBy} at ${formatTime(gap.cueAt)}.`);
+        line.append(count, copy);
+        gapLog.appendChild(line);
+      });
+    } else {
+      const none = document.createElement("span");
+      none.className = "dim";
+      none.textContent = "No response gaps are recorded in this fixture.";
+      gapLog.appendChild(none);
+    }
+    gapSection.append(gapHeading, gapLog);
+    recapGrid.append(suggestionSection, gapSection);
+
+    const balanceSection = document.createElement("section");
+    balanceSection.className = "recap-section";
+    const balanceHeading = document.createElement("h3");
+    balanceHeading.textContent = "Talk and listen balance";
+    const balance = document.createElement("div");
+    balance.className = "balance";
+    const entries = [
+      ["Rep", fixture.recap.talkListen.rep, "rep"],
+      ["Customer", fixture.recap.talkListen.customer, "customer"]
+    ];
+    entries.forEach(([label, rawValue, className]) => {
+      const value = Math.max(0, Math.min(100, Number(rawValue) || 0));
+      const row = document.createElement("div");
+      row.className = `balance-row ${className}`;
+      const rowLabel = document.createElement("span");
+      rowLabel.className = "balance-label";
+      rowLabel.textContent = label;
+      const track = document.createElement("div");
+      track.className = "balance-track";
+      track.setAttribute("role", "meter");
+      track.setAttribute("aria-label", `${label} talk share`);
+      track.setAttribute("aria-valuemin", "0");
+      track.setAttribute("aria-valuemax", "100");
+      track.setAttribute("aria-valuenow", String(value));
+      const fill = document.createElement("div");
+      fill.className = "balance-fill";
+      fill.style.width = `${value}%`;
+      track.appendChild(fill);
+      const valueLabel = document.createElement("span");
+      valueLabel.className = "balance-value";
+      valueLabel.textContent = `${value}%`;
+      row.append(rowLabel, track, valueLabel);
+      balance.appendChild(row);
+    });
+    balanceSection.append(balanceHeading, balance);
+
+    body.append(summary, recapGrid, balanceSection);
+    recap.hidden = false;
+    recapVisible = true;
+  }
+
+  function hideRecap() {
+    if (!recapVisible) return;
+    $("recap").hidden = true;
+    $("recap-body").replaceChildren();
+    recapVisible = false;
+  }
+
+  function renderAt(time) {
+    if (!fixture) return;
+    currentTime = Math.max(0, Math.min(fixture.duration, Number(time) || 0));
+    const atEnd = currentTime >= fixture.duration;
+    const visibleTurns = fixture.transcript.filter((turn) => turn.at <= currentTime);
+    const visibleSuggestions = fixture.suggestions.filter((suggestion) => suggestion.at <= currentTime);
+    const visibleScreens = fixture.screenEvents.filter((event) => event.at <= currentTime);
+
+    renderTranscript(visibleTurns);
+    renderAssist(visibleSuggestions, atEnd);
+    renderScreen(visibleScreens);
+    $("scrub").value = String(currentTime);
+    $("clock").textContent = `${formatTime(currentTime)} / ${formatTime(fixture.duration)}`;
+
+    if (atEnd && !recapVisible) {
+      renderRecap();
+    } else if (!atEnd) {
+      hideRecap();
+    }
+  }
+
+  function finishPlayback() {
+    playing = false;
+    clearPendingTimers();
+    renderAt(fixture.duration);
+    setPlayButton("replay");
+    $("call-lamp").className = "pwin-lamp on";
+    $("player-status").textContent = "Replay complete. Call recap is ready.";
+  }
+
+  function tick(expectedGeneration) {
+    if (!playing || expectedGeneration !== generation || !fixture) return;
+    const now = performance.now();
+    const elapsed = Math.max(0, (now - lastWallTime) / 1000) * speed;
+    lastWallTime = now;
+    renderAt(currentTime + elapsed);
+    if (currentTime >= fixture.duration) {
+      finishPlayback();
+      return;
+    }
+    later(() => tick(expectedGeneration), REDUCED ? 200 : 100, expectedGeneration);
+  }
+
+  function play() {
+    if (!fixture) return;
+    if (currentTime >= fixture.duration) {
+      currentTime = 0;
+      resetRenderKeys();
+      hideRecap();
+      renderAt(0);
+    }
+    const token = invalidatePlayback();
+    playing = true;
+    lastWallTime = performance.now();
+    setPlayButton("pause");
+    $("call-lamp").className = "pwin-lamp on";
+    $("player-status").textContent = "Replay playing.";
+    later(() => tick(token), REDUCED ? 200 : 100, token);
+  }
+
+  function pause(announce = true) {
+    if (!fixture) return;
+    invalidatePlayback();
+    setPlayButton(currentTime >= fixture.duration ? "replay" : "play");
+    $("call-lamp").className = "pwin-lamp warn";
+    if (announce) $("player-status").textContent = "Replay paused.";
+  }
+
+  function restart() {
+    if (!fixture) return;
+    invalidatePlayback();
+    currentTime = 0;
+    resetRenderKeys();
+    hideRecap();
+    renderAt(0);
+    play();
+  }
+
+  function validFixture(data) {
+    return data
+      && data.meta
+      && Number.isFinite(data.duration)
+      && data.duration > 0
+      && Array.isArray(data.transcript)
+      && Array.isArray(data.suggestions)
+      && Array.isArray(data.screenEvents);
+  }
+
+  async function fetchFixture(file) {
+    const response = await fetch(`fixtures/${file}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    if (!validFixture(data)) throw new Error("invalid fixture data");
+    return data;
+  }
+
+  async function loadFixture(file) {
+    const loadGeneration = invalidatePlayback();
+    activeFile = file;
+    fixture = null;
+    currentTime = 0;
+    hideRecap();
+    resetRenderKeys();
+    setControlsDisabled(true);
+    setPlayButton("play");
+    updateScenarioSelection(file);
+    showLoadState("Loading recorded call.");
+    $("call-title").textContent = "Loading recorded call";
+    $("call-meta").textContent = "Waiting for fixture";
+    $("call-lamp").className = "pwin-lamp warn";
+    $("screen-copy").textContent = "Loading screen context.";
+    $("screen-phase").textContent = "";
+    $("transcript-feed").replaceChildren(makeEmpty("Loading transcript."));
+    $("assist-feed").replaceChildren(makeEmpty("Loading assist rail."));
+    $("transcript-count").textContent = "0 turns";
+    $("assist-count").textContent = "0 cards";
+    $("clock").textContent = "0:00 / 0:00";
+
+    try {
+      const data = await fetchFixture(file);
+      if (loadGeneration !== generation) return;
+      fixture = data;
+      $("call-title").textContent = `${fixture.meta.title}: ${fixture.meta.rep} with ${fixture.meta.customer}`;
+      $("call-meta").textContent = `${fixture.meta.callId} | ${fixture.meta.account} | ${fixture.meta.repNote}`;
+      $("scrub").max = String(fixture.duration);
+      $("load-state").hidden = true;
+      setControlsDisabled(false);
+      resetRenderKeys();
+      renderAt(0);
+      play();
+    } catch (error) {
+      if (loadGeneration !== generation) return;
+      $("call-title").textContent = "Replay unavailable";
+      $("call-meta").textContent = file;
+      $("call-lamp").className = "pwin-lamp err";
+      $("screen-copy").textContent = "Screen context is unavailable.";
+      $("transcript-feed").replaceChildren(makeEmpty("The transcript could not be loaded."));
+      $("assist-feed").replaceChildren(makeEmpty("The assist rail could not be loaded."));
+      showLoadState(`Could not load ${file}. ${error.message}.`, file);
+    }
+  }
+
+  FIXTURES.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "scenario-button pbtn";
+    button.dataset.file = item.file;
+    button.setAttribute("aria-pressed", "false");
+    const title = document.createElement("strong");
+    title.textContent = item.title;
+    const note = document.createElement("small");
+    note.textContent = item.note;
+    button.append(title, note);
+    button.addEventListener("click", () => loadFixture(item.file));
+    $("scenario-picker").appendChild(button);
+  });
+
+  [1, 2, 4].forEach((value) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pbtn";
+    button.textContent = `${value}x`;
+    button.disabled = true;
+    button.setAttribute("aria-pressed", String(value === speed));
+    if (value === speed) button.classList.add("on");
+    button.addEventListener("click", () => {
+      speed = value;
+      Array.from($("speed-group").children).forEach((speedButton) => {
+        const selected = speedButton === button;
+        speedButton.classList.toggle("on", selected);
+        speedButton.setAttribute("aria-pressed", String(selected));
+      });
+      $("player-status").textContent = `Playback speed ${value} times.`;
+    });
+    $("speed-group").appendChild(button);
+  });
+
+  $("play").addEventListener("click", () => {
+    if (playing) pause();
+    else play();
+  });
+  $("restart").addEventListener("click", restart);
+  $("scrub").addEventListener("input", (event) => {
+    const wasPlaying = playing;
+    invalidatePlayback();
+    resetRenderKeys();
+    setReplayLive("off");
+    try {
+      renderAt(Number(event.target.value));
+    } finally {
+      setReplayLive("polite");
+    }
+    setPlayButton(currentTime >= fixture.duration ? "replay" : "play");
+    $("call-lamp").className = "pwin-lamp warn";
+    $("player-status").textContent = `Replay moved to ${formatTime(currentTime)}${wasPlaying ? " and paused" : ""}.`;
+  });
+
+  updateScenarioSelection(activeFile);
+  loadFixture(activeFile);
+})();
+</script>
+</body>
+</html>

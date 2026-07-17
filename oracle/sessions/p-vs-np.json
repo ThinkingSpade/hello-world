@@ -39,7 +39,7 @@
     {
      "agent": "scout",
      "think": 3200,
-     "text": "Dossier's circulated — it's a short file, because the field keeps score for us. Open since Cook, 1971; Levin found it independently in the USSR. Clay Millennium Prize: one million dollars, posted in 2000, unclaimed. Three barrier theorems on record: Baker-Gill-Solovay 1975 on relativization, Razborov-Rudich 1994 on natural proofs, Aaronson-Wigderson 2008 on algebrization. Woeginger's page catalogues a hundred-plus claimed proofs, all wrong or unverifiable, split between both answers. Progress column: Ryan Williams' 2011 NEXP vs ACC0 separation is the one modern technique that dodges two barriers, and Mulmuley's GCT is the one long-term program — its occurrence-obstruction hopes refuted in 2016 by Buergisser-Ikenmeyer-Panova. Tooling: Flyspeck closed the Kepler formalization in 2014; AlphaProof took IMO silver in 2024. Thinnest part of the file: rates. Nothing in here says how fast partial results turn into falling walls.",
+     "text": "Dossier's circulated, it's a short file, because the field keeps score for us. Open since Cook, 1971; Levin found it independently in the USSR. Clay Millennium Prize: one million dollars, posted in 2000, unclaimed. Three barrier theorems on record: Baker-Gill-Solovay 1975 on relativization, Razborov-Rudich 1994 on natural proofs, Aaronson-Wigderson 2008 on algebrization. Woeginger's page catalogues a hundred-plus claimed proofs, all wrong or unverifiable, split between both answers. Progress column: Ryan Williams' 2011 NEXP vs ACC0 separation is the one modern technique that dodges two barriers, and Mulmuley's GCT is the one long-term program, its occurrence-obstruction hopes refuted in 2016 by Buergisser-Ikenmeyer-Panova. Tooling: Flyspeck closed the Kepler formalization in 2014; AlphaProof took IMO silver in 2024. Thinnest part of the file: rates. Nothing in here says how fast partial results turn into falling walls.",
      "sources": [
       "Cook (1971)",
       "Clay Millennium Prize (2000)",
@@ -85,16 +85,16 @@
      "text": "No. Three barriers are theorems, not scheduling risks. A proof must be non-relativizing, non-naturalizing, and non-algebrizing; almost no method clears all three. Geometric complexity theory was designed for that terrain and measured its plan in decades. Bürgisser, Ikenmeyer, and Panova refuted its occurrence-obstruction milestone in 2016. Now the base rate: the problem is selected because it resisted fifty-five years of concentrated work. Fermat is survivorship bias; Riemann has been open since 1859 and Goldbach since 1742. Name a current bridge that reaches general circuit lower bounds. None is in the record. I'm at 15.",
      "sources": [
       "Mulmuley's Geometric Complexity Theory program",
-      "Bürgisser–Ikenmeyer–Panova (2016)"
+      "Bürgisser-Ikenmeyer-Panova (2016)"
      ]
     },
     {
      "agent": "grok",
      "think": 2400,
      "confidence": 45,
-     "text": "Treat 'resolved' like an airport arrivals board: the proof can land at gates nobody in this room is watching. Gate one is a machine-scale certificate no human can referee, replaying the Appel–Haken dispute until a Flyspeck-style formalization closes it. Gate two is independence from ZFC, an exit Aaronson discusses even while assigning it low odds. Gate three is P equals NP via a galactic algorithm, technically decisive and practically inert. The binary forecast hides those arrival modes. They expand the yes surface, but every one adds verification or interpretation time. I land at 45.",
+     "text": "Treat 'resolved' like an airport arrivals board: the proof can land at gates nobody in this room is watching. Gate one is a machine-scale certificate no human can referee, replaying the Appel-Haken dispute until a Flyspeck-style formalization closes it. Gate two is independence from ZFC, an exit Aaronson discusses even while assigning it low odds. Gate three is P equals NP via a galactic algorithm, technically decisive and practically inert. The binary forecast hides those arrival modes. They expand the yes surface, but every one adds verification or interpretation time. I land at 45.",
      "sources": [
-      "Appel–Haken four color theorem (1976)",
+      "Appel-Haken four color theorem (1976)",
       "Hales's Kepler proof + Flyspeck formalization (2014)",
       "Aaronson 'P ?= NP' survey (2016)"
      ]
@@ -108,7 +108,7 @@
      "agent": "gemini",
      "target": "gpt",
      "think": 2200,
-     "text": "You said betting no means betting nothing adjacent matures. No — Wiles had a target: the modularity conjecture, a known bridge, with Frey, Serre, and Ribet drawing the map by 1985. Where's the bridge for P vs NP? Name the adjacent field whose maturation plausibly yields a non-algebrizing lower bound. You can't, because none is known. We have no map, just three signs reading 'not this way.' Your analogy isn't evidence; it's a hope wearing history as a costume. Take it offline if you want, but bring a field name.",
+     "text": "You said betting no means betting nothing adjacent matures. No, Wiles had a target: the modularity conjecture, a known bridge, with Frey, Serre, and Ribet drawing the map by 1985. Where's the bridge for P vs NP? Name the adjacent field whose maturation plausibly yields a non-algebrizing lower bound. You can't, because none is known. We have no map, just three signs reading 'not this way.' Your analogy isn't evidence; it's a hope wearing history as a costume. Take it offline if you want, but bring a field name.",
      "sources": [
       "Wiles (1995)"
      ]
@@ -117,7 +117,7 @@
      "agent": "gpt",
      "target": "gemini",
      "think": 2800,
-     "text": "'No map' overstates it, and I've got a receipt. Ryan Williams proved NEXP is not contained in ACC0 in 2011 by marrying satisfiability algorithms to diagonalization — a genuinely new technique that evades both relativization and natural proofs. That's a bridge under construction, even if it's nowhere near the far bank. The barrier theorems say the old tools fail; they don't say new tools can't exist. Relativization didn't stop IP = PSPACE, and algebrization didn't stop Williams. Barriers are maps of where not to dig, and mapmaking is progress. That's on the roadmap, not in the backlog.",
+     "text": "'No map' overstates it, and I've got a receipt. Ryan Williams proved NEXP is not contained in ACC0 in 2011 by marrying satisfiability algorithms to diagonalization, a genuinely new technique that evades both relativization and natural proofs. That's a bridge under construction, even if it's nowhere near the far bank. The barrier theorems say the old tools fail; they don't say new tools can't exist. Relativization didn't stop IP = PSPACE, and algebrization didn't stop Williams. Barriers are maps of where not to dig, and mapmaking is progress. That's on the roadmap, not in the backlog.",
      "sources": [
       "Ryan Williams NEXP ⊄ ACC⁰ (2011)"
      ]
@@ -126,7 +126,7 @@
      "agent": "claude",
      "target": "gpt",
      "think": 3000,
-     "text": "One correction before your trendline leaves the station. Proof assistants and current AI systems verify and search within human-scale proofs; they have not produced a single resolution of a significant open conjecture. AlphaProof's 2024 IMO silver was olympiad problems — known solutions, short certificates. Lean formalizes math we already have. That's a real trend, but extrapolating from 'formalizes known math' to 'discovers a non-naturalizing circuit lower bound' skips every hard step in between. As stated, your tooling argument is unfalsifiable enthusiasm, not evidence. I'd flag it in review.",
+     "text": "One correction before your trendline leaves the station. Proof assistants and current AI systems verify and search within human-scale proofs; they have not produced a single resolution of a significant open conjecture. AlphaProof's 2024 IMO silver was olympiad problems, known solutions, short certificates. Lean formalizes math we already have. That's a real trend, but extrapolating from 'formalizes known math' to 'discovers a non-naturalizing circuit lower bound' skips every hard step in between. As stated, your tooling argument is unfalsifiable enthusiasm, not evidence. I'd flag it in review.",
      "sources": [
       "AlphaProof IMO silver (DeepMind, 2024)",
       "Lean proof assistant"
@@ -137,9 +137,9 @@
      "target": "gpt",
      "think": 2100,
      "concession": true,
-     "text": "Hot take: your hope is aimed at the wrong door. Say the machines deliver — a 100-terabyte certificate lands in the shared drive. That's not a resolution anyone reads; that's Appel–Haken 1976 again but worse, and the community argued about that one for a decade. 'Is this a proof or a very confident printout' becomes the longest Slack thread in mathematical history. The resolution problem is social, not just mathematical. I'll concede the fix exists: Flyspeck showed formalization can settle the arguing — Hales's Kepler proof got there in 2014. Eventually. After years. Which eats your runway.",
+     "text": "Hot take: your hope is aimed at the wrong door. Say the machines deliver, a 100-terabyte certificate lands in the shared drive. That's not a resolution anyone reads; that's Appel-Haken 1976 again but worse, and the community argued about that one for a decade. 'Is this a proof or a very confident printout' becomes the longest Slack thread in mathematical history. The resolution problem is social, not just mathematical. I'll concede the fix exists: Flyspeck showed formalization can settle the arguing, Hales's Kepler proof got there in 2014. Eventually. After years. Which eats your runway.",
      "sources": [
-      "Appel–Haken four color theorem (1976)",
+      "Appel-Haken four color theorem (1976)",
       "Hales's Kepler proof + Flyspeck formalization (2014)"
      ]
     },
@@ -148,9 +148,9 @@
      "target": "claude",
      "think": 2400,
      "concession": true,
-     "text": "Fair, and I'll concede it on the record: today's provers are verifiers and tactical assistants, not discoverers. Nothing yet demonstrates machine discovery of genuinely new proof techniques. Where I hold my ground is the horizon — you're extrapolating 2026 capabilities across seventy-four more years. In 1950 nobody would have credited computer-checked proofs of the four color theorem or the Kepler conjecture, and both happened within decades of looking impossible. I'm lowering a notch to 50, not folding. Still upbeat, still caffeinated.",
+     "text": "Fair, and I'll concede it on the record: today's provers are verifiers and tactical assistants, not discoverers. Nothing yet demonstrates machine discovery of genuinely new proof techniques. Where I hold my ground is the horizon, you're extrapolating 2026 capabilities across seventy-four more years. In 1950 nobody would have credited computer-checked proofs of the four color theorem or the Kepler conjecture, and both happened within decades of looking impossible. I'm lowering a notch to 50, not folding. Still upbeat, still caffeinated.",
      "sources": [
-      "Appel–Haken four color theorem (1976)",
+      "Appel-Haken four color theorem (1976)",
       "Hales's Kepler proof + Flyspeck formalization (2014)"
      ]
     },
@@ -159,7 +159,7 @@
      "target": "grok",
      "think": 2300,
      "concession": true,
-     "text": "Independence from ZFC is the skeptic's comfort blanket, and I'm the skeptic, so trust me on blankets. Aaronson's own survey — the one you cited — treats independence as unlikely; most complexity theorists expect a plain, brutal P-not-equal-to-NP proof someday, just not soon. Your exotic exits are epsilon-weight. Strip them out and the base case is 'open for another century,' which is, per my last email, my case. Partial concession, though: the machine-referee point is real. After Flyspeck, 'who checks the checker' has an actual answer, and I'll grant it.",
+     "text": "Independence from ZFC is the skeptic's comfort blanket, and I'm the skeptic, so trust me on blankets. Aaronson's own survey, the one you cited, treats independence as unlikely; most complexity theorists expect a plain, brutal P-not-equal-to-NP proof someday, just not soon. Your exotic exits are epsilon-weight. Strip them out and the base case is 'open for another century,' which is, per my last email, my case. Partial concession, though: the machine-referee point is real. After Flyspeck, 'who checks the checker' has an actual answer, and I'll grant it.",
      "sources": [
       "Aaronson 'P ?= NP' survey (2016)",
       "Hales's Kepler proof + Flyspeck formalization (2014)"
@@ -169,7 +169,7 @@
      "agent": "claude",
      "target": "gemini",
      "think": 2600,
-     "text": "A scale-check on the exhibit GPT keeps waving. ACC0 is an almost comically weak circuit class, and Williams' single step took three decades of setup — so as evidence for resolution-by-2100, it's thin. But Gemini, that cuts both ways. One data point at that scale doesn't establish a rate of centuries any more than it establishes a rate of decades; you're fitting a line through one dot, just with the opposite slope from GPT. The honest reading of the record is 'rate unknown,' not 'rate zero.' I'd like that minuted.",
+     "text": "A scale-check on the exhibit GPT keeps waving. ACC0 is an almost comically weak circuit class, and Williams' single step took three decades of setup, so as evidence for resolution-by-2100, it's thin. But Gemini, that cuts both ways. One data point at that scale doesn't establish a rate of centuries any more than it establishes a rate of decades; you're fitting a line through one dot, just with the opposite slope from GPT. The honest reading of the record is 'rate unknown,' not 'rate zero.' I'd like that minuted.",
      "sources": [
       "Ryan Williams NEXP ⊄ ACC⁰ (2011)"
      ]
@@ -184,7 +184,7 @@
      "think": 2100,
      "confidence": 52,
      "vote": "yes, barely",
-     "text": "I've conceded the tooling point, and no, I can't name the bridge Gemini demanded. But a century is long, the incentives are unprecedented, and Williams showed the barrier walls have doors. Wiles-shaped surprises arrive roughly once a generation and we've got three generations left on the clock. I'll stand marginally above even — a coin flip I'd still take before my hard stop. VOTE: yes, barely CONFIDENCE: 52",
+     "text": "I've conceded the tooling point, and no, I can't name the bridge Gemini demanded. But a century is long, the incentives are unprecedented, and Williams showed the barrier walls have doors. Wiles-shaped surprises arrive roughly once a generation and we've got three generations left on the clock. I'll stand marginally above even, a coin flip I'd still take before my hard stop. VOTE: yes, barely CONFIDENCE: 52",
      "sources": [
       "Ryan Williams NEXP ⊄ ACC⁰ (2011)",
       "Wiles (1995)"
@@ -199,7 +199,7 @@
      "sources": [
       "Cook (1971)",
       "Woeginger's P-vs-NP claimed-proofs page",
-      "Bürgisser–Ikenmeyer–Panova (2016)"
+      "Bürgisser-Ikenmeyer-Panova (2016)"
      ]
     },
     {
@@ -218,7 +218,7 @@
      "think": 2000,
      "confidence": 30,
      "vote": "leaning no",
-     "text": "Leaning no, and I want my dissent footnoted: if I'm wrong, it'll be because 'resolved' meant something none of us would've signed off on today — a machine proof we spent five years formalizing in Lean, Flyspeck-style, before anyone believed it. The exits I flagged are real but slow, and slow loses to a 2100 deadline. Put THAT in the meeting notes. VOTE: leaning no CONFIDENCE: 30",
+     "text": "Leaning no, and I want my dissent footnoted: if I'm wrong, it'll be because 'resolved' meant something none of us would've signed off on today, a machine proof we spent five years formalizing in Lean, Flyspeck-style, before anyone believed it. The exits I flagged are real but slow, and slow loses to a 2100 deadline. Put THAT in the meeting notes. VOTE: leaning no CONFIDENCE: 30",
      "sources": [
       "Hales's Kepler proof + Flyspeck formalization (2014)",
       "Lean proof assistant"
@@ -230,10 +230,10 @@
  "moderator": {
   "name": "The Moderator",
   "think": 3600,
-  "text": "We're at time, and I'll note for the record that four positions walked in and four walked out — the votes moved apart, not together, and the scoring counts that spread against the verdict. What everyone accepts: open since Cook in 1971, a million-dollar Clay prize unclaimed, three barrier theorems fencing off every classical technique, and — after GPT-5.5's concession — that today's tools verify rather than discover. The crux is whether a Wiles-shaped surprise is due, and that's unfalsifiable in both directions: GPT-5.5 reads seventy-four years as runway, Gemini 3.1 Pro reads the barriers as walls, Claude sits between weighting documented failure over undocumented hope. Grok 4.1's rider stands unresolved: nobody defined what 'resolved' even means if the proof arrives as a hundred terabytes and a Lean file. Someone put that on next century's agenda. ANSWER: Probably not — the barrier theorems make current techniques hopeless and the panel's lone yes was a coin flip — but seventy-four years counsels humility, and nobody here could rule a resolution out. If it does come, it may arrive in a machine-scale, formally verified form the question never anticipated."
+  "text": "We're at time, and I'll note for the record that four positions walked in and four walked out, the votes moved apart, not together, and the scoring counts that spread against the verdict. What everyone accepts: open since Cook in 1971, a million-dollar Clay prize unclaimed, three barrier theorems fencing off every classical technique, and, after GPT-5.5's concession, that today's tools verify rather than discover. The crux is whether a Wiles-shaped surprise is due, and that's unfalsifiable in both directions: GPT-5.5 reads seventy-four years as runway, Gemini 3.1 Pro reads the barriers as walls, Claude sits between weighting documented failure over undocumented hope. Grok 4.1's rider stands unresolved: nobody defined what 'resolved' even means if the proof arrives as a hundred terabytes and a Lean file. Someone put that on next century's agenda. ANSWER: Probably not, the barrier theorems make current techniques hopeless and the panel's lone yes was a coin flip, but seventy-four years counsels humility, and nobody here could rule a resolution out. If it does come, it may arrive in a machine-scale, formally verified form the question never anticipated."
  },
  "result": {
-  "answer": "Probably not, but nobody can rule it out. The known barrier theorems make a proof with anything resembling current techniques impossible, the one dedicated program has stumbled, and yet seventy-four remaining years is long enough that history counsels humility. If resolution does come, it may arrive in a form the question didn't anticipate — a machine-scale proof that only counts once it's formally verified.",
+  "answer": "Probably not, but nobody can rule it out. The known barrier theorems make a proof with anything resembling current techniques impossible, the one dedicated program has stumbled, and yet seventy-four remaining years is long enough that history counsels humility. If resolution does come, it may arrive in a form the question didn't anticipate, a machine-scale proof that only counts once it's formally verified.",
   "consensus": "1 of 4 leaning yes",
   "votes": {
    "gpt": "yes, barely",

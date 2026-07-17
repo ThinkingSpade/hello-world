@@ -1,4 +1,4 @@
-/* Atlas static engine — the demo-mode pipeline ported to the browser.
+/* Atlas static engine. The demo-mode pipeline is ported to the browser.
  *
  * This file makes the exported site (python -m atlas export) fully
  * self-contained: the same hashing embedder, hybrid ranking, relevance
@@ -53,7 +53,7 @@
   const VECTOR_W = 0.7, KEYWORD_W = 0.3, TITLE_W = 0.15;
   const TOP_K = 5, PER_DOC_CAP = 2, DEFAULT_MIN_SCORE = 0.28;  // sync: atlas/config.py
 
-  const searchable = (p) => `${p.title} — ${p.section}\n${p.text}`;
+  const searchable = (p) => `${p.title}: ${p.section}\n${p.text}`;
 
   function fuzzyOverlap(qWords, tWords) {
     if (!qWords.size) return 0;
@@ -192,12 +192,17 @@
   };
 
   const flatText = (text) => text.replace(/\s+/g, " ").trim();
-  const cleanMarkdown = (text) => flatText(text
+  const normalizeProsePunctuation = (text) => String(text)
+    .replace(/(\b\d{1,2}:\d{2})\s+[\u2013\u2014]\s+/g, "$1: ")
+    .replace(/(\b\d{4})[\u2013\u2014](\d{4}\b)/g, "$1 to $2")
+    .replace(/\s+[\u2013\u2014]\s+([a-z])/g, (_match, letter) => `. ${letter.toUpperCase()}`)
+    .replace(/\s+[\u2013\u2014]\s+/g, ". ");
+  const cleanMarkdown = (text) => normalizeProsePunctuation(flatText(text
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/[*_~`#>]/g, "")
-    .replace(/^\s*[-+]\s+/gm, ""));
+    .replace(/^\s*[-+]\s+/gm, "")));
 
   function fuzzyWordHit(word, haystack) {
     if (haystack.has(word)) return true;
@@ -341,6 +346,22 @@
     return scoredDocs[0].score < 1.15 && scoredDocs[0].score - scoredDocs[1].score < 0.08;
   }
 
+  const QUERY_META_WORDS = new Set([
+    "average", "avg", "below", "count", "covers", "document", "documents", "greater",
+    "items", "less", "mean", "operation", "over", "procedure", "question", "runbook",
+    "source", "steps", "subject", "sum", "total", "under",
+  ]);
+
+  function hasCorpusSubject(data, question) {
+    const meaningful = [...contentWords(question)].filter((word) =>
+      !QUERY_META_WORDS.has(word) && !/^\d+(?:\.\d+)?$/.test(word)
+    );
+    if (meaningful.length < 2) return true;
+    return meaningful.some((word) =>
+      data.points.some((point) => fuzzyWordHit(word, point._words))
+    );
+  }
+
   function sectionFromMarkdown(markdown, heading) {
     const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const match = markdown.match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im"));
@@ -378,6 +399,7 @@
   }
 
   async function executeProcedure(data, question, results) {
+    if (!hasCorpusSubject(data, question)) return null;
     const scored = docScores(data, question, "runbook", results);
     if (!scored.length || scored[0].score < 1) return null;
     if (ambiguousQuestion(question, scored)) return { ambiguous: nearestDocuments(data, question, results, "runbook") };
@@ -564,6 +586,7 @@
   }
 
   async function executeStructured(data, question, results) {
+    if (!hasCorpusSubject(data, question)) return null;
     const scored = docScores(data, question, "dataset", results);
     if (!scored.length || scored[0].score < 1) return null;
     if (ambiguousQuestion(question, scored)) return { ambiguous: nearestDocuments(data, question, results, "dataset") };
@@ -600,7 +623,7 @@
         : consecutive
           ? `CSV rows ${rowNumbers[0]}-${rowNumbers.at(-1)}`
           : `CSV rows ${rowNumbers.join(", ")}`
-      : `CSV scan rows ${scanStart}-${scanEnd} - ${matching.length.toLocaleString("en-US")} matched`;
+      : `CSV scan rows ${scanStart} through ${scanEnd}: ${matching.length.toLocaleString("en-US")} matched`;
     citation.excerpt = [columns.join(","), ...excerptRows.map((row) => columns.map((column) => row.values[column]).join(","))].join("\n");
     citation.anchor = { type: "csv", row_numbers: shown.map((row) => row.rowNumber) };
     return {
@@ -733,7 +756,10 @@
           return r.json();
         })
         .then((d) => {
+          for (const doc of d.doclist || []) doc.title = normalizeProsePunctuation(doc.title);
           for (const p of d.points) {
+            p.title = normalizeProsePunctuation(p.title);
+            p.section = normalizeProsePunctuation(p.section);
             const vec = new Float32Array(d.dims);
             let norm = 0;
             for (let i = 0; i < d.dims; i++) {
@@ -827,7 +853,7 @@
           },
         };
         sourceScope = "snapshot";
-        warnings.push("Uncited snapshot state - not backed by a corpus document or connector.");
+        warnings.push("Uncited snapshot state. A corpus document or connector does not back this state.");
       } else if (intent === "aggregate") {
         executed = await executeStructured(d, question, results);
       } else if (intent === "procedure") {
@@ -864,7 +890,7 @@
         executed.answer_blocks.push({ type: "snapshot", date: snapshot.date, lines: snapshot.lines });
         executed.answer += `\n\nSNAPSHOT ${snapshot.date}\n${snapshot.lines.join("\n")}`;
         sourceScope = "mixed";
-        warnings.push("Uncited snapshot state - not backed by a corpus document or connector.");
+        warnings.push("Uncited snapshot state. A corpus document or connector does not back this state.");
       }
 
       const citations = (executed.citations || []).map((citation, index) => ({ ...citation, n: index + 1 }));

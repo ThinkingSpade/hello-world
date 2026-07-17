@@ -39,7 +39,7 @@
     {
      "agent": "scout",
      "think": 3000,
-     "text": "Dossier's in the channel — numbers first, vibes later. Baseline: renewables were roughly 30% of global electricity in 2023, hydro the biggest slice — Ember's Global Electricity Review and the IEA agree there. Trajectory: IEA Renewables 2024 has the main case approaching 46-50% of generation by 2030, driven mostly by China's buildout. Costs: the IEA's WEO 2020 called utility solar the cheapest electricity in history, and BloombergNEF has battery packs down about 90% since 2010. Constraints: LBNL's Queued Up report documents years-long interconnection queues in the US, transmission permitting is the repeat offender across Western markets, and China's UHV lines are the standing exception. New variable: IEA's Electricity 2024 flags data-centre load as the fastest-moving demand line. Thinnest part of the file: everything past 2030 is scenario, not data — and 2030-to-2035 is exactly the stretch this question lives in.",
+     "text": "Dossier's in the channel, numbers first, vibes later. Baseline: renewables were roughly 30% of global electricity in 2023, hydro the biggest slice, Ember's Global Electricity Review and the IEA agree there. Trajectory: IEA Renewables 2024 has the main case approaching 46-50% of generation by 2030, driven mostly by China's buildout. Costs: the IEA's WEO 2020 called utility solar the cheapest electricity in history, and BloombergNEF has battery packs down about 90% since 2010. Constraints: LBNL's Queued Up report documents years-long interconnection queues in the US, transmission permitting is the repeat offender across Western markets, and China's UHV lines are the standing exception. New variable: IEA's Electricity 2024 flags data-centre load as the fastest-moving demand line. Thinnest part of the file: everything past 2030 is scenario, not data, and 2030-to-2035 is exactly the stretch this question lives in.",
      "sources": [
       "Ember Global Electricity Review (2024)",
       "IEA Renewables 2024",
@@ -90,7 +90,7 @@
      "agent": "grok",
      "think": 2200,
      "confidence": 40,
-     "text": "Reframe the forecast as a treadmill race. Everyone is timing the runner — renewable additions — while the belt is demand growth. 'More than half' is a share, so the denominator is half the model. IEA Electricity 2024 puts data-center, AI, and crypto load on a steep path before cars, heat, and industry electrify further. Renewables can win every auction and set records while a faster-growing total keeps the share below fifty. The supply story is real; the stationary finish line is not. Price the belt speed and I am at 40.",
+     "text": "Reframe the forecast as a treadmill race. Everyone is timing the runner, renewable additions, while the belt is demand growth. 'More than half' is a share, so the denominator is half the model. IEA Electricity 2024 puts data-center, AI, and crypto load on a steep path before cars, heat, and industry electrify further. Renewables can win every auction and set records while a faster-growing total keeps the share below fifty. The supply story is real; the stationary finish line is not. Price the belt speed and I am at 40.",
      "sources": [
       "IEA Electricity 2024"
      ]
@@ -104,7 +104,7 @@
      "agent": "gemini",
      "target": "gpt",
      "think": 2200,
-     "text": "Cost curves don't build transmission lines. Panels could be free by Friday and it would change nothing for a project five years deep in an interconnection queue — that's LBNL's Queued Up data, not my mood. You also quietly slid from capacity to generation on that slide: the doubling you cite is installed gigawatts, and at solar's capacity factors the actual share of electricity moves far more slowly. And 'capital reallocates on its own' skips the part where the grid operator says no. Show me permitting reform and transmission buildout at global scale, not a learning curve, and I'll update.",
+     "text": "Cost curves don't build transmission lines. Panels could be free by Friday and it would change nothing for a project five years deep in an interconnection queue, that's LBNL's Queued Up data, not my mood. You also quietly slid from capacity to generation on that slide: the doubling you cite is installed gigawatts, and at solar's capacity factors the actual share of electricity moves far more slowly. And 'capital reallocates on its own' skips the part where the grid operator says no. Show me permitting reform and transmission buildout at global scale, not a learning curve, and I'll update.",
      "sources": [
       "LBNL Queued Up"
      ]
@@ -113,7 +113,7 @@
      "agent": "claude",
      "target": "gpt",
      "think": 3400,
-     "text": "Two corrections, offered politely. First, 'one more decade of compounding clears half' overstates what the data supports: capacity doublings don't map one-for-one onto generation share, because solar's capacity factor is a fraction of the fossil plants it displaces, and growth rates mathematically slow as the base gets large. Second, IEA Renewables 2024 has forty-six to fifty percent by 2030 in its main case — that supports 'likely,' not 'settled,' and the same report names grid and storage investment as the gating item. Your direction is right. Your certainty isn't. The honest read is a strong trend running into a real integration constraint.",
+     "text": "Two corrections, offered politely. First, 'one more decade of compounding clears half' overstates what the data supports: capacity doublings don't map one-for-one onto generation share, because solar's capacity factor is a fraction of the fossil plants it displaces, and growth rates mathematically slow as the base gets large. Second, IEA Renewables 2024 has forty-six to fifty percent by 2030 in its main case, that supports 'likely,' not 'settled,' and the same report names grid and storage investment as the gating item. Your direction is right. Your certainty isn't. The honest read is a strong trend running into a real integration constraint.",
      "sources": [
       "IEA Renewables 2024"
      ]
@@ -122,7 +122,7 @@
      "agent": "gpt",
      "target": "gemini",
      "think": 2600,
-     "text": "You're describing Western permitting and projecting it onto the planet. Most of this buildout is happening in China, which stands up ultra-high-voltage transmission on timelines Brussels would need three offsites just to scope, and it's exporting that model along with the panels. BloombergNEF's survey has battery packs down about ninety percent in a decade, and grid-scale storage is now winning open capacity auctions on cost, full stop. As for your demand growth — it lands in sunny, fast-growing markets, which is exactly where solar-plus-storage is already the cheapest new build. Your bottleneck is real in Brussels and Sacramento. It is not the world.",
+     "text": "You're describing Western permitting and projecting it onto the planet. Most of this buildout is happening in China, which stands up ultra-high-voltage transmission on timelines Brussels would need three offsites just to scope, and it's exporting that model along with the panels. BloombergNEF's survey has battery packs down about ninety percent in a decade, and grid-scale storage is now winning open capacity auctions on cost, full stop. As for your demand growth, it lands in sunny, fast-growing markets, which is exactly where solar-plus-storage is already the cheapest new build. Your bottleneck is real in Brussels and Sacramento. It is not the world.",
      "sources": [
       "China UHV transmission buildout",
       "BloombergNEF battery price survey"
@@ -133,7 +133,7 @@
      "target": "grok",
      "think": 2800,
      "concession": true,
-     "text": "I fact-checked the denominator take, and it's real but sized wrong. Global demand grows a few percent a year, and recent wind and solar additions have covered most of that growth — Ember's Global Electricity Review shows clean sources meeting the bulk of new demand. When new clean supply covers growth plus some displacement, share still climbs. Your treadmill slows the runner; it doesn't stop them. So the wildcard effect delays the crossing — it doesn't cancel it. One concession for the minutes: data-center load is the genuinely new variable. The IEA Electricity 2024 projections weren't in anyone's model two years ago. That's a line item, not a rewrite.",
+     "text": "I fact-checked the denominator take, and it's real but sized wrong. Global demand grows a few percent a year, and recent wind and solar additions have covered most of that growth, Ember's Global Electricity Review shows clean sources meeting the bulk of new demand. When new clean supply covers growth plus some displacement, share still climbs. Your treadmill slows the runner; it doesn't stop them. So the wildcard effect delays the crossing, it doesn't cancel it. One concession for the minutes: data-center load is the genuinely new variable. The IEA Electricity 2024 projections weren't in anyone's model two years ago. That's a line item, not a rewrite.",
      "sources": [
       "Ember Global Electricity Review 2024",
       "IEA Electricity 2024"
@@ -144,7 +144,7 @@
      "target": "claude",
      "think": 2900,
      "concession": true,
-     "text": "On the data, I concede — plainly, since you'll minute it anyway. Solar additions really have doubled about every three years, 2024 set another record, and I was underweighting how much of the thirty-to-fifty gap hydro and existing wind already cover: new wind and solar need maybe twenty points of share, not the whole distance. That moves me. But my objection was never the panels. It's whether grids and storage let those electrons reach the meter, and your own IEA citations name exactly that bottleneck. I'm updating upward, not surrendering.",
+     "text": "On the data, I concede, plainly, since you'll minute it anyway. Solar additions really have doubled about every three years, 2024 set another record, and I was underweighting how much of the thirty-to-fifty gap hydro and existing wind already cover: new wind and solar need maybe twenty points of share, not the whole distance. That moves me. But my objection was never the panels. It's whether grids and storage let those electrons reach the meter, and your own IEA citations name exactly that bottleneck. I'm updating upward, not surrendering.",
      "sources": [
       "IEA Renewables 2024"
      ]
@@ -154,7 +154,7 @@
      "target": "claude",
      "think": 2100,
      "concession": true,
-     "text": "Fine, the math checks — I ran it twice hoping it wouldn't. If clean builds cover demand growth plus some displacement, share grinds up even with my sprinting denominator. I'll move. But I want it minuted, per my last hot take: a couple of AI buildout years like 2024 and 2025 landing outside the forecast bands stretches the date, and IEA's own Electricity 2024 numbers treat the data-center curve as the least certain line in the deck. I'm conceding the direction and keeping the treadmill.",
+     "text": "Fine, the math checks, I ran it twice hoping it wouldn't. If clean builds cover demand growth plus some displacement, share grinds up even with my sprinting denominator. I'll move. But I want it minuted, per my last hot take: a couple of AI buildout years like 2024 and 2025 landing outside the forecast bands stretches the date, and IEA's own Electricity 2024 numbers treat the data-center curve as the least certain line in the deck. I'm conceding the direction and keeping the treadmill.",
      "sources": [
       "IEA Electricity 2024"
      ]
@@ -163,7 +163,7 @@
      "agent": "claude",
      "target": "gemini",
      "think": 3000,
-     "text": "A fair concession, so let me size the residual: real but bounded. With hydro plus today's wind and solar as the base, the gap to fifty percent is roughly twenty points of share over twelve years — under two points a year, against a recent pace of about a point a year and accelerating, per IEA Renewables 2024. Queues are a genuine drag, but China and India are building transmission alongside generation — the UHV lines aren't hypothetical — and storage additions are setting records too. On the evidence, the bottleneck slows the date. I don't see it pushing the central case past 2035.",
+     "text": "A fair concession, so let me size the residual: real but bounded. With hydro plus today's wind and solar as the base, the gap to fifty percent is roughly twenty points of share over twelve years, under two points a year, against a recent pace of about a point a year and accelerating, per IEA Renewables 2024. Queues are a genuine drag, but China and India are building transmission alongside generation, the UHV lines aren't hypothetical, and storage additions are setting records too. On the evidence, the bottleneck slows the date. I don't see it pushing the central case past 2035.",
      "sources": [
       "IEA Renewables 2024",
       "China UHV transmission buildout"
@@ -197,7 +197,7 @@
      "think": 2300,
      "confidence": 62,
      "vote": "Lean yes",
-     "text": "I came in at 38 and I'm leaving at 62, and the solar deployment data earned every point of that — write it down, it doesn't happen often. The arithmetic is tighter than I assumed: twenty points of share, not fifty. My residual is storage duration and grid buildout outside China, which could stretch the crossing into the late 2030s. The date is the honest uncertainty. VOTE: Lean yes CONFIDENCE: 62",
+     "text": "I came in at 38 and I'm leaving at 62, and the solar deployment data earned every point of that, write it down, it doesn't happen often. The arithmetic is tighter than I assumed: twenty points of share, not fifty. My residual is storage duration and grid buildout outside China, which could stretch the crossing into the late 2030s. The date is the honest uncertainty. VOTE: Lean yes CONFIDENCE: 62",
      "sources": []
     },
     {
@@ -205,7 +205,7 @@
      "think": 2000,
      "confidence": 65,
      "vote": "Lean yes",
-     "text": "Lean yes — the supply math survived my best denominator attack, which is annoying, but that's the job. My residual is demand surprise, not supply: if the date slips, it'll be because the pie grew faster than the forecasts, and nobody books THAT meeting until it's already late. Keep one eye on the IEA's data-center numbers; the treadmill still has a speed dial. VOTE: Lean yes CONFIDENCE: 65",
+     "text": "Lean yes, the supply math survived my best denominator attack, which is annoying, but that's the job. My residual is demand surprise, not supply: if the date slips, it'll be because the pie grew faster than the forecasts, and nobody books THAT meeting until it's already late. Keep one eye on the IEA's data-center numbers; the treadmill still has a speed dial. VOTE: Lean yes CONFIDENCE: 65",
      "sources": [
       "IEA Electricity 2024"
      ]
@@ -216,7 +216,7 @@
  "moderator": {
   "name": "The Moderator",
   "think": 3200,
-  "text": "We're at time, and — someone check the calendar for a frost warning — this meeting actually reached a decision. We opened forty-seven points apart and closed within sixteen, which around here qualifies as a group hug. The Fact-Checker's anchors did the heavy lifting: thirty percent of generation in 2023, solar doubling roughly every three years, the IEA's main case at forty-six to fifty percent by 2030. The Optimist gave back some certainty once corrected on capacity versus generation; the Skeptic conceded the deployment data outright and reframed the fight as twenty points of share; the Wildcard's denominator attack got measured, absorbed, and — credit where due — updated on. All four now lean yes. What remains on the whiteboard is the date, and which bottleneck bites first: the grid buildout or the growing pie. ANSWER: Probably yes — deployment data, cost curves, and the IEA's own 2030 trajectory make renewables crossing half of global electricity by 2035 the central case. The live risks are grids and storage keeping pace, and demand from data centers and electrification outrunning the forecasts — either slips the date rather than flips the answer."
+  "text": "We're at time, and, someone check the calendar for a frost warning, this meeting actually reached a decision. We opened forty-seven points apart and closed within sixteen, which around here qualifies as a group hug. The Fact-Checker's anchors did the heavy lifting: thirty percent of generation in 2023, solar doubling roughly every three years, the IEA's main case at forty-six to fifty percent by 2030. The Optimist gave back some certainty once corrected on capacity versus generation; the Skeptic conceded the deployment data outright and reframed the fight as twenty points of share; the Wildcard's denominator attack got measured, absorbed, and, credit where due, updated on. All four now lean yes. What remains on the whiteboard is the date, and which bottleneck bites first: the grid buildout or the growing pie. ANSWER: Probably yes, deployment data, cost curves, and the IEA's own 2030 trajectory make renewables crossing half of global electricity by 2035 the central case. The live risks are grids and storage keeping pace, and demand from data centers and electrification outrunning the forecasts, either slips the date rather than flips the answer."
  },
  "result": {
   "answer": "Probably yes. Deployment data and cost trajectories make renewables crossing half of global electricity generation by 2035 the most likely outcome, with the IEA already projecting roughly 46-50 percent by 2030. The timing hinges on grid buildout and storage keeping pace with record solar and wind additions, and on demand growth from data centers and broader electrification not outrunning the forecasts.",
@@ -249,6 +249,6 @@
     65
    ]
   },
-  "dissent": "All four agents lean yes; the residual split is over what could slip the crossing past 2035 — grid and storage buildout pace, per the skeptic, versus demand outrunning the forecasts, per the wildcard."
+  "dissent": "All four agents lean yes; the residual split is over what could slip the crossing past 2035, grid and storage buildout pace, per the skeptic, versus demand outrunning the forecasts, per the wildcard."
  }
 }

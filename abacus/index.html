@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Abacus — a data analyst you can interrogate</title>
+<title>Abacus: investigate warehouse data</title>
 <link rel="icon" type="image/png" href="/huy-avatar.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -107,7 +107,7 @@
   .llmrow label { display: flex; align-items: center; gap: .3rem; }
   .switch { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; color: var(--text); cursor: pointer; }
   /* answers */
-  /* the docket — each answer printed like the ticket the crew files */
+  /* the docket: each answer is printed like the ticket the crew files */
   .ans { position: relative; background: #fff; border: 1.5px solid #dcdce2; border-radius: 3px; padding: .8rem 1rem .95rem; margin-bottom: 1.15rem; animation: pop .28s cubic-bezier(.34,1.56,.64,1);
     box-shadow: 0 2px 0 #ececef, 0 3px 0 #dcdce2, 0 10px 18px -11px rgba(20,20,26,.22); }
   .ans:after { content: ""; position: absolute; left: -1px; right: -1px; bottom: -7px; height: 8px;
@@ -213,7 +213,7 @@
   /* ================= the plan board ================= */
   .boardgrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; }
   @media (max-width: 820px) { .boardgrid { grid-template-columns: 1fr; } }
-  /* the command console — same query, another skin */
+  /* the command console: the same query in another skin */
   .console { border: 1.5px solid var(--line); border-radius: 12px; background: #fbfbfc; overflow: hidden;
     box-shadow: 3px 3px 0 rgba(20,20,26,.05); margin-bottom: .85rem; transition: border-color .25s, box-shadow .25s; }
   .console.armed { border-color: var(--blue); box-shadow: 3px 3px 0 rgba(63,90,160,.12); }
@@ -333,7 +333,7 @@
   .how span { display: block; max-width: 720px; margin: .35rem auto 0; line-height: 1.5;
     border: 1.5px dashed var(--line); border-radius: 10px; padding: .5rem .75rem; background: var(--panel); }
   .how b { color: var(--green); }
-  /* slim the crew — beloved, but ambient, not a hero band */
+  /* slim the crew so the analysis remains the focus */
   .crew { gap: .6rem; }
   .crew .agent { padding: .5rem .45rem .55rem; }
   .crew .ava { width: 96px; height: 84px; }
@@ -355,7 +355,7 @@
   .toprow.show { display: flex; }
   .cmpnote { display: none; align-self: center; font-size: .58rem; color: var(--dim); }
   .cmpnote.show { display: inline; }
-  /* filters tucked behind a small disclosure — 16 stamps was the loudest noise */
+  /* filters stay behind a small disclosure */
   .filterbox { align-self: center; }
   .filterbox > summary { cursor: pointer; list-style: none; font-size: .64rem; font-weight: 800; color: var(--coral);
     border: 2px solid var(--coral); border-radius: 8px; padding: .22rem .6rem; opacity: .8; }
@@ -608,6 +608,17 @@
   .sqlprev .ph, .sqlprev .bar span { color: var(--pi-term-dim); font-size: 12px; }
   .sqlprev .bar i { border-radius: 0; }
   .sqlprev .flash { animation: sqlflash .24s steps(3, end); }
+  .sql-tools {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-bottom: 2px solid var(--pi-ink); background: var(--pi-paper);
+  }
+  .sql-annotation {
+    flex: 1; min-width: 0; color: var(--pi-muted); font-family: var(--pi-font-body);
+    font-size: 12px; line-height: 1.45;
+  }
+  .copy-sql { flex: none; min-height: 44px; min-width: 112px; }
+  .compiled-sql-block { border: 2px solid var(--pi-ink); background: var(--pi-panel); }
+  .compiled-sql-block pre { margin-top: 0; border: 0; }
 
   details.llm {
     border: 2px dashed var(--pi-line); border-radius: 0; padding: 10px 12px;
@@ -697,13 +708,13 @@
   #evalout ul { font-size: 12px; }
   .spark { display: none !important; }
 
-  .reslab #copy-link { margin-left: auto; min-height: 32px; min-width: 0; padding: 5px 8px; font-size: 12px; }
+  .reslab #copy-link { margin-left: auto; min-height: 44px; min-width: 0; padding: 7px 10px; font-size: 12px; }
   .reslab #copy-state { margin-left: 6px; }
   .dimension-switch, .drill-breadcrumbs, .rate-effects {
     display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0;
   }
   .dimension-switch .pchip, .drill-breadcrumbs .pchip {
-    min-height: 28px; border-radius: 0; cursor: pointer; text-transform: none;
+    min-height: 44px; border-radius: 0; cursor: pointer; text-transform: none;
   }
   .dimension-switch .pchip[aria-pressed="true"] { box-shadow: 2px 2px 0 var(--pi-ink); }
   .dimension-switch .switch-label, .drill-breadcrumbs .path-label {
@@ -715,6 +726,44 @@
   .bar-drill { cursor: pointer; outline: none; }
   .bar-drill:hover, .bar-drill:focus { opacity: .72; stroke: var(--pi-ink); stroke-width: 2px; }
   .inv-empty { margin: 10px 0; }
+
+  .verb-chips {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 10px 10px;
+    color: var(--pi-muted); font-family: var(--pi-font-body); font-size: 12px;
+  }
+  .verb-chips .pchip {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 7px 10px;
+    border: 2px solid var(--pi-ink); border-radius: 0; background: var(--pi-panel);
+    color: var(--pi-accent); cursor: pointer; text-transform: none;
+  }
+  .verb-chips .pchip:hover, .verb-chips .pchip:focus-visible { background: var(--pi-accent-soft); }
+  .verb-chips .pchip:disabled { opacity: .5; cursor: not-allowed; }
+
+  .saved-gallery { margin: 20px 0; }
+  .saved-gallery > .pwin-title { justify-content: flex-start; }
+  .saved-gallery #saved-count { margin-left: auto; }
+  .saved-intro { color: var(--pi-muted); font-size: 13px; }
+  .save-form {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 12px 0;
+  }
+  .save-form label { grid-column: 1 / -1; color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 12px; }
+  .save-form input {
+    min-width: 0; border: 2px solid var(--pi-ink); border-radius: 0; padding: 8px 10px;
+    background: var(--pi-panel); color: var(--pi-ink); font-family: var(--pi-font-body); font-size: 14px;
+  }
+  #saved-state { margin-bottom: 10px; font-size: 12px; }
+  #saved-state[hidden] { display: none; }
+  .saved-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+  .saved-item {
+    min-width: 0; border: 2px solid var(--pi-ink); padding: 12px; background: var(--pi-paper);
+    box-shadow: 3px 3px 0 var(--pi-ink);
+  }
+  .saved-item h3 { overflow-wrap: anywhere; font-family: var(--pi-font-ui); font-size: 15px; }
+  .saved-meta, .saved-note { margin-top: 5px; color: var(--pi-muted); font-size: 12px; }
+  .saved-note { padding: 7px 8px; border-left: 4px solid var(--pi-warn); background: var(--pi-warn-soft); color: var(--pi-ink); }
+  .saved-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .saved-actions .pbtn { min-height: 44px; }
+  .honesty-strip { margin-bottom: 10px; }
 
   footer { color: var(--pi-muted); font-family: var(--pi-font-body); font-size: 12px; }
 
@@ -750,6 +799,10 @@
     .dial .win { flex: 1; min-width: 0; }
     .runwrap { align-items: flex-start; }
     .pwin-body, .wb-results #feed { padding: 12px; }
+    .sql-tools { align-items: stretch; flex-direction: column; }
+    .copy-sql { width: 100%; }
+    .save-form { grid-template-columns: 1fr; }
+    .save-form label { grid-column: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
@@ -757,7 +810,7 @@
   /* dataset onboarding */
   #source-strip { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
   #source-strip .source-copy { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #source-strip .pbtn { min-height: 30px; min-width: 30px; padding: 5px 8px; font-size: 12px; box-shadow: 2px 2px 0 var(--pi-ink); }
+  #source-strip .pbtn { min-height: 44px; min-width: 44px; padding: 7px 10px; font-size: 12px; box-shadow: 2px 2px 0 var(--pi-ink); }
   #upload-panel { margin-bottom: 14px; box-shadow: 4px 4px 0 rgba(20,20,26,.12); }
   #upload-panel .pwin-title { justify-content: flex-start; }
   .byo-body { display: grid; grid-template-columns: minmax(250px, .72fr) minmax(280px, 1.28fr); gap: 12px; padding: 10px 12px; }
@@ -802,12 +855,14 @@
 <div class="wrap">
   <header>
     <h1>ABACUS<span class="dot">_</span></h1>
-    <p class="tagline">type a question in the console, or build it from real building blocks — either way a <b>deterministic compiler</b> writes the SQL (never a chatbot) on a <b id="hdr-rows">125k</b>-row warehouse in your browser</p>
-    <details class="how pwin"><summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>how it's real</summary>
-      <span class="pwin-body">A 125k-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) runs on SQLite-in-WebAssembly on this page. A semantic layer defines every metric once; the board hands a plan to a deterministic compiler — <b>the only thing allowed to write SQL</b>. Bring your own API key and a live LLM arranges the board instead — your key stays in this tab, and the model only ever picks from the semantic layer.</span></details>
+    <p class="tagline">Ask a question in the console, or assemble one from the cards. A <b>deterministic compiler</b> writes SQL against the fixture warehouse in your browser.</p>
+    <details class="how pwin"><summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>how the demo works</summary>
+      <span class="pwin-body">This page runs a seeded fixture warehouse in SQLite in WebAssembly. The semantic layer defines each metric once. The board sends plans to a deterministic compiler. The optional LLM can only choose semantic layer fields. Its API key stays in this tab.</span></details>
     <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
       <div id="loadtxt">fetching the warehouse…</div></div>
   </header>
+
+  <div class="pstrip honesty-strip">interactive recreation of the private system, replaying recorded fixtures</div>
 
   <div class="pstrip" id="source-strip">
     <span class="source-copy" id="source-copy"><b>DATA:</b> bundled warehouse · 126K ROWS</span>
@@ -848,15 +903,20 @@
   <div class="workbench">
    <div class="wb-build">
     <div class="card pwin" id="boardcard">
-    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>Build a question <span class="stepnote" id="stepnote">— drop in a measure to begin</span></h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>Build a question <span class="stepnote" id="stepnote">Start with a measure.</span></h2>
     <div class="pwin-body">
     <div class="console" id="console">
-      <div class="chead"><span class="ctag">console</span><span class="csub">type a question — or build it on the board below ↓</span></div>
+      <div class="chead"><span class="ctag">console</span><span class="csub">Type a question, or build it on the board below.</span></div>
       <div class="cline" id="cline">
         <span class="cprompt">abacus&nbsp;<b>❯</b></span>
         <input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
           aria-label="type a question" placeholder="e.g. revenue by region last quarter">
         <button class="crun pbtn" id="cmd-run" title="run"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>run</button>
+      </div>
+      <div class="verb-chips" role="group" aria-label="Console verbs">
+        <span>Try a verb:</span>
+        <button class="pchip" id="verb-anom" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>scan for anomalies</button>
+        <button class="pchip" id="verb-retention" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>show retention</button>
       </div>
       <div class="cerr" id="cerr"></div>
     </div>
@@ -869,12 +929,12 @@
           <div class="slot dimslot" id="slot-dim1"><span class="empty">optional</span></div></div>
         <div class="slotrow"><span class="slotlab">window</span>
           <div class="dial"><button id="dial-prev" aria-label="earlier window"><svg class="pi-ic flip" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"/></svg></button>
-            <span class="win" id="dial-win">—</span>
+            <span class="win" id="dial-win">loading</span>
             <button id="dial-next" aria-label="later window"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"/></svg></button></div>
           <button class="toggle" id="cmp-prev">vs prev</button>
           <button class="toggle" id="cmp-yoy">vs last yr</button>
           <span class="cmpnote" id="cmp-note">comparisons are available for totals only</span>
-          <span class="time-note" id="time-note">no date column mounted — time features are off</span>
+          <span class="time-note" id="time-note">No date column is mounted. Time features are off.</span>
           <details class="filterbox" id="filterbox"><summary>＋ filter <span id="filtercount"></span></summary>
             <div id="stamps" class="stamps"></div></details></div>
         <div class="slotrow toprow" id="toprow"><span class="slotlab">top N</span>
@@ -887,19 +947,23 @@
       </div>
     </div>
     <details class="sqlbox pwin" id="sqlbox" open>
-      <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>compiled live — the only SQL author in the system</summary>
-      <div class="sqlprev pterm" id="sqlprev"><pre id="sqlpre"><span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span></pre></div>
+      <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>compiled SQL</summary>
+      <div class="sql-copy-block">
+        <div class="sql-tools"><p class="sql-annotation" id="sql-annotation" aria-live="polite">Pick a measure to compile its query.</p>
+          <button class="pbtn copy-sql" id="copy-preview-sql" type="button" data-copy-sql disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>copy SQL</button></div>
+        <div class="sqlprev pterm" id="sqlprev"><pre id="sqlpre" data-sql-code><span class="ph">Pick a measure and the compiler writes SQL here.</span></pre></div>
+      </div>
     </details>
 
     <div class="racklab">① pick a measure</div>
     <div class="rack" id="rack-metrics"></div>
     <div class="refine-racks" id="refineracks">
-      <div class="racklab">② slice it (optional) — or just pull RUN</div>
+      <div class="racklab">② Add an optional slice, or pull RUN.</div>
       <div class="rack" id="rack-dims"></div>
     </div>
 
     <details class="llm" id="llmpanel" style="margin-top:.6rem">
-      <summary><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg> or let a live LLM arrange the board for you <span class="live" id="llmstate"></span></summary>
+      <summary><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg> Let a live LLM arrange the board <span class="live" id="llmstate"></span></summary>
       <div class="llmrow">
         <input id="llm-q" type="text" placeholder="e.g. how did mobile revenue trend this year?" style="flex:1;min-width:220px" aria-label="describe the question">
         <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
@@ -907,13 +971,13 @@
         <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
         <button id="llm-go" class="toggle">arrange →</button>
       </div>
-      <div style="margin-top:.4rem">The model never touches SQL — it only <b>arranges the cards on the board</b>, and you watch which tokens it picks before the same guarded compiler runs. Your key stays in this tab. A metric that isn't on a card is a rejected plan, not an improvised query.</div>
+      <div style="margin-top:.4rem">The model only arranges cards on the board. The guarded compiler still writes the SQL. Your key stays in this tab. A field outside the semantic layer is rejected.</div>
     </details>
     </div>
   </div>
 
   <div class="card pwin">
-    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg>Or run an investigation <span class="stepnote">— things a lookup tool can't do</span></h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg>Run an investigation <span class="stepnote">Use the current measure and window.</span></h2>
     <div class="pwin-body">
     <div class="shelf" id="shelf">
       <button class="report" id="rep-why" style="--rc:var(--coral)" disabled>
@@ -931,24 +995,41 @@
    </div><!-- /wb-build -->
 
    <div class="wb-results pwin">
-     <div class="reslab pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>results — newest on top
+     <div class="reslab pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>results, newest first
        <button id="copy-link" class="pbtn" disabled title="copy a link to the current plan"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>copy link</button>
        <span id="copy-state" class="pchip" aria-live="polite">no saved plan</span>
      </div>
-     <div id="feed" class="pwin-body"><div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div></div>
+     <div id="feed" class="pwin-body" role="log" aria-live="polite" aria-relevant="additions"><div class="feedempty">Pull the lever or run a console question. Results are filed here.</div></div>
    </div>
   </div><!-- /workbench -->
 
+  <section class="saved-gallery pwin" id="saved-analyses">
+    <div class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>saved analyses <span class="pchip" id="saved-count">0 saved</span></div>
+    <div class="pwin-body">
+      <p class="saved-intro">Save the current docket in this browser. Uploaded files are not stored, so mount the source again after a reload.</p>
+      <form class="save-form" id="save-form">
+        <label for="save-name">analysis name</label>
+        <input id="save-name" type="text" maxlength="60" autocomplete="off" placeholder="Quarterly margin review">
+        <button class="pbtn primary" id="save-analysis" type="submit" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>save current docket</button>
+      </form>
+      <div class="pstrip" id="saved-state" role="status" aria-live="polite">loading saved analyses…</div>
+      <div class="saved-list" id="saved-list" role="list"></div>
+    </div>
+  </section>
+
   <details class="card pwin evalcard" id="evalcard">
-    <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg><b>Proof it's real</b> — replay the 35-question parity eval yourself</summary>
+    <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg><b>fixture parity check</b></summary>
     <div class="pwin-body">
     <div style="font-size:12px;color:var(--dim);margin:.5rem 0">
-      35 golden questions were frozen by the Python engine (plans, SQL, and results committed to the repo). This replays all 35 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
+      Run the committed fixture questions through the browser engine. Plans must match the Python reference. Values must match to the cent.
     </div>
-    <button id="evalbtn" class="pbtn" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>run the 35-question eval</button>
+    <button id="evalbtn" class="pbtn" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>run the fixture check</button>
     <div id="evalout"></div>
     </div>
   </details>
+
+  <div class="sr-only" id="a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="sr-only" id="sql-copy-state" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <footer>
     ABACUS · plan board → semantic layer → compiled SQL → chart, entirely client-side ·
@@ -1118,6 +1199,38 @@
   const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const F = (v, kind) => Abacus.fmt(v, kind);
   const spriteIcon = (id) => `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"></use></svg>`;
+  let storyGeneration = 0, storyTimer = null, activeStory = null;
+
+  function finishActiveStory() {
+    storyGeneration++;
+    if (storyTimer !== null) clearInterval(storyTimer);
+    storyTimer = null;
+    if (activeStory) activeStory.node.textContent = activeStory.text;
+    activeStory = null;
+  }
+
+  function renderStory(story, text) {
+    finishActiveStory();
+    const token = storyGeneration;
+    if (REDUCED) {
+      story.textContent = text;
+      $("a11y-status").textContent = text;
+      return;
+    }
+    activeStory = { node: story, text };
+    let index = 0;
+    storyTimer = setInterval(() => {
+      if (token !== storyGeneration) return;
+      index += 4;
+      story.textContent = text.slice(0, index);
+      if (index >= text.length) {
+        clearInterval(storyTimer);
+        storyTimer = null;
+        activeStory = null;
+        $("a11y-status").textContent = text;
+      }
+    }, 16);
+  }
 
   /* ---------------- charts ---------------- */
   function barChart(zone, rows, kind, onBar) {
@@ -1135,7 +1248,7 @@
       const y = 6 + i * rowH;
       const label = r.slice(0, -1).join(" · ");
       g += `<text x="${L - 8}" y="${y + 18}" font-size="13" fill="var(--text)" text-anchor="end">${escH(label.length > 28 ? label.slice(0, 27) + "…" : label)}</text>
-            <rect class="bar${onBar ? " bar-drill" : ""}" data-bar-index="${i}" ${onBar ? 'role="button" tabindex="0"' : ""} x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="0" fill="#2547c9"><title>${escH(label)}: ${F(v, kind)}${onBar ? " — drill into member" : ""}</title></rect>
+            <rect class="bar${onBar ? " bar-drill" : ""}" data-bar-index="${i}" ${onBar ? 'role="button" tabindex="0"' : ""} x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="0" fill="#2547c9"><title>${escH(label)}: ${F(v, kind)}${onBar ? ". Select to drill into this member." : ""}</title></rect>
             <text x="${L + w + 7}" y="${y + 18}" font-size="12" font-weight="bold" fill="var(--dim)">${F(v, kind)}</text>`;
     });
     zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
@@ -1185,7 +1298,7 @@
       const fx = (ev.clientX - r.left) * (W / r.width);
       const i = Math.max(0, Math.min(rows.length - 1, Math.round((fx - L) / ((W - L - R) / Math.max(1, rows.length - 1)))));
       crs.setAttribute("x1", X(i)); crs.setAttribute("x2", X(i)); crs.setAttribute("opacity", ".5");
-      tip.innerHTML = `${escH(rows[i][0])} — <b>${F(rows[i][rows[i].length - 1], kind)}</b>`;
+      tip.innerHTML = `${escH(rows[i][0])}: <b>${F(rows[i][rows[i].length - 1], kind)}</b>`;
       tip.style.opacity = 1;
       tip.style.left = Math.min(r.width - 160, Math.max(0, (X(i) / W) * r.width + 10)) + "px";
       tip.style.top = "8px";
@@ -1207,7 +1320,7 @@
   /* ---------------- the ask flow ---------------- */
   let busy = false, nQ = 0, nSql = 0, nCharts = 0, nDocket = 0;
   let currentSharedPlan = null, copyResetTimer = null;
-  let dataMode = "bundled", bundledWarehouse = null;
+  let dataMode = "bundled", bundledWarehouse = null, activeSourceName = "bundled warehouse";
 
   function planSnapshot(plan) {
     const time = (value) => value ? {
@@ -1226,7 +1339,9 @@
 
   function persistPlan(plan) {
     currentSharedPlan = planSnapshot(plan);
-    const payload = encodeURIComponent(JSON.stringify({ v: 2, source: dataMode, plan: currentSharedPlan }));
+    const payload = encodeURIComponent(JSON.stringify({
+      v: 3, source: dataMode, sourceName: activeSourceName, plan: currentSharedPlan,
+    }));
     try {
       history.replaceState(null, "", `${location.pathname}${location.search}#plan=${payload}`);
       $("copy-link").disabled = false;
@@ -1235,38 +1350,51 @@
       $("copy-link").disabled = true;
       setCopyState("link error", "err");
     }
+    updateSavedControls();
   }
 
-  function parseSharedPlan() {
-    if (!location.hash.startsWith("#plan=")) return { plan: null, error: null };
-    try {
-      const decoded = JSON.parse(decodeURIComponent(location.hash.slice(6)));
-      if (decoded?.source === "uploaded" && dataMode !== "uploaded")
-        throw new Error("that plan used uploaded data, which is gone after reload — the bundled warehouse is ready instead");
-      const raw = decoded?.plan || decoded;
+  function validatePlanPayload(decoded, origin = "saved analysis") {
+      if (!decoded || typeof decoded !== "object") throw new Error(`${origin} is not readable`);
+      const source = decoded.source || "bundled";
+      if (source !== "bundled" && source !== "uploaded") throw new Error(`${origin} has an unknown data source`);
+      if (source !== dataMode) {
+        if (source === "uploaded") {
+          const file = typeof decoded.sourceName === "string" && decoded.sourceName
+            ? ` Mount ${decoded.sourceName} and try again.` : " Mount the source file and try again.";
+          throw new Error(`${origin} needs uploaded data.${file}`);
+        }
+        throw new Error(`${origin} needs the bundled warehouse. Eject the uploaded file and try again.`);
+      }
+      if (source === "uploaded" && decoded.sourceName && activeSourceName !== decoded.sourceName)
+        throw new Error(`${origin} was saved for ${decoded.sourceName}. Mount that file and try again.`);
+      const raw = decoded.plan || decoded;
+      if (!raw || typeof raw !== "object") throw new Error(`${origin} has no plan`);
       const man = Abacus.manifest;
       const kinds = new Set(["aggregate", "investigate", "retention", "anomalies"]);
       const kind = raw.kind || "aggregate";
-      if (!kinds.has(kind)) throw new Error("unknown analysis kind");
+      if (!kinds.has(kind)) throw new Error(`${origin} has an unknown analysis kind`);
       const metric = raw.metric == null ? null : raw.metric;
       if ((kind === "aggregate" || kind === "investigate") &&
           (typeof metric !== "string" || !Object.hasOwn(man.metrics, metric)))
-        throw new Error("unknown metric in link");
+        throw new Error(`${origin} has an unknown metric`);
       if (kind !== "aggregate" && kind !== "investigate" && metric !== null)
-        throw new Error("unexpected metric in link");
+        throw new Error(`${origin} has an unexpected metric`);
       const dims = raw.dims || [];
       if (!Array.isArray(dims) || dims.length > 2 ||
           dims.some((d) => typeof d !== "string" || !Object.hasOwn(man.dimensions, d)))
-        throw new Error("invalid dimensions in link");
+        throw new Error(`${origin} has invalid dimensions`);
+      if (kind !== "aggregate" && dims.length) throw new Error(`${origin} has unexpected dimensions`);
       const exclusive = new Set(Abacus.runtime.exclusiveDimensions || []);
       if (dims.length > 1 && dims.some((dim) => exclusive.has(dim)))
-        throw new Error("a single-group dimension was combined in the link");
+        throw new Error(`${origin} combines a single-group dimension`);
       const filters = raw.filters || [];
       if (!Array.isArray(filters) || filters.length > 32 || filters.some((f) => !f ||
           typeof f.dim !== "string" || !Object.hasOwn(man.dimensions, f.dim) ||
           (typeof f.value !== "string" && typeof f.value !== "number") ||
           (typeof f.value === "number" && !Number.isFinite(f.value))))
-        throw new Error("invalid filters in link");
+        throw new Error(`${origin} has invalid filters`);
+      if ((kind === "retention" || kind === "anomalies") && filters.length)
+        throw new Error(`${origin} has unexpected filters`);
       const domain = Abacus.timeFromPhrase("all time").time;
       const validDate = (value) => {
         if (typeof value !== "string") return false;
@@ -1283,7 +1411,7 @@
         : value > domain.end ? domain.end : value;
       const readTime = (value, name) => {
         if (!value || !validDate(value.start) || !validDate(value.end) || value.start > value.end)
-          throw new Error(`invalid ${name} in link`);
+          throw new Error(`${origin} has an invalid ${name}`);
         const start = clampDate(value.start), end = clampDate(value.end);
         const clamped = start !== value.start || end !== value.end;
         return { start, end, label: !clamped && typeof value.label === "string" && value.label
@@ -1291,18 +1419,29 @@
       };
       const time = readTime(raw.time, "time window");
       const compare = raw.compare ? readTime(raw.compare, "comparison window") : null;
-      if (kind === "investigate" && !compare) throw new Error("investigation link has no comparison");
+      if (kind === "investigate" && !compare) throw new Error(`${origin} has no comparison window`);
       const top = raw.top == null ? null : Number(raw.top);
       if (top !== null && (!Number.isInteger(top) || top < 1 || top > 50))
-        throw new Error("invalid top value in link");
+        throw new Error(`${origin} has an invalid top value`);
       const plan = { kind, metric: kind === "aggregate" || kind === "investigate" ? metric : null,
         dims: [...dims], filters: filters.map((f) => ({ dim: f.dim, value: f.value })), time, top, compare };
+      if (kind === "retention" && !Abacus.runtime.retention)
+        throw new Error(`${origin} needs the bundled customer history`);
+      if ((kind === "investigate" || kind === "anomalies") && !Abacus.runtime.timeSql)
+        throw new Error(`${origin} needs a mounted time column`);
       if (plan.metric) {
         Abacus.compilePlan({ ...plan, kind: "aggregate", dims: kind === "investigate" ? [] : plan.dims,
           compare: null });
         if (compare) Abacus.compilePlan({ ...plan, kind: "aggregate", dims: [], time: compare, compare: null });
       }
-      return { plan, error: null };
+      return plan;
+  }
+
+  function parseSharedPlan() {
+    if (!location.hash.startsWith("#plan=")) return { plan: null, error: null };
+    try {
+      const decoded = JSON.parse(decodeURIComponent(location.hash.slice(6)));
+      return { plan: validatePlanPayload(decoded, "saved link"), error: null };
     } catch (e) {
       return { plan: null, error: e.message };
     }
@@ -1331,6 +1470,205 @@
       $("copy-link").disabled = false;
     }
   }
+
+  const sqlCopyTokens = new WeakMap();
+  function setSqlCopyLabel(button, label) {
+    button.innerHTML = `${spriteIcon(label === "copied" ? "i-check" : "i-doc")}${label}`;
+  }
+
+  async function copySql(button) {
+    const code = button.closest(".sql-copy-block")?.querySelector("[data-sql-code]");
+    const sql = code?.textContent.trim();
+    if (!sql) return;
+    const token = (sqlCopyTokens.get(button) || 0) + 1;
+    sqlCopyTokens.set(button, token);
+    button.disabled = true;
+    setSqlCopyLabel(button, "copying…");
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(sql);
+      else {
+        const area = document.createElement("textarea");
+        area.value = sql;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        const copied = document.execCommand("copy");
+        area.remove();
+        if (!copied) throw new Error("copy command failed");
+      }
+      setSqlCopyLabel(button, "copied");
+      $("sql-copy-state").textContent = "SQL copied.";
+    } catch (error) {
+      setSqlCopyLabel(button, "copy failed");
+      $("sql-copy-state").textContent = "SQL could not be copied.";
+    }
+    setTimeout(() => {
+      if (sqlCopyTokens.get(button) !== token || !button.isConnected) return;
+      setSqlCopyLabel(button, "copy SQL");
+      button.disabled = button.id === "copy-preview-sql" && !board.metric;
+    }, REDUCED ? 0 : 1800);
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-copy-sql]");
+    if (button) copySql(button);
+  });
+
+  const SAVED_ANALYSES_KEY = "abacus.savedAnalyses.v1";
+  let savedAnalyses = [];
+
+  function setSavedState(message, tone = "", hidden = false) {
+    const state = $("saved-state");
+    state.textContent = message;
+    state.className = `pstrip${tone ? " " + tone : ""}`;
+    state.hidden = hidden;
+  }
+
+  function savedPlanSummary(plan) {
+    if (plan.kind === "retention") return `Retention by signup cohort. ${plan.time.label}.`;
+    if (plan.kind === "anomalies") return `Anomaly scan. ${plan.time.label}.`;
+    const metric = plan.metric || "metric";
+    const grouped = plan.dims?.length ? ` by ${plan.dims.join(" and ")}` : "";
+    const kind = plan.kind === "investigate" ? "Investigation of" : "Query for";
+    return `${kind} ${metric}${grouped}. ${plan.time.label}.`;
+  }
+
+  function updateSavedControls() {
+    const unavailable = busy || llmPending || uploadBusy;
+    $("save-analysis").disabled = !currentSharedPlan || unavailable;
+    $("save-name").disabled = unavailable;
+    document.querySelectorAll("[data-open-saved],[data-delete-saved]").forEach((button) => {
+      button.disabled = unavailable;
+    });
+  }
+
+  function renderSavedAnalyses() {
+    const list = $("saved-list");
+    list.replaceChildren();
+    $("saved-count").textContent = `${savedAnalyses.length} saved`;
+    if (!savedAnalyses.length) {
+      setSavedState("No saved analyses yet.");
+      updateSavedControls();
+      return;
+    }
+    for (const entry of savedAnalyses) {
+      const item = document.createElement("article");
+      item.className = "saved-item";
+      item.setAttribute("role", "listitem");
+      const date = new Date(entry.savedAt);
+      const savedWhen = Number.isFinite(date.getTime()) ? date.toLocaleString() : "saved in this browser";
+      const source = entry.source === "uploaded" ? entry.sourceName || "uploaded data" : "bundled warehouse";
+      item.innerHTML = `<h3>${escH(entry.name)}</h3>
+        <div class="saved-meta">${escH(savedPlanSummary(entry.plan))}</div>
+        <div class="saved-meta">${escH(source)} · ${escH(savedWhen)}</div>
+        ${entry.source === "uploaded" ? `<div class="saved-note">Only the plan is saved. Re-upload ${escH(entry.sourceName || "the source file")} after a reload.</div>` : ""}
+        <div class="saved-actions">
+          <button class="pbtn primary" type="button" data-open-saved="${entry.id}">${spriteIcon("i-play")}open</button>
+          <button class="pbtn" type="button" data-delete-saved="${entry.id}">${spriteIcon("i-x")}delete</button>
+        </div>`;
+      list.appendChild(item);
+    }
+    setSavedState("", "", true);
+    updateSavedControls();
+  }
+
+  function loadSavedAnalyses() {
+    setSavedState("Loading saved analyses…", "loading");
+    try {
+      const raw = localStorage.getItem(SAVED_ANALYSES_KEY);
+      if (!raw) {
+        savedAnalyses = [];
+      } else {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("saved data is not readable");
+        savedAnalyses = parsed.filter((entry) => entry && typeof entry.id === "string" &&
+          /^[A-Za-z0-9_-]{1,100}$/.test(entry.id) &&
+          typeof entry.name === "string" && entry.plan && typeof entry.plan === "object" &&
+          (entry.source === "bundled" || entry.source === "uploaded"));
+      }
+      renderSavedAnalyses();
+    } catch (error) {
+      savedAnalyses = [];
+      $("saved-list").replaceChildren();
+      $("saved-count").textContent = "unavailable";
+      setSavedState(`Saved analyses could not be loaded. ${error.message}`, "err");
+      updateSavedControls();
+    }
+  }
+
+  function storeSavedAnalyses(next) {
+    localStorage.setItem(SAVED_ANALYSES_KEY, JSON.stringify(next));
+    savedAnalyses = next;
+    renderSavedAnalyses();
+  }
+
+  function saveCurrentAnalysis(event) {
+    event.preventDefault();
+    if (!currentSharedPlan || busy || llmPending || uploadBusy) return;
+    const input = $("save-name");
+    const name = input.value.trim();
+    if (!name) {
+      setSavedState("Name this analysis before saving it.", "err");
+      input.focus();
+      return;
+    }
+    const id = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    const entry = { id, name: name.slice(0, 60), plan: planSnapshot(currentSharedPlan),
+      source: dataMode, sourceName: activeSourceName, savedAt: Date.now() };
+    try {
+      storeSavedAnalyses([entry, ...savedAnalyses]);
+      input.value = "";
+      setSavedState(`Saved ${entry.name}.`, "ok");
+    } catch (error) {
+      setSavedState(`Could not save this analysis. ${error.message}`, "err");
+    }
+  }
+
+  async function openSavedAnalysis(id) {
+    if (busy || llmPending || uploadBusy) return;
+    const entry = savedAnalyses.find((item) => item.id === id);
+    if (!entry) {
+      setSavedState("That saved analysis is no longer available.", "err");
+      return;
+    }
+    setSavedState(`Opening ${entry.name}…`, "loading");
+    try {
+      const plan = validatePlanPayload(entry, "saved analysis");
+      userTouched = true;
+      currentSharedPlan = planSnapshot(plan);
+      reflectPlanToBoard(plan);
+      if (!await runPlanFlow(plan, consoleKindLabel(plan), "SAVED"))
+        throw new Error("the plan could not run");
+      setSavedState(`Opened ${entry.name}.`, "ok");
+    } catch (error) {
+      setSavedState(`Could not open ${entry.name}. ${error.message}`, "err");
+    }
+  }
+
+  function deleteSavedAnalysis(id) {
+    if (busy || llmPending || uploadBusy) return;
+    const entry = savedAnalyses.find((item) => item.id === id);
+    if (!entry) return;
+    if (!window.confirm(`Delete “${entry.name}” from this browser?`)) return;
+    try {
+      storeSavedAnalyses(savedAnalyses.filter((item) => item.id !== id));
+      setSavedState(`Deleted ${entry.name}.`, "ok");
+    } catch (error) {
+      setSavedState(`Could not delete ${entry.name}. ${error.message}`, "err");
+    }
+  }
+
+  $("save-form").addEventListener("submit", saveCurrentAnalysis);
+  $("saved-list").addEventListener("click", (event) => {
+    const open = event.target.closest("[data-open-saved]");
+    if (open) { openSavedAnalysis(open.dataset.openSaved); return; }
+    const remove = event.target.closest("[data-delete-saved]");
+    if (remove) deleteSavedAnalysis(remove.dataset.deleteSaved);
+  });
 
   function planChips(plan, extra) {
     const bits = [];
@@ -1378,7 +1716,7 @@
         ? `; volume mix ${signedContributionF(it.step.mix_effect, kind)}; rate ${signedContributionF(it.step.rate_effect, kind)}` : "";
       const displayedValue = it.type === "total" ? F(it.v, kind)
         : w.mode === "ratio" ? signedContributionF(it.v, kind) : signedF(it.v, kind);
-      g += `<rect class="bar${drillable ? " bar-drill" : ""}" ${it.step ? `data-step-index="${it.stepIndex}"` : ""} ${drillable ? 'role="button" tabindex="0"' : ""} x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="0" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${displayedValue}${rateDetail}${drillable ? " — drill into member" : ""}</title></rect>`;
+      g += `<rect class="bar${drillable ? " bar-drill" : ""}" ${it.step ? `data-step-index="${it.stepIndex}"` : ""} ${drillable ? 'role="button" tabindex="0"' : ""} x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="0" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${displayedValue}${rateDetail}${drillable ? ". Select to drill into this member." : ""}</title></rect>`;
       const vtxt = displayedValue;
       g += `<text x="${X(i) + bw / 2}" y="${y0 - 5}" font-size="13" font-weight="bold" fill="var(--dim)" text-anchor="middle">${vtxt}</text>`;
       const lbl = String(it.label).length > 12 ? String(it.label).slice(0, 11) + "…" : it.label;
@@ -1386,7 +1724,7 @@
       if (i < items.length - 1)
         g += `<line x1="${X(i) + bw}" y1="${Y(levels[i][1])}" x2="${X(i + 1)}" y2="${Y(levels[i][1])}" stroke="var(--dim)" stroke-dasharray="3 3" opacity=".5"/>`;
     });
-    g += `<text x="${L}" y="${H - 6}" font-size="12" fill="var(--dim)">bridge by ${escH(w.dim)} — steps reconcile exactly to the total change</text>`;
+    g += `<text x="${L}" y="${H - 6}" font-size="12" fill="var(--dim)">Bridge by ${escH(w.dim)}. Steps reconcile to the total change.</text>`;
     zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escH(w.dim)} waterfall">${g}</svg></div>`;
     if (onStep) {
       zone.querySelectorAll("[data-step-index].bar-drill").forEach((bar) => {
@@ -1444,7 +1782,7 @@
 
   function anomalyList(zone, an) {
     if (!an.flags.length) {
-      zone.innerHTML = `<div style="font-size:.76rem;color:var(--dim);padding:.4rem 0">no series moved more than 2σ in ${escH(an.window)} — steady as she goes.</div>`;
+      zone.innerHTML = `<div style="font-size:12px;color:var(--dim);padding:.4rem 0">No series moved more than 2σ in ${escH(an.window)}.</div>`;
       return;
     }
     zone.innerHTML = `<div class="table-scroll ptable-wrap"><table class="ptable"><tr><th style="text-align:left">series</th><th>month</th><th>MoM</th><th>z</th><th style="text-align:left">shape</th></tr>` +
@@ -1531,7 +1869,7 @@
           zone, inv, kind, plan, card, button.dataset.waterfallDim));
       });
     } catch (e) {
-      zone.innerHTML = `<div class="err"><b>waterfall error</b> — ${escH(e.message)}</div>`;
+      zone.innerHTML = `<div class="err"><b>waterfall error:</b> ${escH(e.message)}</div>`;
     }
   }
 
@@ -1580,19 +1918,19 @@
     const analystKind = plan.kind && plan.kind !== "aggregate";
     const man = Abacus.manifest;
 
-    // Desk 1 — the Analyst reads the board and thinks it through
+    // Desk 1: the Analyst reads the board and thinks it through
     moveTicket(0); eyes(0);
     await think("analyst", opts.fromLLM
-      ? ['transcribing the model’s picks', 'is every pick in the semantic layer?', 'the guardrail holds — routing it']
+      ? ['transcribing the model’s picks', 'is every pick in the semantic layer?', 'the guardrail holds, routing the plan']
       : (analystKind
-        ? ['reading the board', `this isn’t a lookup — it’s an <b>${plan.kind}</b>`, `scope: ${plan.metric ? plan.metric + " · " : ""}${escH(plan.time.label)}`]
+        ? ['reading the board', `this is an <b>${plan.kind}</b>`, `scope: ${plan.metric ? plan.metric + " · " : ""}${escH(plan.time.label)}`]
         : ['reading the board', `measure: <b>${plan.metric}</b>`, `window: ${escH(plan.time.label)}${plan.dims.length ? " · sliced by " + plan.dims.join(", ") : ""}`]));
     setDesk("analyst", "agent", analystKind
       ? `taking the <b>${plan.kind}</b> ticket${plan.metric ? ` on ${plan.metric}` : ""} · ${escH(plan.time.label)}`
       : `plan in hand ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
     nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
 
-    // Desk 2 — the Librarian resolves it against the manifest
+    // Desk 2: the Librarian resolves it against the manifest
     moveTicket(1); eyes(1);
     let libFinal;
     if (plan.metric) {
@@ -1605,7 +1943,7 @@
         'flipping the catalog',
         `<b>${plan.metric}</b> → one card, one definition`,
         `joins earned: ${joinTxt}`,
-        'synonyms checked — no clashes']);
+        'synonyms checked, no clashes']);
       libFinal = `<b>${plan.metric}</b> → ${escH(msql.length > 34 ? msql.slice(0, 33) + "…" : msql)} ✓ joins: ${joinTxt}`;
     } else {
       await think("librarian", plan.kind === "retention"
@@ -1617,12 +1955,12 @@
     }
     setDesk("librarian", "agent", libFinal);
 
-    // Desk 3 — the Machinist runs it
+    // Desk 3: the Machinist runs it
     moveTicket(2); eyes(2);
     const mLabel = { investigate: "running the decomposition",
                      retention: "walking every customer through the quarters",
                      anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
-    await think("machinist", [mLabel, `planning the scan over ${man.stats.rows_total.toLocaleString("en-US")} rows`, 'wasm engine warm — executing']);
+    await think("machinist", [mLabel, `planning the scan over ${man.stats.rows_total.toLocaleString("en-US")} rows`, 'wasm engine ready, executing']);
     let result, story2;
     const tdb0 = performance.now();
     try {
@@ -1633,7 +1971,7 @@
       stageClear();
       const d = document.createElement("div");
       d.className = "err";
-      d.innerHTML = `<b>${escH(label)}</b> — the compiler refused the plan: ${escH(e.message)}${opts.fromLLM ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
+      d.innerHTML = `<b>${escH(label)}</b>. The compiler refused the plan: ${escH(e.message)}${opts.fromLLM ? " The model requested a field outside the semantic layer." : ""}`;
       $("feed").prepend(d);
       return false;
     }
@@ -1641,7 +1979,7 @@
     if (plan.kind === "investigate") {
       // narrate the fan-out: the queries really ran; the count is real
       for (let k = 1; k <= result.queries; k += 2) {
-        setDesk("machinist", "agent working", `query ${Math.min(k + 1, result.queries)}/${result.queries} — comparing periods<span class="dots"></span>`);
+        setDesk("machinist", "agent working", `query ${Math.min(k + 1, result.queries)}/${result.queries}. Comparing periods<span class="dots"></span>`);
         await sleep(230);
       }
       nSql += result.queries;
@@ -1658,11 +1996,11 @@
     }
     chip("machinist", `${nSql} QUERIES`);
 
-    // Desk 4 — the Illustrator inks it
+    // Desk 4: the Illustrator inks it
     moveTicket(3); eyes(3);
     const iLabel = { investigate: "drawing the waterfall", retention: "shading the triangle",
                      anomalies: "circling the outliers" }[plan.kind] || "inking the chart";
-    await think("illustrator", ['picking the right chart', 'one axis — labels, not legends', iLabel]);
+    await think("illustrator", ['picking the right chart', 'using one axis with direct labels', iLabel]);
     const kind = plan.metric ? man.metrics[plan.metric].fmt : "int";
     const metaBits = plan.kind === "investigate"
       ? `${result.queries} compiled queries`
@@ -1694,7 +2032,12 @@
       <div class="zone"></div>
       <div class="drill-status" aria-live="polite"></div>
       <div class="meta">${metaBits} · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
-      ${plan.kind === "aggregate" ? `<details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>` : ""}
+      ${plan.kind === "aggregate" ? `<details><summary>compiled SQL</summary>
+        <div class="compiled-sql-block sql-copy-block">
+          <div class="sql-tools"><p class="sql-annotation">${escH(sqlAnnotation(plan))}</p>
+            <button class="pbtn copy-sql" type="button" data-copy-sql>${spriteIcon("i-doc")}copy SQL</button></div>
+          <pre data-sql-code>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre>
+        </div></details>` : ""}
       ${plan.kind === "investigate" ? driverDrilldown(result, kind) : ""}
       ${llmRaw ? `<details><summary>the model's raw plan</summary><pre>${escH(llmRaw)}</pre></details>` : ""}
       ${plan.kind === "aggregate" ? resultTable(result, kind) : ""}`;
@@ -1713,16 +2056,7 @@
       const additions = plan.dims.map((dim, i) => ({ dim, value: row[i] }));
       rerunInvestigation(card, plan, mergeDrillFilters(plan.filters || [], additions));
     });
-    const story = card.querySelector(".story");
-    const text = story2;
-    if (REDUCED) story.textContent = text;
-    else {
-      let i = 0;
-      const iv = setInterval(() => {
-        i += 4; story.textContent = text.slice(0, i);
-        if (i >= text.length) clearInterval(iv);
-      }, 16);
-    }
+    renderStory(card.querySelector(".story"), story2);
     // a scalar total invites the follow-up a lookup tool can't answer
     if (plan.kind === "aggregate" && plan.dims.length === 0 && result.rows.length) {
       const btn = document.createElement("button");
@@ -1760,39 +2094,52 @@
   function planEq(a, g) {
     return Abacus.plansEqual(a, g);
   }
+  async function fetchJsonResource(url, label) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${label} request failed with status ${response.status}`);
+    return response.json();
+  }
   async function runEval() {
     if (dataMode !== "bundled") return;
     $("evalbtn").disabled = true;
-    const goldens = await (await fetch("data/goldens.json")).json();
-    setDesk("machinist", "agent working", `replaying all ${goldens.length} goldens<span class="dots"></span>`);
-    let planOk = 0, valOk = 0;
-    const items = [], times = [];
-    for (const g of goldens) {
-      const t0 = performance.now();
-      let pOk = false, vOk = false, note = "";
-      try {
-        const plan = Abacus.parse(g.q);
-        pOk = planEq(plan, g.plan);
-        const check = Abacus.canonicalCheck(plan, Abacus.runAny(plan).result);
-        vOk = check.length === g.rows.length && check.every((row, i) =>
-          row.every((cell, j) => typeof cell === "number" && typeof g.rows[i][j] === "number"
-            ? close(cell, g.rows[i][j]) : String(cell) === String(g.rows[i][j])));
-        if (!pOk) note = "plan differs";
-        else if (!vOk) note = "values differ";
-      } catch (e) { note = e.message; }
-      times.push(performance.now() - t0);
-      planOk += pOk; valOk += vOk;
-      items.push(`<li class="${pOk && vOk ? "" : "bad"}">${pOk && vOk ? "✓" : "✗"} ${escH(g.q)}${note ? " — " + escH(note) : ""}</li>`);
-      await sleep(12);
+    $("evalout").innerHTML = '<div class="pstrip">Loading fixture questions…</div>';
+    try {
+      const goldens = await fetchJsonResource("data/goldens.json", "fixture questions");
+      if (!Array.isArray(goldens) || !goldens.length) throw new Error("fixture question list is empty");
+      setDesk("machinist", "agent working", `replaying all ${goldens.length} fixtures<span class="dots"></span>`);
+      let planOk = 0, valOk = 0;
+      const items = [], times = [];
+      for (const g of goldens) {
+        const t0 = performance.now();
+        let pOk = false, vOk = false, note = "";
+        try {
+          const plan = Abacus.parse(g.q);
+          pOk = planEq(plan, g.plan);
+          const check = Abacus.canonicalCheck(plan, Abacus.runAny(plan).result);
+          vOk = check.length === g.rows.length && check.every((row, i) =>
+            row.every((cell, j) => typeof cell === "number" && typeof g.rows[i][j] === "number"
+              ? close(cell, g.rows[i][j]) : String(cell) === String(g.rows[i][j])));
+          if (!pOk) note = "plan differs";
+          else if (!vOk) note = "values differ";
+        } catch (e) { note = e.message; }
+        times.push(performance.now() - t0);
+        planOk += pOk; valOk += vOk;
+        items.push(`<li class="${pOk && vOk ? "" : "bad"}">${pOk && vOk ? "✓" : "✗"} ${escH(g.q)}${note ? ": " + escH(note) : ""}</li>`);
+        await sleep(12);
+      }
+      const med = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
+      $("evalout").innerHTML = `
+        <span class="big">${planOk}/${goldens.length} plans match the Python reference · ${valOk}/${goldens.length} results match to the cent</span>
+        · median ${med.toFixed(1)} ms per question
+        <details><summary>per-question results</summary><ul>${items.join("")}</ul></details>`;
+      setDesk("machinist", "agent cheer", `fixture check done ✓ ${valOk}/${goldens.length}`);
+      setTimeout(() => setDesk("machinist", "agent", "warehouse ready"), 2000);
+    } catch (error) {
+      $("evalout").innerHTML = `<div class="err"><b>Fixture check failed:</b> ${escH(error.message)}</div>`;
+      setDesk("machinist", "agent", "fixture check failed ✗");
+    } finally {
+      $("evalbtn").disabled = dataMode !== "bundled";
     }
-    const med = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
-    $("evalout").innerHTML = `
-      <span class="big">${planOk}/${goldens.length} plans match the Python engine exactly · ${valOk}/${goldens.length} results match to the cent</span>
-      · median ${med.toFixed(1)} ms per question
-      <details><summary>per-question results</summary><ul>${items.join("")}</ul></details>`;
-    setDesk("machinist", "agent cheer", `eval done ✓ ${valOk}/${goldens.length}`);
-    setTimeout(() => setDesk("machinist", "agent", "oiling the flywheel"), 2000);
-    $("evalbtn").disabled = false;
   }
 
   /* ================= THE PLAN BOARD ================= */
@@ -1853,14 +2200,43 @@
     if (plan.compare) s += " vs " + plan.compare.label;
     return "“" + s + "”";
   }
+
+  function sqlAnnotation(plan) {
+    const man = Abacus.manifest;
+    const metric = man.metrics[plan.metric]?.label.toLowerCase() || plan.metric;
+    const groups = (plan.dims || []).map((dim) => man.dimensions[dim]?.label || dim);
+    let text = groups.length
+      ? `Groups ${metric} by ${groups.join(" and ")} for ${plan.time.label}.`
+      : `Returns total ${metric} for ${plan.time.label}.`;
+    if (plan.filters?.length)
+      text += ` Applies ${plan.filters.length} filter${plan.filters.length === 1 ? "" : "s"}.`;
+    if (plan.compare) text += ` Also fetches ${plan.compare.label}.`;
+    return text;
+  }
+
   function updatePreview() {
     const pre = $("sqlpre");
+    const annotation = $("sql-annotation");
+    const copy = $("copy-preview-sql");
     if (!board.metric) {
-      pre.innerHTML = '<span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span>';
+      pre.innerHTML = '<span class="ph">Pick a measure and the compiler writes SQL here.</span>';
+      annotation.textContent = "Pick a measure to compile its query.";
+      copy.disabled = true;
       $("sqlprev").classList.add("stale"); return;
     }
+    const plan = composePlan();
     let sql;
-    try { sql = Abacus.compilePlan(composePlan()); } catch (e) { sql = "-- " + e.message; }
+    try {
+      sql = Abacus.compilePlan(plan);
+      annotation.textContent = sqlAnnotation(plan);
+      copy.disabled = false;
+    } catch (e) {
+      pre.textContent = `/* compiler error: ${e.message} */`;
+      annotation.textContent = "The compiler could not build this query.";
+      copy.disabled = true;
+      $("sqlprev").classList.add("stale");
+      return;
+    }
     pre.innerHTML = sql
       .split(/'([^']*)'/).map((seg, i) => i % 2 ? `<span class="lit">'${escH(seg)}'</span>` : escH(seg)
         .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|GROUP BY|ORDER BY|LIMIT|AND|AS|DESC|SUM|COUNT|DISTINCT|CASE|WHEN|THEN|ELSE|END|NULLIF)\b/g, '<span class="kw">$1</span>')).join("");
@@ -1924,8 +2300,8 @@
     // progressive disclosure: the board wakes up once a measure is placed
     $("boardcard").classList.toggle("needs-metric", !board.metric);
     $("stepnote").textContent = board.metric
-      ? "— tweak the slice, window or filters, then pull RUN"
-      : "— drop in a measure to begin";
+      ? "Adjust the slice, window, or filters. Then pull RUN."
+      : "Start with a measure.";
     // lever + reports
     const armed = !!board.metric && !boardLocked;
     $("lever").disabled = !armed;
@@ -1933,6 +2309,8 @@
     $("rep-why").disabled = !armed || !hasTime;
     $("rep-cohort").disabled = boardLocked || !Abacus.runtime.retention;
     $("rep-anom").disabled = boardLocked || !hasTime;
+    $("verb-retention").disabled = boardLocked || !Abacus.runtime.retention;
+    $("verb-anom").disabled = boardLocked || !hasTime;
     updatePreview();
     renderConsole();
     if (boardLocked) {
@@ -1977,7 +2355,7 @@
     const empty = document.querySelector(".feedempty"); if (empty) empty.remove();
     const d = document.createElement("div");
     d.className = "pstrip";
-    d.innerHTML = `<b>saved link ignored</b> — ${escH(message)}. Showing the default analysis instead.`;
+    d.innerHTML = `<b>Saved link ignored.</b> ${escH(message)}. Showing the default analysis instead.`;
     $("feed").prepend(d);
   }
   function scheduleDefaultPlan() {
@@ -2025,7 +2403,7 @@
     markTouched();
     let plan;
     try { plan = Abacus.parse(text); }
-    catch (err) { consoleErr(err.message + " — try a metric like revenue, orders, margin %"); return; }
+    catch (err) { consoleErr(err.message + ". Try a metric like revenue, orders, or margin %."); return; }
     reflectPlanToBoard(plan);
     const isAnalyst = plan.kind && plan.kind !== "aggregate";
     $("cmd").value = "";
@@ -2092,6 +2470,7 @@
       else if (b.id === "rep-cohort") b.disabled = !on || !Abacus.runtime.retention;
       else b.disabled = !on || !Abacus.runtime.timeSql;
     });
+    updateSavedControls();
   }
 
   function runReport(which) {
@@ -2226,6 +2605,8 @@
   $("rep-why").addEventListener("click", () => runReport("why"));
   $("rep-cohort").addEventListener("click", () => runReport("cohort"));
   $("rep-anom").addEventListener("click", () => runReport("anom"));
+  $("verb-retention").addEventListener("click", () => runReport("cohort"));
+  $("verb-anom").addEventListener("click", () => runReport("anom"));
   $("cmd").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitConsole(); } });
   $("cmd").addEventListener("input", () => $("cerr").classList.remove("show"));
   $("cmd-run").addEventListener("click", submitConsole);
@@ -2263,7 +2644,7 @@
       await sleep(260); board.metric = plan.metric; renderBoard();
       for (const d of (plan.dims || [])) { await sleep(260); board.dims.push(d); renderBoard(); }
       for (const f of (plan.filters || [])) { await sleep(220); board.filters.push(f); renderBoard(); }
-      setDesk("analyst", "agent", "board set by the model — pull to run");
+      setDesk("analyst", "agent", "board set by the model. Pull to run");
       await sleep(500);
       if (!busy) {
         $("lever").classList.add("pulled"); setTimeout(() => $("lever").classList.remove("pulled"), 400);
@@ -2310,7 +2691,7 @@
   }
 
   function formatProfileValue(value) {
-    if (value === null || value === undefined || value === "") return "—";
+    if (value === null || value === undefined || value === "") return "not set";
     const text = String(value);
     return text.length > 42 ? text.slice(0, 41) + "…" : text;
   }
@@ -2339,7 +2720,7 @@
       const role = document.createElement("td"); role.appendChild(select);
       const distinct = document.createElement("td"); distinct.textContent = profile.distinct.toLocaleString("en-US");
       const samples = document.createElement("td"); samples.className = "samples";
-      samples.textContent = profile.samples.length ? profile.samples.join(" · ") : "—";
+      samples.textContent = profile.samples.length ? profile.samples.join(" · ") : "none";
       row.append(name, type, role, distinct, samples);
       body.appendChild(row);
     }
@@ -2353,7 +2734,7 @@
     renderProfileRoles();
     updateMountSummary();
     $("mount-preview").classList.add("show");
-    uploadState("profile ready — check the roles, then mount", "ok");
+    uploadState("Profile ready. Check the roles, then mount.", "ok");
   }
 
   function updateMountSummary() {
@@ -2394,7 +2775,7 @@
     $("data-file").value = "";
     const extension = (file.name.match(/\.[^.]+$/)?.[0] || "").toLowerCase();
     if (![".csv", ".sqlite", ".db"].includes(extension)) {
-      uploadState("unparseable file — use .csv, .sqlite, or .db", "err"); return;
+      uploadState("This file could not be parsed. Use .csv, .sqlite, or .db.", "err"); return;
     }
     if (!file.size) { uploadState("empty file", "err"); return; }
     if (file.size > AbacusOnboarding.MAX_BYTES) { uploadState("file exceeds the 25 MB cap", "err"); return; }
@@ -2427,7 +2808,7 @@
           }
           if (tables.length > 1) {
             $("table-picker").classList.add("show");
-            uploadState(`${tables.length} tables found — pick one`, "ok");
+            uploadState(`${tables.length} tables found. Pick one.`, "ok");
           } else {
             $("table-picker").classList.remove("show");
             uploadBusy = false;
@@ -2456,23 +2837,24 @@
     nQ = 0; nSql = 0; nCharts = 0; nDocket = 0;
     chip("analyst", "0 QUESTIONS"); chip("machinist", "0 QUERIES"); chip("illustrator", "0 CHARTS");
     chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
-    $("feed").innerHTML = '<div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div>';
+    $("feed").innerHTML = '<div class="feedempty">Pull the lever or run a console question. Results are filed here.</div>';
     $("evalout").replaceChildren();
     $("copy-link").disabled = true;
     setCopyState("no saved plan");
     try { history.replaceState(null, "", location.pathname + location.search); } catch (_) { /* no-op */ }
     buildRacks(manifest);
     renderBoard();
+    updateSavedControls();
   }
 
   function setSourceMode(mode, meta = {}) {
     dataMode = mode;
+    activeSourceName = mode === "uploaded" ? meta.name || "uploaded data" : "bundled warehouse";
     const rows = Abacus.manifest.stats.rows_total;
     if (mode === "uploaded") {
       $("source-copy").innerHTML = `<b>DATA:</b> ${escH(meta.name)} · ${rows.toLocaleString("en-US")} ROWS · ${meta.columns} COLS`;
       $("eject-data").hidden = false;
       $("evalcard").hidden = true;
-      $("hdr-rows").textContent = rows.toLocaleString("en-US");
       const hasTime = !!Abacus.runtime.timeSql;
       $("rep-cohort").querySelector(".rd").textContent = "bundled customer history only";
       $("rep-anom").querySelector(".rd").textContent = hasTime ? "z-scores over the mounted calendar" : "needs a mounted date column";
@@ -2481,10 +2863,10 @@
       $("eject-data").hidden = true;
       $("evalcard").hidden = false;
       $("evalbtn").disabled = false;
-      $("hdr-rows").textContent = (rows / 1000).toFixed(0) + "k";
       $("rep-cohort").querySelector(".rd").textContent = "cohorts by first-purchase quarter";
       $("rep-anom").querySelector(".rd").textContent = "z-scores over the window on the dial";
     }
+    if ($("saved-list").children.length || savedAnalyses.length) renderSavedAnalyses();
   }
 
   async function mountDraft() {
@@ -2521,7 +2903,7 @@
       uploadDraft = null;
       uploadState(`mounted ${source.name}`, "ok");
       setDesk("analyst", "agent cheer", "your warehouse is mounted ✓");
-      setTimeout(() => setDesk("analyst", "agent", "ready — build a question on your data"), 1200);
+      setTimeout(() => setDesk("analyst", "agent", "ready. Build a question on your data"), 1200);
     } catch (error) {
       uploadState(error.message, "err");
     } finally {
@@ -2544,7 +2926,7 @@
       userTouched = false;
       scheduleDefaultPlan();
     } catch (error) {
-      uploadState(`eject failed — ${error.message}`, "err");
+      uploadState(`Eject failed: ${error.message}`, "err");
     } finally {
       uploadBusy = false;
       $("eject-data").disabled = false;
@@ -2555,7 +2937,8 @@
     AbacusOnboarding.runPureAssertions();
     await AbacusOnboarding.runEngineAssertions(Abacus);
     Abacus.mount({ manifest: bundledWarehouse.manifest, dbData: bundledWarehouse.dbData, runtime: {} });
-    const goldens = await (await fetch("data/goldens.json")).json();
+    const goldens = await fetchJsonResource("data/goldens.json", "fixture questions");
+    if (!Array.isArray(goldens) || !goldens.length) throw new Error("fixture question list is empty");
     let passed = 0;
     for (const golden of goldens) {
       const plan = Abacus.parse(golden.q);
@@ -2604,6 +2987,7 @@
   /* ---------------- boot ---------------- */
   async function fetchWithProgress(url) {
     const r = await fetch(url);
+    if (!r.ok) throw new Error(`warehouse request failed with status ${r.status}`);
     const total = +r.headers.get("content-length") || 0;
     if (!r.body || !total) return r.arrayBuffer();
     const reader = r.body.getReader();
@@ -2622,6 +3006,8 @@
     return buf.buffer;
   }
 
+  loadSavedAnalyses();
+
   (async () => {
     try {
       const t0 = performance.now();
@@ -2632,7 +3018,7 @@
       bundledWarehouse = { manifest, dbData };
       $("loadtxt").textContent = "checking parser · profiler · compiler · 35 goldens…";
       await runBootAssertions();
-      $("loadtxt").textContent = `warehouse open — ${ms} ms · assertions ✓`;
+      $("loadtxt").textContent = `warehouse open in ${ms} ms · assertions ✓`;
       setTimeout(() => $("loadwrap").classList.remove("show"), 900);
       const st = manifest.stats;
       setSourceMode("bundled");
@@ -2642,13 +3028,13 @@
         ["machinist", `warehouse open: <b>${st.rows_total.toLocaleString()}</b> rows in ${ms} ms`],
         ["librarian", `catalog open: ${Object.keys(manifest.metrics).length} metrics on file`],
         ["illustrator", "easel up"],
-        ["analyst", "ready — ask me something"],
+        ["analyst", "ready. Ask a question"],
       ];
       wake.forEach(([id, txt], i) => setTimeout(() => {
         setDesk(id, "agent cheer", txt);
         setTimeout(() => $("ag-" + id).className = "agent", 900);
       }, i * 220));
-      setDesk("analyst", "agent", "ready — build a question on the board");
+      setDesk("analyst", "agent", "ready. Build a question on the board");
       buildRacks(manifest);
       renderBoard();
       $("evalbtn").disabled = false;
@@ -2666,7 +3052,7 @@
       setDesk("analyst", "agent", "warehouse failed to load ✗");
       const d = document.createElement("div");
       d.className = "err";
-      d.innerHTML = `<b>boot failure</b> — ${escH(e.message)}`;
+      d.innerHTML = `<b>Boot failure:</b> ${escH(e.message)}`;
       $("feed").prepend(d);
     }
   })();

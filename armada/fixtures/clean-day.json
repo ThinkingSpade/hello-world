@@ -1,0 +1,372 @@
+{
+  "id": "clean-day",
+  "title": "Clean multi-tenant day",
+  "tag": "scheduler ramp",
+  "summary": "Three tenant campaigns start with fixture jitter. Warm identities move into Chromium sessions as the scheduler reaches full pace.",
+  "frameDelay": 1500,
+  "budget": 0.5,
+  "timeline": {
+    "startHour": 0,
+    "endHour": 24,
+    "ticks": [0, 6, 12, 18, 24],
+    "ramp": [
+      { "hour": 7.25, "load": 18, "label": "warm identities" },
+      { "hour": 8.5, "load": 46, "label": "half pace" },
+      { "hour": 11.5, "load": 100, "label": "steady pace" },
+      { "hour": 17.5, "load": 34, "label": "cool down" }
+    ]
+  },
+  "campaigns": [
+    {
+      "id": "camp-catalog",
+      "tenant": "Northstar",
+      "name": "Catalog checks",
+      "cron": "30 7 * * * · 15 11 * * * · 45 15 * * *",
+      "color": "#2547c9",
+      "runs": [
+        { "planned": 7.5, "actual": 7.62, "jitterMinutes": 7 },
+        { "planned": 11.25, "actual": 11.32, "jitterMinutes": 4 },
+        { "planned": 15.75, "actual": 15.88, "jitterMinutes": 8 }
+      ]
+    },
+    {
+      "id": "camp-intake",
+      "tenant": "Juniper",
+      "name": "Intake review",
+      "cron": "0 8,12,16 * * *",
+      "color": "#0c7555",
+      "runs": [
+        { "planned": 8, "actual": 8.15, "jitterMinutes": 9 },
+        { "planned": 12, "actual": 12.08, "jitterMinutes": 5 },
+        { "planned": 16, "actual": 16.18, "jitterMinutes": 11 }
+      ]
+    },
+    {
+      "id": "camp-renewal",
+      "tenant": "Harbor",
+      "name": "Renewal follow up",
+      "cron": "0 9,13,17 * * *",
+      "color": "#a34c12",
+      "runs": [
+        { "planned": 9, "actual": 9.1, "jitterMinutes": 6 },
+        { "planned": 13, "actual": 13.2, "jitterMinutes": 12 },
+        { "planned": 17, "actual": 17.05, "jitterMinutes": 3 }
+      ]
+    }
+  ],
+  "proxies": [
+    { "id": "edge-nyc-02", "pool": "east primary" },
+    { "id": "edge-iad-03", "pool": "east primary" },
+    { "id": "edge-atl-01", "pool": "east reserve" }
+  ],
+  "sessions": [
+    {
+      "id": "brw-104",
+      "campaign": "camp-catalog",
+      "identity": "id-ns-17",
+      "proxy": "edge-nyc-02",
+      "streams": [
+        {
+          "tree": [
+            "main \"Product review queue\"",
+            "heading \"Pending products\" level=1",
+            "button \"Review next product\" ref=b17"
+          ],
+          "action": { "type": "click", "ref": "b17" },
+          "schema": "valid",
+          "result": "Opened product CUST-1042 for review."
+        },
+        {
+          "tree": [
+            "form \"Product decision\"",
+            "combobox \"Decision\" ref=c08 value=approved",
+            "button \"Save decision\" ref=b22"
+          ],
+          "action": { "type": "click", "ref": "b22" },
+          "schema": "valid",
+          "result": "Saved the approved decision."
+        }
+      ]
+    },
+    {
+      "id": "brw-118",
+      "campaign": "camp-intake",
+      "identity": "id-jn-04",
+      "proxy": "edge-iad-03",
+      "streams": [
+        {
+          "tree": [
+            "main \"Application inbox\"",
+            "link \"Open next application\" ref=l12",
+            "status \"12 applications ready\""
+          ],
+          "action": { "type": "click", "ref": "l12" },
+          "schema": "valid",
+          "result": "Loaded application APP-8821."
+        },
+        {
+          "tree": [
+            "form \"Applicant details\"",
+            "textbox \"Reviewer note\" ref=t31",
+            "button \"Continue\" ref=b32"
+          ],
+          "action": { "type": "fill", "ref": "t31", "value": "Documents match the submitted record." },
+          "schema": "valid",
+          "result": "Reviewer note entered."
+        }
+      ]
+    },
+    {
+      "id": "brw-121",
+      "campaign": "camp-renewal",
+      "identity": "id-hb-22",
+      "proxy": "edge-atl-01",
+      "streams": [
+        {
+          "tree": [
+            "main \"Renewal workspace\"",
+            "table \"Accounts due\"",
+            "link \"Open ACCT-219\" ref=l09"
+          ],
+          "action": { "type": "click", "ref": "l09" },
+          "schema": "valid",
+          "result": "Opened renewal record ACCT-219."
+        },
+        {
+          "tree": [
+            "dialog \"Confirm reminder\"",
+            "button \"Send reminder\" ref=b44",
+            "button \"Cancel\" ref=b45"
+          ],
+          "action": { "type": "click", "ref": "b44" },
+          "schema": "valid",
+          "result": "Reminder queued for the account owner."
+        }
+      ]
+    },
+    {
+      "id": "brw-133",
+      "campaign": "camp-catalog",
+      "identity": "id-ns-24",
+      "proxy": "edge-iad-03",
+      "streams": [
+        {
+          "tree": [
+            "main \"Product review queue\"",
+            "textbox \"Search SKU\" ref=t05",
+            "button \"Search\" ref=b06"
+          ],
+          "action": { "type": "fill", "ref": "t05", "value": "SKU-7740" },
+          "schema": "valid",
+          "result": "Search value entered."
+        }
+      ]
+    },
+    {
+      "id": "brw-142",
+      "campaign": "camp-intake",
+      "identity": "id-jn-11",
+      "proxy": "edge-nyc-02",
+      "streams": [
+        {
+          "tree": [
+            "main \"Application inbox\"",
+            "tab \"Needs review\" ref=t14 selected=false",
+            "tab \"Ready\" ref=t15 selected=true"
+          ],
+          "action": { "type": "click", "ref": "t14" },
+          "schema": "valid",
+          "result": "Switched to the needs review tab."
+        }
+      ]
+    },
+    {
+      "id": "brw-149",
+      "campaign": "camp-renewal",
+      "identity": "id-hb-29",
+      "proxy": "edge-atl-01",
+      "streams": [
+        {
+          "tree": [
+            "main \"Renewal workspace\"",
+            "checkbox \"Include completed\" ref=c11 checked=false",
+            "button \"Refresh list\" ref=b12"
+          ],
+          "action": { "type": "click", "ref": "c11" },
+          "schema": "valid",
+          "result": "Completed renewals are now included."
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "clock": "07:15",
+      "event": "The scheduler starts warming identities for the first ramp.",
+      "cost": 0,
+      "identityPool": { "ready": 18, "warming": 6, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 97, "disabled": false },
+        { "id": "edge-iad-03", "score": 95, "disabled": false },
+        { "id": "edge-atl-01", "score": 92, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened", "Chromium profile attached"] },
+        { "id": "brw-118", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened"] },
+        { "id": "brw-121", "state": "warming", "actionIndex": 0, "lastActions": ["proxy route checked"] },
+        { "id": "brw-133", "state": "warming", "actionIndex": 0, "lastActions": ["profile cache checked"] },
+        { "id": "brw-142", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened"] },
+        { "id": "brw-149", "state": "warming", "actionIndex": 0, "lastActions": ["proxy route checked"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. The warm pool is ready." }
+    },
+    {
+      "clock": "07:38",
+      "event": "Northstar starts after its recorded jitter window.",
+      "cost": 0.042,
+      "identityPool": { "ready": 17, "warming": 4, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 96, "disabled": false },
+        { "id": "edge-iad-03", "score": 95, "disabled": false },
+        { "id": "edge-atl-01", "score": 92, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "action schema passed", "clicked b17"] },
+        { "id": "brw-118", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-121", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-133", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "filled t05"] },
+        { "id": "brw-142", "state": "warming", "actionIndex": 0, "lastActions": ["proxy route checked"] },
+        { "id": "brw-149", "state": "warming", "actionIndex": 0, "lastActions": ["profile cache checked"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. Starts match the ramp plan." }
+    },
+    {
+      "clock": "08:09",
+      "event": "Juniper joins the ramp while Northstar keeps two sessions active.",
+      "cost": 0.083,
+      "identityPool": { "ready": 15, "warming": 2, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 96, "disabled": false },
+        { "id": "edge-iad-03", "score": 94, "disabled": false },
+        { "id": "edge-atl-01", "score": 93, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "running", "actionIndex": 1, "lastActions": ["selected approved", "action schema passed", "clicked b22"] },
+        { "id": "brw-118", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l12"] },
+        { "id": "brw-121", "state": "warming", "actionIndex": 0, "lastActions": ["identity cookie checked"] },
+        { "id": "brw-133", "state": "running", "actionIndex": 0, "lastActions": ["filled t05", "search ready"] },
+        { "id": "brw-142", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked t14"] },
+        { "id": "brw-149", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. Proxy scores remain healthy." }
+    },
+    {
+      "clock": "09:06",
+      "event": "Harbor starts and the scheduler reaches half pace.",
+      "cost": 0.126,
+      "identityPool": { "ready": 14, "warming": 0, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 95, "disabled": false },
+        { "id": "edge-iad-03", "score": 94, "disabled": false },
+        { "id": "edge-atl-01", "score": 92, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "done", "actionIndex": 1, "lastActions": ["decision saved", "run closed"] },
+        { "id": "brw-118", "state": "running", "actionIndex": 1, "lastActions": ["opened APP-8821", "filled t31"] },
+        { "id": "brw-121", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l09"] },
+        { "id": "brw-133", "state": "done", "actionIndex": 0, "lastActions": ["search completed", "run closed"] },
+        { "id": "brw-142", "state": "running", "actionIndex": 0, "lastActions": ["clicked t14", "queue loaded"] },
+        { "id": "brw-149", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked c11"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. All campaigns are active." }
+    },
+    {
+      "clock": "11:19",
+      "event": "The second Northstar run starts at steady pace.",
+      "cost": 0.184,
+      "identityPool": { "ready": 16, "warming": 0, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 96, "disabled": false },
+        { "id": "edge-iad-03", "score": 95, "disabled": false },
+        { "id": "edge-atl-01", "score": 93, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "running", "actionIndex": 0, "lastActions": ["identity lease reused", "clicked b17"] },
+        { "id": "brw-118", "state": "done", "actionIndex": 1, "lastActions": ["review note saved", "run closed"] },
+        { "id": "brw-121", "state": "done", "actionIndex": 0, "lastActions": ["renewal opened", "run closed"] },
+        { "id": "brw-133", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "filled t05"] },
+        { "id": "brw-142", "state": "done", "actionIndex": 0, "lastActions": ["queue checked", "run closed"] },
+        { "id": "brw-149", "state": "done", "actionIndex": 0, "lastActions": ["list refreshed", "run closed"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. Warm identities were reused." }
+    },
+    {
+      "clock": "13:12",
+      "event": "The midday runs clear without retries.",
+      "cost": 0.241,
+      "identityPool": { "ready": 18, "warming": 0, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 95, "disabled": false },
+        { "id": "edge-iad-03", "score": 95, "disabled": false },
+        { "id": "edge-atl-01", "score": 94, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "done", "actionIndex": 1, "lastActions": ["decision saved", "run closed"] },
+        { "id": "brw-118", "state": "running", "actionIndex": 0, "lastActions": ["clicked l12", "application loaded"] },
+        { "id": "brw-121", "state": "running", "actionIndex": 1, "lastActions": ["renewal opened", "clicked b44"] },
+        { "id": "brw-133", "state": "done", "actionIndex": 0, "lastActions": ["search completed", "run closed"] },
+        { "id": "brw-142", "state": "running", "actionIndex": 0, "lastActions": ["clicked t14", "queue loaded"] },
+        { "id": "brw-149", "state": "done", "actionIndex": 0, "lastActions": ["list refreshed", "run closed"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. Failure counters remain clear." }
+    },
+    {
+      "clock": "16:11",
+      "event": "The final ramp begins, then the scheduler starts cooling the pool.",
+      "cost": 0.317,
+      "identityPool": { "ready": 15, "warming": 0, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 96, "disabled": false },
+        { "id": "edge-iad-03", "score": 94, "disabled": false },
+        { "id": "edge-atl-01", "score": 93, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked b17"] },
+        { "id": "brw-118", "state": "running", "actionIndex": 1, "lastActions": ["page tree captured", "filled t31"] },
+        { "id": "brw-121", "state": "done", "actionIndex": 1, "lastActions": ["reminder queued", "run closed"] },
+        { "id": "brw-133", "state": "done", "actionIndex": 0, "lastActions": ["search completed", "run closed"] },
+        { "id": "brw-142", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked t14"] },
+        { "id": "brw-149", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked c11"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. The last starts stay inside their jitter windows." }
+    },
+    {
+      "clock": "18:15",
+      "event": "All recorded runs are done and leased identities return to the pool.",
+      "cost": 0.361,
+      "identityPool": { "ready": 21, "warming": 0, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-nyc-02", "score": 96, "disabled": false },
+        { "id": "edge-iad-03", "score": 95, "disabled": false },
+        { "id": "edge-atl-01", "score": 94, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-104", "state": "done", "actionIndex": 1, "lastActions": ["decision saved", "identity lease returned"] },
+        { "id": "brw-118", "state": "done", "actionIndex": 1, "lastActions": ["review note saved", "identity lease returned"] },
+        { "id": "brw-121", "state": "done", "actionIndex": 1, "lastActions": ["reminder queued", "identity lease returned"] },
+        { "id": "brw-133", "state": "done", "actionIndex": 0, "lastActions": ["search completed", "identity lease returned"] },
+        { "id": "brw-142", "state": "done", "actionIndex": 0, "lastActions": ["queue checked", "identity lease returned"] },
+        { "id": "brw-149", "state": "done", "actionIndex": 0, "lastActions": ["list refreshed", "identity lease returned"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. The fixture day is complete." }
+    }
+  ]
+}

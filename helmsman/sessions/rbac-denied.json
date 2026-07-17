@@ -7,7 +7,7 @@
  "timeline": [
   {
    "t": "page",
-   "text": "PagerDuty P2 — prod/ledger-api: 0/3 pods available after config rollout, settlement writes paused",
+   "text": "PagerDuty P2: prod/ledger-api has 0/3 pods available after a config rollout. Settlement writes are paused.",
    "sev": "P2"
   },
   {
@@ -47,7 +47,7 @@
   {
    "t": "diagnosis",
    "signature": "config-key-drift",
-   "cause": "The Deployment asks ConfigMap ledger-runtime for DATABASE_URL, but the recorded ConfigMap only contains DB_URL. Kubelet refuses to create every container before process start; the application image and probes have not run.",
+   "cause": "The Deployment asks ConfigMap ledger-runtime for DATABASE_URL, but the recorded ConfigMap only contains DB_URL. Kubelet refuses to create every container before process start. The application image and probes have not run.",
    "receipts": [
     "Reason:       CreateContainerConfigError",
     "DATABASE_URL:  <set to the key 'DATABASE_URL' of config map 'ledger-runtime'>  Optional: false",
@@ -88,12 +88,12 @@
   {
    "t": "verify",
    "result": "denied",
-   "text": "No mutation landed. All three ledger-api pods remain blocked; settlement writes stay paused pending cluster-admin review.",
+   "text": "No mutation landed. All three ledger-api pods remain blocked. Settlement writes stay paused pending cluster-admin review.",
    "postmortem": "API server denied deployments.apps/patch · no retry or privilege expansion · exact Role/RoleBinding staged for manual escalation"
   }
  ],
  "id": "rbac-denied",
- "title": "ledger-api config fix approved — API server denies the patch",
+ "title": "ledger-api config fix approved: API server denies the patch",
  "tag": "RBAC denied",
  "recorded": "fixture-replay",
  "board": {
@@ -101,7 +101,7 @@
    {
     "name": "node-a",
     "pods": [
-     { "name": "ledger-api-6c8f7d9b5-m4qkx", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "ledger-api-6c8f7d9b5-m4qkx", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started: config admission failed" },
      { "name": "cart-api-6d8f7c9b4-lm2xp", "app": "cart-api" },
      { "name": "web-frontend-5b7d9f6c8-qk4tz", "app": "web" },
      { "name": "redis-0", "app": "redis" }
@@ -110,7 +110,7 @@
    {
     "name": "node-b",
     "pods": [
-     { "name": "ledger-api-6c8f7d9b5-p9vtr", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "ledger-api-6c8f7d9b5-p9vtr", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started: config admission failed" },
      { "name": "payments-5f6d8b7c9-tt8vk", "app": "payments" },
      { "name": "checkout-api-5d8e7f9a6-fh3km", "app": "checkout-api" },
      { "name": "kafka-1", "app": "kafka" }
@@ -119,7 +119,7 @@
    {
     "name": "node-c",
     "pods": [
-     { "name": "ledger-api-6c8f7d9b5-w2hns", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "ledger-api-6c8f7d9b5-w2hns", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started: config admission failed" },
      { "name": "search-7c8d9e6f5-p2n8w", "app": "search" },
      { "name": "web-frontend-5b7d9f6c8-8xj2m", "app": "web" },
      { "name": "kafka-2", "app": "kafka" }

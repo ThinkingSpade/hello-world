@@ -1,0 +1,272 @@
+{
+  "id": "steady-run",
+  "title": "Three task drain",
+  "tag": "steady scheduling",
+  "summary": "Three incoming tasks move through four sandbox slots. Each task uses its requested image and tool policy.",
+  "nodes": [
+    {
+      "id": "forge-node-a",
+      "cpuMillicores": 4000,
+      "memoryMiB": 8192,
+      "slots": ["a1", "a2"]
+    },
+    {
+      "id": "forge-node-b",
+      "cpuMillicores": 4000,
+      "memoryMiB": 8192,
+      "slots": ["b1", "b2"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "CUST-1042",
+      "image": "registry.local/agent-python:3.12",
+      "permissions": ["net:none", "fs:repo-ro"],
+      "cpuMillicores": 500,
+      "memoryMiB": 512,
+      "timeoutSec": 90
+    },
+    {
+      "id": "BUG-771",
+      "image": "registry.local/browser-agent:stable",
+      "permissions": ["net:web", "tool:browser"],
+      "cpuMillicores": 1000,
+      "memoryMiB": 1024,
+      "timeoutSec": 120
+    },
+    {
+      "id": "DOC-208",
+      "image": "registry.local/code-agent:go1.24",
+      "permissions": ["net:none", "fs:repo-rw"],
+      "cpuMillicores": 750,
+      "memoryMiB": 768,
+      "timeoutSec": 90
+    }
+  ],
+  "events": [
+    {
+      "atMs": 0,
+      "type": "allocated",
+      "taskId": "CUST-1042",
+      "sandboxId": "sbx-a-21",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "provisioning",
+      "startKind": "cold",
+      "memoryMiB": 512,
+      "message": "CUST-1042 was assigned to forge-node-a.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-a-21 assigned to forge-node-a/a1"},
+        {"tone": "dim", "text": "[kube] creating pod with memory limit 512Mi"}
+      ]
+    },
+    {
+      "atMs": 200,
+      "type": "allocated",
+      "taskId": "BUG-771",
+      "sandboxId": "sbx-a-22",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "provisioning",
+      "startKind": "cold",
+      "memoryMiB": 1024,
+      "message": "BUG-771 was assigned to forge-node-a.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-a-22 assigned to forge-node-a/a2"},
+        {"tone": "dim", "text": "[kube] creating pod with memory limit 1024Mi"}
+      ]
+    },
+    {
+      "atMs": 500,
+      "type": "lifecycle",
+      "taskId": "CUST-1042",
+      "sandboxId": "sbx-a-21",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "running",
+      "message": "sbx-a-21 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] pulled registry.local/agent-python:3.12"},
+        {"tone": "ok", "text": "[agent] tool policy loaded: net:none, fs:repo-ro"}
+      ]
+    },
+    {
+      "atMs": 700,
+      "type": "lifecycle",
+      "taskId": "BUG-771",
+      "sandboxId": "sbx-a-22",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "running",
+      "message": "sbx-a-22 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] pulled registry.local/browser-agent:stable"},
+        {"tone": "ok", "text": "[agent] tool policy loaded: net:web, tool:browser"}
+      ]
+    },
+    {
+      "atMs": 800,
+      "type": "allocated",
+      "taskId": "DOC-208",
+      "sandboxId": "sbx-b-11",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "provisioning",
+      "startKind": "warm",
+      "memoryMiB": 768,
+      "message": "DOC-208 was assigned to forge-node-b.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-b-11 assigned to forge-node-b/b1"},
+        {"tone": "dim", "text": "[kube] reusing a warm pod template with memory limit 768Mi"}
+      ]
+    },
+    {
+      "atMs": 1050,
+      "type": "lifecycle",
+      "taskId": "CUST-1042",
+      "sandboxId": "sbx-a-21",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "streaming",
+      "message": "sbx-a-21 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "cmd", "text": "$ python -m pytest tests/unit"},
+        {"tone": "out", "text": "collected 18 items"},
+        {"tone": "out", "text": "tests/unit/test_customer.py .................. [100%]"},
+        {"tone": "dim", "text": "[nats] publish forge.result.CUST-1042 sequence=1"}
+      ]
+    },
+    {
+      "atMs": 1250,
+      "type": "lifecycle",
+      "taskId": "DOC-208",
+      "sandboxId": "sbx-b-11",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "running",
+      "message": "sbx-b-11 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] image found in node cache"},
+        {"tone": "ok", "text": "[agent] tool policy loaded: net:none, fs:repo-rw"}
+      ]
+    },
+    {
+      "atMs": 1450,
+      "type": "lifecycle",
+      "taskId": "BUG-771",
+      "sandboxId": "sbx-a-22",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "streaming",
+      "message": "sbx-a-22 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "cmd", "text": "$ node tools/replay-bug.mjs BUG-771"},
+        {"tone": "out", "text": "opened /account/settings at 375x812"},
+        {"tone": "out", "text": "captured visible state after save"},
+        {"tone": "dim", "text": "[nats] publish forge.result.BUG-771 sequence=1"}
+      ]
+    },
+    {
+      "atMs": 1750,
+      "type": "completed",
+      "taskId": "CUST-1042",
+      "sandboxId": "sbx-a-21",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "CUST-1042 completed. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, result accepted"},
+        {"tone": "dim", "text": "[forge] revoking task credentials"}
+      ]
+    },
+    {
+      "atMs": 2050,
+      "type": "lifecycle",
+      "taskId": "DOC-208",
+      "sandboxId": "sbx-b-11",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "streaming",
+      "message": "sbx-b-11 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "cmd", "text": "$ go test ./internal/docs/..."},
+        {"tone": "out", "text": "ok   forge/internal/docs   0.412s"},
+        {"tone": "dim", "text": "[nats] publish forge.result.DOC-208 sequence=1"}
+      ]
+    },
+    {
+      "atMs": 2400,
+      "type": "freed",
+      "taskId": "CUST-1042",
+      "sandboxId": "sbx-a-21",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "freed",
+      "message": "sbx-a-21 was destroyed and a1 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2400ms"}
+      ]
+    },
+    {
+      "atMs": 2600,
+      "type": "completed",
+      "taskId": "BUG-771",
+      "sandboxId": "sbx-a-22",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "BUG-771 completed. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, result accepted"},
+        {"tone": "dim", "text": "[forge] revoking browser token"}
+      ]
+    },
+    {
+      "atMs": 2850,
+      "type": "completed",
+      "taskId": "DOC-208",
+      "sandboxId": "sbx-b-11",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "DOC-208 completed. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, result accepted"},
+        {"tone": "dim", "text": "[forge] revoking task credentials"}
+      ]
+    },
+    {
+      "atMs": 3100,
+      "type": "freed",
+      "taskId": "BUG-771",
+      "sandboxId": "sbx-a-22",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "freed",
+      "message": "sbx-a-22 was destroyed and a2 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2900ms"}
+      ]
+    },
+    {
+      "atMs": 3700,
+      "type": "freed",
+      "taskId": "DOC-208",
+      "sandboxId": "sbx-b-11",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "freed",
+      "message": "sbx-b-11 was destroyed and b1 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2900ms"}
+      ]
+    }
+  ]
+}

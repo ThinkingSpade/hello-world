@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Churn Radar — analytics & live scoring</title>
+<title>Churn Radar: analytics and live scoring</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23b8463a'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,7 +39,7 @@
   }
   .card h2 {
     display: flex; align-items: center; min-height: 38px;
-    font: 11px/1.55 var(--pi-font-title); color: var(--text); text-transform: uppercase;
+    font: 12px/1.55 var(--pi-font-title); color: var(--text); text-transform: uppercase;
     letter-spacing: .04em; margin: -16px -16px 16px; padding: 8px 12px;
     background: var(--panel-2); border-bottom: 2px solid var(--text);
   }
@@ -65,6 +65,30 @@
   }
   .fclear:hover { color: var(--coral); border-color: var(--coral); }
   .hint { font-size: 12px; color: var(--dim); }
+  .honesty { display: inline-block; max-width: 760px; margin-top: 10px; color: var(--dim); }
+
+  .cohort-compare { margin-bottom: 16px; overflow: hidden; }
+  .cohort-compare > .pwin-title, .card .pwin-title { font-size: 12px; }
+  .cohort-body { padding: 12px; }
+  .cohort-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cohort-actions .pbtn { flex: 0 1 auto; }
+  .cohort-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .cohort-card { min-width: 0; border: 2px solid var(--text); background: var(--panel); }
+  .cohort-card h3 {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin: 0; padding: 7px 9px; border-bottom: 2px solid var(--text);
+    background: var(--panel-2); font: 700 14px/1.3 var(--pi-font-ui); text-transform: uppercase;
+  }
+  .cohort-filter { min-height: 40px; padding: 7px 9px; color: var(--dim); font-size: 12px; overflow-wrap: anywhere; }
+  .cohort-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .cohort-metric { min-width: 0; padding: 7px 9px; border-right: 1px solid var(--line); }
+  .cohort-metric:last-child { border-right: 0; }
+  .cohort-metric b { display: block; font: 700 17px/1.2 var(--pi-font-ui); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .cohort-metric span { display: block; color: var(--dim); font: 600 12px/1.25 var(--pi-font-ui); text-transform: uppercase; }
+  .cohort-drivers { border-top: 1px solid var(--line); padding: 7px 9px 9px; }
+  .cohort-drivers b { display: block; margin-bottom: 4px; font: 700 12px/1.3 var(--pi-font-ui); text-transform: uppercase; }
+  .cohort-drivers ol { margin: 0; padding-left: 20px; font-size: 12px; }
+  .cohort-drivers li + li { margin-top: 2px; }
 
   .kpis {
     display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;
@@ -190,7 +214,7 @@
   }
   .surface-head { margin-bottom: 12px; }
   .surface-head h3 { margin: 0; font: 700 13px/1.35 var(--pi-font-ui); text-transform: uppercase; letter-spacing: .05em; }
-  .surface-actions .pbtn, .queue-tools .pbtn, .batch-actions .pbtn { min-height: 38px; }
+  .surface-actions .pbtn, .queue-tools .pbtn, .batch-actions .pbtn { min-height: 44px; }
   .state-strip { margin: 10px 0; }
   .state-strip[data-state="loading"] { border-color: var(--blue); }
   .state-strip[data-state="ready"] { border-color: var(--green); background: var(--pi-ok-soft); }
@@ -201,11 +225,11 @@
   .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
   .metric-box { min-width: 0; padding: 8px; border: 2px solid var(--text); background: var(--pi-paper); }
   .metric-box b { display: block; font: 700 20px/1.1 var(--pi-font-ui); font-variant-numeric: tabular-nums; }
-  .metric-box span { display: block; margin-top: 3px; color: var(--dim); font: 600 11px/1.25 var(--pi-font-ui); text-transform: uppercase; }
+  .metric-box span { display: block; margin-top: 3px; color: var(--dim); font: 600 12px/1.25 var(--pi-font-ui); text-transform: uppercase; }
   .queue-tools { justify-content: flex-start; margin-bottom: 10px; }
   .queue-tools label { font: 600 12px/1.3 var(--pi-font-ui); color: var(--dim); text-transform: uppercase; }
   .queue-tools select, .batch-file {
-    min-height: 40px; padding: 6px 8px; border: 2px solid var(--text); border-radius: 0;
+    min-height: 44px; max-width: 100%; padding: 6px 8px; border: 2px solid var(--text); border-radius: 0;
     color: var(--text); background: var(--panel); font: 13px/1.3 var(--pi-font-body);
   }
   .why-list { margin: 0; padding-left: 18px; }
@@ -218,6 +242,11 @@
   .calibration-svg .point { fill: var(--coral); stroke: var(--text); stroke-width: 1; }
   .threshold-control { margin-bottom: 12px; }
   .threshold-control input { width: 100%; }
+  .threshold-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .threshold-preset { min-height: 112px; padding: 9px 10px; text-align: left; white-space: normal; }
+  .threshold-preset strong { display: block; font: 700 14px/1.25 var(--pi-font-ui); }
+  .threshold-preset strong span { color: var(--coral); }
+  .preset-tradeoff { display: block; margin-top: 6px; color: var(--dim); font: 12px/1.4 var(--pi-font-body); }
   .confusion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
   .confusion div { padding: 8px; border: 2px solid var(--text); background: var(--pi-paper); }
   .confusion b { display: block; font: 700 20px/1 var(--pi-font-ui); }
@@ -230,6 +259,16 @@
   .batch-errors { max-height: 240px; overflow: auto; }
   .icon-btn .pi-ic, h2 .pi-ic { flex: 0 0 auto; }
   .compact-note { margin: 6px 0 0; color: var(--dim); font-size: 12px; }
+  .row-whatif { margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--text); }
+  .row-whatif h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 7px; font: 700 14px/1.3 var(--pi-font-ui); }
+  .row-whatif-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .row-whatif-actions .pbtn { flex: 1 1 190px; }
+  .row-whatif .pterm { margin: 0; padding: 10px; box-shadow: 3px 3px 0 var(--text); white-space: normal; }
+  .row-whatif .pterm b { color: var(--pi-term-ok); }
+  .row-whatif .pterm .delta-up { color: var(--pi-term-err); }
+  .row-whatif .pterm .delta-down { color: var(--pi-term-ok); }
+  .row-whatif-note { margin-top: 6px; color: var(--dim); font-size: 12px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 32px; }
   a { color: var(--blue); }
   .mb { margin-bottom: 16px; }
@@ -255,6 +294,7 @@
   @media (max-width: 700px) {
     .charts { grid-template-columns: 1fr; }
     .imgs { grid-template-columns: 1fr; }
+    .cohort-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 599px) {
     body { padding: 16px 8px 48px; }
@@ -265,6 +305,8 @@
     .kpi:nth-child(2n) { border-right: 0; }
     .kpi:last-child { grid-column: 1 / -1; border-right: 0; border-bottom: 0; }
     .dec-out { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .threshold-presets { grid-template-columns: 1fr; }
+    .threshold-preset { min-height: 44px; }
     .crow { grid-template-columns: minmax(0, 1fr) 56px; }
     .crow .cbar { grid-column: 1 / -1; grid-row: 2; }
     .crow .num { grid-column: 2; grid-row: 1; }
@@ -289,8 +331,9 @@
 <div class="wrap">
   <header>
     <h1>CHURN RADAR<span class="dot">_</span></h1>
-    <p class="tagline">7,043 customer records from IBM's public Telco sample · every tile computed live in your browser · click any bar to cross-filter</p>
-    <p class="datalinks">the data:
+    <p class="tagline">Explore 7,043 customer records from IBM's public Telco sample. Every tile is computed in your browser. Select a bar to filter the view.</p>
+    <p class="honesty pstrip">Interactive recreation of the private system, replaying recorded fixtures.</p>
+    <p class="datalinks">Data files:
       <a href="data.csv" download>raw CSV (7,043 rows)</a> ·
       <a href="rows.json">rows.json</a> ·
       <a href="provenance.json">provenance.json</a> ·
@@ -303,24 +346,37 @@
     <span class="lbl">Filters</span>
     <span id="active-filters"></span>
     <button class="fclear pbtn hide" id="clear-filters" type="button">clear all</button>
-    <span class="hint" id="filter-hint">none — click any bar below to slice the data</span>
+    <span class="hint" id="filter-hint">None selected. Choose a bar below to slice the data.</span>
   </div>
   <div class="card load-error hide" id="load-error" role="alert"></div>
 
+  <section class="cohort-compare pwin" aria-labelledby="cohort-title">
+    <div class="pwin-title" id="cohort-title"><span class="pwin-lamp"></span><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> Cohort compare</div>
+    <div class="cohort-body">
+      <div class="cohort-actions">
+        <button class="pbtn" id="pin-cohort-a" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-hold"/></svg> pin current view as cohort A</button>
+        <button class="pbtn" id="pin-cohort-b" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-hold"/></svg> pin current view as cohort B</button>
+        <button class="pbtn" id="clear-cohorts" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg> clear comparison</button>
+      </div>
+      <div class="pstrip state-strip" id="cohort-state" data-state="loading" role="status" aria-live="polite">Loading cohort fixtures…</div>
+      <div class="cohort-grid" id="cohort-grid"></div>
+    </div>
+  </section>
+
   <div class="kpis">
-    <div class="card kpi"><div class="num" id="kpi-n">—</div><div class="cap">customers in view</div><div class="sub" id="kpi-n-sub"></div></div>
-    <div class="card kpi rate"><div class="num" id="kpi-rate">—</div><div class="cap">churn rate in view</div><div class="sub" id="kpi-rate-sub"></div></div>
-    <div class="card kpi money"><div class="num" id="kpi-mrr">—</div><div class="cap">monthly $ lost to churn</div><div class="sub">sum of churned customers' monthly charges</div></div>
-    <div class="card kpi predicted"><div class="num" id="kpi-par">—</div><div class="cap">predicted monthly $ at risk</div><div class="sub">Σ churn probability × monthly charges, in view</div></div>
-    <div class="card kpi model"><div class="num" id="kpi-auc">—</div><div class="cap">model AUC (held-out)</div><div class="sub">logistic regression — beats gradient boosting</div></div>
+    <div class="card kpi"><div class="num" id="kpi-n">…</div><div class="cap">customers in view</div><div class="sub" id="kpi-n-sub"></div></div>
+    <div class="card kpi rate"><div class="num" id="kpi-rate">…</div><div class="cap">churn rate in view</div><div class="sub" id="kpi-rate-sub"></div></div>
+    <div class="card kpi money"><div class="num" id="kpi-mrr">…</div><div class="cap">monthly $ lost to churn</div><div class="sub">Monthly charges from customers who churned.</div></div>
+    <div class="card kpi predicted"><div class="num" id="kpi-par">…</div><div class="cap">predicted monthly $ at risk</div><div class="sub">Churn probability multiplied by monthly charges for this view.</div></div>
+    <div class="card kpi model"><div class="num" id="kpi-auc">…</div><div class="cap">model AUC (held-out)</div><div class="sub">Logistic regression outperformed gradient boosting.</div></div>
   </div>
 
   <div class="charts">
     <section class="card"><h2>Churn rate by contract</h2><div id="ch-Contract"></div></section>
     <section class="card"><h2>By internet service</h2><div id="ch-InternetService"></div></section>
     <section class="card"><h2>By payment method</h2><div id="ch-PaymentMethod"></div></section>
-    <section class="card"><h2>By tenure (months)</h2><div class="vchart" id="ch-tenure"></div><div class="chart-note">new customers churn hardest — loyalty compounds</div></section>
-    <section class="card"><h2>By monthly charges</h2><div class="vchart" id="ch-charges"></div><div class="chart-note">expensive plans without long contracts are flight risks</div></section>
+    <section class="card"><h2>By tenure (months)</h2><div class="vchart" id="ch-tenure"></div><div class="chart-note">New customers churn most often. Loyalty builds over time.</div></section>
+    <section class="card"><h2>By monthly charges</h2><div class="vchart" id="ch-charges"></div><div class="chart-note">Expensive plans without long contracts carry more risk.</div></section>
     <section class="card"><h2>Small slicers</h2>
       <div class="mini-lbl">tech support</div><div id="ch-TechSupport"></div>
       <div class="mini-lbl" style="margin-top:.55rem">paperless billing</div><div id="ch-PaperlessBilling"></div>
@@ -328,46 +384,43 @@
   </div>
 
   <section class="card mb">
-    <h2>Retention over time — Kaplan-Meier survival by contract</h2>
+    <h2>Retention over time: Kaplan-Meier survival by contract</h2>
     <svg id="km" viewBox="0 0 720 240" role="img" aria-label="Kaplan-Meier retention curves by contract type"></svg>
-    <p class="chart-note" id="km-note">Tenure treated as time-to-event; active customers censored at current
-      tenure (this dataset is a snapshot — stated caveat, see the analysis). Curves respect every filter
-      except contract itself.</p>
+    <p class="chart-note" id="km-note">Tenure is treated as time to event. Active customers are censored at their current tenure because this dataset is a snapshot. Curves respect every filter except contract itself.</p>
   </section>
 
   <section class="card mb">
-    <h2>Intervention simulator — from probabilities to money</h2>
+    <h2>Intervention simulator: from probabilities to money</h2>
     <div class="dec-grid">
       <div>
-        <div class="ctl"><label for="in-tau">risk threshold — target active customers above <span class="val" id="v-tau"></span></label>
+        <div class="ctl"><label for="in-tau">risk threshold: target active customers above <span class="val" id="v-tau"></span></label>
           <input type="range" id="in-tau" min="5" max="90" value="45"></div>
-        <div class="ctl"><label for="in-cost">cost per retention offer — <span class="val" id="v-cost"></span></label>
+        <div class="ctl"><label for="in-cost">cost per retention offer: <span class="val" id="v-cost"></span></label>
           <input type="range" id="in-cost" min="5" max="150" step="5" value="40"></div>
-        <div class="ctl"><label for="in-save">chance an offer saves a churner — <span class="val" id="v-save"></span></label>
+        <div class="ctl"><label for="in-save">chance an offer saves a churner: <span class="val" id="v-save"></span></label>
           <input type="range" id="in-save" min="5" max="60" step="5" value="30"></div>
-        <div class="ctl"><label for="in-hor">value horizon — <span class="val" id="v-hor"></span> of monthly charges</label>
+        <div class="ctl"><label for="in-hor">value horizon: <span class="val" id="v-hor"></span> of monthly charges</label>
           <input type="range" id="in-hor" min="3" max="24" value="12"></div>
-        <p class="note">Expected net = save-rate × Σ pᵢ × horizon × chargesᵢ (targeted) − offer cost × targeted.
-          Held-out reliability is shown in the validation workbench; move every assumption to test sensitivity.</p>
+        <p class="note">Expected net equals save chance × Σ pᵢ × horizon × chargesᵢ for targeted customers, minus offer cost × targeted customers. The validation workbench shows held-out reliability. Move each assumption to test sensitivity.</p>
       </div>
       <div>
         <div class="dec-out">
-          <div><b id="d-net" class="dec-net">—</b><span>expected net over horizon</span></div>
-          <div><b id="d-n">—</b><span>customers targeted</span></div>
-          <div><b id="d-saves">—</b><span>expected saves</span></div>
-          <div><b id="d-cost">—</b><span>total offer cost</span></div>
-          <div><b id="d-prec">—</b><span>held-out precision at τ</span></div>
-          <div><b id="d-rec">—</b><span>held-out recall at τ</span></div>
+          <div><b id="d-net" class="dec-net">…</b><span>expected net over horizon</span></div>
+          <div><b id="d-n">…</b><span>customers targeted</span></div>
+          <div><b id="d-saves">…</b><span>expected saves</span></div>
+          <div><b id="d-cost">…</b><span>total offer cost</span></div>
+          <div><b id="d-prec">…</b><span>held-out precision at τ</span></div>
+          <div><b id="d-rec">…</b><span>held-out recall at τ</span></div>
         </div>
         <p class="chart-note" id="eval-note">Loading held-out evaluation provenance…</p>
         <svg id="profit" viewBox="0 0 360 150" role="img" aria-label="Expected net vs threshold"></svg>
-        <p class="chart-note">expected net vs threshold — dot marks a unique optimum when one exists</p>
+        <p class="chart-note">The dot marks a unique optimum when one exists.</p>
       </div>
     </div>
   </section>
 
   <section class="card pwin mb" id="backtest-section">
-    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg> Historical backtest — held-out evaluation only</h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg> Historical backtest: held-out evaluation only</h2>
     <div class="surface-head">
       <h3>Realized outcomes at <span id="backtest-threshold">45%</span> threshold</h3>
       <div class="surface-actions">
@@ -388,7 +441,7 @@
   </section>
 
   <section class="card pwin mb" id="queue-section">
-    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg> Active-customer queue — outreach candidates only</h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg> Active-customer queue: outreach candidates only</h2>
     <div class="queue-tools">
       <label for="queue-sort">sort by</label>
       <select id="queue-sort">
@@ -405,17 +458,23 @@
   </section>
 
   <section class="card pwin mb" id="validation-section">
-    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> Validation workbench — 25% stratified hold-out</h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> Validation workbench: 25% stratified hold-out</h2>
     <div class="pstrip state-strip" id="validation-state" role="status">Loading calibration and audit evidence…</div>
     <div class="validation-grid">
       <div>
-        <div class="surface-head"><h3>Reliability curve</h3><span class="pchip" id="calibration-bins">— bins</span></div>
+        <div class="surface-head"><h3>Reliability curve</h3><span class="pchip" id="calibration-bins">loading bins</span></div>
         <svg class="calibration-svg" id="calibration-chart" viewBox="0 0 520 340" role="img" aria-label="Predicted probability versus observed churn on held-out records"></svg>
         <p class="compact-note">Diagonal = perfect calibration. Points are equal-width probability bins on untouched predictions.</p>
       </div>
       <div>
+        <div class="threshold-presets" id="threshold-presets" aria-label="Validation threshold presets">
+          <button class="threshold-preset pbtn" type="button" data-threshold="25" disabled><strong>recall-first outreach <span>25%</span></strong><span class="preset-tradeoff">Loading the held-out tradeoff.</span></button>
+          <button class="threshold-preset pbtn" type="button" data-threshold="45" disabled><strong>balanced <span>45%</span></strong><span class="preset-tradeoff">Loading the held-out tradeoff.</span></button>
+          <button class="threshold-preset pbtn" type="button" data-threshold="70" disabled><strong>precision-first <span>70%</span></strong><span class="preset-tradeoff">Loading the held-out tradeoff.</span></button>
+        </div>
+        <div class="sr-only" id="threshold-status" role="status" aria-live="polite" aria-atomic="true"></div>
         <div class="threshold-control ctl">
-          <label for="validation-threshold">decision threshold — <span class="val" id="validation-threshold-value">45%</span></label>
+          <label for="validation-threshold">decision threshold: <span class="val" id="validation-threshold-value">45%</span></label>
           <input type="range" id="validation-threshold" min="5" max="90" value="45">
         </div>
         <div class="confusion" id="confusion-matrix" aria-label="Held-out confusion matrix"></div>
@@ -431,7 +490,7 @@
 
   <div class="grid2">
     <section class="card">
-      <h2>What-if scorer — the customer</h2>
+      <h2>What-if scorer: the customer</h2>
       <div class="presets" id="presets"></div>
       <div id="controls"></div>
       <p class="note" id="fixed-note"></p>
@@ -439,22 +498,21 @@
     <section class="card">
       <h2>The prediction</h2>
       <div class="verdict">
-        <div class="prob" id="prob">—</div>
+        <div class="prob" id="prob">…</div>
         <div class="band" id="band"></div>
         <div class="meter"><i id="meter-fill"></i><span class="base" id="meter-base"></span></div>
         <div class="meter-label">marker = dataset base rate</div>
       </div>
-      <h2>Why — top signals for this customer</h2>
+      <h2>Why: top signals for this customer</h2>
       <div id="contrib"></div>
       <p class="note">Bars are each input's contribution to the log-odds:
         <b style="color:var(--gold)">gold pushes toward churn</b>,
-        <b style="color:var(--blue)">blue pulls away</b> — the model's own
-        arithmetic, not a post-hoc explainer.</p>
+        <b style="color:var(--blue)">blue pulls away</b>. This is the model's own arithmetic, not a post-hoc explainer.</p>
     </section>
   </div>
 
   <section class="card pwin mb" id="batch-section">
-    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> CSV batch scoring — IBM Telco schema</h2>
+    <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> CSV batch scoring: IBM Telco schema</h2>
     <div class="batch-zone">
       <div class="batch-actions">
         <input class="batch-file" id="batch-file" type="file" accept=".csv,text/csv" aria-describedby="batch-help">
@@ -472,15 +530,12 @@
   </section>
 
   <section class="card model-card mb">
-    <h2>Model card — honest numbers on held-out data</h2>
+    <h2>Model card: held-out results</h2>
     <div class="model-table-wrap ptable-wrap"><table class="ptable" id="metrics-table"></table></div>
-    <p class="note">Plain logistic regression, shipped as coefficients
-      (<a href="model.json">model.json</a>) and scored in ~30 lines of JS.
-      Trained on the public IBM Telco dataset; 25% stratified hold-out;
-      TotalCharges dropped as collinear with tenure × monthly charges.</p>
+    <p class="note">The logistic regression coefficients ship in <a href="model.json">model.json</a> and run in the browser. The model was trained on the public IBM Telco dataset with a 25% stratified hold-out. TotalCharges was omitted because it overlaps with tenure multiplied by monthly charges.</p>
     <div class="imgs">
       <figure class="model-figure">
-        <svg viewBox="0 0 640 400" role="img" aria-label="ROC curves — logistic regression vs gradient boosting">
+        <svg viewBox="0 0 640 400" role="img" aria-label="ROC curves for logistic regression and gradient boosting">
           <line class="grid" x1="56" y1="330" x2="616" y2="330"/><line class="grid" x1="56" y1="270" x2="616" y2="270"/>
           <line class="grid" x1="56" y1="210" x2="616" y2="210"/><line class="grid" x1="56" y1="150" x2="616" y2="150"/>
           <line class="grid" x1="56" y1="90" x2="616" y2="90"/><line class="grid" x1="56" y1="30" x2="616" y2="30"/>
@@ -517,7 +572,7 @@
     </div>
   </section>
 
-  <footer>churn radar · IBM sample records, shipped coefficients, no server — audit rows.json &amp; model.json</footer>
+  <footer>Churn Radar · IBM sample records · shipped coefficients · no server · audit rows.json and model.json</footer>
 </div>
 <div id="tip" role="tooltip"></div>
 
@@ -528,15 +583,18 @@
 
   /* ================= dashboard: IBM sample rows, cross-filtering ================= */
   const DIMS = ["Contract", "InternetService", "PaymentMethod", "TechSupport", "PaperlessBilling", "SeniorCitizen"];
-  const TENURE_BUCKETS = [[0, 6, "0–6"], [7, 12, "7–12"], [13, 24, "13–24"], [25, 48, "25–48"], [49, 72, "49–72"]];
-  const CHARGE_BUCKETS = [[0, 35, "<$35"], [35, 60, "$35–60"], [60, 80, "$60–80"], [80, 100, "$80–100"], [100, 999, "$100+"]];
+  const TENURE_BUCKETS = [[0, 6, "0 to 6"], [7, 12, "7 to 12"], [13, 24, "13 to 24"], [25, 48, "25 to 48"], [49, 72, "49 to 72"]];
+  const CHARGE_BUCKETS = [[0, 35, "under $35"], [35, 60, "$35 to $60"], [60, 80, "$60 to $80"], [80, 100, "$80 to $100"], [100, 999, "$100+"]];
   let ROWS = null;              // decoded columnar data
   let PROVENANCE = null;        // row-level prediction and evaluation provenance
   let HOLDOUT = null;           // eligible untouched row indices decoded from provenance
   let QUEUE_ROWS = [];
   let BATCH_RESULTS = [];
   let BATCH_HEADERS = [];
+  let LOAD_GENERATION = 0;
+  let BATCH_GENERATION = 0;
   const filters = {};           // dim -> Set(values); tenure/charges -> Set(bucket idx)
+  const cohortPins = { A: null, B: null };
 
   function decode(raw) {
     const n = raw.n, c = raw.cols;
@@ -556,16 +614,25 @@
     return col.values[col.codes[i]];
   }
 
+  function featureContribution(i, feature) {
+    if (feature.kind === "numeric") {
+      const value = featValue(i, feature.name);
+      return feature.coef * ((value - feature.mean) / feature.std);
+    }
+    const value = featValue(i, feature.name);
+    const entry = feature.values.find((item) => item.value === value) || feature.values[0];
+    return entry.coef;
+  }
+
   function rowContribs(i) {
     const out = [];
     for (const f of MODEL.features) {
       if (f.kind === "numeric") {
         const v = featValue(i, f.name);
-        out.push([`${f.name} = ${v}`, f.coef * ((v - f.mean) / f.std)]);
+        out.push([`${f.name} = ${v}`, featureContribution(i, f)]);
       } else {
         const v = featValue(i, f.name);
-        const e = f.values.find((x) => x.value === v) || f.values[0];
-        out.push([`${f.name}: ${v}`, e.coef]);
+        out.push([`${f.name}: ${v}`, featureContribution(i, f)]);
       }
     }
     return out.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
@@ -703,7 +770,7 @@
     renderBacktest();
     $("kpi-n").textContent = fmt(n);
     $("kpi-n-sub").textContent = n === ROWS.n ? "the full dataset" : `of ${fmt(ROWS.n)} total`;
-    $("kpi-rate").textContent = n ? (churned / n * 100).toFixed(1) + "%" : "—";
+    $("kpi-rate").textContent = n ? (churned / n * 100).toFixed(1) + "%" : "n/a";
     $("kpi-rate-sub").textContent = `${fmt(churned)} churned · dataset base 26.5%`;
     $("kpi-mrr").textContent = "$" + fmt(Math.round(mrrLost));
     for (const d of ["Contract", "InternetService", "PaymentMethod", "TechSupport", "PaperlessBilling", "SeniorCitizen"])
@@ -735,6 +802,130 @@
     for (const k of Object.keys(filters)) delete filters[k];
     renderDash();
     persistHash();
+  });
+
+  /* ================= pinned cohort comparison ================= */
+  function currentFilterSnapshot() {
+    return Object.fromEntries(Object.entries(filters).map(([dim, values]) => [dim, [...values].sort((a, b) => a - b)]));
+  }
+
+  function filterSnapshotLabel(snapshot) {
+    const labels = [];
+    for (const [dim, values] of Object.entries(snapshot)) {
+      for (const key of values) {
+        if (dim === "tenure") labels.push(`tenure ${TENURE_BUCKETS[key][2]} months`);
+        else if (dim === "charges") labels.push(`charges ${CHARGE_BUCKETS[key][2]}`);
+        else labels.push(`${dim}: ${ROWS[dim].values[key]}`);
+      }
+    }
+    return labels.length ? labels.join(", ") : "All customer records";
+  }
+
+  function readableFeatureName(name) {
+    return name.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  }
+
+  function buildCohortSnapshot(label) {
+    const indices = [...VIEW];
+    let churned = 0, monthlyRisk = 0, probabilityTotal = 0;
+    const contributionTotals = new Map(MODEL.features.map((feature) => [feature.name, 0]));
+    for (const i of indices) {
+      churned += ROWS.churn[i];
+      probabilityTotal += ROWS.score[i];
+      monthlyRisk += ROWS.score[i] * ROWS.charges[i];
+      for (const feature of MODEL.features)
+        contributionTotals.set(feature.name, contributionTotals.get(feature.name) + featureContribution(i, feature));
+    }
+    const drivers = indices.length ? MODEL.features.map((feature) => ({
+      name: readableFeatureName(feature.name),
+      contribution: contributionTotals.get(feature.name) / indices.length,
+    })).filter((driver) => Math.abs(driver.contribution) > 0.001)
+      .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution)).slice(0, 3) : [];
+    return {
+      label,
+      filters: currentFilterSnapshot(),
+      n: indices.length,
+      churnRate: indices.length ? churned / indices.length : null,
+      monthlyRisk,
+      meanProbability: indices.length ? probabilityTotal / indices.length : null,
+      drivers,
+    };
+  }
+
+  function cohortMetric(value, label) {
+    const box = document.createElement("div");
+    box.className = "cohort-metric";
+    const number = document.createElement("b"); number.textContent = value;
+    const caption = document.createElement("span"); caption.textContent = label;
+    box.append(number, caption);
+    return box;
+  }
+
+  function cohortCard(cohort) {
+    const card = document.createElement("article");
+    card.className = "cohort-card";
+    const heading = document.createElement("h3");
+    heading.append(document.createTextNode(`cohort ${cohort.label}`));
+    const count = document.createElement("span"); count.className = "pchip"; count.textContent = `${fmt(cohort.n)} rows`;
+    heading.appendChild(count);
+    const filterLabel = document.createElement("div"); filterLabel.className = "cohort-filter";
+    filterLabel.textContent = filterSnapshotLabel(cohort.filters);
+    const metrics = document.createElement("div"); metrics.className = "cohort-metrics";
+    metrics.append(
+      cohortMetric(cohort.churnRate === null ? "n/a" : `${(cohort.churnRate * 100).toFixed(1)}%`, "churn rate"),
+      cohortMetric(`$${fmt(Math.round(cohort.monthlyRisk))}`, "monthly $ at risk"),
+      cohortMetric(cohort.meanProbability === null ? "n/a" : `${(cohort.meanProbability * 100).toFixed(1)}%`, "mean probability"),
+    );
+    const drivers = document.createElement("div"); drivers.className = "cohort-drivers";
+    const driverTitle = document.createElement("b"); driverTitle.textContent = "top three model drivers";
+    const list = document.createElement("ol");
+    if (!cohort.drivers.length) {
+      const item = document.createElement("li"); item.textContent = "No rows are available for driver analysis."; list.appendChild(item);
+    } else {
+      for (const driver of cohort.drivers) {
+        const item = document.createElement("li");
+        const direction = driver.contribution > 0 ? "pushes churn up" : "pulls churn down";
+        item.textContent = `${driver.name} ${direction} (${driver.contribution > 0 ? "+" : "−"}${Math.abs(driver.contribution).toFixed(2)} log odds)`;
+        list.appendChild(item);
+      }
+    }
+    drivers.append(driverTitle, list);
+    card.append(heading, filterLabel, metrics, drivers);
+    return card;
+  }
+
+  function renderCohortCompare(message = "") {
+    const grid = $("cohort-grid");
+    grid.replaceChildren();
+    if (cohortPins.A) grid.appendChild(cohortCard(cohortPins.A));
+    if (cohortPins.B) grid.appendChild(cohortCard(cohortPins.B));
+    $("pin-cohort-a").disabled = !ROWS;
+    $("pin-cohort-b").disabled = !ROWS || !cohortPins.A;
+    $("clear-cohorts").disabled = !cohortPins.A && !cohortPins.B;
+    if (message) {
+      const kind = cohortPins.A && cohortPins.B ? "ready" : cohortPins.A || cohortPins.B ? "partial" : "empty";
+      setSurfaceState("cohort-state", kind, message);
+    } else if (!cohortPins.A) {
+      setSurfaceState("cohort-state", "empty", "Pin the current view as cohort A. Then change the filters and pin cohort B.");
+    } else if (!cohortPins.B) {
+      setSurfaceState("cohort-state", cohortPins.A.n ? "partial" : "empty", "Cohort A is pinned. Change the filters, then pin cohort B.");
+    } else {
+      const empty = !cohortPins.A.n || !cohortPins.B.n;
+      setSurfaceState("cohort-state", empty ? "partial" : "ready", empty ? "Comparison ready. One pinned cohort has no rows." : "Comparison ready. Both cohorts use frozen filter snapshots.");
+    }
+  }
+
+  function pinCohort(label) {
+    if (!ROWS) return;
+    cohortPins[label] = buildCohortSnapshot(label);
+    renderCohortCompare(`Cohort ${label} pinned with ${fmt(cohortPins[label].n)} rows.`);
+  }
+
+  $("pin-cohort-a").addEventListener("click", () => pinCohort("A"));
+  $("pin-cohort-b").addEventListener("click", () => pinCohort("B"));
+  $("clear-cohorts").addEventListener("click", () => {
+    cohortPins.A = null; cohortPins.B = null;
+    renderCohortCompare("Comparison cleared. Pin the current view as cohort A.");
   });
 
   /* ================= Kaplan-Meier survival by contract ================= */
@@ -842,6 +1033,42 @@
       else out.tn++;
     }
     return out;
+  }
+
+  const VALIDATION_PRESETS = [
+    { value: 25, label: "recall-first outreach", sentence: (stats) => `Finds ${stats.recall}% of churners and flags ${stats.flagged} people, with ${stats.precision}% precision.` },
+    { value: 45, label: "balanced", sentence: (stats) => `Reaches ${stats.recall}% recall with ${stats.precision}% precision across ${stats.flagged} flags.` },
+    { value: 70, label: "precision-first", sentence: (stats) => `Raises precision to ${stats.precision}% and narrows the queue to ${stats.flagged} people, with ${stats.recall}% recall.` },
+  ];
+
+  function thresholdPresetStats(value) {
+    const cm = confusionAt(value / 100, HOLDOUT);
+    return {
+      flagged: fmt(cm.tp + cm.fp),
+      precision: (cm.tp + cm.fp ? cm.tp / (cm.tp + cm.fp) * 100 : 0).toFixed(1),
+      recall: (cm.tp + cm.fn ? cm.tp / (cm.tp + cm.fn) * 100 : 0).toFixed(1),
+    };
+  }
+
+  function updateThresholdPresetState() {
+    const current = Number($("validation-threshold").value);
+    document.querySelectorAll("[data-threshold]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(Number(button.dataset.threshold) === current));
+    });
+  }
+
+  function renderThresholdPresets() {
+    const available = Array.isArray(HOLDOUT) && HOLDOUT.length;
+    for (const preset of VALIDATION_PRESETS) {
+      const button = document.querySelector(`[data-threshold="${preset.value}"]`);
+      if (!button) continue;
+      button.disabled = !available;
+      const annotation = button.querySelector(".preset-tradeoff");
+      const sentence = available ? preset.sentence(thresholdPresetStats(preset.value)) : "Held-out predictions are unavailable.";
+      annotation.textContent = sentence;
+      button.setAttribute("aria-label", `${preset.label}. ${preset.value}% threshold. ${sentence}`);
+    }
+    updateThresholdPresetState();
   }
 
   function renderBacktest() {
@@ -957,6 +1184,7 @@
   function renderValidation() {
     try {
       if (!Array.isArray(HOLDOUT)) throw new Error("eligible held-out predictions are unavailable");
+      renderThresholdPresets();
       if (Array.isArray(MODEL.calibration) && !MODEL.calibration.length) {
         setSurfaceState("validation-state", "empty", "Empty: model.json contains no calibration bins.");
         $("calibration-chart").innerHTML = `<text x="260" y="170" text-anchor="middle">No calibration bins available</text>`;
@@ -967,6 +1195,7 @@
       }
       const tau = Number($("validation-threshold").value) / 100;
       $("validation-threshold-value").textContent = `${Math.round(tau * 100)}%`;
+      updateThresholdPresetState();
       const cm = confusionAt(tau, HOLDOUT);
       $("confusion-matrix").innerHTML =
         `<div class="ok"><b>${fmt(cm.tp)}</b>true positive</div>` +
@@ -982,7 +1211,7 @@
         metricBox(fmt(cm.tp + cm.fp), "flagged");
       const assumptions = decisionInputs();
       const policyCost = cm.fp * assumptions.cost + cm.fnCharges * assumptions.hor * assumptions.save;
-      $("validation-cost-note").textContent = `Policy error cost: $${fmt(Math.round(policyCost))} = false-positive offers + missed-churn value, using simulator assumptions (${Math.round(assumptions.save * 100)}% save chance, ${assumptions.hor} months, $${assumptions.cost}/offer).`;
+      $("validation-cost-note").textContent = `Policy error cost is $${fmt(Math.round(policyCost))}. It combines offers sent to false positives with missed churn value. The simulator assumes a ${Math.round(assumptions.save * 100)}% save chance, ${assumptions.hor} months, and $${assumptions.cost} per offer.`;
       renderCalibration();
       renderSegmentAudit();
       setSurfaceState("validation-state", "ready", `Ready: threshold metrics use all ${fmt(HOLDOUT.length)} untouched hold-out predictions.`);
@@ -1050,8 +1279,8 @@
     $("d-saves").textContent = e.saves.toFixed(0);
     $("d-cost").textContent = "$" + fmt(Math.round(e.cost));
     const evaluation = evaluationAt(tau);
-    $("d-prec").textContent = evaluation && evaluation.targeted ? (evaluation.tp / evaluation.targeted * 100).toFixed(0) + "%" : "—";
-    $("d-rec").textContent = evaluation && evaluation.churned ? (evaluation.tp / evaluation.churned * 100).toFixed(0) + "%" : "—";
+    $("d-prec").textContent = evaluation && evaluation.targeted ? (evaluation.tp / evaluation.targeted * 100).toFixed(0) + "%" : "n/a";
+    $("d-rec").textContent = evaluation && evaluation.churned ? (evaluation.tp / evaluation.churned * 100).toFixed(0) + "%" : "n/a";
     $("eval-note").textContent = evaluation
       ? `Precision and recall use ${fmt(HOLDOUT.length)} untouched hold-out predictions, narrowed by dashboard filters.`
       : "Precision and recall are unavailable because eligible held-out predictions could not be loaded.";
@@ -1106,6 +1335,74 @@
 
   function queueSortValue(i) {
     return $("queue-sort").value === "risk_value" ? ROWS.score[i] * ROWS.charges[i] : ROWS.score[i];
+  }
+
+  function recordForRow(i) {
+    return Object.fromEntries(MODEL.features.map((feature) => [feature.name, featValue(i, feature.name)]));
+  }
+
+  function buildRowWhatIf(i) {
+    const baseRecord = recordForRow(i);
+    const baseProbability = scoreRecord(baseRecord);
+    const selected = { contract: false, support: false };
+    const section = document.createElement("section"); section.className = "row-whatif";
+    const heading = document.createElement("h4");
+    heading.innerHTML = `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> Mini what-if`;
+    const actions = document.createElement("div"); actions.className = "row-whatif-actions";
+    const contractButton = document.createElement("button");
+    contractButton.type = "button"; contractButton.className = "pbtn";
+    contractButton.textContent = baseRecord.Contract === "One year" ? "contract already one year" : "set contract to one year";
+    contractButton.disabled = baseRecord.Contract === "One year";
+    contractButton.setAttribute("aria-pressed", String(baseRecord.Contract === "One year"));
+    const supportUnavailable = baseRecord.InternetService === "No";
+    const supportPresent = baseRecord.TechSupport === "Yes";
+    const supportButton = document.createElement("button");
+    supportButton.type = "button"; supportButton.className = "pbtn";
+    supportButton.textContent = supportPresent ? "tech support already added" : supportUnavailable ? "tech support needs internet" : "add tech support";
+    supportButton.disabled = supportPresent || supportUnavailable;
+    supportButton.setAttribute("aria-pressed", String(supportPresent));
+    const result = document.createElement("div");
+    result.className = "pterm"; result.setAttribute("role", "status"); result.setAttribute("aria-live", "polite"); result.setAttribute("aria-atomic", "true");
+    const note = document.createElement("p"); note.className = "row-whatif-note";
+    note.textContent = "Only these inputs change. Monthly charges and every other row value stay fixed.";
+
+    function update() {
+      const scenario = { ...baseRecord };
+      if (selected.contract) scenario.Contract = "One year";
+      if (selected.support) scenario.TechSupport = "Yes";
+      const probability = scoreRecord(scenario);
+      const deltaPoints = (probability - baseProbability) * 100;
+      result.replaceChildren();
+      const label = document.createElement("b"); label.textContent = "shipped model";
+      result.append(label, document.createTextNode(`: ${(baseProbability * 100).toFixed(1)}%`));
+      if (!selected.contract && !selected.support) {
+        result.append(document.createTextNode(". Choose a change to compare."));
+        return;
+      }
+      const delta = document.createElement("span");
+      if (Math.abs(deltaPoints) < 0.05) {
+        delta.textContent = " The probability is unchanged.";
+      } else {
+        delta.className = deltaPoints > 0 ? "delta-up" : "delta-down";
+        delta.textContent = ` Change: ${Math.abs(deltaPoints).toFixed(1)} percentage points ${deltaPoints > 0 ? "higher" : "lower"}.`;
+      }
+      result.append(document.createTextNode(` becomes ${(probability * 100).toFixed(1)}%.`), delta);
+    }
+
+    contractButton.addEventListener("click", () => {
+      selected.contract = !selected.contract;
+      contractButton.setAttribute("aria-pressed", String(selected.contract));
+      update();
+    });
+    supportButton.addEventListener("click", () => {
+      selected.support = !selected.support;
+      supportButton.setAttribute("aria-pressed", String(selected.support));
+      update();
+    });
+    actions.append(contractButton, supportButton);
+    section.append(heading, actions, result, note);
+    update();
+    return section;
   }
 
   let openRow = null;
@@ -1164,8 +1461,10 @@
         details.id = `risk-details-${i}`; details.dataset.i = String(i);
         const cell = details.insertCell(); cell.colSpan = 8; cell.className = "why-cell";
         const full = rowContribs(i).filter((entry) => Math.abs(entry[1]) > 0.01).slice(0, 8);
-        cell.textContent = "full reasoning: " + full.map(([label, contribution]) =>
+        const reasoning = document.createElement("p");
+        reasoning.textContent = "Full reasoning: " + full.map(([label, contribution]) =>
           `${label} (${contribution >= 0 ? "+" : ""}${contribution.toFixed(2)})`).join(" · ");
+        cell.append(reasoning, buildRowWhatIf(i));
         openRow = details; openButton = button;
         button.setAttribute("aria-expanded", "true");
         button.setAttribute("aria-controls", details.id);
@@ -1198,8 +1497,17 @@
   $("backtest-filter").addEventListener("change", () => { if (ROWS) renderBacktest(); });
   $("validation-threshold").addEventListener("input", () => {
     if (!ROWS) return;
-    renderValidation(); renderBacktest(); persistHash();
+    updateThresholdPresetState(); renderValidation(); renderBacktest(); persistHash();
   });
+  for (const preset of VALIDATION_PRESETS) {
+    const button = document.querySelector(`[data-threshold="${preset.value}"]`);
+    button.addEventListener("click", () => {
+      if (!ROWS || !Array.isArray(HOLDOUT)) return;
+      $("validation-threshold").value = String(preset.value);
+      renderValidation(); renderBacktest(); persistHash();
+      $("threshold-status").textContent = `${preset.label} selected. ${preset.sentence(thresholdPresetStats(preset.value))}`;
+    });
+  }
 
   /* ================= what-if scorer (the shipped model) ================= */
   const CONTROLS = ["Contract", "InternetService", "OnlineSecurity", "TechSupport",
@@ -1265,7 +1573,7 @@
     const bandText = { low: "low risk", mid: "elevated", high: "high risk" }[band];
     $("prob").textContent = pct + "%";
     $("prob").className = "prob " + band;
-    $("band").innerHTML = `churn probability — <b class="${band}">${bandText}</b> (dataset base rate ${(base * 100).toFixed(0)}%)`;
+    $("band").innerHTML = `Churn probability: <b class="${band}">${bandText}</b>. Dataset base rate: ${(base * 100).toFixed(0)}%.`;
     $("meter-fill").style.width = pct + "%";
     $("meter-base").style.left = (base * 100) + "%";
     const box = $("contrib");
@@ -1298,7 +1606,7 @@
       const label = document.createElement("label");
       const valSpan = document.createElement("span"); valSpan.className = "val";
       valSpan.textContent = ` ${state[name]} ${unit}`;
-      label.append(name + " —", valSpan);
+      label.append(name + ":", valSpan);
       const input = document.createElement("input");
       input.id = `score-${name}`;
       label.htmlFor = input.id;
@@ -1345,7 +1653,7 @@
     const fixed = MODEL.features
       .filter((f) => f.kind === "categorical" && !CONTROLS.includes(f.name))
       .map((f) => `${f.name}=${state[f.name]}`);
-    $("fixed-note").textContent = "Held at dataset-typical or dependent values: " + fixed.join(", ") + ".";
+    $("fixed-note").textContent = "Held at typical dataset values or dependent values: " + fixed.join(", ") + ".";
   }
 
   function buildPresets() {
@@ -1512,7 +1820,7 @@
     const preview = [...BATCH_RESULTS].sort((a, b) => b.probability - a.probability).slice(0, 20);
     for (const result of preview) {
       const band = result.probability < 0.15 ? "low" : result.probability < 0.4 ? "elevated" : "high";
-      const values = [result.row, result.source.customerID || "—", (result.probability * 100).toFixed(1) + "%",
+      const values = [result.row, result.source.customerID || "n/a", (result.probability * 100).toFixed(1) + "%",
         band, result.normalized.Contract, result.normalized.tenure, "$" + result.normalized.MonthlyCharges.toFixed(2)];
       const row = table.insertRow();
       values.forEach((value) => { const cell = row.insertCell(); cell.textContent = value; });
@@ -1562,6 +1870,7 @@
 
   function loadSampleBatch() {
     if (!ROWS || !MODEL) return;
+    BATCH_GENERATION++;
     setSurfaceState("batch-state", "loading", "Loading sample rows…");
     const headers = ["customerID", ...MODEL.features.map((feature) => feature.name)];
     const parsed = [headers];
@@ -1590,14 +1899,17 @@
   }
 
   $("batch-file").addEventListener("change", async () => {
+    const expectedGeneration = ++BATCH_GENERATION;
     const file = $("batch-file").files[0];
     resetBatchOutput();
     if (!file) { setSurfaceState("batch-state", "empty", "No file loaded. Choose a CSV or load sample rows."); return; }
     setSurfaceState("batch-state", "loading", `Loading ${file.name}…`);
     try {
       const text = await file.text();
+      if (expectedGeneration !== BATCH_GENERATION) return;
       processBatchRows(parseCSV(text));
     } catch (error) {
+      if (expectedGeneration !== BATCH_GENERATION) return;
       resetBatchOutput();
       setSurfaceState("batch-state", "error", `Error: ${error.message}.`);
     }
@@ -1687,21 +1999,31 @@
     setSurfaceState("backtest-state", "error", `Error: ${error.message}.`);
     setSurfaceState("queue-state", "error", `Error: ${error.message}.`);
     setSurfaceState("validation-state", "error", `Error: ${error.message}.`);
+    setSurfaceState("cohort-state", "error", `Error: ${error.message}.`);
     setSurfaceState("batch-state", "error", "Error: model artifacts are unavailable; batch scoring is disabled.");
     $("queue-download").disabled = true;
     $("batch-sample").disabled = true;
+    $("pin-cohort-a").disabled = true;
+    $("pin-cohort-b").disabled = true;
+    document.querySelectorAll("[data-threshold]").forEach((button) => { button.disabled = true; });
   }
 
   function loadData() {
+    const expectedGeneration = ++LOAD_GENERATION;
     $("load-error").classList.add("hide");
     setSurfaceState("backtest-state", "loading", "Loading eligible held-out predictions…");
     setSurfaceState("queue-state", "loading", "Loading active customers…");
     setSurfaceState("validation-state", "loading", "Loading calibration and audit evidence…");
+    setSurfaceState("cohort-state", "loading", "Loading cohort fixtures…");
+    $("pin-cohort-a").disabled = true;
+    $("pin-cohort-b").disabled = true;
+    document.querySelectorAll("[data-threshold]").forEach((button) => { button.disabled = true; });
     Promise.all([
       fetchJSON("model.json"),
       fetchJSON("rows.json"),
       fetchJSON("provenance.json"),
     ]).then(([m, raw, provenance]) => {
+      if (expectedGeneration !== LOAD_GENERATION) return;
       MODEL = m;
       ROWS = decode(raw);
       PROVENANCE = provenance;
@@ -1715,8 +2037,9 @@
             <td>${met.lr.avg_precision.toFixed(3)}</td><td>${met.lr.brier.toFixed(3)}</td>
             <td>${met.lr.auc_cv_mean.toFixed(3)} ± ${met.lr.auc_cv_std.toFixed(3)}</td></tr>
         <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
-            <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
+            <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>n/a</td></tr>`;
       renderDash();
+      renderCohortCompare();
       renderValidation();
       defaults();
       buildPresets();
@@ -1724,7 +2047,10 @@
       renderScore();
       $("batch-sample").disabled = false;
       persistHash();
-    }).catch(showLoadError);
+    }).catch((error) => {
+      if (expectedGeneration !== LOAD_GENERATION) return;
+      showLoadError(error);
+    });
   }
 
   loadData();

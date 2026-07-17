@@ -7,7 +7,7 @@
  "timeline": [
   {
    "t": "page",
-   "text": "PagerDuty P2 — prod/checkout-api: CrashLoopBackOff on 3/3 replicas, checkout error rate 41% and climbing",
+   "text": "PagerDuty P2: prod/checkout-api has CrashLoopBackOff on 3/3 replicas. The checkout error rate is 41% and climbing.",
    "sev": "P2"
   },
   {
@@ -47,7 +47,7 @@
   {
    "t": "diagnosis",
    "signature": "oom-crashloop",
-   "cause": "The container is being OOM-killed: the kernel terminates it (exit 137) every time it crosses its 256Mi memory limit, and kubelet restarts it into the same wall — that's the crash loop. The limit stopped fitting the workload; the logs show memory climbing right up to the kill.",
+   "cause": "The container is being OOM-killed. The kernel terminates it with exit 137 every time it crosses its 256Mi memory limit. Kubelet restarts it into the same wall, which creates the crash loop. The limit stopped fitting the workload. The logs show memory climbing right up to the kill.",
    "receipts": [
     "Reason:       OOMKilled",
     "Exit Code:    137",
@@ -59,13 +59,13 @@
   {
    "t": "proposal",
    "command": "kubectl -n prod set resources deploy/checkout-api --limits=memory=512Mi --requests=memory=256Mi",
-   "explain": "Double the memory limit (256Mi → 512Mi) so the service stops getting killed mid-request. This buys stability now; it does not fix why memory grew.",
+   "explain": "Double the memory limit (256Mi → 512Mi) so the service stops getting killed mid-request. This buys stability now. It does not fix why memory grew.",
    "risk": "medium",
    "diff": "Deployment/prod/checkout-api\n  spec.template.spec.containers[name=checkout-api].resources\n-   limits.memory: 256Mi\n+   limits.memory: 512Mi\n    requests.memory: 256Mi",
    "blast_radius": "1 Deployment · 3 pods restart · prod namespace · checkout-api only",
    "rbac_scope": "deployments.apps/get,patch · prod",
    "rollback": "kubectl -n prod set resources deploy/checkout-api --limits=memory=256Mi",
-   "followup": "Open a ticket on the memory growth itself — if it's a leak, the new limit only reschedules this page."
+   "followup": "Open a ticket on the memory growth itself. If it is a leak, the new limit only reschedules this page."
   },
   {
    "t": "approval",
@@ -91,7 +91,7 @@
   {
    "t": "verify",
    "result": "green",
-   "text": "All replicas Running and Ready — restarts flat. Standing down."
+   "text": "All replicas are Running and Ready. Restarts are flat. Standing down."
   }
  ],
  "id": "oom-crashloop",

@@ -1,0 +1,370 @@
+{
+  "id": "oom-recovery",
+  "title": "Memory limit recovery",
+  "tag": "OOM reschedule",
+  "summary": "One sandbox exceeds its memory limit. The orchestrator classifies the exit and retries the task with a larger limit on another node.",
+  "nodes": [
+    {
+      "id": "forge-node-a",
+      "cpuMillicores": 4000,
+      "memoryMiB": 8192,
+      "slots": ["a1", "a2"]
+    },
+    {
+      "id": "forge-node-b",
+      "cpuMillicores": 4000,
+      "memoryMiB": 8192,
+      "slots": ["b1", "b2"]
+    },
+    {
+      "id": "forge-node-c",
+      "cpuMillicores": 4000,
+      "memoryMiB": 8192,
+      "slots": ["c1", "c2"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TEST-180",
+      "image": "registry.local/test-agent:node22",
+      "permissions": ["net:none", "fs:repo-rw"],
+      "cpuMillicores": 750,
+      "memoryMiB": 256,
+      "timeoutSec": 120
+    },
+    {
+      "id": "IMG-4400",
+      "image": "registry.local/media-agent:py312",
+      "permissions": ["net:none", "fs:assets-rw"],
+      "cpuMillicores": 500,
+      "memoryMiB": 512,
+      "timeoutSec": 90
+    },
+    {
+      "id": "API-930",
+      "image": "registry.local/code-agent:go1.24",
+      "permissions": ["net:docs", "fs:repo-ro"],
+      "cpuMillicores": 750,
+      "memoryMiB": 512,
+      "timeoutSec": 90
+    }
+  ],
+  "events": [
+    {
+      "atMs": 0,
+      "type": "allocated",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "provisioning",
+      "startKind": "cold",
+      "memoryMiB": 256,
+      "message": "TEST-180 was assigned to forge-node-a with 256Mi.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-a-11 assigned to forge-node-a/a1"},
+        {"tone": "dim", "text": "[kube] creating pod with memory limit 256Mi"}
+      ]
+    },
+    {
+      "atMs": 150,
+      "type": "allocated",
+      "taskId": "IMG-4400",
+      "sandboxId": "sbx-b-07",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "provisioning",
+      "startKind": "warm",
+      "memoryMiB": 512,
+      "message": "IMG-4400 was assigned to forge-node-b.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-b-07 assigned to forge-node-b/b1"},
+        {"tone": "dim", "text": "[kube] reusing a warm pod template with memory limit 512Mi"}
+      ]
+    },
+    {
+      "atMs": 300,
+      "type": "allocated",
+      "taskId": "API-930",
+      "sandboxId": "sbx-a-12",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "provisioning",
+      "startKind": "warm",
+      "memoryMiB": 512,
+      "message": "API-930 was assigned to forge-node-a.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] sandbox sbx-a-12 assigned to forge-node-a/a2"},
+        {"tone": "dim", "text": "[kube] reusing a warm pod template with memory limit 512Mi"}
+      ]
+    },
+    {
+      "atMs": 450,
+      "type": "lifecycle",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "running",
+      "message": "sbx-a-11 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] pulled registry.local/test-agent:node22"},
+        {"tone": "ok", "text": "[agent] tool policy loaded: net:none, fs:repo-rw"}
+      ]
+    },
+    {
+      "atMs": 600,
+      "type": "lifecycle",
+      "taskId": "IMG-4400",
+      "sandboxId": "sbx-b-07",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "running",
+      "message": "sbx-b-07 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] image found in node cache"},
+        {"tone": "cmd", "text": "$ python tools/check_assets.py"}
+      ]
+    },
+    {
+      "atMs": 750,
+      "type": "lifecycle",
+      "taskId": "API-930",
+      "sandboxId": "sbx-a-12",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "running",
+      "message": "sbx-a-12 is running.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] image found in node cache"},
+        {"tone": "cmd", "text": "$ go test ./internal/client/..."}
+      ]
+    },
+    {
+      "atMs": 900,
+      "type": "lifecycle",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "streaming",
+      "message": "sbx-a-11 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "cmd", "text": "$ npm test -- --runInBand"},
+        {"tone": "out", "text": "PASS src/parser.test.js"},
+        {"tone": "out", "text": "building browser fixture 42 of 70"},
+        {"tone": "dim", "text": "[nats] publish forge.stdout.TEST-180 sequence=14"}
+      ]
+    },
+    {
+      "atMs": 1100,
+      "type": "lifecycle",
+      "taskId": "IMG-4400",
+      "sandboxId": "sbx-b-07",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "streaming",
+      "message": "sbx-b-07 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "out", "text": "checked 24 assets"},
+        {"tone": "out", "text": "0 missing references"},
+        {"tone": "dim", "text": "[nats] publish forge.result.IMG-4400 sequence=1"}
+      ]
+    },
+    {
+      "atMs": 1250,
+      "type": "lifecycle",
+      "taskId": "API-930",
+      "sandboxId": "sbx-a-12",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "streaming",
+      "message": "sbx-a-12 is streaming output over NATS.",
+      "terminal": [
+        {"tone": "out", "text": "ok   forge/internal/client   0.328s"},
+        {"tone": "dim", "text": "[nats] publish forge.result.API-930 sequence=1"}
+      ]
+    },
+    {
+      "atMs": 1500,
+      "type": "oom",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "failed",
+      "exitCode": 137,
+      "reason": "OOMKilled",
+      "memoryMiB": 256,
+      "message": "sbx-a-11 exited with code 137 after an OOM kill.",
+      "terminal": [
+        {"tone": "err", "text": "[kube] container terminated: OOMKilled"},
+        {"tone": "err", "text": "[agent] exit 137, no result envelope"}
+      ]
+    },
+    {
+      "atMs": 1700,
+      "type": "classified",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "failed",
+      "classification": "memory_limit",
+      "message": "The orchestrator classified TEST-180 as a memory limit failure.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] classified reason=memory_limit retryable=true"},
+        {"tone": "dim", "text": "[forge] next memory limit 768Mi"}
+      ]
+    },
+    {
+      "atMs": 1800,
+      "type": "completed",
+      "taskId": "IMG-4400",
+      "sandboxId": "sbx-b-07",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "IMG-4400 completed. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, result accepted"},
+        {"tone": "dim", "text": "[forge] revoking task credentials"}
+      ]
+    },
+    {
+      "atMs": 1950,
+      "type": "completed",
+      "taskId": "API-930",
+      "sandboxId": "sbx-a-12",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "API-930 completed. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, result accepted"},
+        {"tone": "dim", "text": "[forge] revoking task credentials"}
+      ]
+    },
+    {
+      "atMs": 2100,
+      "type": "freed",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-a-11",
+      "nodeId": "forge-node-a",
+      "slotId": "a1",
+      "state": "freed",
+      "message": "sbx-a-11 was destroyed and a1 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] failed pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2100ms"}
+      ]
+    },
+    {
+      "atMs": 2300,
+      "type": "rescheduled",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-c-04",
+      "nodeId": "forge-node-c",
+      "slotId": "c1",
+      "state": "provisioning",
+      "startKind": "cold",
+      "memoryMiB": 768,
+      "retryOf": "sbx-a-11",
+      "message": "TEST-180 was rescheduled on forge-node-c with 768Mi.",
+      "terminal": [
+        {"tone": "dim", "text": "[forge] retry 2 assigned to forge-node-c/c1"},
+        {"tone": "dim", "text": "[kube] creating pod with memory limit 768Mi"}
+      ]
+    },
+    {
+      "atMs": 2400,
+      "type": "freed",
+      "taskId": "IMG-4400",
+      "sandboxId": "sbx-b-07",
+      "nodeId": "forge-node-b",
+      "slotId": "b1",
+      "state": "freed",
+      "message": "sbx-b-07 was destroyed and b1 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2250ms"}
+      ]
+    },
+    {
+      "atMs": 2500,
+      "type": "freed",
+      "taskId": "API-930",
+      "sandboxId": "sbx-a-12",
+      "nodeId": "forge-node-a",
+      "slotId": "a2",
+      "state": "freed",
+      "message": "sbx-a-12 was destroyed and a2 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 2200ms"}
+      ]
+    },
+    {
+      "atMs": 2750,
+      "type": "lifecycle",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-c-04",
+      "nodeId": "forge-node-c",
+      "slotId": "c1",
+      "state": "running",
+      "message": "sbx-c-04 is running with the larger memory limit.",
+      "terminal": [
+        {"tone": "dim", "text": "[containerd] pulled registry.local/test-agent:node22"},
+        {"tone": "ok", "text": "[agent] retry context loaded from attempt 1"}
+      ]
+    },
+    {
+      "atMs": 3100,
+      "type": "lifecycle",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-c-04",
+      "nodeId": "forge-node-c",
+      "slotId": "c1",
+      "state": "streaming",
+      "message": "sbx-c-04 is streaming retry output over NATS.",
+      "terminal": [
+        {"tone": "cmd", "text": "$ npm test -- --runInBand"},
+        {"tone": "out", "text": "PASS src/parser.test.js"},
+        {"tone": "out", "text": "PASS src/browser-fixture.test.js"},
+        {"tone": "out", "text": "70 tests passed"},
+        {"tone": "dim", "text": "[nats] publish forge.result.TEST-180 sequence=2"}
+      ]
+    },
+    {
+      "atMs": 3800,
+      "type": "completed",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-c-04",
+      "nodeId": "forge-node-c",
+      "slotId": "c1",
+      "state": "tearing_down",
+      "exitCode": 0,
+      "message": "TEST-180 completed on retry. Teardown started.",
+      "terminal": [
+        {"tone": "ok", "text": "[agent] exit 0, retry result accepted"},
+        {"tone": "dim", "text": "[forge] revoking task credentials"}
+      ]
+    },
+    {
+      "atMs": 4200,
+      "type": "freed",
+      "taskId": "TEST-180",
+      "sandboxId": "sbx-c-04",
+      "nodeId": "forge-node-c",
+      "slotId": "c1",
+      "state": "freed",
+      "message": "sbx-c-04 was destroyed and c1 was freed.",
+      "terminal": [
+        {"tone": "dim", "text": "[kube] pod deleted"},
+        {"tone": "ok", "text": "[forge] sandbox lifetime closed at 1900ms"}
+      ]
+    }
+  ]
+}

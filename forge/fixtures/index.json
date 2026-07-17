@@ -1,0 +1,14 @@
+{
+  "fixtures": [
+    {
+      "file": "steady-run.json",
+      "title": "Three task drain",
+      "tag": "steady scheduling"
+    },
+    {
+      "file": "oom-recovery.json",
+      "title": "Memory limit recovery",
+      "tag": "OOM reschedule"
+    }
+  ]
+}

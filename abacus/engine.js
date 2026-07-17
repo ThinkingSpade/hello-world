@@ -1,4 +1,4 @@
-/* Abacus browser engine — a faithful port of abacus/parser.py +
+/* Abacus browser engine: a faithful port of abacus/parser.py +
  * semantics.py + engine.py, driven by the same manifest.json. The
  * 35-question golden eval (goldens.json, frozen by the Python engine)
  * pins the two implementations together; the page lets you run it live.
@@ -183,7 +183,7 @@ const Abacus = (() => {
     const mhits = find(q, MAN.metrics);
     if (!mhits.length) {
       const known = Object.values(MAN.metrics).flatMap((m) => m.syn.slice(0, 2)).sort();
-      throw new Error("no metric recognized — try one of: " + [...new Set(known)].join(", "));
+      throw new Error("no metric recognized. Try one of: " + [...new Set(known)].join(", "));
     }
     mhits.sort((a, b) => (b[2] - a[2]) || (a[1] - b[1]));
     const metric = mhits[0][0];
@@ -325,7 +325,7 @@ const Abacus = (() => {
   const nf = (v, min, max) => v.toLocaleString("en-US",
     { minimumFractionDigits: min, maximumFractionDigits: max });
   function fmt(v, kind) {
-    if (v === null || v === undefined) return "—";
+    if (v === null || v === undefined) return "not available";
     if (kind === "money") {
       if (Math.abs(v) >= 1e6) return "$" + nf(v / 1e6, 2, 2) + "M";
       if (Math.abs(v) >= 1e3) return "$" + nf(v / 1e3, 1, 1) + "K";
@@ -365,7 +365,7 @@ const Abacus = (() => {
       const chg = rows[0] && last(rows[0]) ? 100 * (last(rows[rows.length - 1]) - last(rows[0])) / Math.abs(last(rows[0])) : 0;
       const isSum = m.additive !== undefined ? m.additive : kind === "money" || kind === "int";
       const agg = isSum ? fmt(total, kind) : fmt(total / vals.length, kind);
-      return `${label}${where} by ${dim0}, ${t}: ${isSum ? "total" : "average"} ${agg} across ${rows.length} ${dim0}s — peak ${peak[0]} at ${fmt(last(peak), kind)}, ${chg >= 0 ? "+" : ""}${nf(chg, 1, 1)}% first-to-last.`;
+      return `${label}${where} by ${dim0}, ${t}: ${isSum ? "total" : "average"} ${agg} across ${rows.length} ${dim0}s. ${peak[0]} peaks at ${fmt(last(peak), kind)}. The first period to last period change is ${chg >= 0 ? "+" : ""}${nf(chg, 1, 1)}%.`;
     }
     const top = rows[0];
     let line = `${label}${where} by ${dim0}, ${t}: ${top[0]} leads at ${fmt(last(top), kind)}`;
@@ -380,7 +380,7 @@ const Abacus = (() => {
     return line + ".";
   }
 
-  /* ---------------- LLM planner (BYO key — validated, never writes SQL) --- */
+  /* ---------------- LLM planner (BYO key, validated, never writes SQL) --- */
   function llmPrompt(question) {
     return `You are Abacus's query planner. Map the user's question onto this semantic layer and reply with ONLY a JSON object, no prose, no code fences.
 
@@ -463,12 +463,18 @@ Question: ${question}`;
   }
 
   /* ---------------- init ---------------- */
+  async function fetchResource(path, type) {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`${type} request failed with status ${response.status}`);
+    return type === "manifest" ? response.json() : response.arrayBuffer();
+  }
+
   async function init(paths) {
     const [SQL, manRes, dbRes] = await Promise.all([
       initSqlJs({ locateFile: (f) => paths.vendor + f }),
-      fetch(paths.manifest).then((r) => r.json()),
+      fetchResource(paths.manifest, "manifest"),
       paths.dbData ? Promise.resolve(paths.dbData)
-                   : fetch(paths.db).then((r) => r.arrayBuffer()),
+                   : fetchResource(paths.db, "warehouse"),
     ]);
     SQLMOD = SQL;
     mount({ manifest: manRes, dbData: dbRes });
@@ -740,11 +746,11 @@ Question: ${question}`;
 
   function narrateRetention(ret) {
     const rows = ret.matrix.filter((r) => r.cells.length >= 2 && r.size >= 50);
-    if (!rows.length) return "Cohort retention computed — matrix below.";
+    if (!rows.length) return "Cohort retention is computed. The matrix is below.";
     const q1 = rows.map((r) => r.cells[1]);
     const best = rows.reduce((a, b) => a.cells[1] >= b.cells[1] ? a : b);
     const worst = rows.reduce((a, b) => a.cells[1] <= b.cells[1] ? a : b);
-    return `Behavioral cohorts (quarter of first purchase): next-quarter retention averages ${Math.round(q1.reduce((a, b) => a + b, 0) / q1.length)}% across ${rows.length} cohorts — best ${best.cohort} at ${Math.round(best.cells[1])}%, softest ${worst.cohort} at ${Math.round(worst.cells[1])}%. Every row starts at 100% by construction (the first purchase defines the cohort).`;
+    return `Behavioral cohorts use the quarter of first purchase. Next-quarter retention averages ${Math.round(q1.reduce((a, b) => a + b, 0) / q1.length)}% across ${rows.length} cohorts. ${best.cohort} is highest at ${Math.round(best.cells[1])}%. ${worst.cohort} is lowest at ${Math.round(worst.cells[1])}%. Every row starts at 100% because the first purchase defines the cohort.`;
   }
 
   function anomalyScan(time, zFloor = 2.0) {
@@ -797,7 +803,7 @@ Question: ${question}`;
 
   function narrateAnomalies(an) {
     if (!an.flags.length)
-      return `Scanned ${an.queries} series over ${an.window} — nothing beats the ${an.method} bar. A quiet warehouse is a finding too.`;
+      return `Scanned ${an.queries} series over ${an.window}. No change crossed the ${an.method} threshold.`;
     const f0 = an.flags[0];
     return `Scanned ${an.queries} metric series over ${an.window} (${an.method}): ${an.flags.length} months flagged. Loudest: ${f0.series} in ${f0.month}, ${f0.mom_pct >= 0 ? "+" : ""}${nf(f0.mom_pct, 1, 1)}% month-over-month (z ${f0.z >= 0 ? "+" : ""}${nf(f0.z, 1, 1)}).`;
   }

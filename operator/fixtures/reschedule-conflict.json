@@ -1,0 +1,182 @@
+{
+  "id": "CALL-2077",
+  "title": "Conflict and reschedule",
+  "label": "Move appointment",
+  "recordedAt": "July 17, 2026 at 11:42 AM",
+  "phone": "+1 571 *** 4430",
+  "calendar": {
+    "weekLabel": "July 20 to July 24, 2026",
+    "days": [
+      {
+        "label": "Mon",
+        "date": "Jul 20",
+        "slots": [
+          { "id": "mon-1000", "time": "10:00", "state": "open" },
+          { "id": "mon-1300", "time": "1:00", "state": "open" },
+          { "id": "mon-1600", "time": "4:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Tue",
+        "date": "Jul 21",
+        "slots": [
+          { "id": "tue-0900", "time": "9:00", "state": "open" },
+          { "id": "tue-1230", "time": "12:30", "state": "open" },
+          { "id": "tue-1530", "time": "3:30", "state": "open" }
+        ]
+      },
+      {
+        "label": "Wed",
+        "date": "Jul 22",
+        "slots": [
+          { "id": "wed-1030", "time": "10:30", "state": "open" },
+          { "id": "wed-1400", "time": "2:00", "state": "open" },
+          { "id": "wed-1630", "time": "4:30", "state": "open" }
+        ]
+      },
+      {
+        "label": "Thu",
+        "date": "Jul 23",
+        "slots": [
+          { "id": "thu-1000", "time": "10:00", "state": "open" },
+          { "id": "thu-1400", "time": "2:00", "state": "confirmed", "note": "Carmen Ruiz, current appointment" },
+          { "id": "thu-1600", "time": "4:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Fri",
+        "date": "Jul 24",
+        "slots": [
+          { "id": "fri-1530", "time": "3:30", "state": "open" },
+          { "id": "fri-1600", "time": "4:00", "state": "open" },
+          { "id": "fri-1630", "time": "4:30", "state": "open" }
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "speaker": "agent",
+      "text": "Thanks for calling Northline Dental. This is Alex. How can I help?",
+      "playbackMs": 2720,
+      "latency": { "hear": 0, "think": 109, "speak": 282 },
+      "understanding": {
+        "confidence": 100,
+        "callerName": "Not captured",
+        "need": "Waiting for caller",
+        "time": "Not captured",
+        "phone": "+1 571 *** 4430",
+        "intent": "Open call",
+        "next": "Ask how the caller can be helped"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "This is Carmen Ruiz. I need to move my Thursday 2:00 appointment to Friday at 4:00.",
+      "playbackMs": 3440,
+      "latency": { "hear": 318, "think": 241, "speak": 516 },
+      "understanding": {
+        "confidence": 92,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday at 4:00 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Reschedule appointment",
+        "next": "Check requested slot"
+      },
+      "calendar": [
+        { "slot": "fri-1600", "state": "conflict", "note": "Requested slot is already occupied" }
+      ]
+    },
+    {
+      "speaker": "agent",
+      "text": "Friday at 4:00 is taken. I can do 3:30 or 4:30. Which works better?",
+      "playbackMs": 2920,
+      "latency": { "hear": 318, "think": 241, "speak": 516 },
+      "understanding": {
+        "confidence": 95,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday at 3:30 PM or 4:30 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Negotiate alternate slot",
+        "next": "Wait for alternate choice"
+      },
+      "calendar": [
+        { "slot": "fri-1530", "state": "hold", "note": "Alternate offered to Carmen" },
+        { "slot": "fri-1630", "state": "hold", "note": "Alternate offered to Carmen" }
+      ]
+    },
+    {
+      "speaker": "caller",
+      "text": "Let us do 4:30.",
+      "playbackMs": 1120,
+      "latency": { "hear": 184, "think": 158, "speak": 331 },
+      "understanding": {
+        "confidence": 98,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday, July 24 at 4:30 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Choose alternate slot",
+        "next": "Verify callback number"
+      },
+      "calendar": [
+        { "slot": "fri-1530", "state": "open", "note": "Alternate released" },
+        { "slot": "fri-1630", "state": "hold", "note": "Held for Carmen" }
+      ]
+    },
+    {
+      "speaker": "agent",
+      "text": "I have Friday, July 24 at 4:30 PM on hold. Should I keep the same phone number?",
+      "playbackMs": 3160,
+      "latency": { "hear": 184, "think": 158, "speak": 331 },
+      "understanding": {
+        "confidence": 98,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday, July 24 at 4:30 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Verify contact",
+        "next": "Wait for phone confirmation"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "Yes, use the same number.",
+      "playbackMs": 1480,
+      "latency": { "hear": 203, "think": 146, "speak": 389 },
+      "understanding": {
+        "confidence": 99,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday, July 24 at 4:30 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Confirm contact",
+        "next": "Write reschedule to calendar"
+      },
+      "calendar": [
+        { "slot": "thu-1400", "state": "open", "note": "Previous appointment released" },
+        { "slot": "fri-1630", "state": "confirmed", "note": "Carmen Ruiz, rescheduled appointment" }
+      ]
+    },
+    {
+      "speaker": "agent",
+      "text": "Done. Your appointment is now Friday, July 24 at 4:30 PM. Your Thursday slot is open again.",
+      "playbackMs": 3680,
+      "latency": { "hear": 203, "think": 146, "speak": 389 },
+      "understanding": {
+        "confidence": 99,
+        "callerName": "Carmen Ruiz",
+        "need": "Move existing appointment",
+        "time": "Friday, July 24 at 4:30 PM",
+        "phone": "+1 571 *** 4430",
+        "intent": "Confirm reschedule",
+        "next": "Close call"
+      },
+      "calendar": []
+    }
+  ]
+}

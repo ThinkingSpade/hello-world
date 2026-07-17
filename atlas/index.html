@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Atlas — ops knowledge agent</title>
+<title>Atlas: ops knowledge agent</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3' y='3' width='10' height='10' fill='%232547c9'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -722,6 +722,90 @@
   .preview-retry { margin-top: 10px; }
 
   #citations { grid-row: 2 / span 4; }
+  .honesty {
+    width: fit-content; max-width: 100%; margin: 12px auto 0; padding: 7px 10px;
+    border: 2px dashed var(--pi-ink); background: var(--pi-panel);
+    color: var(--pi-muted); font: 12px/1.5 var(--pi-font-code);
+  }
+  .ask-workbench {
+    display: grid; grid-template-columns: minmax(0, 1fr) 276px; gap: 18px; align-items: start;
+  }
+  .ask-main { min-width: 0; }
+  .answer-head {
+    grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; min-height: 50px; padding: 6px 8px 6px 12px;
+  }
+  .answer-head h2 {
+    color: var(--pi-ink); font-family: var(--pi-font-title); font-size: 10px;
+    line-height: 1.5; letter-spacing: .04em; text-transform: lowercase;
+  }
+  #pin-answer,
+  #workspace-export,
+  .workspace-remove,
+  .map-controls .pbtn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px;
+  }
+  #pin-answer[disabled],
+  #workspace-export[disabled],
+  .map-controls .pbtn[disabled],
+  #map-scrub[disabled] { opacity: .55; cursor: not-allowed; }
+  #answer-interpreted {
+    grid-column: 1; margin: 14px 20px 0; padding: 10px 12px;
+    border: 2px solid var(--pi-ink); background: var(--pi-term-bg); color: var(--pi-term-fg);
+    font: 12px/1.6 var(--pi-font-code); overflow-wrap: anywhere;
+  }
+  #answer-interpreted[hidden] { display: none; }
+  .nearest-docs {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none;
+  }
+  .nearest-docs .nearest-chip {
+    display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 10px;
+    color: var(--pi-ink); background: var(--pi-accent-soft); border: 2px solid var(--pi-ink);
+    font: 700 12px/1.35 var(--pi-font-ui); letter-spacing: 0; text-align: left;
+    text-transform: none; white-space: normal;
+  }
+  .nearest-kind { color: var(--pi-accent); letter-spacing: .04em; text-transform: uppercase; }
+  .workspace {
+    position: sticky; top: 12px; min-width: 0; overflow: hidden; background: var(--pi-panel);
+  }
+  .workspace .pwin-title {
+    min-height: 44px; padding: 9px 10px; font-size: 10px; line-height: 1.5;
+  }
+  .workspace-body { padding: 12px; }
+  .workspace-copy { color: var(--pi-muted); font-size: 12px; line-height: 1.55; }
+  .workspace-actions { display: grid; margin-top: 10px; }
+  #workspace-list { display: grid; gap: 10px; margin-top: 12px; }
+  .workspace-empty {
+    padding: 14px 10px; border: 2px dashed var(--pi-line); color: var(--pi-muted);
+    font-size: 12px; line-height: 1.5; text-align: center;
+  }
+  .workspace-item { padding: 10px; border: 2px solid var(--pi-ink); background: var(--pi-paper); }
+  .workspace-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .workspace-item strong { font: 700 12px/1.45 var(--pi-font-ui); overflow-wrap: anywhere; }
+  .workspace-item p { margin-top: 7px; color: var(--pi-muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+  .workspace-item .pchip { display: inline-block; margin-top: 8px; font-size: 12px; }
+  .workspace-remove { flex: none; min-width: 44px; padding: 6px; box-shadow: none; }
+  .map-controls {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px 16px;
+  }
+  #map-scrub {
+    flex: 1; min-width: 150px; min-height: 44px; accent-color: var(--pi-accent); cursor: pointer;
+  }
+  #map-clock {
+    min-width: 76px; color: var(--pi-muted); font: 12px/1.4 var(--pi-font-code); text-align: right;
+  }
+  #map-loadstate {
+    margin: 12px 16px 0; padding: 9px 10px; border: 2px solid var(--pi-ink);
+    background: var(--pi-paper); color: var(--pi-muted); font: 12px/1.5 var(--pi-font-code);
+  }
+  #map-loadstate[hidden] { display: none; }
+  #map-loadstate .pbtn { margin-left: 8px; }
+  .query-plan .pchip,
+  .meta-badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
   @media (max-width: 700px) {
     #answer-plan,
     #answer-warnings { grid-column: 1; margin: 0 14px 12px; }
@@ -729,25 +813,40 @@
     #citations { grid-row: auto; }
     table.answer-table { min-width: 0; }
   }
+  @media (max-width: 960px) {
+    .ask-workbench { grid-template-columns: 1fr; }
+    .workspace { position: static; }
+    #workspace-list { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .answer-head { align-items: stretch; flex-direction: column; }
+    #pin-answer { width: 100%; }
+    #answer-interpreted { margin-inline: 14px; }
+    .map-controls { align-items: stretch; padding-inline: 10px; }
+    .map-controls .pbtn { flex: 1 1 120px; }
+    #map-scrub { flex-basis: 100%; order: 3; }
+    #map-clock { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>ATLAS<span class="dot">_</span></h1>
-    <p class="tagline">knowledge agent for ops — runbooks · incidents · live system state</p>
-    <div class="badges pstrip" id="health-badges"></div>
-    <div class="dataset-bar hide" id="dataset-bar"></div>
+    <p class="tagline">Ops knowledge from runbooks, incidents, and recorded system state.</p>
+    <div class="honesty pstrip">interactive recreation of the private system, replaying recorded fixtures</div>
+    <div class="badges pstrip" id="health-badges">loading status...</div>
+    <div class="dataset-bar" id="dataset-bar" role="status" aria-live="polite"><span class="pstrip">loading corpus choices...</span></div>
   </header>
 
   <nav class="tabs" aria-label="Atlas views">
-    <button id="tab-data" class="tab pbtn pstep active"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>THE DATA</button>
-    <button id="tab-ask" class="tab pbtn pstep"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg>ASK ATLAS</button>
+    <button id="tab-data" class="tab pbtn pstep active" aria-pressed="true"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>THE DATA</button>
+    <button id="tab-ask" class="tab pbtn pstep" aria-pressed="false"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg>ASK ATLAS</button>
   </nav>
 
   <section id="view-data" class="view">
     <div class="card pwin">
-      <div id="data-stats" class="data-stats pstrip">loading corpus…</div>
+      <div id="data-stats" class="data-stats pstrip" role="status" aria-live="polite">loading corpus...</div>
       <div class="explorer">
         <ul id="file-list" class="pwin" aria-label="Corpus files"></ul>
         <div id="preview" class="pwin">
@@ -770,54 +869,92 @@
   </form>
   <div class="samples" id="samples"></div>
 
-  <section class="card pwin hide" id="answer-card">
-    <h2 class="pwin-title">Answer</h2>
-    <div id="answer-text" aria-live="polite"></div>
-    <div id="answer-plan"></div>
-    <div id="answer-warnings" aria-live="polite"></div>
-    <div id="answer-meta"></div>
-    <div id="citations"></div>
-  </section>
+  <div class="ask-workbench">
+    <main class="ask-main">
+      <section class="card pwin hide" id="answer-card">
+        <div class="answer-head pwin-title">
+          <h2 id="answer-title">Answer</h2>
+          <button type="button" class="pbtn" id="pin-answer" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>pin answer</button>
+        </div>
+        <div id="answer-interpreted" class="pterm" role="status" aria-live="polite" hidden></div>
+        <div id="answer-text" aria-live="polite"></div>
+        <div id="answer-plan"></div>
+        <div id="answer-warnings" aria-live="polite"></div>
+        <div id="answer-meta"></div>
+        <div id="citations"></div>
+      </section>
 
-  <section class="card pwin" id="map-card">
-    <div class="map-head pwin-title">
-      <h2>Embedding space — the real vectors, projected to 2D</h2>
-      <button type="button" class="pbtn pstep" id="map-replay" title="Replay the ingest sequence"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg>replay ingest</button>
-    </div>
-    <div id="map-wrap">
-      <canvas id="map-canvas" aria-label="2D map of corpus chunk embeddings"></canvas>
-      <div id="map-tip"></div>
-    </div>
-    <div class="map-legend">
-      <span><i class="sw sw-runbook"></i>runbook</span>
-      <span><i class="sw sw-incident"></i>incident</span>
-      <span><i class="sw sw-dataset"></i>dataset (csv)</span>
-      <span><i class="sw sw-reference"></i>reference (pdf)</span>
-      <span><i class="sw sw-diagram"></i>diagram (image)</span>
-      <span><i class="sw sw-query"></i>your question</span>
-    </div>
-    <p class="map-hint">Each dot is one chunk of a real doc, embedded and PCA-projected —
-      hover to see its vector fingerprint. Ask a question and watch it land among
-      its nearest chunks; lines connect to what got cited.</p>
-  </section>
+      <section class="card pwin" id="map-card">
+        <div class="map-head pwin-title">
+          <h2>Embedding space: real vectors projected to 2D</h2>
+        </div>
+        <div id="map-loadstate" class="pstrip" role="status" aria-live="polite">loading vector map...</div>
+        <div id="map-wrap">
+          <canvas id="map-canvas" aria-label="2D map of corpus chunk embeddings"></canvas>
+          <div id="map-tip"></div>
+        </div>
+        <div class="map-controls" role="group" aria-label="Ingest replay controls">
+          <button type="button" class="pbtn primary" id="map-play" aria-pressed="false" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>play</button>
+          <button type="button" class="pbtn" id="map-restart" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg>restart</button>
+          <input type="range" id="map-scrub" min="0" max="4" value="4" step="1" aria-label="Scrub ingest replay" disabled>
+          <span id="map-clock">step 4 / 4</span>
+        </div>
+        <div class="map-legend">
+          <span><i class="sw sw-runbook"></i>runbook</span>
+          <span><i class="sw sw-incident"></i>incident</span>
+          <span><i class="sw sw-dataset"></i>dataset, CSV</span>
+          <span><i class="sw sw-reference"></i>reference, PDF</span>
+          <span><i class="sw sw-diagram"></i>diagram, image</span>
+          <span><i class="sw sw-query"></i>your question</span>
+        </div>
+        <p class="map-hint">Each dot is one chunk from a recorded document, projected into two dimensions. Hover to inspect its vector fingerprint. Ask a question to see where it lands. Lines connect the answer to its citations.</p>
+        <div class="sr-only" id="map-a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
+      </section>
+    </main>
+
+    <aside class="workspace pwin" aria-labelledby="workspace-title">
+      <div class="pwin-title" id="workspace-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>incident workspace</div>
+      <div class="workspace-body">
+        <p class="workspace-copy">Pin useful answers here. Export the set when the incident handoff is ready.</p>
+        <div class="workspace-actions">
+          <button type="button" class="pbtn" id="workspace-export" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"/></svg>export markdown</button>
+        </div>
+        <div id="workspace-list" aria-live="polite"><div class="workspace-empty">No pinned answers yet.</div></div>
+      </div>
+    </aside>
+  </div>
   </section><!-- /view-ask -->
 
 
-  <footer>atlas · cited answers only — if it isn't in the corpus, it says so</footer>
-</div>
-
+  <footer>Atlas gives cited answers. If the corpus does not cover a question, Atlas says so.</footer>
 </div>
 
 <script src="engine.js"></script>
 <script>
+  "use strict";
   const $ = (id) => document.getElementById(id);
+  const spriteIcon = (id) => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "pi-ic");
+    svg.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", `/shared/icons.svg#${id}`);
+    svg.appendChild(use);
+    return svg;
+  };
 
-  // API layer — the static in-browser build (see engine.js) injects
+  async function fetchJson(url, options) {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    return response.json();
+  }
+
+  // The static browser build injects an API with the same response shapes.
   // window.AtlasStaticApi with the same four methods and response shapes.
   const api = window.AtlasStaticApi || {
-    health: () => fetch("/api/health").then((r) => r.json()),
-    docs: () => fetch("/api/docs").then((r) => r.json()),
-    map: () => fetch("/api/map").then((r) => r.json()),
+    health: () => fetchJson("/api/health"),
+    docs: () => fetchJson("/api/docs"),
+    map: () => fetchJson("/api/map"),
     ask: async (question) => {
       const res = await fetch("/api/ask", {
         method: "POST",
@@ -837,11 +974,66 @@
     "Who approved the rollback during the July outage?",
     "What was our compute cost in June 2024?",
     "Who is on call the week of 2025-03?",
-    "Postgres primary is unhealthy — how do I fail over?",
+    "Postgres primary is unhealthy. How do I fail over?",
     "A pod is in CrashLoopBackOff, what do I check first?",
   ];
   let askRequestId = 0;
   let datasetRequestId = 0;
+  let conversationContext = null;
+  let currentAnswer = null;
+  let currentPinId = null;
+  let workspaceCounter = 0;
+  const workspaceItems = [];
+
+  const MONTH_PATTERN = "january|february|march|april|may|june|july|august|september|october|november|december";
+
+  function looksLikeFollowUp(question) {
+    const words = question.trim().split(/\s+/);
+    if (words.length > 16) return false;
+    return /^(?:and|also|what about|how about)\b/i.test(question) ||
+      /\b(?:that|this|it|those|them|same|previous)\b/i.test(question) ||
+      new RegExp(`^(?:in|during|for)\\s+(?:${MONTH_PATTERN}|(?:19|20)\\d{2}(?:-(?:0[1-9]|1[0-2]))?)\\b`, "i").test(question) ||
+      new RegExp(`^(?:${MONTH_PATTERN})\\b`, "i").test(question);
+  }
+
+  function inheritedYear(question) {
+    const monthYear = question.match(new RegExp(`\\b(?:${MONTH_PATTERN})\\s+((?:19|20)\\d{2})\\b`, "i"));
+    if (monthYear) return monthYear[1];
+    return question.match(/\b((?:19|20)\d{2})-(?:0[1-9]|1[0-2])\b/)?.[1] || "";
+  }
+
+  function temporalFollowUp(question, previous) {
+    const month = question.match(new RegExp(`\\b(${MONTH_PATTERN})(?:\\s+((?:19|20)\\d{2}))?\\b`, "i"));
+    const iso = question.match(/\b((?:19|20)\d{2})-(0[1-9]|1[0-2])\b/);
+    if (!month && !iso) return null;
+    let phrase;
+    if (iso) phrase = iso[0];
+    else {
+      const name = month[1][0].toUpperCase() + month[1].slice(1).toLowerCase();
+      const year = month[2] || inheritedYear(previous);
+      phrase = year ? `${name} ${year}` : name;
+    }
+    const previousMonth = new RegExp(`\\b(?:${MONTH_PATTERN})(?:\\s+(?:19|20)\\d{2})?\\b`, "i");
+    const previousIso = /\b(?:19|20)\d{2}-(?:0[1-9]|1[0-2])\b/;
+    if (previousMonth.test(previous)) return previous.replace(previousMonth, phrase);
+    if (previousIso.test(previous)) return previous.replace(previousIso, phrase);
+    return null;
+  }
+
+  function resolveQuestion(rawQuestion) {
+    const raw = rawQuestion.trim();
+    if (!conversationContext || !looksLikeFollowUp(raw)) return { raw, resolved: raw, changed: false };
+    const previous = conversationContext.resolved;
+    const temporal = temporalFollowUp(raw, previous);
+    if (temporal) return { raw, resolved: temporal, changed: temporal !== raw };
+    let followUp = raw.replace(/^(?:and|also)\s+/i, "").trim();
+    const topic = previous.replace(/[?.!]+$/, "");
+    followUp = followUp.replace(/\b(?:that|this|it|those|them)\b/gi, `the subject of "${topic}"`);
+    const source = conversationContext.response?.plan?.source;
+    const sourceContext = source ? ` Source context: ${source}.` : "";
+    const resolved = `${followUp}${/[?.!]$/.test(followUp) ? "" : "?"}${sourceContext}`;
+    return { raw, resolved, changed: resolved !== raw };
+  }
 
   function setAskPending(pending) {
     $("q").disabled = pending;
@@ -852,7 +1044,8 @@
 
   function showAskError(message) {
     $("answer-card").classList.remove("hide");
-    $("answer-card").querySelector("h2").textContent = "Answer error";
+    $("answer-title").textContent = "Answer error";
+    $("answer-interpreted").hidden = true;
     $("answer-text").classList.remove("spin");
     $("answer-text").replaceChildren();
     const e = document.createElement("span");
@@ -862,6 +1055,9 @@
     $("answer-warnings").replaceChildren();
     $("answer-meta").replaceChildren();
     $("citations").replaceChildren();
+    currentAnswer = null;
+    currentPinId = null;
+    setPinButton("pin answer", true);
   }
 
   function renderDocumentList(block, target) {
@@ -870,13 +1066,17 @@
       label.className = "answer-copy"; label.textContent = block.label + ":";
       target.appendChild(label);
     }
-    const list = document.createElement("ul");
+    const list = document.createElement("div");
     list.className = "nearest-docs";
     for (const doc of block.documents || []) {
-      const item = document.createElement("li");
       const button = document.createElement("button");
-      button.type = "button"; button.className = "pbtn pstep";
-      button.textContent = `${doc.doc_title} - ${doc.doc_type}`;
+      button.type = "button"; button.className = "pchip pbtn nearest-chip";
+      button.appendChild(spriteIcon("i-doc"));
+      const title = document.createElement("span");
+      title.textContent = doc.doc_title;
+      const kind = document.createElement("span");
+      kind.className = "nearest-kind"; kind.textContent = doc.doc_type;
+      button.append(title, kind);
       button.addEventListener("click", () => {
         const source = docsById[doc.doc_id] || (doc.source ? {
           id: doc.doc_id, title: doc.doc_title, type: doc.doc_type,
@@ -884,7 +1084,7 @@
         } : null);
         if (source) { showTab("data"); selectDoc(source); }
       });
-      item.appendChild(button); list.appendChild(item);
+      list.appendChild(button);
     }
     target.appendChild(list);
   }
@@ -979,6 +1179,142 @@
     }
   }
 
+  function renderInterpreted(resolution) {
+    const host = $("answer-interpreted");
+    if (!resolution.changed) {
+      host.hidden = true;
+      host.textContent = "";
+      return;
+    }
+    host.textContent = `interpreted as: ${resolution.resolved}`;
+    host.hidden = false;
+  }
+
+  function setPinButton(label, disabled) {
+    const button = $("pin-answer");
+    button.replaceChildren(spriteIcon(label === "pinned" ? "i-check" : "i-doc"), document.createTextNode(label));
+    button.disabled = disabled;
+  }
+
+  function markdownCell(value) {
+    return String(value ?? "").replaceAll("|", "\\|").replaceAll("\n", "<br>");
+  }
+
+  function answerMarkdown(response) {
+    const parts = [];
+    const blocks = response.answer_blocks && response.answer_blocks.length
+      ? response.answer_blocks : [{ type: "text", text: response.answer || "No answer returned." }];
+    for (const block of blocks) {
+      if (block.type === "text") parts.push(block.text || "");
+      else if (block.type === "ol") {
+        parts.push((block.items || []).map((item, index) => {
+          const command = item.command ? `\n\n\`\`\`\n${item.command}\n\`\`\`` : "";
+          return `${index + 1}. ${item.text || ""}${command}`;
+        }).join("\n"));
+      } else if (block.type === "table") {
+        const columns = block.columns || [];
+        const rows = block.rows || [];
+        const table = [
+          `| ${columns.map(markdownCell).join(" | ")} |`,
+          `| ${columns.map(() => "---").join(" | ")} |`,
+          ...rows.map((row) => `| ${row.map(markdownCell).join(" | ")} |`),
+        ].join("\n");
+        parts.push(`${block.caption || "Matching rows"}\n\n${table}`);
+      } else if (block.type === "snapshot") {
+        parts.push(`Snapshot ${block.date}\n\n\`\`\`\n${(block.lines || []).join("\n")}\n\`\`\``);
+      } else if (block.type === "documents") {
+        const documents = (block.documents || []).map((doc, index) => `${index + 1}. ${doc.doc_title}, ${doc.doc_type}`).join("\n");
+        parts.push(`${block.label || "Documents"}\n\n${documents}`);
+      }
+    }
+    return parts.filter(Boolean).join("\n\n");
+  }
+
+  function citationsMarkdown(citations) {
+    if (!citations || !citations.length) return "No citations.";
+    return citations.map((citation, index) => {
+      const location = citation.section || "document";
+      const version = citation.document_version || "unknown";
+      const source = citation.source || "source unavailable";
+      return `${index + 1}. ${citation.doc_title}. ${location}. Version ${version}. Source: ${source}`;
+    }).join("\n");
+  }
+
+  function renderWorkspace() {
+    const host = $("workspace-list");
+    host.replaceChildren();
+    $("workspace-export").disabled = workspaceItems.length === 0;
+    if (!workspaceItems.length) {
+      const empty = document.createElement("div");
+      empty.className = "workspace-empty"; empty.textContent = "No pinned answers yet.";
+      host.appendChild(empty);
+      return;
+    }
+    for (const item of workspaceItems) {
+      const card = document.createElement("article");
+      card.className = "workspace-item";
+      const head = document.createElement("div");
+      head.className = "workspace-item-head";
+      const question = document.createElement("strong");
+      question.textContent = item.rawQuestion;
+      const remove = document.createElement("button");
+      remove.type = "button"; remove.className = "workspace-remove pbtn";
+      remove.setAttribute("aria-label", `Remove pinned answer: ${item.rawQuestion}`);
+      remove.appendChild(spriteIcon("i-x"));
+      remove.addEventListener("click", () => {
+        const index = workspaceItems.findIndex((candidate) => candidate.id === item.id);
+        if (index >= 0) workspaceItems.splice(index, 1);
+        if (currentPinId === item.id) {
+          currentPinId = null;
+          if (currentAnswer) setPinButton("pin answer", false);
+        }
+        renderWorkspace();
+      });
+      head.append(question, remove);
+      const answer = document.createElement("p");
+      const plain = item.response.answer || "Answer saved.";
+      answer.textContent = plain.length > 150 ? plain.slice(0, 147).trimEnd() + "..." : plain;
+      const count = document.createElement("span");
+      count.className = "pchip";
+      const citationCount = item.response.citations?.length || 0;
+      count.textContent = `${citationCount} ${citationCount === 1 ? "citation" : "citations"}`;
+      card.append(head, answer, count);
+      host.appendChild(card);
+    }
+  }
+
+  function pinCurrentAnswer() {
+    if (!currentAnswer || currentPinId !== null) return;
+    const item = {
+      id: ++workspaceCounter,
+      rawQuestion: currentAnswer.rawQuestion,
+      interpretedQuestion: currentAnswer.interpretedQuestion,
+      response: currentAnswer.response,
+    };
+    workspaceItems.push(item);
+    currentPinId = item.id;
+    setPinButton("pinned", true);
+    renderWorkspace();
+  }
+
+  function exportWorkspace() {
+    if (!workspaceItems.length) return;
+    const sections = workspaceItems.map((item, index) => {
+      const interpreted = item.rawQuestion !== item.interpretedQuestion
+        ? `\n\nInterpreted as: ${item.interpretedQuestion}` : "";
+      return `## ${index + 1}. Question\n\n${item.rawQuestion}${interpreted}\n\n### Answer\n\n${answerMarkdown(item.response)}\n\n### Citations\n\n${citationsMarkdown(item.response.citations)}`;
+    });
+    const markdown = `# Atlas incident workspace\n\n${sections.join("\n\n")}\n`;
+    const url = URL.createObjectURL(new Blob([markdown], { type: "text/markdown;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = "atlas-incident-workspace.md";
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  $("pin-answer").addEventListener("click", pinCurrentAnswer);
+  $("workspace-export").addEventListener("click", exportWorkspace);
+
   function renderSamples(list) {
     const samplesBox = $("samples");
     samplesBox.replaceChildren();
@@ -1010,7 +1346,15 @@
         el.append(k + ": ", b);
         badges.appendChild(el);
       }
-    } catch { /* health is cosmetic */ }
+    } catch {
+      if (requestId !== datasetRequestId) return;
+      const badges = $("health-badges");
+      badges.replaceChildren(document.createTextNode("status unavailable "));
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.className = "pbtn"; retry.textContent = "retry";
+      retry.addEventListener("click", () => loadMeta(requestId));
+      badges.appendChild(retry);
+    }
     try {
       const d = await api.docs();
       if (requestId !== datasetRequestId) return;
@@ -1019,8 +1363,11 @@
       if (requestId !== datasetRequestId) return;
       $("file-list").replaceChildren();
       const li = document.createElement("li");
-      li.className = "err"; li.textContent = "failed to load corpus";
-      $("file-list").appendChild(li);
+      li.className = "err"; li.textContent = "Could not load the corpus. ";
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.className = "pbtn"; retry.textContent = "retry";
+      retry.addEventListener("click", () => loadMeta(requestId));
+      li.appendChild(retry); $("file-list").appendChild(li);
     }
   }
 
@@ -1031,17 +1378,22 @@
       showAskError(q ? "Enter at least 3 characters." : "Enter a question before asking Atlas.");
       return;
     }
+    const resolution = resolveQuestion(q);
     setAskPending(true);
     $("answer-card").classList.remove("hide");
-    $("answer-card").querySelector("h2").textContent = "Answer";
-    $("answer-text").textContent = "thinking…";
+    $("answer-title").textContent = "Answer";
+    $("answer-interpreted").hidden = true;
+    $("answer-text").textContent = "thinking...";
     $("answer-text").classList.add("spin");
     $("answer-plan").replaceChildren();
     $("answer-warnings").replaceChildren();
     $("answer-meta").replaceChildren();
     $("citations").replaceChildren();
+    currentAnswer = null;
+    currentPinId = null;
+    setPinButton("pin answer", true);
     try {
-      const a = await api.ask(q);
+      const a = await api.ask(resolution.resolved);
       if (requestId !== askRequestId) return;
       $("answer-text").classList.remove("spin");
       const stateTitles = {
@@ -1049,7 +1401,8 @@
         not_in_corpus: "Not in corpus",
         ambiguous: "Ambiguous",
       };
-      $("answer-card").querySelector("h2").textContent = stateTitles[a.answer_state] || "Answer";
+      $("answer-title").textContent = stateTitles[a.answer_state] || "Answer";
+      renderInterpreted(resolution);
       renderAnswer(a);
       renderPlan(a.plan);
       renderWarnings(a.warnings);
@@ -1118,6 +1471,9 @@
         cites.appendChild(box);
       }
       if (typeof updateMapFromAnswer === "function") updateMapFromAnswer(a);
+      currentAnswer = { rawQuestion: q, interpretedQuestion: resolution.resolved, response: a };
+      conversationContext = { raw: q, resolved: resolution.resolved, response: a };
+      setPinButton("pin answer", false);
     } catch (err) {
       if (requestId !== askRequestId) return;
       showAskError("error: " + err.message);
@@ -1137,12 +1493,13 @@
     $("view-ask").classList.toggle("hide", data);
     $("tab-data").classList.toggle("active", data);
     $("tab-ask").classList.toggle("active", !data);
+    $("tab-data").setAttribute("aria-pressed", String(data));
+    $("tab-ask").setAttribute("aria-pressed", String(!data));
     if (!data) {
       sizeMap();
       if (!askArmed) {
-        // first visit: the data you just browsed vectorizes into the map
         askArmed = true;
-        if (!MAP.reduced && MAP.pts.length) MAP.replayT0 = performance.now();
+        if (MAP.pts.length) restartMapPlayback();
         $("q").focus();
       }
       kick();
@@ -1156,7 +1513,7 @@
     if (!api.datasets) return;
     try {
       const { list, current } = await api.datasets();
-      if (!list || list.length < 2) return;
+      if (!list || list.length < 2) { $("dataset-bar").classList.add("hide"); return; }
       const bar = $("dataset-bar");
       bar.classList.remove("hide");
       const render = (activeSlug) => {
@@ -1165,6 +1522,7 @@
           const b = document.createElement("button");
           b.type = "button";
           b.className = "ds pbtn pstep" + (ds.slug === activeSlug ? " active" : "");
+          b.setAttribute("aria-pressed", String(ds.slug === activeSlug));
           b.textContent = ds.name;
           b.addEventListener("click", () => switchDataset(ds.slug));
           bar.appendChild(b);
@@ -1172,7 +1530,15 @@
       };
       render(current);
       window.__renderDatasetBar = render;
-    } catch { /* single-dataset builds have no manifest switcher */ }
+    } catch (error) {
+      const bar = $("dataset-bar");
+      bar.classList.remove("hide");
+      bar.replaceChildren(document.createTextNode(`Corpus choices unavailable. ${error.message} `));
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.className = "pbtn"; retry.textContent = "retry";
+      retry.addEventListener("click", initDatasets);
+      bar.appendChild(retry);
+    }
   }
 
   async function switchDataset(slug) {
@@ -1180,10 +1546,21 @@
     askRequestId++;
     setAskPending(false);
     cancelPreview();
+    const previousStats = $("data-stats").textContent;
+    $("data-stats").textContent = "loading selected corpus...";
     for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = true;
-    const changed = await api.setDataset(slug);
+    let changed;
+    try {
+      changed = await api.setDataset(slug);
+    } catch (error) {
+      if (requestId !== datasetRequestId) return;
+      $("data-stats").textContent = `Could not switch the corpus. ${error.message}`;
+      for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = false;
+      return;
+    }
     if (requestId !== datasetRequestId) return;
     if (!changed) {
+      $("data-stats").textContent = previousStats;
       for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = false;
       return;
     }
@@ -1195,12 +1572,17 @@
     $("answer-text").replaceChildren();
     $("answer-plan").replaceChildren();
     $("answer-warnings").replaceChildren();
+    $("answer-interpreted").hidden = true;
     $("citations").replaceChildren();
     $("answer-meta").replaceChildren();
     $("q").value = "";
+    conversationContext = null;
+    currentAnswer = null;
+    currentPinId = null;
+    setPinButton("pin answer", true);
     MAP.query = null; MAP.retrieved = new Set();
-    MAP.replayT0 = 0; askArmed = false;
-    showTab("data");   // land back on the raw data — the story restarts
+    invalidateMapPlayback(); MAP.step = MAP_MAX_STEP; askArmed = false;
+    showTab("data");
     await Promise.all([loadMeta(requestId), loadMapData(requestId)]);
     if (requestId !== datasetRequestId) return;
     for (const b of document.querySelectorAll("#dataset-bar .ds")) b.disabled = false;
@@ -1227,6 +1609,14 @@
   function buildExplorer(docs) {
     const ul = $("file-list");
     ul.replaceChildren();
+    if (!docs || !docs.length) {
+      const empty = document.createElement("li");
+      empty.className = "preview-empty"; empty.textContent = "This corpus has no files.";
+      ul.appendChild(empty);
+      $("preview-head").classList.add("hide");
+      $("preview-body").innerHTML = '<div class="preview-empty">There is nothing to preview.</div>';
+      return;
+    }
     let currentGroup = null;
     for (const doc of docs) {
       docsById[doc.id] = doc;
@@ -1252,7 +1642,7 @@
       li.appendChild(button);
       ul.appendChild(li);
     }
-    // land on a spreadsheet — the "excel sheet" first impression
+    // Land on a spreadsheet for the first preview.
     const first = docsById["ds-alert-history-2024"]
       || docs.find((d) => d.format === "csv") || docs[0];
     if (first) selectDoc(first);
@@ -1362,7 +1752,7 @@
     $("preview-head").classList.remove("hide");
     $("preview-kind").textContent = (doc.format || doc.type || "").toUpperCase();
     $("preview-kind").className = "t " + doc.type;
-    $("preview-name").textContent = doc.title + " — " + doc.source;
+    $("preview-name").textContent = doc.title + ": " + doc.source;
     const anchoredUrl = anchor && anchor.type === "page" ? `${url}#page=${anchor.page}` : url;
     $("preview-open").href = anchoredUrl;
     const body = $("preview-body");
@@ -1393,7 +1783,7 @@
         const count = document.createElement("div");
         count.className = "sheet-count";
         count.textContent = `${total.toLocaleString()} rows × ${rows[0] ? rows[0].length : 0} columns` +
-          (total > MAX_RENDER ? ` — showing the first ${MAX_RENDER.toLocaleString()}; "open file" for everything` : "");
+          (total > MAX_RENDER ? `. Showing the first ${MAX_RENDER.toLocaleString()}. Open the file to see every row.` : "");
         body.appendChild(count);
         if (!total) {
           const empty = document.createElement("div");
@@ -1432,9 +1822,26 @@
         if (firstEvidenceRow) requestAnimationFrame(() => firstEvidenceRow.scrollIntoView({ block: "center" }));
       } else if (doc.format === "image") {
         body.replaceChildren();
+        const imageLoading = document.createElement("div");
+        imageLoading.className = "preview-empty"; imageLoading.textContent = "loading image...";
         const img = document.createElement("img");
-        img.src = url; img.alt = doc.title;
-        body.appendChild(img);
+        img.alt = doc.title; img.hidden = true;
+        img.addEventListener("load", () => {
+          if (!isCurrent()) return;
+          imageLoading.remove(); img.hidden = false;
+        }, { once: true });
+        img.addEventListener("error", () => {
+          if (!isCurrent()) return;
+          body.replaceChildren();
+          const error = document.createElement("div");
+          error.className = "err"; error.textContent = "Could not load the image. ";
+          const retry = document.createElement("button");
+          retry.type = "button"; retry.className = "pbtn preview-retry"; retry.textContent = "retry";
+          retry.addEventListener("click", () => selectDoc(doc, anchor));
+          body.append(error, retry);
+        }, { once: true });
+        body.append(imageLoading, img);
+        img.src = url;
         await showText(url + ".md", true).catch(() => {});
       } else if (doc.format === "pdf") {
         body.replaceChildren();
@@ -1464,9 +1871,23 @@
           mobile.append(docIcon, format, open);
           body.appendChild(mobile);
         } else {
+          const pdfLoading = document.createElement("div");
+          pdfLoading.className = "preview-empty"; pdfLoading.textContent = "loading PDF...";
           const frame = document.createElement("iframe");
-          frame.src = anchoredUrl; frame.title = doc.title;
-          body.appendChild(frame);
+          frame.title = doc.title; frame.hidden = true;
+          frame.addEventListener("load", () => {
+            if (!isCurrent()) return;
+            pdfLoading.remove(); frame.hidden = false;
+          }, { once: true });
+          frame.addEventListener("error", () => {
+            if (!isCurrent()) return;
+            body.replaceChildren();
+            const error = document.createElement("div");
+            error.className = "err"; error.textContent = "Could not load the PDF preview. Open the file instead.";
+            body.appendChild(error);
+          }, { once: true });
+          body.append(pdfLoading, frame);
+          frame.src = anchoredUrl;
         }
       } else {
         await showText(url);
@@ -1490,7 +1911,7 @@
   const MAP = {
     pts: [], bounds: null, docCount: 0, words: 0, dims: 0,
     query: null, retrieved: new Set(),
-    replayT0: 0, queryT0: 0, hover: null, raf: 0,
+    step: 4, queryT0: 0, hover: null, raf: 0,
     reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   };
   window.__ATLAS_MAP = MAP;  // debug/testing hook
@@ -1504,11 +1925,135 @@
     diagram: css("--map-diagram"), query: css("--map-query"),
     dim: css("--dim"), line: css("--line"),
   });
-  // Brief stepped state-change motion: retrieval work resolves immediately.
-  const INGEST_MS = 160, QUERY_ANIM = 180;
-  const seqEnd = () => INGEST_MS;
-  const seqActive = (now) =>
-    !MAP.reduced && MAP.replayT0 && now - MAP.replayT0 < seqEnd();
+  const QUERY_ANIM = 180;
+  const MAP_STEP_MS = 650;
+  const MAP_STEPS = [
+    "ready to read the corpus",
+    "corpus files read",
+    "document chunks indexed",
+    "vectors embedded",
+    "2D projection ready",
+  ];
+  const MAP_MAX_STEP = MAP_STEPS.length - 1;
+  let mapGen = 0;
+  let mapPlaying = false;
+  let mapTimers = [];
+
+  function untrackMapTimer(id) {
+    mapTimers = mapTimers.filter((pending) => pending !== id);
+  }
+
+  function mapLater(fn, delay, expectedGen = mapGen) {
+    const id = setTimeout(() => {
+      untrackMapTimer(id);
+      if (expectedGen !== mapGen) return;
+      fn();
+    }, delay);
+    mapTimers.push(id);
+    return id;
+  }
+
+  function clearMapTimers() {
+    for (const id of mapTimers) clearTimeout(id);
+    mapTimers = [];
+  }
+
+  function setMapPlayLabel(label) {
+    const button = $("map-play");
+    button.replaceChildren(spriteIcon(label === "pause" ? "i-pause" : "i-play"), document.createTextNode(label));
+    button.setAttribute("aria-pressed", String(label === "pause"));
+  }
+
+  function invalidateMapPlayback() {
+    mapGen++;
+    mapPlaying = false;
+    clearMapTimers();
+    setMapPlayLabel("play");
+    return mapGen;
+  }
+
+  function announceMapStep(message) {
+    $("map-a11y-status").textContent = message;
+  }
+
+  function setMapStep(step, announce = true) {
+    MAP.step = Math.max(0, Math.min(MAP_MAX_STEP, Number(step) || 0));
+    $("map-scrub").value = MAP.step;
+    $("map-clock").textContent = `step ${MAP.step} / ${MAP_MAX_STEP}`;
+    if (announce) announceMapStep(`Ingest replay. ${MAP_STEPS[MAP.step]}. Step ${MAP.step} of ${MAP_MAX_STEP}.`);
+    kick();
+  }
+
+  function finishMapPlayback() {
+    mapPlaying = false;
+    clearMapTimers();
+    setMapStep(MAP_MAX_STEP, false);
+    setMapPlayLabel("play");
+    announceMapStep("Ingest replay complete.");
+  }
+
+  function runMapStep() {
+    if (!mapPlaying) return;
+    if (MAP.step >= MAP_MAX_STEP) { finishMapPlayback(); return; }
+    mapLater(() => {
+      setMapStep(MAP.step + 1);
+      if (MAP.step >= MAP_MAX_STEP) finishMapPlayback();
+      else runMapStep();
+    }, MAP_STEP_MS);
+  }
+
+  function playMapPlayback() {
+    if (!MAP.pts.length) return;
+    if (MAP.reduced) {
+      invalidateMapPlayback();
+      setMapStep(MAP_MAX_STEP, false);
+      announceMapStep("Ingest replay shown at its final state because reduced motion is enabled.");
+      return;
+    }
+    if (MAP.step >= MAP_MAX_STEP) setMapStep(0, false);
+    mapPlaying = true;
+    setMapPlayLabel("pause");
+    announceMapStep(`Ingest replay started. ${MAP_STEPS[MAP.step]}.`);
+    runMapStep();
+  }
+
+  function pauseMapPlayback() {
+    if (!mapPlaying) return;
+    invalidateMapPlayback();
+    announceMapStep(`Ingest replay paused at step ${MAP.step} of ${MAP_MAX_STEP}.`);
+  }
+
+  function restartMapPlayback() {
+    if (!MAP.pts.length) return;
+    invalidateMapPlayback();
+    setMapStep(0, false);
+    playMapPlayback();
+  }
+
+  function seekMapPlayback(step) {
+    invalidateMapPlayback();
+    setMapStep(step);
+  }
+
+  function setMapControlsDisabled(disabled) {
+    $("map-play").disabled = disabled;
+    $("map-restart").disabled = disabled;
+    $("map-scrub").disabled = disabled;
+  }
+
+  function showMapLoadState(message, retry = false) {
+    const state = $("map-loadstate");
+    state.replaceChildren(document.createTextNode(message + (retry ? " " : "")));
+    if (retry) {
+      const button = document.createElement("button");
+      button.type = "button"; button.className = "pbtn"; button.textContent = "retry";
+      button.addEventListener("click", () => loadMapData(datasetRequestId));
+      state.appendChild(button);
+    }
+    state.hidden = false;
+  }
+
+  const seqActive = () => MAP.step < MAP_MAX_STEP;
 
   function sizeMap() {
     const dpr = window.devicePixelRatio || 1;
@@ -1575,25 +2120,23 @@
     if (!MAP.pts.length) return false;
     const c = COLORS();
     let animating = false;
-    const seq = seqActive(now);
-    const el = MAP.replayT0 ? now - MAP.replayT0 : Infinity;
+    const seq = seqActive();
 
     if (seq) {
-      animating = true;
-      const progress = Math.min(Math.max(el / INGEST_MS, 0), 1);
-      const stepped = Math.ceil(progress * 4) / 4;
-      const scanY = Math.min(rect.height - 4, Math.round(stepped * (rect.height - 4)));
+      const progress = MAP.step / MAP_MAX_STEP;
+      const scanY = Math.min(rect.height - 4, Math.round(progress * (rect.height - 4)));
       mapCtx.fillStyle = c.runbook;
       mapCtx.fillRect(0, scanY, rect.width, 4);
       mapCtx.font = "12px ui-monospace, monospace";
       mapCtx.fillStyle = c.dim;
-      const full = `ingesting… ${MAP.docCount} docs · ${MAP.pts.length} chunks`;
-      const short = `${MAP.docCount} docs · ${MAP.pts.length} chunks`;
+      const full = `${MAP_STEPS[MAP.step]}: ${MAP.docCount} docs, ${MAP.pts.length} chunks`;
+      const short = MAP_STEPS[MAP.step];
       const msg = mapCtx.measureText(full).width <= rect.width - 20 ? full : short;
       mapCtx.fillText(msg, 10, rect.height - 10, Math.max(0, rect.width - 20));
     }
 
-    for (const p of MAP.pts) {
+    const visibleCount = seq ? Math.ceil(MAP.pts.length * (MAP.step / MAP_MAX_STEP)) : MAP.pts.length;
+    for (const p of MAP.pts.slice(0, visibleCount)) {
       const [px, py] = toPx(p.x, p.y);
 
       const isHit = MAP.retrieved.has(p.id);
@@ -1637,11 +2180,19 @@
   }
 
   async function loadMapData(requestId = datasetRequestId) {
+    invalidateMapPlayback();
+    setMapControlsDisabled(true);
+    showMapLoadState("loading vector map...");
     try {
       const d = await api.map();
       if (requestId !== datasetRequestId) return;
-      MAP.pts = d.points;
-      if (!MAP.pts.length) { $("map-card").classList.add("hide"); return; }
+      MAP.pts = d.points || [];
+      if (!MAP.pts.length) {
+        showMapLoadState("The corpus has no vector points to display.");
+        setMapStep(MAP_MAX_STEP, false);
+        kick();
+        return;
+      }
       MAP.words = d.words; MAP.dims = d.dims; MAP.docCount = d.docs; MAP.formats = d.formats; MAP.rows = d.rows;
       computeBounds();
       const docs = [...new Set(MAP.pts.map((p) => p.doc_id))];
@@ -1659,25 +2210,33 @@
         b(`${MAP.docCount} documents`), ` (${fmts}) · `,
         b(`${(MAP.rows || 0).toLocaleString()} data rows`), ` · `,
         b(`${MAP.words.toLocaleString()} words`), ` · `,
-        b(`${MAP.pts.length} chunks indexed`),
-        ` — nobody reads all this. The `, b("ASK ATLAS"), ` tab turns it into cited answers →`
+        b(`${MAP.pts.length} chunks indexed`), `. `,
+        b("ASK ATLAS"), ` turns this corpus into cited answers.`
       );
-      // the ingest sequence arms when the ASK tab is first opened
-    } catch {
-      if (requestId === datasetRequestId) $("map-card").classList.add("hide");
+      $("map-loadstate").hidden = true;
+      setMapControlsDisabled(false);
+      setMapStep(MAP_MAX_STEP, false);
+      announceMapStep("Vector map ready.");
+      if (askArmed && !$("view-ask").classList.contains("hide")) restartMapPlayback();
+    } catch (error) {
+      if (requestId !== datasetRequestId) return;
+      MAP.pts = [];
+      showMapLoadState(`Could not load the vector map. ${error.message}`, true);
+      setMapControlsDisabled(true);
+      kick();
     }
   }
 
   mapCanvas.addEventListener("click", () => {
-    // click during the ingest sequence skips to the finished map
-    if (seqActive(performance.now())) {
-      MAP.replayT0 = performance.now() - seqEnd();
-      kick();
+    if (seqActive()) {
+      invalidateMapPlayback();
+      setMapStep(MAP_MAX_STEP);
+      announceMapStep("Ingest replay skipped to the final state.");
     }
   });
 
   mapCanvas.addEventListener("mousemove", (ev) => {
-    if (seqActive(performance.now())) return;  // no hover mid-sequence
+    if (seqActive()) return;
     const rect = mapCanvas.getBoundingClientRect();
     const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
     let best = null, bestD = 14 * 14;
@@ -1693,7 +2252,7 @@
       const type = document.createElement("div");
       type.className = "tt-type " + best.type; type.textContent = best.type;
       const title = document.createElement("div");
-      title.className = "tt-title"; title.textContent = best.title + " — " + best.section;
+      title.className = "tt-title"; title.textContent = best.title + ": " + best.section;
       const sig = document.createElement("div"); sig.className = "tt-sig";
       for (const v of best.sig) {
         const bar = document.createElement("i");
@@ -1734,12 +2293,12 @@
 
   window.addEventListener("resize", () => { sizeMap(); kick(); });
 
-  $("map-replay").addEventListener("click", () => {
-    if (MAP.reduced || !MAP.pts.length) return;
+  $("map-play").addEventListener("click", () => mapPlaying ? pauseMapPlayback() : playMapPlayback());
+  $("map-restart").addEventListener("click", () => {
     MAP.hover = null; $("map-tip").style.display = "none";
-    MAP.replayT0 = performance.now();
-    kick();
+    restartMapPlayback();
   });
+  $("map-scrub").addEventListener("input", (event) => seekMapPlayback(event.target.value));
 
   // hook: askNow() calls this with the /api/ask response
   function updateMapFromAnswer(a) {

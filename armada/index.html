@@ -1,0 +1,1309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A fixture replay of a browser fleet control plane.">
+  <title>Armada | Browser fleet control plane</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body, h1, h2, h3, p, pre, ul { margin: 0; }
+    button, input { font: inherit; }
+  </style>
+  <link rel="stylesheet" href="/shared/pixel.css">
+  <style>
+    :root {
+      --pi-accent: #173e8f;
+      --pi-accent-soft: #dfe9ff;
+      --armada-sea: #173e8f;
+      --armada-sky: #b8d9ff;
+      --armada-coral: #d85b32;
+      --armada-grid: rgba(23, 62, 143, .09);
+    }
+
+    html { min-width: 0; background: var(--pi-paper); }
+    body {
+      min-width: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--pi-ink);
+      background-color: var(--pi-paper);
+      background-image:
+        linear-gradient(var(--armada-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--armada-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      font-family: var(--pi-font-body);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    button, input { max-width: 100%; }
+    button { touch-action: manipulation; }
+    [hidden] { display: none !important; }
+    .pwin-title { font-size: 12px; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .skip-link {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 100;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: none; }
+
+    .site-header {
+      border-bottom: 3px solid var(--pi-ink);
+      background: var(--armada-sea);
+      color: #fff;
+    }
+    .header-inner {
+      width: min(1480px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+    }
+    .brand-kicker {
+      margin-bottom: 10px;
+      font-family: var(--pi-font-ui);
+      font-size: 14px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #cfe0ff;
+    }
+    h1 {
+      max-width: 850px;
+      font-family: var(--pi-font-title);
+      font-size: clamp(22px, 4vw, 44px);
+      line-height: 1.35;
+      letter-spacing: -.02em;
+    }
+    .header-copy {
+      max-width: 760px;
+      margin-top: 14px;
+      color: #eef4ff;
+      font-size: 15px;
+    }
+    .radar-mark {
+      width: 104px;
+      height: 104px;
+      border: 3px solid #fff;
+      box-shadow: 6px 6px 0 var(--pi-ink);
+      background:
+        linear-gradient(90deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%),
+        linear-gradient(transparent 49%, #fff 49%, #fff 51%, transparent 51%),
+        var(--armada-coral);
+      position: relative;
+    }
+    .radar-mark::before,
+    .radar-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--pi-ink);
+    }
+    .radar-mark::before { width: 14px; height: 14px; top: 18px; right: 20px; }
+    .radar-mark::after { width: 10px; height: 10px; bottom: 23px; left: 27px; }
+
+    main {
+      width: min(1480px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 56px;
+    }
+    .honesty {
+      margin-bottom: 20px;
+      border-color: var(--pi-ink);
+      color: var(--pi-ink);
+      background: #fff5ca;
+    }
+    .honesty b { font-family: var(--pi-font-ui); text-transform: uppercase; }
+
+    .replay-shell { margin-bottom: 20px; }
+    .replay-shell .pwin-body { display: grid; gap: 16px; }
+    .replay-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+    }
+    .replay-heading {
+      font-family: var(--pi-font-ui);
+      font-size: clamp(21px, 3vw, 30px);
+      line-height: 1.1;
+    }
+    .replay-summary { max-width: 850px; margin-top: 8px; color: var(--pi-muted); }
+    .fixture-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .fixture-picker .pbtn { min-width: 150px; }
+    .fixture-picker small {
+      display: block;
+      margin-top: 5px;
+      font-family: var(--pi-font-body);
+      font-size: 12px;
+      line-height: 1.15;
+    }
+
+    .load-state {
+      padding: 14px;
+      border: 2px solid var(--pi-ink);
+      background: var(--pi-paper);
+      font-family: var(--pi-font-ui);
+      font-size: 15px;
+    }
+    .load-state.error { border-color: var(--pi-err); background: var(--pi-err-soft); }
+    .load-state.empty { border-color: var(--pi-warn); background: var(--pi-warn-soft); }
+    .load-state .pbtn { margin-top: 10px; }
+
+    .player {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 2px solid var(--pi-ink);
+    }
+    .player .play-button { min-width: 112px; }
+    .speed-group { display: flex; gap: 8px; }
+    .speed-group .pbtn { padding-inline: 12px; }
+    .scrub-wrap {
+      min-width: 0;
+      flex: 1 1 260px;
+      display: grid;
+      gap: 4px;
+    }
+    .scrub-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+    }
+    #scrub {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      accent-color: var(--pi-accent);
+      cursor: pointer;
+    }
+    #scrub:disabled { opacity: .45; cursor: not-allowed; }
+    .replay-event {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      color: var(--pi-ink);
+    }
+    .replay-event .pi-ic { color: var(--pi-accent); flex: none; }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(290px, .78fr);
+      grid-template-areas:
+        "fleet ops"
+        "schedule ops"
+        "action ops";
+      gap: 20px;
+      align-items: start;
+    }
+    .fleet-window { grid-area: fleet; min-width: 0; }
+    .schedule-window { grid-area: schedule; min-width: 0; }
+    .action-window { grid-area: action; min-width: 0; }
+    .ops-window { grid-area: ops; min-width: 0; position: sticky; top: 16px; }
+
+    .window-heading-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-heading {
+      font-family: var(--pi-font-ui);
+      font-size: 22px;
+      line-height: 1.1;
+    }
+    .section-copy { margin-top: 5px; color: var(--pi-muted); font-size: 13px; }
+    .fleet-counts { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fleet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+      gap: 12px;
+    }
+    .session-chip {
+      min-width: 0;
+      min-height: 84px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: start;
+      text-align: left;
+      background: var(--pi-panel);
+      border-width: 2px;
+    }
+    .session-chip.selected { background: var(--pi-accent-soft); }
+    .session-id {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-family: var(--pi-font-code);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .session-tenant {
+      grid-column: 1 / -1;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-body);
+      font-size: 12px;
+    }
+    .state-warming { border-left: 8px solid var(--pi-accent); }
+    .state-running { border-left: 8px solid var(--pi-ok); }
+    .state-throttled { border-left: 8px solid var(--pi-warn); }
+    .state-failed { border-left: 8px solid var(--pi-err); }
+    .state-retrying { border-left: 8px solid var(--armada-coral); }
+    .state-done { border-left: 8px solid var(--pi-muted); }
+
+    .inspector {
+      margin-top: 16px;
+      box-shadow: 3px 3px 0 var(--pi-ink);
+      background: #fff8dd;
+    }
+    .inspector-title { justify-content: space-between; }
+    .inspector-title > span:first-child { display: flex; align-items: center; gap: 8px; }
+    .close-button { min-height: 44px; min-width: 44px; padding: 8px; }
+    .inspector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .inspector-field {
+      min-width: 0;
+      padding: 8px;
+      border: 1.5px solid var(--pi-line);
+      background: var(--pi-panel);
+    }
+    .inspector-field span {
+      display: block;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .inspector-field code { overflow-wrap: anywhere; font-family: var(--pi-font-code); font-size: 12px; }
+    .last-actions { padding-left: 20px; font-size: 13px; }
+    .last-actions li + li { margin-top: 4px; }
+
+    .scheduler { display: grid; gap: 14px; }
+    .timeline-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+    }
+    .legend-key { display: inline-flex; gap: 6px; align-items: center; }
+    .legend-plan { width: 3px; height: 16px; background: var(--pi-ink); }
+    .legend-actual { width: 10px; height: 10px; border: 2px solid var(--pi-ink); background: var(--armada-coral); }
+    .timeline-scale,
+    .campaign-lane {
+      display: grid;
+      grid-template-columns: minmax(104px, .36fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .scale-track,
+    .lane-track {
+      min-width: 0;
+      position: relative;
+    }
+    .scale-track { height: 24px; border-bottom: 2px solid var(--pi-ink); }
+    .scale-tick {
+      position: absolute;
+      bottom: -2px;
+      width: 1px;
+      height: 8px;
+      background: var(--pi-ink);
+    }
+    .scale-tick span {
+      position: absolute;
+      top: 8px;
+      transform: translateX(-50%);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .scale-tick:first-child span { transform: none; }
+    .scale-tick:last-child span { transform: translateX(-100%); }
+    .lane-label { min-width: 0; }
+    .lane-label strong { display: block; font-family: var(--pi-font-ui); font-size: 14px; line-height: 1.1; }
+    .lane-label span { color: var(--pi-muted); font-size: 12px; }
+    .lane-track {
+      height: 42px;
+      border: 1.5px solid var(--pi-ink);
+      background:
+        linear-gradient(90deg, rgba(30,26,20,.08) 1px, transparent 1px),
+        var(--pi-panel);
+      background-size: 25% 100%;
+    }
+    .planned-marker,
+    .actual-marker,
+    .time-cursor {
+      position: absolute;
+      transform: translateX(-50%);
+    }
+    .planned-marker { top: 4px; bottom: 4px; width: 3px; background: var(--pi-ink); }
+    .actual-marker {
+      top: 14px;
+      width: 11px;
+      height: 11px;
+      border: 2px solid var(--pi-ink);
+      background: var(--lane-color, var(--armada-coral));
+      z-index: 2;
+    }
+    .time-cursor {
+      top: -5px;
+      bottom: -5px;
+      width: 2px;
+      background: var(--pi-err);
+      z-index: 3;
+      pointer-events: none;
+    }
+    .time-cursor::before { content: ""; position: absolute; top: 0; left: -4px; width: 10px; height: 5px; background: var(--pi-err); }
+    .jitter-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .jitter-item { padding: 7px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); font-size: 12px; }
+    .jitter-item strong { display: block; font-family: var(--pi-font-ui); }
+    .ramp-block { padding-top: 12px; border-top: 2px solid var(--pi-ink); }
+    .ramp-block h3 { font-family: var(--pi-font-ui); font-size: 17px; }
+    .ramp-curve {
+      min-height: 150px;
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      align-items: end;
+      border-bottom: 2px solid var(--pi-ink);
+    }
+    .ramp-step {
+      min-width: 0;
+      min-height: 36px;
+      padding: 6px;
+      display: flex;
+      align-items: flex-start;
+      border: 2px solid var(--pi-ink);
+      border-bottom: 0;
+      background: var(--armada-sky);
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+    .pnote { margin-top: 8px; }
+
+    .action-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .action-console {
+      min-height: 280px;
+      max-height: 430px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow-y: auto;
+      overflow-x: hidden;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+    .empty-message {
+      padding: 18px;
+      border: 2px dashed var(--pi-line);
+      color: var(--pi-muted);
+      background: var(--pi-paper);
+    }
+
+    .ops-stack { display: grid; gap: 18px; }
+    .ops-section { min-width: 0; }
+    .ops-section + .ops-section { padding-top: 16px; border-top: 2px solid var(--pi-ink); }
+    .ops-section h3 { margin-bottom: 8px; font-family: var(--pi-font-ui); font-size: 17px; }
+    .proxy-table { width: 100%; table-layout: fixed; }
+    .proxy-table th,
+    .proxy-table td { padding-inline: 5px; overflow-wrap: anywhere; }
+    .proxy-table th:first-child { width: 48%; }
+    .proxy-table th:nth-child(2) { width: 20%; }
+    .proxy-table th:last-child { width: 32%; }
+    .identity-grid,
+    .failure-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .ops-metric {
+      min-width: 0;
+      padding: 8px 5px;
+      border: 1.5px solid var(--pi-ink);
+      background: var(--pi-paper);
+      text-align: center;
+    }
+    .ops-metric strong { display: block; font-family: var(--pi-font-ui); font-size: 24px; line-height: 1; }
+    .ops-metric span { display: block; margin-top: 5px; color: var(--pi-muted); font-size: 12px; overflow-wrap: anywhere; }
+    .cost-line { display: flex; justify-content: space-between; gap: 8px; font-family: var(--pi-font-code); font-size: 13px; }
+    .cost-track { height: 20px; margin-top: 8px; border: 2px solid var(--pi-ink); background: var(--pi-panel); }
+    .cost-fill { height: 100%; width: 0; background: var(--armada-coral); transition: width .2s steps(4, end); }
+    .alert-card { padding: 10px; border: 2px solid var(--pi-ink); font-size: 13px; }
+    .alert-card.ok { background: var(--pi-ok-soft); }
+    .alert-card.warn { background: var(--pi-warn-soft); }
+    .alert-card.err { background: var(--pi-err-soft); }
+    .alert-card .pi-ic { margin-right: 5px; }
+
+    @media (max-width: 980px) {
+      .workspace-grid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "fleet" "schedule" "action" "ops";
+      }
+      .ops-window { position: static; }
+      .replay-top { grid-template-columns: minmax(0, 1fr); }
+      .fixture-picker { justify-content: flex-start; }
+    }
+
+    @media (max-width: 640px) {
+      .header-inner,
+      main { width: min(100% - 20px, 1480px); }
+      .header-inner { grid-template-columns: minmax(0, 1fr); padding-block: 22px; }
+      .radar-mark { display: none; }
+      h1 { font-size: 24px; }
+      .pwin-body { padding: 12px; }
+      .fixture-picker { display: grid; grid-template-columns: minmax(0, 1fr); }
+      .fixture-picker .pbtn { width: 100%; }
+      .player .play-button { flex: 1 1 120px; }
+      .speed-group { flex: 1 1 auto; justify-content: flex-end; }
+      .scrub-wrap { flex-basis: 100%; }
+      .inspector-grid { grid-template-columns: minmax(0, 1fr); }
+      .timeline-scale,
+      .campaign-lane { grid-template-columns: 82px minmax(0, 1fr); gap: 7px; }
+      .lane-label strong { font-size: 12px; }
+      .scale-tick span { font-size: 12px; }
+      .jitter-list { grid-template-columns: minmax(0, 1fr); }
+      .ramp-curve { min-height: 125px; gap: 4px; }
+      .ramp-step { padding: 4px 2px; font-size: 12px; writing-mode: vertical-rl; transform: rotate(180deg); }
+      .action-console { min-height: 240px; font-size: 12px; padding: 12px; }
+    }
+
+    @media (max-width: 390px) {
+      .identity-grid,
+      .failure-grid { grid-template-columns: minmax(0, 1fr); }
+      .speed-group { width: 100%; justify-content: stretch; }
+      .speed-group .pbtn { flex: 1; }
+      .timeline-scale,
+      .campaign-lane { grid-template-columns: 76px minmax(0, 1fr); }
+      .lane-label span { font-size: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link pbtn" href="#main">skip to fleet controls</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <p class="brand-kicker">Armada · browser fleet control plane</p>
+        <h1>See every browser. Steer every campaign.</h1>
+        <p class="header-copy">Compose tenant campaigns, inspect Chromium sessions, and replay how the scheduler responds when a proxy pool goes bad.</p>
+      </div>
+      <div class="radar-mark" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="honesty pstrip"><b>private system demo</b> · interactive recreation of the private system, replaying recorded fixtures</div>
+
+    <section class="replay-shell pwin" aria-labelledby="replay-title">
+      <div class="pwin-title"><span class="pwin-lamp on"></span> campaign replay</div>
+      <div class="pwin-body">
+        <div class="replay-top">
+          <div>
+            <h2 class="replay-heading" id="replay-title">Loading campaign fixture</h2>
+            <p class="replay-summary" id="replay-summary">The fleet board will appear when the recorded fixture is ready.</p>
+          </div>
+          <div class="fixture-picker" id="fixture-picker" role="group" aria-label="Choose a recorded campaign">
+            <button class="pbtn" type="button" data-fixture="clean-day.json" aria-pressed="false">clean day<small>scheduler ramp</small></button>
+            <button class="pbtn" type="button" data-fixture="degradation-drill.json" aria-pressed="false">degradation drill<small>drain and recovery</small></button>
+          </div>
+        </div>
+
+        <div class="load-state" id="load-state" role="status" aria-live="polite">Loading replay fixture.</div>
+
+        <div class="replay-controls" id="replay-controls" hidden>
+          <div class="replay-event pstrip" id="replay-event">
+            <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg>
+            <span>Waiting for the first replay frame.</span>
+          </div>
+          <div class="player">
+            <button class="pbtn primary play-button" id="play" type="button" disabled>
+              <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"></use></svg>
+              play
+            </button>
+            <button class="pbtn" id="restart" type="button" disabled>
+              <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"></use></svg>
+              restart
+            </button>
+            <div class="speed-group" id="speed-group" role="group" aria-label="Playback speed. Changes apply from the next frame.">
+              <button class="pbtn on" type="button" data-speed="1" aria-pressed="true" disabled>1×</button>
+              <button class="pbtn" type="button" data-speed="2" aria-pressed="false" disabled>2×</button>
+              <button class="pbtn" type="button" data-speed="4" aria-pressed="false" disabled>4×</button>
+            </div>
+            <label class="scrub-wrap" for="scrub">
+              <span class="scrub-label"><span>replay position</span><span id="scrub-value">fixture loading</span></span>
+              <input id="scrub" type="range" min="0" max="0" value="0" step="1" disabled>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="workspace-grid" id="workspace" aria-busy="true">
+      <section class="fleet-window pwin" aria-labelledby="fleet-title">
+        <div class="pwin-title"><span class="pwin-lamp" id="fleet-lamp"></span> fleet board</div>
+        <div class="pwin-body">
+          <div class="window-heading-line">
+            <div>
+              <h2 class="section-heading" id="fleet-title">Browser sessions</h2>
+              <p class="section-copy">Select a session to inspect its leased identity and recent actions.</p>
+            </div>
+            <div class="fleet-counts" id="fleet-counts" aria-label="Fleet state counts"></div>
+          </div>
+          <div class="fleet-grid" id="fleet-grid"><div class="empty-message">Waiting for fixture data.</div></div>
+
+          <aside class="inspector pwin" id="inspector" aria-labelledby="inspector-heading" aria-live="polite" hidden>
+            <div class="pwin-title inspector-title">
+              <span><span class="pwin-lamp on"></span><span id="inspector-heading">session inspector</span></span>
+              <button class="pbtn close-button" id="close-inspector" type="button" aria-label="Close session inspector">
+                <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-x"></use></svg>
+              </button>
+            </div>
+            <div class="pwin-body" id="inspector-body"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="schedule-window pwin" aria-labelledby="schedule-title">
+        <div class="pwin-title"><span class="pwin-lamp on"></span> scheduler lane</div>
+        <div class="pwin-body">
+          <div class="window-heading-line">
+            <div>
+              <h2 class="section-heading" id="schedule-title">Planned starts and actual starts</h2>
+              <p class="section-copy">Plan lines stay fixed. Start squares show the jitter captured in the fixture.</p>
+            </div>
+            <span class="pchip acc" id="timeline-clock">waiting</span>
+          </div>
+          <div class="scheduler" id="scheduler"><div class="empty-message">Waiting for fixture data.</div></div>
+        </div>
+      </section>
+
+      <section class="action-window pwin" aria-labelledby="action-title">
+        <div class="pwin-title"><span class="pwin-lamp on"></span> action stream</div>
+        <div class="pwin-body">
+          <div class="window-heading-line">
+            <div>
+              <h2 class="section-heading" id="action-title">One tree. One schema-checked action. One result.</h2>
+              <p class="section-copy">The terminal shows the recorded loop for the selected session.</p>
+            </div>
+          </div>
+          <div class="action-meta" id="action-meta"></div>
+          <pre class="action-console pterm" id="action-console" aria-live="off">Waiting for fixture data.</pre>
+        </div>
+      </section>
+
+      <aside class="ops-window pwin" aria-labelledby="ops-title">
+        <div class="pwin-title"><span class="pwin-lamp" id="ops-lamp"></span> ops rail</div>
+        <div class="pwin-body">
+          <h2 class="section-heading" id="ops-title">Fleet operations</h2>
+          <p class="section-copy">Health, pool depth, fixture cost, and classified failures.</p>
+          <div class="ops-stack" id="ops-stack">
+            <div class="empty-message">Waiting for fixture data.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="sr-only" id="a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+    const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const STATE_ORDER = ["warming", "running", "throttled", "failed", "retrying", "done"];
+    const STATE_TONES = {
+      warming: "acc",
+      running: "ok",
+      throttled: "warn",
+      failed: "err",
+      retrying: "warn",
+      done: ""
+    };
+
+    let fixture = null;
+    let currentFile = "clean-day.json";
+    let currentIndex = 0;
+    let selectedSessionId = null;
+    let selectionPinned = false;
+    let playing = false;
+    let speed = 1;
+    let generation = 0;
+    let loadToken = 0;
+    let pendingTimers = new Set();
+    let playbackTimer = null;
+    let typingJob = null;
+    let reconstructing = false;
+
+    function iconMarkup(id) {
+      return `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"></use></svg>`;
+    }
+
+    function create(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
+
+    function untrackTimer(id) {
+      pendingTimers.delete(id);
+    }
+
+    function cancelTimer(id) {
+      if (id === null || id === undefined) return;
+      clearTimeout(id);
+      clearInterval(id);
+      untrackTimer(id);
+    }
+
+    function later(fn, delay, expectedGeneration = generation) {
+      const id = setTimeout(() => {
+        untrackTimer(id);
+        if (expectedGeneration !== generation) return;
+        fn();
+      }, delay);
+      pendingTimers.add(id);
+      return id;
+    }
+
+    function every(fn, delay, expectedGeneration = generation) {
+      const id = setInterval(() => {
+        if (expectedGeneration !== generation) return;
+        fn();
+      }, delay);
+      pendingTimers.add(id);
+      return id;
+    }
+
+    function clearPendingTimers() {
+      for (const id of pendingTimers) {
+        clearTimeout(id);
+        clearInterval(id);
+      }
+      pendingTimers.clear();
+      playbackTimer = null;
+      typingJob = null;
+      $("action-console").classList.remove("pcursor");
+      $("action-console").setAttribute("aria-busy", "false");
+    }
+
+    function invalidatePlayback(completeTyping = false) {
+      if (completeTyping && typingJob) typingJob.complete();
+      generation += 1;
+      playing = false;
+      clearPendingTimers();
+      setPlayLabel("play");
+      return generation;
+    }
+
+    function setPlayLabel(label) {
+      const button = $("play");
+      const icon = label === "pause" ? "i-pause" : "i-play";
+      button.innerHTML = `${iconMarkup(icon)} ${label}`;
+    }
+
+    function setControlsDisabled(disabled) {
+      $("play").disabled = disabled;
+      $("restart").disabled = disabled;
+      $("scrub").disabled = disabled;
+      document.querySelectorAll("[data-speed]").forEach((button) => { button.disabled = disabled; });
+    }
+
+    function updateFixtureButtons(file) {
+      document.querySelectorAll("[data-fixture]").forEach((button) => {
+        const selected = button.dataset.fixture === file;
+        button.classList.toggle("on", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+
+    function showLoadState(message, tone = "loading", retryFile = null) {
+      const state = $("load-state");
+      state.className = `load-state ${tone === "loading" ? "" : tone}`.trim();
+      state.replaceChildren(create("span", "", message));
+      if (retryFile) {
+        const retry = create("button", "pbtn", "retry fixture");
+        retry.type = "button";
+        retry.addEventListener("click", () => loadFixture(retryFile));
+        state.appendChild(retry);
+      }
+      state.hidden = false;
+    }
+
+    function showEmptyState() {
+      setControlsDisabled(true);
+      $("replay-controls").hidden = true;
+      $("workspace").setAttribute("aria-busy", "false");
+      showLoadState("This fixture has no replay frames.", "empty");
+      $("fleet-grid").replaceChildren(create("div", "empty-message", "No browser sessions were recorded."));
+      $("scheduler").replaceChildren(create("div", "empty-message", "No scheduler starts were recorded."));
+      $("action-console").textContent = "No action stream was recorded.";
+      $("ops-stack").replaceChildren(create("div", "empty-message", "No operations snapshot was recorded."));
+    }
+
+    async function fetchFixture(file) {
+      const response = await fetch(`fixtures/${file}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function validateFixture(data) {
+      if (!data || typeof data !== "object") throw new Error("Fixture is not an object");
+      if (!Array.isArray(data.frames)) throw new Error("Fixture frames are missing");
+      if (!Array.isArray(data.sessions)) throw new Error("Fixture sessions are missing");
+      if (!Array.isArray(data.campaigns)) throw new Error("Fixture campaigns are missing");
+      if (!Array.isArray(data.proxies)) throw new Error("Fixture proxies are missing");
+    }
+
+    async function loadFixture(file) {
+      const expectedLoad = ++loadToken;
+      currentFile = file;
+      invalidatePlayback(false);
+      fixture = null;
+      currentIndex = 0;
+      selectedSessionId = null;
+      selectionPinned = false;
+      updateFixtureButtons(file);
+      setControlsDisabled(true);
+      $("replay-controls").hidden = true;
+      $("workspace").setAttribute("aria-busy", "true");
+      $("replay-title").textContent = "Loading campaign fixture";
+      $("replay-summary").textContent = "The fleet board will appear when the recorded fixture is ready.";
+      showLoadState("Loading replay fixture.");
+
+      try {
+        const data = await fetchFixture(file);
+        if (expectedLoad !== loadToken) return;
+        validateFixture(data);
+        fixture = data;
+        $("replay-title").textContent = fixture.title;
+        $("replay-summary").textContent = fixture.summary;
+        if (fixture.frames.length === 0) {
+          showEmptyState();
+          return;
+        }
+        $("load-state").hidden = true;
+        $("replay-controls").hidden = false;
+        $("workspace").setAttribute("aria-busy", "false");
+        $("scrub").min = "0";
+        $("scrub").max = String(fixture.frames.length - 1);
+        $("scrub").value = "0";
+        setControlsDisabled(false);
+        renderFrame(0, REDUCED);
+        play();
+      } catch (error) {
+        if (expectedLoad !== loadToken) return;
+        fixture = null;
+        $("workspace").setAttribute("aria-busy", "false");
+        $("replay-title").textContent = "Replay unavailable";
+        $("replay-summary").textContent = "The selected fixture could not be loaded.";
+        showLoadState(`Could not load ${file}. ${error.message}.`, "error", file);
+        $("a11y-status").textContent = "Replay fixture could not be loaded.";
+      }
+    }
+
+    function getCampaign(id) {
+      return fixture.campaigns.find((campaign) => campaign.id === id) || null;
+    }
+
+    function getSessionCatalog(id) {
+      return fixture.sessions.find((session) => session.id === id) || null;
+    }
+
+    function getProxyCatalog(id) {
+      return fixture.proxies.find((proxy) => proxy.id === id) || null;
+    }
+
+    function getProxyFrame(frame, id) {
+      return frame.proxies.find((proxy) => proxy.id === id) || null;
+    }
+
+    function stateChip(state) {
+      return create("span", `pchip ${STATE_TONES[state] || ""}`.trim(), state);
+    }
+
+    function selectDefaultSession(frame) {
+      const current = frame.sessions.find((session) => session.id === selectedSessionId);
+      if (selectionPinned && current) return current;
+      if (current && current.state === "running") return current;
+      const next = frame.sessions.find((session) => session.state === "running") || frame.sessions[0] || null;
+      selectedSessionId = next ? next.id : null;
+      return next;
+    }
+
+    function renderFleet(frame) {
+      const grid = $("fleet-grid");
+      const counts = $("fleet-counts");
+      const selected = selectDefaultSession(frame);
+      grid.replaceChildren();
+      counts.replaceChildren();
+
+      for (const state of STATE_ORDER) {
+        const count = frame.sessions.filter((session) => session.state === state).length;
+        if (count === 0) continue;
+        const chip = stateChip(state);
+        chip.textContent = `${state} ${count}`;
+        counts.appendChild(chip);
+      }
+
+      if (frame.sessions.length === 0) {
+        grid.appendChild(create("div", "empty-message", "No sessions are present in this frame."));
+        $("fleet-lamp").className = "pwin-lamp";
+        return;
+      }
+
+      const hasFailure = frame.sessions.some((session) => session.state === "failed");
+      const hasThrottle = frame.sessions.some((session) => ["throttled", "retrying"].includes(session.state));
+      $("fleet-lamp").className = `pwin-lamp ${hasFailure ? "err" : hasThrottle ? "warn" : "on"}`;
+
+      for (const sessionState of frame.sessions) {
+        const catalog = getSessionCatalog(sessionState.id);
+        const campaign = catalog ? getCampaign(catalog.campaign) : null;
+        const button = create("button", `session-chip pbtn state-${sessionState.state}`);
+        button.type = "button";
+        button.classList.toggle("selected", selectedSessionId === sessionState.id);
+        button.setAttribute("aria-pressed", String(selectedSessionId === sessionState.id));
+        button.setAttribute("aria-label", `${sessionState.id}, ${sessionState.state}, ${campaign ? campaign.name : "campaign unavailable"}`);
+        button.appendChild(create("span", "session-id", sessionState.id));
+        button.appendChild(stateChip(sessionState.state));
+        button.appendChild(create("span", "session-tenant", campaign ? `${campaign.tenant} · ${campaign.name}` : "Campaign unavailable"));
+        button.addEventListener("click", () => {
+          selectedSessionId = sessionState.id;
+          selectionPinned = true;
+          renderFleet(frame);
+          renderInspector(frame, true);
+          renderActionStream(frame, false);
+        });
+        grid.appendChild(button);
+      }
+
+      if (!$("inspector").hidden) renderInspector(frame, false);
+    }
+
+    function renderInspector(frame, open) {
+      const state = frame.sessions.find((session) => session.id === selectedSessionId);
+      const catalog = state ? getSessionCatalog(state.id) : null;
+      if (!state || !catalog) {
+        $("inspector").hidden = true;
+        return;
+      }
+      const proxyState = getProxyFrame(frame, catalog.proxy);
+      $("inspector-heading").textContent = `${state.id} inspector`;
+      const body = $("inspector-body");
+      const grid = create("div", "inspector-grid");
+      const fields = [
+        ["identity", catalog.identity],
+        ["proxy", catalog.proxy],
+        ["proxy health", proxyState ? String(proxyState.score) : "unavailable"]
+      ];
+      for (const [label, value] of fields) {
+        const field = create("div", "inspector-field");
+        field.appendChild(create("span", "", label));
+        field.appendChild(create("code", "", value));
+        grid.appendChild(field);
+      }
+      const statusLine = create("div", "action-meta");
+      statusLine.appendChild(stateChip(state.state));
+      if (proxyState && proxyState.disabled) statusLine.appendChild(create("span", "pchip err", "proxy self-disabled"));
+      const heading = create("h3", "section-copy", "Last recorded actions");
+      const list = create("ul", "last-actions");
+      const actions = Array.isArray(state.lastActions) ? state.lastActions : [];
+      if (actions.length === 0) list.appendChild(create("li", "", "No actions recorded."));
+      for (const action of actions) list.appendChild(create("li", "", action));
+      body.replaceChildren(grid, statusLine, heading, list);
+      if (open) $("inspector").hidden = false;
+    }
+
+    function formatHour(hour) {
+      const whole = Math.floor(hour);
+      const minutes = Math.round((hour - whole) * 60);
+      return `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    }
+
+    function hourPercent(hour) {
+      const span = fixture.timeline.endHour - fixture.timeline.startHour;
+      return ((hour - fixture.timeline.startHour) / span) * 100;
+    }
+
+    function clockToHour(clock) {
+      const [hours, minutes] = clock.split(":").map(Number);
+      return hours + minutes / 60;
+    }
+
+    function renderScheduler(frame) {
+      const scheduler = $("scheduler");
+      scheduler.replaceChildren();
+      $("timeline-clock").textContent = frame.clock;
+
+      if (fixture.campaigns.length === 0) {
+        scheduler.appendChild(create("div", "empty-message", "No campaign schedule was recorded."));
+        return;
+      }
+
+      const legend = create("div", "timeline-legend");
+      const plannedKey = create("span", "legend-key");
+      plannedKey.appendChild(create("span", "legend-plan"));
+      plannedKey.appendChild(document.createTextNode("planned start"));
+      const actualKey = create("span", "legend-key");
+      actualKey.appendChild(create("span", "legend-actual"));
+      actualKey.appendChild(document.createTextNode("actual start"));
+      legend.append(plannedKey, actualKey);
+      scheduler.appendChild(legend);
+
+      const scale = create("div", "timeline-scale");
+      scale.appendChild(create("div", "lane-label", "fixture day"));
+      const scaleTrack = create("div", "scale-track");
+      for (const tick of fixture.timeline.ticks) {
+        const marker = create("span", "scale-tick");
+        marker.style.left = `${hourPercent(tick)}%`;
+        marker.appendChild(create("span", "", `${String(tick).padStart(2, "0")}:00`));
+        scaleTrack.appendChild(marker);
+      }
+      scale.appendChild(scaleTrack);
+      scheduler.appendChild(scale);
+
+      const currentHour = clockToHour(frame.clock);
+      for (const campaign of fixture.campaigns) {
+        const row = create("div", "campaign-lane");
+        const label = create("div", "lane-label");
+        label.appendChild(create("strong", "", campaign.name));
+        label.appendChild(create("span", "", `${campaign.tenant} · ${campaign.cron}`));
+        const track = create("div", "lane-track");
+        track.style.setProperty("--lane-color", campaign.color);
+
+        for (const run of campaign.runs) {
+          const planned = create("span", "planned-marker");
+          planned.style.left = `${hourPercent(run.planned)}%`;
+          planned.title = `Planned ${formatHour(run.planned)}`;
+          const actual = create("span", "actual-marker");
+          actual.style.left = `${hourPercent(run.actual)}%`;
+          actual.title = `Actual ${formatHour(run.actual)}. Jitter ${run.jitterMinutes} minutes.`;
+          track.append(planned, actual);
+        }
+
+        const cursor = create("span", "time-cursor");
+        cursor.style.left = `${Math.max(0, Math.min(100, hourPercent(currentHour)))}%`;
+        cursor.setAttribute("aria-hidden", "true");
+        track.appendChild(cursor);
+        row.append(label, track);
+        scheduler.appendChild(row);
+      }
+
+      const jitterList = create("div", "jitter-list");
+      for (const campaign of fixture.campaigns) {
+        const item = create("div", "jitter-item");
+        item.appendChild(create("strong", "", campaign.name));
+        item.appendChild(document.createTextNode(campaign.runs.map((run) => `${run.jitterMinutes} min`).join(" · ")));
+        jitterList.appendChild(item);
+      }
+      scheduler.appendChild(jitterList);
+
+      const ramp = create("div", "ramp-block");
+      ramp.appendChild(create("h3", "", "Recorded ramp curve"));
+      const curve = create("div", "ramp-curve");
+      for (const point of fixture.timeline.ramp) {
+        const step = create("div", "ramp-step", `${formatHour(point.hour)} · ${point.label}`);
+        step.style.height = `${Math.max(24, point.load)}%`;
+        curve.appendChild(step);
+      }
+      ramp.appendChild(curve);
+      ramp.appendChild(create("p", "pnote", "Jitter is the gap between each plan line and start square."));
+      scheduler.appendChild(ramp);
+    }
+
+    function actionText(stream) {
+      const tree = stream.tree.join("\n");
+      const action = JSON.stringify(stream.action, null, 2);
+      return `ACCESSIBILITY TREE\n${tree}\n\nMODEL ACTION\n${action}\n\nSCHEMA\n${stream.schema}\n\nRESULT\n${stream.result}`;
+    }
+
+    function renderActionStream(frame, instant) {
+      if (typingJob) typingJob.cancel();
+      const state = frame.sessions.find((session) => session.id === selectedSessionId);
+      const catalog = state ? getSessionCatalog(state.id) : null;
+      const stream = catalog && catalog.streams ? catalog.streams[state.actionIndex] : null;
+      const meta = $("action-meta");
+      meta.replaceChildren();
+
+      if (!state || !catalog || !stream) {
+        $("action-console").textContent = "No action stream was recorded for this session.";
+        $("action-console").classList.remove("pcursor");
+        return;
+      }
+
+      meta.appendChild(create("span", "pchip acc", state.id));
+      meta.appendChild(stateChip(state.state));
+      meta.appendChild(create("span", "pchip ok", `${stream.schema} schema`));
+      const text = actionText(stream);
+      const terminal = $("action-console");
+      terminal.setAttribute("aria-busy", "false");
+      terminal.classList.remove("pcursor");
+
+      if (instant || reconstructing || REDUCED) {
+        terminal.textContent = text;
+        return;
+      }
+
+      const typingGeneration = generation;
+      let index = 0;
+      let interval = null;
+      terminal.textContent = "";
+      terminal.classList.add("pcursor");
+      terminal.setAttribute("aria-busy", "true");
+      const settle = (finish) => {
+        cancelTimer(interval);
+        if (finish) terminal.textContent = text;
+        terminal.classList.remove("pcursor");
+        terminal.setAttribute("aria-busy", "false");
+        typingJob = null;
+      };
+      typingJob = {
+        complete: () => settle(true),
+        cancel: () => settle(false)
+      };
+      interval = every(() => {
+        index = Math.min(text.length, index + Math.max(6, Math.round(8 * speed)));
+        terminal.textContent = text.slice(0, index);
+        if (index >= text.length) settle(true);
+      }, 24, typingGeneration);
+    }
+
+    function renderOps(frame) {
+      const stack = $("ops-stack");
+      stack.replaceChildren();
+
+      const proxySection = create("section", "ops-section");
+      proxySection.appendChild(create("h3", "", "Proxy pool health"));
+      const tableWrap = create("div", "ptable-wrap");
+      const table = create("table", "ptable proxy-table");
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      for (const heading of ["proxy", "score", "state"]) headRow.appendChild(create("th", "", heading));
+      thead.appendChild(headRow);
+      const tbody = document.createElement("tbody");
+      for (const proxyState of frame.proxies) {
+        const proxy = getProxyCatalog(proxyState.id);
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        nameCell.appendChild(create("code", "", proxyState.id));
+        if (proxy) nameCell.appendChild(create("div", "section-copy", proxy.pool));
+        row.appendChild(nameCell);
+        row.appendChild(create("td", "", String(proxyState.score)));
+        const stateCell = document.createElement("td");
+        stateCell.appendChild(create("span", `pchip ${proxyState.disabled ? "err" : proxyState.score < 60 ? "warn" : "ok"}`, proxyState.disabled ? "self-disabled" : "active"));
+        row.appendChild(stateCell);
+        tbody.appendChild(row);
+      }
+      table.append(thead, tbody);
+      tableWrap.appendChild(table);
+      proxySection.appendChild(tableWrap);
+
+      const identitySection = create("section", "ops-section");
+      identitySection.appendChild(create("h3", "", "Identity pool depth"));
+      const identityGrid = create("div", "identity-grid");
+      for (const key of ["ready", "warming", "quarantined"]) {
+        const metric = create("div", "ops-metric");
+        metric.appendChild(create("strong", "", String(frame.identityPool[key])));
+        metric.appendChild(create("span", "", key));
+        identityGrid.appendChild(metric);
+      }
+      identitySection.appendChild(identityGrid);
+
+      const costSection = create("section", "ops-section");
+      costSection.appendChild(create("h3", "", "Fixture cost"));
+      const costLine = create("div", "cost-line");
+      costLine.appendChild(create("span", "", `$${frame.cost.toFixed(3)}`));
+      costLine.appendChild(create("span", "", `$${fixture.budget.toFixed(3)} limit`));
+      const costTrack = create("div", "cost-track");
+      const costFill = create("div", "cost-fill");
+      costFill.style.width = `${Math.min(100, (frame.cost / fixture.budget) * 100)}%`;
+      costTrack.appendChild(costFill);
+      costSection.append(costLine, costTrack);
+
+      const failureSection = create("section", "ops-section");
+      failureSection.appendChild(create("h3", "", "Failure classes"));
+      const failureGrid = create("div", "failure-grid");
+      for (const key of ["blocked", "captcha", "timeout"]) {
+        const metric = create("div", "ops-metric");
+        metric.appendChild(create("strong", "", String(frame.failures[key])));
+        metric.appendChild(create("span", "", key));
+        failureGrid.appendChild(metric);
+      }
+      failureSection.appendChild(failureGrid);
+
+      const alertSection = create("section", "ops-section");
+      alertSection.appendChild(create("h3", "", "Alerting"));
+      const alert = create("div", `alert-card ${frame.alert.tone}`);
+      alert.innerHTML = `${iconMarkup(frame.alert.tone === "err" ? "i-alert" : "i-signal")}<span></span>`;
+      alert.querySelector("span").textContent = frame.alert.text;
+      alertSection.appendChild(alert);
+
+      stack.append(proxySection, identitySection, costSection, failureSection, alertSection);
+      $("ops-lamp").className = `pwin-lamp ${frame.alert.tone === "err" ? "err" : frame.alert.tone === "warn" ? "warn" : "on"}`;
+    }
+
+    function announceFrame(frame) {
+      const counts = STATE_ORDER
+        .map((state) => [state, frame.sessions.filter((session) => session.state === state).length])
+        .filter((entry) => entry[1] > 0)
+        .map((entry) => `${entry[1]} ${entry[0]}`)
+        .join(", ");
+      $("a11y-status").textContent = `${frame.clock}. ${frame.event} Fleet states: ${counts}.`;
+    }
+
+    function renderFrame(index, instant = false) {
+      if (!fixture || !fixture.frames[index]) return;
+      currentIndex = index;
+      const frame = fixture.frames[index];
+      $("scrub").value = String(index);
+      $("scrub-value").textContent = `${frame.clock} · frame ${index + 1} of ${fixture.frames.length}`;
+      const event = $("replay-event");
+      event.replaceChildren();
+      event.insertAdjacentHTML("afterbegin", iconMarkup("i-signal"));
+      event.appendChild(create("span", "", frame.event));
+      renderFleet(frame);
+      renderScheduler(frame);
+      renderActionStream(frame, instant);
+      renderOps(frame);
+      if (!reconstructing) announceFrame(frame);
+    }
+
+    function finishPlayback() {
+      if (typingJob) typingJob.complete();
+      playing = false;
+      generation += 1;
+      clearPendingTimers();
+      setPlayLabel("replay");
+      $("a11y-status").textContent = "Replay complete.";
+    }
+
+    function scheduleNextFrame() {
+      if (!playing || !fixture) return;
+      playbackTimer = later(() => {
+        if (!playing || !fixture) return;
+        if (currentIndex >= fixture.frames.length - 1) {
+          finishPlayback();
+          return;
+        }
+        renderFrame(currentIndex + 1, false);
+        scheduleNextFrame();
+      }, fixture.frameDelay / speed);
+    }
+
+    function play() {
+      if (!fixture || fixture.frames.length === 0) return;
+      if (playing) {
+        pause();
+        return;
+      }
+      invalidatePlayback(false);
+      if (currentIndex >= fixture.frames.length - 1) currentIndex = 0;
+      playing = true;
+      setPlayLabel("pause");
+      renderFrame(currentIndex, REDUCED);
+      scheduleNextFrame();
+    }
+
+    function pause() {
+      if (!fixture) return;
+      invalidatePlayback(true);
+      $("a11y-status").textContent = `Replay paused at ${fixture.frames[currentIndex].clock}.`;
+    }
+
+    function restartPlayback() {
+      if (!fixture) return;
+      invalidatePlayback(false);
+      currentIndex = 0;
+      selectionPinned = false;
+      play();
+    }
+
+    function seek(index) {
+      if (!fixture) return;
+      invalidatePlayback(true);
+      reconstructing = true;
+      try {
+        renderFrame(index, true);
+      } finally {
+        reconstructing = false;
+      }
+      $("a11y-status").textContent = `Replay moved to ${fixture.frames[index].clock}.`;
+    }
+
+    $("play").addEventListener("click", play);
+    $("restart").addEventListener("click", restartPlayback);
+    $("scrub").addEventListener("input", (event) => seek(Number(event.target.value)));
+    $("close-inspector").addEventListener("click", () => { $("inspector").hidden = true; });
+
+    document.querySelectorAll("[data-fixture]").forEach((button) => {
+      button.addEventListener("click", () => loadFixture(button.dataset.fixture));
+    });
+
+    document.querySelectorAll("[data-speed]").forEach((button) => {
+      button.addEventListener("click", () => {
+        speed = Number(button.dataset.speed);
+        document.querySelectorAll("[data-speed]").forEach((candidate) => {
+          const active = candidate === button;
+          candidate.classList.toggle("on", active);
+          candidate.setAttribute("aria-pressed", String(active));
+        });
+        $("a11y-status").textContent = `Playback speed set to ${speed} times. The change applies from the next frame.`;
+      });
+    });
+
+    loadFixture(currentFile);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Operator call and calendar replay">
+  <title>Operator | AI receptionist replay</title>
+  <link rel="icon" href="/shared/icons.svg#i-signal" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/pixel.css">
+  <style>
+    :root {
+      --pi-accent: #1f5d66;
+      --pi-accent-soft: #dcecef;
+      --operator-coral: #bd4b38;
+      --operator-coral-soft: #f8e4df;
+      --operator-blue: #285089;
+      --operator-blue-soft: #e2eafb;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--pi-paper); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--pi-ink);
+      background:
+        linear-gradient(rgba(31, 93, 102, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 93, 102, .045) 1px, transparent 1px),
+        var(--pi-paper);
+      background-size: 24px 24px;
+      font-family: var(--pi-font-body);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--pi-accent); }
+    svg { flex: none; }
+    [hidden] { display: none !important; }
+    .pwin-title { min-height: 38px; font-size: 12px; }
+    .pterm { overflow-x: hidden; }
+    .wrap { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 28px; }
+
+    .site-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 6px;
+      color: var(--pi-accent);
+      font-family: var(--pi-font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      color: var(--pi-ink);
+      font-family: var(--pi-font-ui);
+      font-size: clamp(46px, 8vw, 82px);
+      font-weight: 700;
+      letter-spacing: -.04em;
+      line-height: .88;
+    }
+    .dek { max-width: 700px; margin: 12px 0 0; font-size: 17px; }
+    .line-status {
+      display: grid;
+      grid-template-columns: 12px auto;
+      gap: 9px;
+      align-items: center;
+      min-width: 190px;
+      padding: 11px 12px;
+      border: 2px solid var(--pi-ink);
+      background: var(--pi-panel);
+      box-shadow: var(--pi-shadow-s);
+      font-family: var(--pi-font-ui);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .line-status i {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--pi-ink);
+      background: var(--pi-ok);
+      animation: line-blink 1.4s steps(2, end) infinite;
+    }
+    .line-status small { grid-column: 2; color: var(--pi-muted); font-size: 12px; font-weight: 500; }
+    @keyframes line-blink { 50% { background: var(--pi-ok-soft); } }
+
+    .honesty { margin-bottom: 16px; border-color: var(--pi-ink); color: var(--pi-ink); }
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      margin-bottom: 18px;
+      padding: 0;
+      border: 2px solid var(--pi-ink);
+      background: var(--pi-panel);
+    }
+    .pipe-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: center;
+      min-width: 0;
+      min-height: 66px;
+      padding: 10px 12px;
+      border-right: 2px solid var(--pi-ink);
+    }
+    .pipe-step:last-child { border-right: 0; }
+    .pipe-step .pi-ic { width: 20px; height: 20px; color: var(--pi-accent); }
+    .pipe-step b { display: block; font-family: var(--pi-font-ui); font-size: 15px; line-height: 1.15; }
+    .pipe-step small { display: block; color: var(--pi-muted); font-size: 12px; line-height: 1.25; }
+    .pipe-step > .flow { width: 14px; height: 14px; color: var(--pi-muted); }
+    .pipe-step:last-child > .flow { display: none; }
+
+    .fixture-window { margin-bottom: 18px; }
+    .fixture-picker { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px; }
+    .fixture-button { flex: 1 1 220px; text-align: left; line-height: 1.15; }
+    .fixture-button span { display: block; font-size: 15px; font-weight: 700; }
+    .fixture-button small { display: block; margin-top: 5px; color: inherit; font-size: 12px; opacity: .74; }
+
+    .load-state { min-height: 90px; margin-bottom: 18px; }
+    .load-state strong { display: block; margin-bottom: 6px; color: var(--pi-term-fg); }
+    .load-state .pbtn { margin-top: 12px; }
+    .load-state.error strong { color: var(--pi-term-err); }
+
+    .app-shell { display: grid; gap: 18px; }
+    .call-window { min-width: 0; }
+    .call-title { justify-content: space-between; flex-wrap: wrap; }
+    .call-title > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+    .call-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      padding: 9px 12px;
+      border-bottom: 2px solid var(--pi-ink);
+      background: var(--pi-paper);
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+    }
+    .call-meta b { color: var(--pi-ink); font-weight: 600; }
+
+    .replay-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.22fr) minmax(310px, .78fr);
+      min-width: 0;
+    }
+    .phone-pane { min-width: 0; border-right: 2px solid var(--pi-ink); }
+    .phone-screen {
+      height: 470px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 18px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .76), rgba(255, 255, 255, .76)),
+        repeating-linear-gradient(0deg, var(--pi-accent-soft) 0 18px, var(--pi-panel) 18px 36px);
+      scrollbar-color: var(--pi-accent) var(--pi-paper);
+    }
+    .transcript-empty {
+      display: grid;
+      place-items: center;
+      min-height: 100%;
+      color: var(--pi-muted);
+      text-align: center;
+    }
+    .message {
+      width: min(84%, 560px);
+      margin: 0 0 16px;
+    }
+    .message.agent { margin-left: auto; }
+    .speaker-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .message.agent .speaker-label { justify-content: flex-end; }
+    .bubble {
+      min-height: 46px;
+      margin: 0;
+      padding: 11px 12px;
+      border: 2px solid var(--pi-ink);
+      background: var(--operator-coral-soft);
+      box-shadow: 3px 3px 0 var(--pi-ink);
+      overflow-wrap: anywhere;
+    }
+    .message.agent .bubble { background: var(--operator-blue-soft); }
+    .bubble.pcursor::after { margin-left: 3px; color: var(--pi-accent); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px;
+      border-top: 2px solid var(--pi-ink);
+      background: var(--pi-panel);
+    }
+    .control-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .speed { display: flex; gap: 7px; }
+    .speed .pbtn { padding-right: 11px; padding-left: 11px; }
+    .scrub { flex: 1 1 180px; min-width: 140px; min-height: 44px; accent-color: var(--pi-accent); cursor: pointer; }
+    .clock { min-width: 88px; text-align: right; color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+    .understanding { min-width: 0; background: var(--pi-panel); }
+    .understanding-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 0; }
+    .understanding-head h3 { margin: 0; font-family: var(--pi-font-ui); font-size: 18px; }
+    .understanding-table { width: 100%; table-layout: fixed; }
+    .understanding-table th { width: 37%; vertical-align: top; }
+    .understanding-table td { overflow-wrap: anywhere; vertical-align: top; }
+    .next-move { margin: 12px 14px 14px; padding: 12px; border: 2px solid var(--pi-accent); background: var(--pi-accent-soft); }
+    .next-move b { display: block; margin-bottom: 3px; color: var(--pi-accent); font-family: var(--pi-font-ui); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
+    .understanding-wait { color: var(--pi-muted); }
+
+    .lower-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 18px; min-width: 0; }
+    .calendar-window, .latency-window { min-width: 0; }
+    .calendar-body { padding: 14px; }
+    .calendar-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .calendar-week { font-family: var(--pi-font-ui); font-size: 16px; font-weight: 700; }
+    .legend { display: flex; flex-wrap: wrap; gap: 5px; }
+    .week-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .day { min-width: 0; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+    .day-head { padding: 7px 6px; border-bottom: 1.5px solid var(--pi-line); text-align: center; font-family: var(--pi-font-ui); font-size: 13px; font-weight: 700; }
+    .day-head small { display: block; color: var(--pi-muted); font-size: 12px; font-weight: 500; }
+    .slots { display: grid; gap: 6px; padding: 7px; }
+    .calendar-slot {
+      min-width: 0;
+      min-height: 48px;
+      padding: 6px;
+      border: 2px solid var(--pi-line);
+      background: var(--pi-panel);
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .calendar-slot time { display: block; font-weight: 700; }
+    .slot-state { display: block; margin-top: 4px; color: var(--pi-muted); text-transform: uppercase; }
+    .calendar-slot.hold { border-color: var(--pi-warn); background: var(--pi-warn-soft); box-shadow: 2px 2px 0 var(--pi-warn); }
+    .calendar-slot.hold .slot-state { color: var(--pi-warn); }
+    .calendar-slot.confirmed { border-color: var(--pi-ok); background: var(--pi-ok-soft); box-shadow: 2px 2px 0 var(--pi-ok); }
+    .calendar-slot.confirmed .slot-state { color: var(--pi-ok); }
+    .calendar-slot.conflict { border-color: var(--pi-err); background: var(--pi-err-soft); box-shadow: 2px 2px 0 var(--pi-err); }
+    .calendar-slot.conflict .slot-state { color: var(--pi-err); }
+
+    .latency-body { padding: 14px; }
+    .latency-intro { margin: 0 0 11px; color: var(--pi-muted); font-size: 13px; }
+    .latency-console { min-height: 184px; box-shadow: none; }
+    .latency-wait { display: grid; min-height: 150px; place-items: center; color: var(--pi-term-dim); text-align: center; }
+    .latency-cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .latency-cell { min-width: 0; padding: 8px; border: 1px solid var(--pi-term-dim); }
+    .latency-cell span { display: block; color: var(--pi-term-dim); font-size: 12px; text-transform: uppercase; }
+    .latency-cell b { display: block; margin-top: 3px; color: var(--pi-term-fg); font-size: 18px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .latency-cell.total { border-color: var(--pi-term-ok); }
+    .latency-cell.total b { color: var(--pi-term-ok); }
+    .latency-track { display: flex; width: 100%; height: 18px; margin-top: 12px; border: 1px solid var(--pi-term-dim); background: #262119; }
+    .latency-track span { min-width: 0; }
+    .latency-track .hear { background: #d39c45; }
+    .latency-track .think { background: #63a7b2; }
+    .latency-track .speak { background: #cf7463; }
+    .latency-caption { margin-top: 8px; color: var(--pi-term-dim); font-size: 12px; }
+
+    .handoff-window { border-color: var(--operator-coral); box-shadow: 4px 4px 0 var(--operator-coral); }
+    .handoff-window .pwin-title { border-color: var(--operator-coral); background: var(--operator-coral-soft); }
+    .handoff-body { padding: 14px; }
+    .handoff-empty { margin: 0; color: var(--pi-muted); }
+    .handoff-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
+    .handoff-card { padding: 12px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+    .handoff-card h3 { margin: 0 0 7px; font-family: var(--pi-font-ui); font-size: 15px; }
+    .handoff-card p { margin: 0; }
+    .handoff-card ul { margin: 0; padding-left: 19px; }
+    .handoff-card li + li { margin-top: 5px; }
+    .handoff-reason { grid-column: 1 / -1; border-color: var(--operator-coral); background: var(--operator-coral-soft); }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    footer { padding: 24px 0 4px; color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 13px; text-align: center; }
+
+    @media (max-width: 920px) {
+      .replay-grid { grid-template-columns: 1fr; }
+      .phone-pane { border-right: 0; border-bottom: 2px solid var(--pi-ink); }
+      .phone-screen { height: 420px; }
+      .lower-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .wrap { width: min(100% - 20px, 1180px); padding-top: 20px; }
+      .site-head { grid-template-columns: 1fr; align-items: start; }
+      .line-status { width: 100%; }
+      .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipe-step:nth-child(2) { border-right: 0; }
+      .pipe-step:nth-child(-n+2) { border-bottom: 2px solid var(--pi-ink); }
+      .week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .controls > .control-button { flex: 1 1 120px; }
+      .speed { flex: 1 1 auto; }
+      .speed .pbtn { flex: 1; }
+      .scrub { flex-basis: 100%; order: 4; }
+      .clock { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+      .handoff-grid { grid-template-columns: 1fr; }
+      .handoff-reason { grid-column: auto; }
+    }
+
+    @media (max-width: 430px) {
+      h1 { font-size: 43px; }
+      .dek { font-size: 15px; }
+      .pipeline { grid-template-columns: 1fr; }
+      .pipe-step { border-right: 0; border-bottom: 2px solid var(--pi-ink); }
+      .pipe-step:nth-child(2) { border-right: 0; }
+      .pipe-step:nth-child(-n+2) { border-bottom: 2px solid var(--pi-ink); }
+      .pipe-step:last-child { border-bottom: 0; }
+      .pipe-step > .flow { transform: rotate(90deg); }
+      .fixture-picker { padding: 10px; }
+      .phone-screen { height: 390px; padding: 13px; }
+      .message { width: 92%; }
+      .week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .calendar-body, .latency-body { padding: 10px; }
+      .latency-cells { gap: 7px; }
+      .latency-cell { padding: 7px; }
+      .latency-cell b { font-size: 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+      .bubble.pcursor::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="site-head">
+      <div>
+        <p class="eyebrow"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg> Phone meets calendar</p>
+        <h1>Operator</h1>
+        <p class="dek">An AI receptionist that listens to the caller, checks a live calendar, and completes the booking in the same conversation.</p>
+      </div>
+      <div class="line-status" aria-label="Replay console ready">
+        <i aria-hidden="true"></i>
+        <span>Replay ready</span>
+        <small>voice and calendar trace</small>
+      </div>
+    </header>
+
+    <div class="pstrip honesty"><b>interactive recreation of the private system, replaying recorded fixtures</b></div>
+
+    <section class="pipeline" aria-label="Operator call pipeline">
+      <div class="pipe-step">
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg>
+        <span><b>Twilio audio</b><small>streams the call</small></span>
+        <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+      </div>
+      <div class="pipe-step">
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"></use></svg>
+        <span><b>Whisper</b><small>transcribes speech</small></span>
+        <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+      </div>
+      <div class="pipe-step">
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"></use></svg>
+        <span><b>Agent</b><small>decides and checks slots</small></span>
+        <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+      </div>
+      <div class="pipe-step">
+        <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"></use></svg>
+        <span><b>Voice and booking</b><small>speaks and writes</small></span>
+        <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+      </div>
+    </section>
+
+    <section class="pwin fixture-window" aria-labelledby="fixture-title">
+      <h2 class="pwin-title" id="fixture-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"></use></svg> choose a recorded call</h2>
+      <div class="fixture-picker" id="fixture-picker" role="group" aria-label="Recorded call fixture">
+        <button class="pbtn fixture-button" type="button" data-file="clean-booking.json" aria-pressed="false"><span>Clean booking</span><small>new appointment</small></button>
+        <button class="pbtn fixture-button" type="button" data-file="reschedule-conflict.json" aria-pressed="false"><span>Conflict and reschedule</span><small>alternate slot negotiated</small></button>
+        <button class="pbtn fixture-button" type="button" data-file="ambiguous-handoff.json" aria-pressed="false"><span>Ambiguous request</span><small>human handoff packaged</small></button>
+      </div>
+    </section>
+
+    <div class="pterm load-state" id="load-state" role="status" aria-live="polite">
+      <strong>Loading recorded call...</strong>
+      <span class="dim">Reading the fixture.</span>
+    </div>
+
+    <div class="app-shell" id="app-shell" hidden>
+      <section class="pwin call-window" aria-labelledby="call-title">
+        <h2 class="pwin-title call-title">
+          <span id="call-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg> call replay</span>
+          <span class="pchip acc" id="call-label">recorded call</span>
+        </h2>
+        <div class="call-meta" id="call-meta"></div>
+
+        <div class="replay-grid">
+          <div class="phone-pane">
+            <div class="phone-screen" id="transcript" role="log" aria-live="off" aria-label="Call transcript">
+              <p class="transcript-empty" id="transcript-empty">Play the call to open the transcript.</p>
+            </div>
+            <div class="controls">
+              <button class="pbtn primary control-button" id="play" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"></use></svg> play</button>
+              <button class="pbtn control-button" id="restart" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"></use></svg> restart</button>
+              <div class="speed" id="speed" role="group" aria-label="Playback speed. A change applies on the next turn.">
+                <button class="pbtn on" type="button" data-speed="1" aria-pressed="true">1×</button>
+                <button class="pbtn" type="button" data-speed="2" aria-pressed="false">2×</button>
+                <button class="pbtn" type="button" data-speed="4" aria-pressed="false">4×</button>
+              </div>
+              <input class="scrub" id="scrub" type="range" min="0" max="1" step="1" value="0" aria-label="Scrub call replay" disabled>
+              <span class="clock" id="clock">0:00 / 0:00</span>
+            </div>
+          </div>
+
+          <aside class="understanding" aria-labelledby="understanding-title">
+            <div class="understanding-head">
+              <h3 id="understanding-title">Understanding</h3>
+              <span class="pchip" id="confidence">waiting</span>
+            </div>
+            <div class="ptable-wrap pwin-body">
+              <table class="ptable understanding-table">
+                <tbody>
+                  <tr><th scope="row">Intent</th><td id="intent" class="understanding-wait">Waiting for first turn</td></tr>
+                  <tr><th scope="row">Caller</th><td id="caller-name" class="understanding-wait">Not captured</td></tr>
+                  <tr><th scope="row">Need</th><td id="need" class="understanding-wait">Not captured</td></tr>
+                  <tr><th scope="row">Time</th><td id="time-preference" class="understanding-wait">Not captured</td></tr>
+                  <tr><th scope="row">Phone</th><td id="masked-phone" class="understanding-wait">Not captured</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="next-move">
+              <b>Chosen next move</b>
+              <span id="next-move">Wait for the replay</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div class="lower-grid">
+        <section class="pwin calendar-window" aria-labelledby="calendar-title">
+          <h2 class="pwin-title" id="calendar-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"></use></svg> live calendar view</h2>
+          <div class="calendar-body">
+            <div class="calendar-top">
+              <span class="calendar-week" id="calendar-week">Calendar week</span>
+              <div class="legend" aria-label="Calendar state legend">
+                <span class="pchip">open</span>
+                <span class="pchip warn">soft hold</span>
+                <span class="pchip ok">confirmed</span>
+                <span class="pchip err">conflict</span>
+              </div>
+            </div>
+            <div class="week-grid" id="week-grid"></div>
+            <div class="sr-only" id="calendar-status" role="status" aria-live="polite" aria-atomic="true"></div>
+          </div>
+        </section>
+
+        <section class="pwin latency-window" aria-labelledby="latency-title">
+          <h2 class="pwin-title" id="latency-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-lamp"></use></svg> turn latency</h2>
+          <div class="latency-body">
+            <p class="latency-intro">Authored timings for the active fixture turn.</p>
+            <div class="pterm latency-console" id="latency-console">
+              <div class="latency-wait">Play the call to inspect timing.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="pwin handoff-window" id="handoff-window" aria-labelledby="handoff-title" hidden>
+        <h2 class="pwin-title" id="handoff-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-alert"></use></svg> human handoff package</h2>
+        <div class="handoff-body" id="handoff-body">
+          <p class="handoff-empty">No handoff has been packaged yet.</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="sr-only" id="a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <footer>OPERATOR · call replay, calendar state, and handoff path · part of <a href="/">hnguyen.dev</a></footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+    const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const FIXTURE_PATH = "fixtures/";
+
+    let fixture = null;
+    let index = 0;
+    let elapsed = 0;
+    let playing = false;
+    let speed = 1;
+    let generation = 0;
+    let pendingTimers = [];
+    let activeTyping = null;
+    let calendarState = new Map();
+
+    function icon(id) {
+      return `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"></use></svg>`;
+    }
+
+    function setPlayLabel(label) {
+      const iconId = label === "pause" ? "i-pause" : "i-play";
+      $("play").innerHTML = `${icon(iconId)} ${label}`;
+    }
+
+    function untrackTimer(timerId) {
+      pendingTimers = pendingTimers.filter((id) => id !== timerId);
+    }
+
+    function cancelTimer(timerId) {
+      if (timerId === null || timerId === undefined) return;
+      clearTimeout(timerId);
+      clearInterval(timerId);
+      untrackTimer(timerId);
+    }
+
+    function later(callback, delay, expectedGeneration = generation) {
+      const timerId = setTimeout(() => {
+        untrackTimer(timerId);
+        if (expectedGeneration !== generation) return;
+        callback();
+      }, delay);
+      pendingTimers.push(timerId);
+      return timerId;
+    }
+
+    function clearPendingTimers() {
+      for (const timerId of pendingTimers) {
+        clearTimeout(timerId);
+        clearInterval(timerId);
+      }
+      pendingTimers = [];
+    }
+
+    function invalidatePlayback() {
+      generation += 1;
+      playing = false;
+      if (activeTyping) activeTyping.cancel();
+      activeTyping = null;
+      clearPendingTimers();
+      return generation;
+    }
+
+    function setControlsDisabled(disabled) {
+      $("play").disabled = disabled;
+      $("restart").disabled = disabled;
+      $("scrub").disabled = disabled;
+      document.querySelectorAll("#speed button").forEach((button) => {
+        button.disabled = disabled;
+      });
+    }
+
+    function updateFixtureSelection(file) {
+      document.querySelectorAll(".fixture-button").forEach((button) => {
+        const selected = button.dataset.file === file;
+        button.classList.toggle("on", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+
+    function showLoadState(kind, title, detail, file) {
+      const state = $("load-state");
+      state.className = `pterm load-state ${kind}`;
+      state.replaceChildren();
+
+      const strong = document.createElement("strong");
+      strong.textContent = title;
+      const message = document.createElement("span");
+      message.className = "dim";
+      message.textContent = detail;
+      state.append(strong, message);
+
+      if (file) {
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "pbtn";
+        retry.textContent = "retry";
+        retry.addEventListener("click", () => loadFixture(file));
+        state.appendChild(retry);
+      }
+      state.hidden = false;
+    }
+
+    async function fetchFixture(file) {
+      const response = await fetch(FIXTURE_PATH + file);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function validateFixture(data) {
+      if (!data || typeof data !== "object") throw new Error("Fixture data is not an object");
+      if (!data.calendar || !Array.isArray(data.calendar.days)) throw new Error("Calendar data is missing");
+      if (!Array.isArray(data.turns)) throw new Error("Transcript turns are missing");
+    }
+
+    function formatTime(milliseconds) {
+      const seconds = Math.round(milliseconds / 1000);
+      const minutes = Math.floor(seconds / 60);
+      return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+    }
+
+    function totalPlaybackTime() {
+      if (!fixture) return 0;
+      return fixture.turns.reduce((sum, turn) => sum + turn.playbackMs, 0);
+    }
+
+    function updateProgress() {
+      $("scrub").value = index;
+      $("clock").textContent = `${formatTime(elapsed)} / ${formatTime(totalPlaybackTime())}`;
+    }
+
+    function slotLabel(state) {
+      if (state === "hold") return "held";
+      if (state === "confirmed") return "booked";
+      return state;
+    }
+
+    function findSlot(slotId) {
+      for (const day of fixture.calendar.days) {
+        const slot = day.slots.find((candidate) => candidate.id === slotId);
+        if (slot) return { day, slot };
+      }
+      return null;
+    }
+
+    function renderCalendar() {
+      const week = $("week-grid");
+      week.replaceChildren();
+      $("calendar-week").textContent = fixture.calendar.weekLabel;
+
+      fixture.calendar.days.forEach((day) => {
+        const dayElement = document.createElement("section");
+        dayElement.className = "day";
+
+        const heading = document.createElement("div");
+        heading.className = "day-head";
+        heading.append(document.createTextNode(day.label));
+        const date = document.createElement("small");
+        date.textContent = day.date;
+        heading.appendChild(date);
+
+        const slots = document.createElement("div");
+        slots.className = "slots";
+        day.slots.forEach((slot) => {
+          const current = calendarState.get(slot.id) || { state: slot.state, note: slot.note || "" };
+          const slotElement = document.createElement("div");
+          slotElement.className = `calendar-slot ${current.state}`;
+          slotElement.title = current.note || `${current.state} slot`;
+          slotElement.setAttribute("aria-label", `${day.label} ${day.date} at ${slot.time}, ${slotLabel(current.state)}${current.note ? `. ${current.note}` : ""}`);
+
+          const time = document.createElement("time");
+          time.textContent = slot.time;
+          const state = document.createElement("span");
+          state.className = "slot-state";
+          state.textContent = slotLabel(current.state);
+          slotElement.append(time, state);
+          slots.appendChild(slotElement);
+        });
+
+        dayElement.append(heading, slots);
+        week.appendChild(dayElement);
+      });
+    }
+
+    function applyCalendarChanges(changes) {
+      if (!changes || changes.length === 0) return;
+      const announcements = [];
+      changes.forEach((change) => {
+        calendarState.set(change.slot, { state: change.state, note: change.note || "" });
+        const found = findSlot(change.slot);
+        if (found) announcements.push(`${found.day.label} ${found.slot.time} ${slotLabel(change.state)}`);
+      });
+      renderCalendar();
+      $("calendar-status").textContent = `Calendar updated. ${announcements.join(". ")}.`;
+    }
+
+    function resetUnderstanding() {
+      $("confidence").className = "pchip";
+      $("confidence").textContent = "waiting";
+      const waiting = {
+        "intent": "Waiting for first turn",
+        "caller-name": "Not captured",
+        "need": "Not captured",
+        "time-preference": "Not captured",
+        "masked-phone": "Not captured"
+      };
+      Object.entries(waiting).forEach(([id, value]) => {
+        $(id).textContent = value;
+        $(id).classList.add("understanding-wait");
+      });
+      $("next-move").textContent = "Wait for the replay";
+    }
+
+    function updateUnderstanding(understanding) {
+      const confidence = $("confidence");
+      confidence.className = "pchip";
+      if (understanding.confidence >= 85) confidence.classList.add("ok");
+      else if (understanding.confidence >= 60) confidence.classList.add("warn");
+      else confidence.classList.add("err");
+      confidence.textContent = `${understanding.confidence}% confidence`;
+
+      const values = {
+        "intent": understanding.intent,
+        "caller-name": understanding.callerName,
+        "need": understanding.need,
+        "time-preference": understanding.time,
+        "masked-phone": understanding.phone
+      };
+      Object.entries(values).forEach(([id, value]) => {
+        $(id).textContent = value;
+        $(id).classList.remove("understanding-wait");
+      });
+      $("next-move").textContent = understanding.next;
+    }
+
+    function renderLatency(latency) {
+      const total = latency.hear + latency.think + latency.speak;
+      const consoleElement = $("latency-console");
+      consoleElement.replaceChildren();
+
+      const cells = document.createElement("div");
+      cells.className = "latency-cells";
+      const metrics = [
+        ["hear · ASR", latency.hear],
+        ["think · plan", latency.think],
+        ["speak · TTS", latency.speak],
+        ["round trip", total]
+      ];
+      metrics.forEach(([label, value], metricIndex) => {
+        const cell = document.createElement("div");
+        cell.className = `latency-cell${metricIndex === 3 ? " total" : ""}`;
+        const name = document.createElement("span");
+        name.textContent = label;
+        const number = document.createElement("b");
+        number.textContent = `${value.toLocaleString()} ms`;
+        cell.append(name, number);
+        cells.appendChild(cell);
+      });
+
+      const track = document.createElement("div");
+      track.className = "latency-track";
+      track.setAttribute("role", "img");
+      track.setAttribute("aria-label", `Hear ${latency.hear} milliseconds, think ${latency.think} milliseconds, speak ${latency.speak} milliseconds`);
+      [["hear", latency.hear], ["think", latency.think], ["speak", latency.speak]].forEach(([className, value]) => {
+        const segment = document.createElement("span");
+        segment.className = className;
+        segment.style.flexGrow = String(value);
+        segment.style.flexBasis = "0";
+        track.appendChild(segment);
+      });
+
+      const caption = document.createElement("div");
+      caption.className = "latency-caption";
+      caption.textContent = "hear + think + speak = round trip";
+      consoleElement.append(cells, track, caption);
+    }
+
+    function resetLatency() {
+      $("latency-console").innerHTML = '<div class="latency-wait">Play the call to inspect timing.</div>';
+    }
+
+    function resetHandoff() {
+      const hasHandoff = fixture.turns.some((turn) => Boolean(turn.handoff));
+      $("handoff-window").hidden = !hasHandoff;
+      $("handoff-body").innerHTML = '<p class="handoff-empty">No handoff has been packaged yet.</p>';
+    }
+
+    function renderHandoff(handoff) {
+      if (!handoff) return;
+      const body = $("handoff-body");
+      body.replaceChildren();
+      const grid = document.createElement("div");
+      grid.className = "handoff-grid";
+
+      const summary = document.createElement("section");
+      summary.className = "handoff-card";
+      const summaryTitle = document.createElement("h3");
+      summaryTitle.textContent = "Transcript summary";
+      const summaryText = document.createElement("p");
+      summaryText.textContent = handoff.summary;
+      summary.append(summaryTitle, summaryText);
+
+      const captured = document.createElement("section");
+      captured.className = "handoff-card";
+      const capturedTitle = document.createElement("h3");
+      capturedTitle.textContent = "Captured slots";
+      const capturedList = document.createElement("ul");
+      handoff.captured.forEach((item) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = item;
+        capturedList.appendChild(listItem);
+      });
+      captured.append(capturedTitle, capturedList);
+
+      const reason = document.createElement("section");
+      reason.className = "handoff-card handoff-reason";
+      const reasonTitle = document.createElement("h3");
+      reasonTitle.textContent = "Reason for escalation";
+      const reasonText = document.createElement("p");
+      reasonText.textContent = handoff.reason;
+      reason.append(reasonTitle, reasonText);
+
+      grid.append(summary, captured, reason);
+      body.appendChild(grid);
+    }
+
+    function createMessage(turn) {
+      const message = document.createElement("article");
+      message.className = `message ${turn.speaker}`;
+
+      const label = document.createElement("div");
+      label.className = "speaker-label";
+      label.innerHTML = turn.speaker === "agent" ? `${icon("i-signal")} Operator` : `${icon("i-lamp")} Caller`;
+
+      const bubble = document.createElement("p");
+      bubble.className = "bubble pcursor";
+      message.append(label, bubble);
+      $("transcript").appendChild(message);
+      return bubble;
+    }
+
+    function typeText(text, target, duration, done) {
+      const characters = Array.from(text);
+      const stepDelay = characters.length ? duration / characters.length / speed : 0;
+      let characterIndex = 0;
+      let timerId = null;
+      let finished = false;
+
+      function cancel() {
+        if (finished) return;
+        finished = true;
+        cancelTimer(timerId);
+        activeTyping = null;
+      }
+
+      function complete() {
+        if (finished) return;
+        finished = true;
+        cancelTimer(timerId);
+        target.textContent = text;
+        target.classList.remove("pcursor");
+        activeTyping = null;
+        done();
+      }
+
+      activeTyping = { cancel, complete };
+
+      if (REDUCED) {
+        target.textContent = text;
+        target.classList.remove("pcursor");
+        timerId = later(complete, duration / speed);
+        return;
+      }
+
+      function typeNext() {
+        if (finished) return;
+        target.textContent += characters[characterIndex] || "";
+        characterIndex += 1;
+        if (characterIndex >= characters.length) {
+          complete();
+          return;
+        }
+        timerId = later(typeNext, stepDelay);
+      }
+
+      if (characters.length === 0) complete();
+      else typeNext();
+    }
+
+    function applyTurn(turn, instant, done) {
+      const empty = $("transcript-empty");
+      if (empty) empty.remove();
+
+      updateUnderstanding(turn.understanding);
+      applyCalendarChanges(turn.calendar);
+      renderLatency(turn.latency);
+      if (turn.handoff) renderHandoff(turn.handoff);
+
+      const bubble = createMessage(turn);
+      $("transcript").scrollTop = $("transcript").scrollHeight;
+
+      if (instant) {
+        bubble.textContent = turn.text;
+        bubble.classList.remove("pcursor");
+        $("transcript").scrollTop = $("transcript").scrollHeight;
+        if (done) done();
+        return;
+      }
+
+      typeText(turn.text, bubble, turn.playbackMs, () => {
+        $("transcript").scrollTop = $("transcript").scrollHeight;
+        if (done) done();
+      });
+    }
+
+    function announceTurn(turn) {
+      const speaker = turn.speaker === "agent" ? "Operator" : "Caller";
+      $("a11y-status").textContent = `${speaker}: ${turn.text}`;
+    }
+
+    function finishPlayback() {
+      playing = false;
+      clearPendingTimers();
+      index = fixture.turns.length;
+      $("scrub").value = index;
+      setPlayLabel("replay");
+      $("a11y-status").textContent = "Call replay complete.";
+    }
+
+    function completeTurn(turn, expectedGeneration) {
+      if (expectedGeneration !== generation) return;
+      elapsed += turn.playbackMs;
+      index += 1;
+      updateProgress();
+      announceTurn(turn);
+
+      if (index >= fixture.turns.length) {
+        finishPlayback();
+        return;
+      }
+      if (playing) later(runTurn, 0, expectedGeneration);
+    }
+
+    function runTurn() {
+      if (!playing || !fixture) return;
+      if (index >= fixture.turns.length) {
+        finishPlayback();
+        return;
+      }
+      const turn = fixture.turns[index];
+      const expectedGeneration = generation;
+      applyTurn(turn, false, () => completeTurn(turn, expectedGeneration));
+    }
+
+    function resetStage() {
+      $("transcript").replaceChildren();
+      const empty = document.createElement("p");
+      empty.className = "transcript-empty";
+      empty.id = "transcript-empty";
+      empty.textContent = "Play the call to open the transcript.";
+      $("transcript").appendChild(empty);
+
+      calendarState = new Map();
+      fixture.calendar.days.forEach((day) => {
+        day.slots.forEach((slot) => {
+          calendarState.set(slot.id, { state: slot.state, note: slot.note || "" });
+        });
+      });
+      renderCalendar();
+      resetUnderstanding();
+      resetLatency();
+      resetHandoff();
+
+      index = 0;
+      elapsed = 0;
+      $("scrub").max = fixture.turns.length;
+      $("scrub").value = 0;
+      updateProgress();
+      setPlayLabel("play");
+      $("a11y-status").textContent = "";
+      $("calendar-status").textContent = "";
+    }
+
+    function seek(target) {
+      if (!fixture) return;
+      const boundedTarget = Math.max(0, Math.min(target, fixture.turns.length));
+      invalidatePlayback();
+      resetStage();
+
+      $("a11y-status").setAttribute("aria-live", "off");
+      $("calendar-status").setAttribute("aria-live", "off");
+      try {
+        for (let turnIndex = 0; turnIndex < boundedTarget; turnIndex += 1) {
+          const turn = fixture.turns[turnIndex];
+          applyTurn(turn, true);
+          elapsed += turn.playbackMs;
+        }
+      } finally {
+        $("a11y-status").setAttribute("aria-live", "polite");
+        $("calendar-status").setAttribute("aria-live", "polite");
+      }
+
+      index = boundedTarget;
+      updateProgress();
+      setPlayLabel(index >= fixture.turns.length ? "replay" : "play");
+      $("a11y-status").textContent = `Replay moved to turn ${index} of ${fixture.turns.length}.`;
+    }
+
+    function play() {
+      if (!fixture) return;
+      if (index >= fixture.turns.length) {
+        invalidatePlayback();
+        resetStage();
+      }
+      playing = true;
+      setPlayLabel("pause");
+      runTurn();
+    }
+
+    function pause() {
+      playing = false;
+      if (activeTyping) activeTyping.complete();
+      clearPendingTimers();
+      setPlayLabel(index >= fixture.turns.length ? "replay" : "play");
+    }
+
+    function restartPlayback() {
+      if (!fixture) return;
+      invalidatePlayback();
+      resetStage();
+      play();
+    }
+
+    function populateCallHeader() {
+      $("call-label").textContent = fixture.label;
+      const meta = $("call-meta");
+      meta.replaceChildren();
+      const fields = [
+        ["call", fixture.id],
+        ["recorded", fixture.recordedAt],
+        ["caller", fixture.phone]
+      ];
+      fields.forEach(([label, value]) => {
+        const item = document.createElement("span");
+        const key = document.createElement("b");
+        key.textContent = `${label}: `;
+        item.append(key, document.createTextNode(value));
+        meta.appendChild(item);
+      });
+    }
+
+    async function loadFixture(file) {
+      const loadGeneration = invalidatePlayback();
+      fixture = null;
+      setControlsDisabled(true);
+      updateFixtureSelection(file);
+      $("app-shell").hidden = true;
+      showLoadState("loading", "Loading recorded call...", "Reading the fixture.");
+
+      try {
+        const data = await fetchFixture(file);
+        if (loadGeneration !== generation) return;
+        validateFixture(data);
+
+        if (data.turns.length === 0) {
+          showLoadState("empty", "This fixture is empty.", "There are no recorded turns to replay.", file);
+          return;
+        }
+
+        fixture = data;
+        populateCallHeader();
+        resetStage();
+        $("load-state").hidden = true;
+        $("app-shell").hidden = false;
+        setControlsDisabled(false);
+        play();
+      } catch (error) {
+        if (loadGeneration !== generation) return;
+        showLoadState("error", "The recorded call could not load.", `${file}: ${error.message}`, file);
+      }
+    }
+
+    $("play").addEventListener("click", () => {
+      if (playing) pause();
+      else play();
+    });
+    $("restart").addEventListener("click", restartPlayback);
+    $("scrub").addEventListener("input", (event) => seek(Number(event.target.value)));
+
+    document.querySelectorAll("#speed button").forEach((button) => {
+      button.addEventListener("click", () => {
+        speed = Number(button.dataset.speed);
+        document.querySelectorAll("#speed button").forEach((candidate) => {
+          const selected = candidate === button;
+          candidate.classList.toggle("on", selected);
+          candidate.setAttribute("aria-pressed", String(selected));
+        });
+      });
+    });
+
+    document.querySelectorAll(".fixture-button").forEach((button) => {
+      button.addEventListener("click", () => loadFixture(button.dataset.file));
+    });
+
+    loadFixture("clean-booking.json");
+  </script>
+</body>
+</html>

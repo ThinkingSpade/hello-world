@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Oracle — a council of debating agents</title>
+<title>Oracle: a council of debating agents</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%232547c9'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -139,7 +139,7 @@
   /* the neutral desks: researcher + moderator */
   .modrow { display: flex; justify-content: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .9rem; }
   .modrow .agent { width: min(300px, 100%); }
-  /* back office — the support cast */
+  /* back office: the support cast */
   .backoffice { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .2rem; }
   @media (max-width: 700px) { .backoffice { grid-template-columns: 1fr; } }
   .backoffice .agent { padding: .55rem; }
@@ -276,7 +276,7 @@
   .bub .tx { white-space: pre-wrap; word-wrap: break-word; }
   .bub .tx .caret { display: inline-block; width: .5em; background: var(--ac); height: .95em; vertical-align: -2px; animation: caret .8s steps(2) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
-  /* citation chips — the receipts, stapled to the message */
+  /* citation chips: the receipts, stapled to the message */
   .bub .srcs { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; animation: pop .3s ease-out; }
   .bub .srcs .evidence-chip {
     font-size: .6rem; font-weight: 700; color: var(--dim);
@@ -368,14 +368,13 @@
     width: fit-content;
     max-width: 880px;
     margin-top: 12px;
-    padding: 6px 10px 6px 14px;
+    padding: 6px 10px;
     color: var(--pi-muted);
-    background: transparent;
-    border: 0;
+    background: var(--pi-paper);
+    border: 1.5px solid var(--pi-line);
     border-left: 3px solid var(--pi-accent);
     border-radius: 0;
-    font-size: 18px;
-    line-height: 1.35;
+    font: 14px/1.5 var(--pi-font-body);
   }
   .honesty b { color: var(--pi-accent); }
   code { font-family: var(--pi-font-code); font-size: .85em; }
@@ -391,7 +390,7 @@
   .session-tools { margin-bottom: 16px; }
   .session-tools .pwin-body { padding: 12px; }
   .session-tool-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .session-tool-row .pbtn { min-height: 40px; }
+  .session-tool-row .pbtn { min-height: 44px; }
   .session-ref { margin-left: auto; }
   #session-import { position: fixed; left: -10000px; width: 1px; height: 1px; opacity: 0; }
   #session-input-state { margin-top: 10px; }
@@ -425,6 +424,7 @@
   }
 
   .debate-window { margin-bottom: 20px; }
+  .pwin-title { font-size: 12px; }
   .debate-window > .pwin-title { min-height: 44px; }
   .playback-state { margin-left: auto; }
   .debate-layout {
@@ -463,7 +463,7 @@
     border-bottom: 2px solid var(--pi-ink);
     color: var(--pi-ink);
     background: var(--pi-paper);
-    font: 10px/1.4 var(--pi-font-title);
+    font: 12px/1.4 var(--pi-font-title);
     letter-spacing: .04em;
     text-transform: lowercase;
   }
@@ -511,7 +511,8 @@
       "ava chip"
       "status status"
       "meter meter"
-      "meter-label meter-label";
+      "meter-label meter-label"
+      "receipts receipts";
     gap: 1px 8px;
     min-width: 0;
     min-height: 100px;
@@ -582,6 +583,27 @@
   .conf i { background: var(--ac); transition: width .25s steps(4, end); }
   .conf-n { grid-area: meter-label; margin-top: 1px; color: var(--pi-muted); font: 12px/1.2 var(--pi-font-ui); }
   .conf-n b { color: var(--pi-ink); }
+  .receipt-note { margin-bottom: 8px; line-height: 1.45; }
+  .receipt-strip {
+    grid-area: receipts;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px;
+    padding: 4px 6px;
+    overflow: hidden;
+    line-height: 1.35;
+  }
+  .receipt-strip.has-gaps { border-color: var(--pi-warn); }
+  .receipt-track {
+    display: block;
+    height: 7px;
+    overflow: hidden;
+    border: 1px solid var(--pi-ink);
+    background: var(--pi-warn-soft);
+  }
+  .receipt-track i { display: block; height: 100%; background: var(--pi-ok); }
   .modrow .agent {
     grid-template-columns: 42px minmax(0, 1fr);
     min-height: 82px;
@@ -732,7 +754,7 @@
   #verdict.show { display: block; animation: none; }
   #verdict > summary { min-height: 44px; cursor: pointer; list-style: none; }
   #verdict > summary::-webkit-details-marker { display: none; }
-  #verdict > summary::after { content: "[–]"; margin-left: auto; font-family: var(--pi-font-code); }
+  #verdict > summary::after { content: "[close]"; margin-left: auto; font: 12px/1 var(--pi-font-code); }
   #verdict:not([open]) > summary::after { content: "[+]"; }
   .verdict-body { padding: 16px; }
   .v-grid {
@@ -767,7 +789,7 @@
   .evidence-popover::backdrop { background: rgba(30, 26, 20, .58); }
   .evidence-popover .pwin-title { position: sticky; top: 0; z-index: 1; }
   .evidence-popover .pwin-body { max-height: calc(100vh - 96px); padding: 16px; overflow-y: auto; }
-  .evidence-close { width: auto; min-width: 36px; min-height: 32px; margin-left: auto; }
+  .evidence-close { width: auto; min-width: 44px; min-height: 44px; margin-left: auto; }
   .evidence-record {
     display: grid;
     grid-template-columns: 120px minmax(0, 1fr);
@@ -801,6 +823,46 @@
   }
   .chart-scroll:focus-visible { outline: 3px solid var(--pi-accent); outline-offset: 2px; }
   #arc-chart { display: block; width: 100%; min-width: 720px; height: auto; margin: 0; }
+  .sensitivity { margin-top: 16px; }
+  .sensitivity > .pwin-title { min-height: 44px; }
+  .sensitivity .pwin-body { padding: 16px; }
+  .sensitivity-copy { max-width: 780px; color: var(--pi-muted); font: 14px/1.6 var(--pi-font-body); }
+  .weight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .weight-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 10px;
+    min-width: 0;
+    font: 14px/1.4 var(--pi-font-ui);
+  }
+  .weight-control output { min-width: 3ch; color: var(--pi-accent); text-align: right; font-weight: 700; }
+  .weight-control input {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    accent-color: var(--pi-accent);
+  }
+  .sensitivity-actions { display: flex; align-items: stretch; gap: 12px; margin-top: 12px; }
+  .sensitivity-actions .pbtn { flex: 0 0 auto; }
+  .sensitivity-result {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .sensitivity-number span { display: block; color: var(--pi-term-dim); font: 12px/1.4 var(--pi-font-ui); }
+  .sensitivity-number b { display: block; margin-top: 4px; color: var(--pi-term-fg); font: 700 32px/1 var(--pi-font-ui); }
+  .sensitivity-label { margin-top: 5px; color: var(--pi-term-ok); font: 13px/1.4 var(--pi-font-ui); }
+  .sensitivity-detail { display: grid; gap: 8px; min-width: 0; }
+  .sensitivity-detail .pstrip { overflow-wrap: anywhere; }
   .spark { display: none !important; }
   footer { margin-top: 28px; color: var(--pi-muted); font: 12px/1.5 var(--pi-font-body); }
 
@@ -834,7 +896,7 @@
     body { padding: 16px 10px 40px; }
     h1 { font-size: 19px; }
     .tagline { font-size: 14px; }
-    .honesty { font-size: 17px; }
+    .honesty { font-size: 13px; }
     .picker { grid-template-columns: 1fr; }
     .session-tool-row { align-items: stretch; }
     .session-tool-row .pbtn { flex: 1 1 160px; }
@@ -872,7 +934,8 @@
       grid-template-areas:
         "name meter-label"
         "role role"
-        "status status";
+        "status status"
+        "receipts receipts";
       min-height: 66px;
       padding: 6px 8px;
     }
@@ -891,6 +954,8 @@
     .modrow .st { display: block; }
     .bub { width: 100%; max-width: 100%; }
     .v-grid { grid-template-columns: 1fr; }
+    .weight-grid { grid-template-columns: 1fr; }
+    .sensitivity-result { grid-template-columns: 1fr; }
     .dial { padding-bottom: 12px; border-right: 0; border-bottom: 1px solid var(--pi-term-dim); }
     .score-ledger { grid-template-columns: 1fr; gap: 1px; }
     .score-ledger b { margin-bottom: 5px; }
@@ -905,6 +970,7 @@
     .bub .who .vt { grid-row: 3; }
     .evidence-record { grid-template-columns: 1fr; gap: 2px; }
     .evidence-record dd { margin-bottom: 8px; }
+    .receipt-strip { grid-template-columns: minmax(0, 1fr) 60px; }
   }
 </style>
 </head>
@@ -912,8 +978,8 @@
 <div class="wrap">
   <header class="site-head">
     <h1>ORACLE<span class="dot">_</span></h1>
-    <p class="tagline">a skeptic, an optimist, a fact-checker and a wildcard walk into a debate — confidence is scored from where they disagree</p>
-    <span class="honesty pnote"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
+    <p class="tagline">four agents test one question, track their confidence, and leave a computed verdict</p>
+    <span class="honesty pstrip"><b>interactive recreation of the private system, replaying recorded fixtures</b></span>
   </header>
 
   <section class="pwin session-tools" aria-labelledby="session-tools-title">
@@ -942,10 +1008,11 @@
     </div>
     <div class="debate-layout pwin-body">
       <div class="card stage-card">
-        <div class="question" id="q">—</div>
+        <div class="question" id="q">question pending</div>
         <div class="rail" id="rail"></div>
         <div class="stagewrap">
-          <div id="toast"></div>
+          <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="receipt-note pstrip">Receipt meter: each debate entry counts as one claim. A URL or excerpt makes it sourced.</div>
           <div class="council" id="council"></div>
           <div class="modrow" id="modrow"></div>
           <div class="backoffice" id="backoffice"></div>
@@ -962,13 +1029,13 @@
 
       <div class="card transcript-card">
         <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> The debate</h2>
-        <div id="feed"></div>
+        <div id="feed" role="log" aria-live="polite" aria-relevant="additions"></div>
       </div>
     </div>
   </section>
 
   <details class="card pwin evidence-pane" id="verdict">
-    <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> The verdict — disagreement is the metric</summary>
+    <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> The verdict: disagreement is the metric</summary>
     <div class="verdict-body pwin-body">
       <div class="v-grid pterm">
         <div class="dial">
@@ -978,7 +1045,7 @@
                     stroke-linecap="square" stroke-dasharray="540.35" stroke-dashoffset="540.35"
                     style="transition: stroke-dashoffset .5s steps(8, end)"/>
           </svg>
-          <div class="num"><b id="v-conf">—</b><span>computed P(yes)</span></div>
+          <div class="num"><b id="v-conf">pending</b><span>computed P(yes)</span></div>
         </div>
         <div>
           <div class="pstrip warn" id="v-score-state" role="status" aria-live="polite">waiting for final vote</div>
@@ -993,10 +1060,52 @@
       <div class="chart-scroll" tabindex="0" role="region" aria-label="Confidence chart; scroll horizontally on small screens">
         <svg id="arc-chart" viewBox="0 0 720 190" role="img" aria-label="Each agent's confidence per round"></svg>
       </div>
+      <section class="sensitivity pwin" aria-labelledby="sensitivity-title">
+        <div class="pwin-title">
+          <span class="pwin-lamp on" aria-hidden="true"></span>
+          <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>
+          <span id="sensitivity-title">verdict sensitivity</span>
+        </div>
+        <div class="pwin-body">
+          <p class="sensitivity-copy" id="sensitivity-copy">Change the scoring lens on the same ballots, confidence values, and evidence. This does not add data. Votes and confidence set direction. Evidence and convergence calibrate certainty. Ballot agreement and concession tags stay fixed at their recorded defaults. The hinge is the agent whose recorded inputs move the lens most when removed.</p>
+          <div class="weight-grid">
+            <label class="weight-control" for="weight-votes">
+              <span>votes</span><output id="weight-votes-out" for="weight-votes">50</output>
+              <input id="weight-votes" type="range" min="0" max="100" value="50" step="5" aria-describedby="sensitivity-copy">
+            </label>
+            <label class="weight-control" for="weight-confidence">
+              <span>confidence calibration</span><output id="weight-confidence-out" for="weight-confidence">35</output>
+              <input id="weight-confidence" type="range" min="0" max="100" value="35" step="5" aria-describedby="sensitivity-copy">
+            </label>
+            <label class="weight-control" for="weight-evidence">
+              <span>evidence quality</span><output id="weight-evidence-out" for="weight-evidence">20</output>
+              <input id="weight-evidence" type="range" min="0" max="100" value="20" step="5" aria-describedby="sensitivity-copy">
+            </label>
+            <label class="weight-control" for="weight-convergence">
+              <span>convergence</span><output id="weight-convergence-out" for="weight-convergence">30</output>
+              <input id="weight-convergence" type="range" min="0" max="100" value="30" step="5" aria-describedby="sensitivity-copy">
+            </label>
+          </div>
+          <div class="sensitivity-actions">
+            <button class="pbtn" id="sensitivity-reset" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg> reset weights</button>
+          </div>
+          <div class="sensitivity-result pterm">
+            <div class="sensitivity-number">
+              <span>lens P(yes)</span>
+              <b id="sensitivity-score">pending</b>
+              <div class="sensitivity-label" id="sensitivity-label">waiting for verdict</div>
+            </div>
+            <div class="sensitivity-detail">
+              <div class="pstrip warn" id="sensitivity-state" role="status" aria-live="polite">waiting for recorded ballots</div>
+              <div class="pstrip" id="sensitivity-hinge">hinge pending</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </details>
 
-  <footer>oracle · four models, four temperaments, one computed verdict ·
+  <footer>oracle · four ballots · one computed verdict ·
     <a href="https://github.com/ThinkingSpade/hello-world/tree/lab/oracle" target="_blank" rel="noopener">engine source ↗</a></footer>
 </div>
 
@@ -1014,6 +1123,7 @@
 </dialog>
 
 <script>
+  "use strict";
   const $ = (id) => document.getElementById(id);
   const escapeHTML = (value) => String(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -1316,6 +1426,29 @@
   /* ---------------- rendering ---------------- */
   const agentById = (id) => S.agents.find((a) => a.id === id);
 
+  function claimReceiptCoverage(session, agentId) {
+    const claims = session.rounds.flatMap((round) => round.events)
+      .filter((event) => event.agent === agentId);
+    let sourced = 0;
+    for (const claim of claims) {
+      const records = Array.isArray(claim.sources) ? claim.sources : [];
+      if (records.some((record) => record && (record.url || record.excerpt))) sourced++;
+    }
+    return { sourced, unsourced: claims.length - sourced, total: claims.length };
+  }
+
+  function receiptCoverageMarkup(agent) {
+    const coverage = claimReceiptCoverage(S, agent.id);
+    const fill = coverage.total ? Math.round(coverage.sourced / coverage.total * 100) : 0;
+    const label = coverage.total
+      ? `${coverage.sourced} sourced, ${coverage.unsourced} unsourced claims`
+      : "no claims recorded";
+    return `<div class="receipt-strip pstrip${coverage.unsourced ? " has-gaps" : ""}" aria-label="Receipt coverage for ${escapeHTML(agent.name)}: ${label}">
+      <span>${coverage.total ? `<b>${coverage.sourced} sourced</b> · ${coverage.unsourced} unsourced` : "<b>empty</b> · no claims"}</span>
+      <span class="receipt-track" aria-hidden="true"><i style="width:${fill}%"></i></span>
+    </div>`;
+  }
+
   function renderShell() {
     const windowEl = document.querySelector(".debate-window");
     if (windowEl) { windowEl.classList.remove("is-loading"); windowEl.setAttribute("aria-busy", "false"); }
@@ -1344,10 +1477,11 @@
         <div class="nm">${escapeHTML(a.name)}</div>
         <div class="rl">${escapeHTML(a.role)}</div>
         <div class="tg">${(PERSONA[a.id] || {}).tagline || ""}</div>
-        <span class="chipstat pchip" id="sc-${a.id}">—</span>
+        <span class="chipstat pchip" id="sc-${a.id}">PENDING</span>
         <div class="st" id="st-${a.id}">waiting for the gavel</div>
         <div class="conf"><i id="cf-${a.id}"></i></div>
-        <div class="conf-n" id="cn-${a.id}">P(yes) —</div>`;
+        <div class="conf-n" id="cn-${a.id}">P(yes) pending</div>
+        ${receiptCoverageMarkup(a)}`;
       council.appendChild(div);
     }
     const modrow = $("modrow");
@@ -1378,11 +1512,11 @@
     bo.replaceChildren();
     const label = document.createElement("div");
     label.className = "bo-label";
-    label.textContent = "— the back office —";
+    label.textContent = "the back office";
     bo.appendChild(label);
     const BO = [
       ["steno", "The Stenographer", "Records office", "#b8463a", "WORDS TYPED 0"],
-      ["book", "The Bookmaker", "Odds desk", "#20416b", "LIVE ODDS —"],
+      ["book", "The Bookmaker", "Odds desk", "#20416b", "LIVE ODDS PENDING"],
       ["intern", "The Intern", "Coffee logistics", "#8f6f1d", "COFFEES SERVED 0"],
     ];
     for (const [id, nm, rl, c, chip] of BO) {
@@ -1402,8 +1536,10 @@
     $("intern-sprite").classList.remove("run");
     resetStats();
     $("feed").replaceChildren();
+    $("feed").setAttribute("aria-live", "polite");
     $("verdict").classList.remove("show");
     $("verdict").style.display = "none";
+    resetSensitivityControls(false);
     idx = 0; elapsedBase = 0;
     $("scrub").value = 0;
     tickClock(0);
@@ -1494,7 +1630,7 @@
   }
   function updateStatChips() {
     const set = (id, t) => { const el = $("sc-" + id); if (el) el.textContent = t; };
-    set("gpt", STATS.gpt.conv === null ? "CONVICTION —" : "CONVICTION " + STATS.gpt.conv + "%");
+    set("gpt", STATS.gpt.conv === null ? "CONVICTION PENDING" : "CONVICTION " + STATS.gpt.conv + "%");
     set("claude", STATS.claude.cites + " RECEIPTS · " + STATS.claude.fixes + " CORRECTIONS");
     set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
     set("grok", STATS.grok.takes + " HOT TAKES" + (STATS.grok.conceded ? " · " + STATS.grok.conceded + " WALKED BACK" : ""));
@@ -1525,8 +1661,8 @@
 
   function phaseToast(name, ri) {
     const t = $("toast");
-    // the briefing and the verdict are acts, not rounds — no number
-    t.textContent = (ri > 0 && ri < S.rounds.length ? "round " + ri + " — " : "") + name;
+    // The briefing and verdict are acts, so they have no round number.
+    t.textContent = (ri > 0 && ri < S.rounds.length ? "round " + ri + ": " : "") + name;
     t.classList.remove("show");
     void t.offsetWidth;   // restart the animation
     if (!REDUCED) t.classList.add("show");
@@ -1595,7 +1731,7 @@
     const term = document.createElement("dt");
     const detail = document.createElement("dd");
     term.textContent = label;
-    detail.textContent = value || "—";
+    detail.textContent = value || "not recorded";
     if (className) detail.className = className;
     list.append(term, detail);
   }
@@ -1815,8 +1951,9 @@
     return declared && hasOwn(declared, value) ? declared[value] : null;
   }
 
-  function evidenceQuality(session) {
+  function evidenceQuality(session, excludedAgent = "") {
     const records = session.rounds.flatMap((round) => round.events)
+      .filter((event) => event.agent !== excludedAgent)
       .flatMap((event) => Array.isArray(event.sources) ? event.sources : []);
     if (!records.length) return { score: 0, records: 0, linked: 0, excerpted: 0 };
     let linked = 0, excerpted = 0;
@@ -1894,6 +2031,139 @@
     };
   }
 
+  const SENSITIVITY_DEFAULTS = Object.freeze({
+    votes: 50,
+    confidence: 35,
+    evidence: 20,
+    convergence: 30,
+  });
+  const SENSITIVITY_KEYS = Object.keys(SENSITIVITY_DEFAULTS);
+  let sensitivityWeights = { ...SENSITIVITY_DEFAULTS };
+
+  function sensitivitySignals(session, weights, excludedAgent = "") {
+    const agents = session.agents.filter((agent) => agent.id !== excludedAgent);
+    const ballots = agents.map((agent) => ({
+      agent,
+      side: voteSide(session.result.votes[agent.id], session),
+    })).filter((ballot) => ballot.side === "yes" || ballot.side === "no");
+    if (!ballots.length) throw new Error("The sensitivity lens needs a recorded yes or no ballot.");
+
+    const series = Object.fromEntries(agents.map((agent) => [
+      agent.id,
+      session.result.confidence_by_round[agent.id],
+    ]));
+    const opening = agents.map((agent) => series[agent.id][0]);
+    const final = agents.map((agent) => series[agent.id].at(-1));
+    const voteShare = ballots.filter((ballot) => ballot.side === "yes").length / ballots.length;
+    const meanForecast = mean(final) / 100;
+    const concedingIds = new Set(session.rounds.flatMap((round) => round.events)
+      .filter((event) => event.agent !== excludedAgent && event.concession === true)
+      .map((event) => event.agent)
+      .filter((id) => series[id]));
+    const concessionShifts = [...concedingIds].map((id) => series[id].at(-1) - series[id][0]);
+    const concessionSignal = concessionShifts.length
+      ? clamp(0.5 + mean(concessionShifts) / 100)
+      : 0.5;
+    const openingSpread = opening.length > 1 ? Math.max(...opening) - Math.min(...opening) : 0;
+    const finalSpread = final.length > 1 ? Math.max(...final) - Math.min(...final) : 0;
+    const convergenceSignal = clamp(0.5 + (openingSpread - finalSpread) / 200);
+    const agreementSignal = clamp(Math.abs(voteShare - 0.5) * 2);
+    const evidence = evidenceQuality(session, excludedAgent);
+
+    const voteWeight = clamp(Number(weights.votes) || 0, 0, 100);
+    const confidenceWeight = clamp(Number(weights.confidence) || 0, 0, 100);
+    const evidenceWeight = clamp(Number(weights.evidence) || 0, 0, 100);
+    const convergenceWeight = clamp(Number(weights.convergence) || 0, 0, 100);
+    const concessionWeight = SCORE_WEIGHTS.concessions * 100;
+    const agreementWeight = SCORE_WEIGHTS.agreement * 100;
+    const rawYes = (voteWeight * voteShare
+      + confidenceWeight * meanForecast
+      + concessionWeight * concessionSignal)
+      / (voteWeight + confidenceWeight + concessionWeight);
+    const reliability = (agreementWeight * agreementSignal
+      + convergenceWeight * convergenceSignal
+      + evidenceWeight * evidence.score)
+      / (agreementWeight + convergenceWeight + evidenceWeight);
+    const calibration = 0.65 + 0.35 * reliability;
+    const yesProbability = clamp(0.5 + (rawYes - 0.5) * calibration);
+    return { yesProbability, rawYes, reliability };
+  }
+
+  function sensitivityHinge(session, weights, baseline) {
+    const candidates = [];
+    for (const agent of session.agents) {
+      try {
+        const withoutAgent = sensitivitySignals(session, weights, agent.id);
+        candidates.push({
+          agent,
+          delta: (withoutAgent.yesProbability - baseline.yesProbability) * 100,
+        });
+      } catch (_) {
+        // An imported session can have one directional ballot and several abstentions.
+      }
+    }
+    return candidates.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0] || null;
+  }
+
+  function renderSensitivity() {
+    const state = $("sensitivity-state");
+    for (const key of SENSITIVITY_KEYS) {
+      const input = $("weight-" + key);
+      const output = $("weight-" + key + "-out");
+      input.value = sensitivityWeights[key];
+      input.setAttribute("aria-valuetext", sensitivityWeights[key] + " weight points");
+      output.value = sensitivityWeights[key];
+      output.textContent = sensitivityWeights[key];
+    }
+    if (!S || !SCORE) {
+      state.className = "pstrip warn";
+      state.textContent = "empty. No recorded ballots are loaded.";
+      $("sensitivity-score").textContent = "pending";
+      $("sensitivity-label").textContent = "waiting for verdict";
+      $("sensitivity-hinge").textContent = "hinge pending";
+      return;
+    }
+    try {
+      const lens = sensitivitySignals(S, sensitivityWeights);
+      const score = Math.round(lens.yesProbability * 100);
+      const hinge = sensitivityHinge(S, sensitivityWeights, lens);
+      const delta = score - SCORE.score;
+      const deltaCopy = delta === 0
+        ? "matches the recorded score"
+        : `${Math.abs(delta)} points ${delta > 0 ? "above" : "below"} the recorded score`;
+      $("sensitivity-score").textContent = score + "%";
+      $("sensitivity-label").textContent = score === 50 ? "lens is split" : `lens leans ${score > 50 ? "yes" : "no"}`;
+      state.className = "pstrip ok";
+      state.textContent = deltaCopy + ". Same recorded inputs. No new data.";
+      if (!hinge) {
+        $("sensitivity-hinge").textContent = "Hinge unavailable. The session needs two directional ballots for this comparison.";
+      } else {
+        const movement = Math.abs(hinge.delta);
+        $("sensitivity-hinge").textContent = movement < 0.05
+          ? `Hinge: ${hinge.agent.name}. Removing this agent's recorded inputs leaves the score unchanged.`
+          : `Hinge: ${hinge.agent.name}. Removing this agent's recorded inputs moves the score ${hinge.delta > 0 ? "up" : "down"} by ${movement.toFixed(1)} points.`;
+      }
+    } catch (error) {
+      state.className = "pstrip err";
+      state.textContent = "sensitivity error. " + error.message;
+      $("sensitivity-score").textContent = "error";
+      $("sensitivity-label").textContent = "lens unavailable";
+      $("sensitivity-hinge").textContent = "hinge unavailable";
+    }
+  }
+
+  function resetSensitivityControls(render = true) {
+    sensitivityWeights = { ...SENSITIVITY_DEFAULTS };
+    if (render) renderSensitivity();
+    else {
+      for (const key of SENSITIVITY_KEYS) {
+        $("weight-" + key).value = sensitivityWeights[key];
+        $("weight-" + key + "-out").value = sensitivityWeights[key];
+        $("weight-" + key + "-out").textContent = sensitivityWeights[key];
+      }
+    }
+  }
+
   function showVerdict(animate) {
     const r = S.result;
     const v = $("verdict");
@@ -1910,7 +2180,7 @@
     } catch (error) {
       state.className = "pstrip err";
       state.textContent = "score error · " + error.message;
-      $("v-conf").textContent = "—";
+      $("v-conf").textContent = "error";
       return;
     }
     state.className = "pstrip ok";
@@ -1966,6 +2236,7 @@
       : "";
     $("v-dissent").textContent = tieBreak + "unresolved: " + (r.dissent || "none recorded");
     drawArcChart(r.confidence_by_round, animate);
+    renderSensitivity();
   }
 
   function drawArcChart(cbr, animate) {
@@ -1999,7 +2270,7 @@
       });
       out += `<text x="${W - R + 8}" y="${labelY[a.id] + 4}" font-size="12" font-family="Pixelify Sans, sans-serif" font-weight="bold" fill="${c}">${escapeHTML(a.role.replace("The ", ""))} · ${cbr[a.id].at(-1)}%</text>`;
     }
-    out += `<text x="${L}" y="${14}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353">P(yes) per round — spread change calibrates certainty, not direction</text>`;
+    out += `<text x="${L}" y="${14}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353">P(yes) per round. Spread change calibrates certainty, not direction.</text>`;
     svg.innerHTML = out;
   }
 
@@ -2187,6 +2458,7 @@
     active = null;
     to = Math.max(0, Math.min(steps.length, to));
     reconstructing = true;
+    $("feed").setAttribute("aria-live", "off");
     try {
       renderShell();
       // instantly apply everything before `to`
@@ -2219,6 +2491,7 @@
       }
     } finally {
       reconstructing = false;
+      $("feed").setAttribute("aria-live", "polite");
     }
     const vals = Object.values(STATS.odds);
     if (vals.length) $("sc-book").textContent =
@@ -2296,6 +2569,14 @@
     spd.appendChild(b);
   }
 
+  for (const key of SENSITIVITY_KEYS) {
+    $("weight-" + key).addEventListener("input", (event) => {
+      sensitivityWeights = { ...sensitivityWeights, [key]: Number(event.target.value) };
+      renderSensitivity();
+    });
+  }
+  $("sensitivity-reset").addEventListener("click", () => resetSensitivityControls());
+
   /* ---------------- sessions ---------------- */
   const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
   const isText = (value) => typeof value === "string" && value.trim().length > 0;
@@ -2351,7 +2632,7 @@
 
     const ids = new Set();
     if (!Array.isArray(session.agents) || session.agents.length < 2 || session.agents.length > 8) {
-      issue("agents", "must contain 2–8 agents");
+      issue("agents", "must contain 2 to 8 agents");
     } else {
       session.agents.forEach((agent, index) => {
         const path = `agents[${index}]`;

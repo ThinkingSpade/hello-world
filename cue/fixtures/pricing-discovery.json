@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "title": "Pricing objection",
+    "subtitle": "New hire discovery call",
+    "callId": "CALL-0147",
+    "rep": "Maya Chen",
+    "repNote": "Week 2",
+    "customer": "Jon Bell",
+    "account": "Northstar Labs"
+  },
+  "duration": 90,
+  "screenEvents": [
+    {
+      "at": 0,
+      "app": "CRM",
+      "screen": "Northstar Labs record",
+      "detail": "Account summary and onboarding risk"
+    },
+    {
+      "at": 18,
+      "app": "Pricing",
+      "screen": "Growth plan",
+      "detail": "Annual plan and team assumptions"
+    },
+    {
+      "at": 47,
+      "app": "Stories",
+      "screen": "Harbor Health brief",
+      "detail": "Finance approval case study"
+    },
+    {
+      "at": 70,
+      "app": "Calendar",
+      "screen": "Follow up hold",
+      "detail": "Thursday review slots"
+    }
+  ],
+  "transcript": [
+    {
+      "at": 0,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "Hi Jon. Thanks for making time. I want to understand what your team needs before we talk options."
+    },
+    {
+      "at": 8,
+      "speaker": "Jon",
+      "role": "customer",
+      "text": "We have twelve people handling onboarding by hand. The work keeps piling up."
+    },
+    {
+      "at": 15,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "Your CRM shows the team added four implementation managers this quarter. Is the manual work still the main constraint?"
+    },
+    {
+      "at": 23,
+      "speaker": "Jon",
+      "role": "customer",
+      "text": "Yes, but the Growth plan is almost twice what we budgeted. I cannot take that price to finance."
+    },
+    {
+      "at": 31,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "I hear you. Give me a moment to connect the price to what the team is losing today."
+    },
+    {
+      "at": 42,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "The comparison is not the plan against a smaller tool. It is the plan against twelve people spending eleven hours a week on repeated setup."
+    },
+    {
+      "at": 51,
+      "speaker": "Jon",
+      "role": "customer",
+      "text": "That helps, but finance will want proof that another team saw the result."
+    },
+    {
+      "at": 59,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "Harbor Health had the same approval concern. Their operations lead used the rollout brief to show where the hours would come back."
+    },
+    {
+      "at": 69,
+      "speaker": "Jon",
+      "role": "customer",
+      "text": "Send me that brief. If the math holds, I can bring this to our Friday review."
+    },
+    {
+      "at": 76,
+      "speaker": "Maya",
+      "role": "rep",
+      "text": "I will send the Harbor Health brief today, with the assumptions highlighted. Can we hold twenty minutes on Thursday to check the numbers together?"
+    },
+    {
+      "at": 84,
+      "speaker": "Jon",
+      "role": "customer",
+      "text": "Yes. Thursday afternoon works."
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "account-growth",
+      "at": 12,
+      "type": "account_detail",
+      "title": "Account detail",
+      "content": "Northstar Labs added 4 implementation managers this quarter. Manual onboarding is still marked as the main risk.",
+      "reason": "The customer described onboarding work. The CRM record had the matching account note.",
+      "usedAt": 15,
+      "useEvidence": "Maya cited the new implementation managers at 00:15."
+    },
+    {
+      "id": "price-reframe",
+      "at": 29,
+      "type": "objection_response",
+      "title": "Price to current cost",
+      "content": "Reframe the choice around 12 people spending 11 hours each week on repeated setup.",
+      "reason": "The customer said the Growth plan was over budget and hard to take to finance.",
+      "usedAt": 42,
+      "useEvidence": "Maya used the cost comparison at 00:42."
+    },
+    {
+      "id": "harbor-proof",
+      "at": 53,
+      "type": "suggested_answer",
+      "title": "Harbor Health proof",
+      "content": "Use the Harbor Health finance approval brief. It shows the rollout assumptions and recovered team time.",
+      "reason": "The customer asked for proof that another team could defend the result to finance.",
+      "usedAt": 59,
+      "useEvidence": "Maya brought up the Harbor Health approval brief at 00:59."
+    },
+    {
+      "id": "book-review",
+      "at": 70,
+      "type": "next_step",
+      "title": "Book the finance check",
+      "content": "Send the brief today. Offer a 20 minute review before the Friday finance meeting.",
+      "reason": "The customer agreed to review the proof before the Friday meeting.",
+      "usedAt": 76,
+      "useEvidence": "Maya offered the brief and Thursday review at 01:16."
+    }
+  ],
+  "recap": {
+    "talkListen": {
+      "rep": 47,
+      "customer": 53
+    },
+    "gaps": [
+      {
+        "after": "pricing concern",
+        "seconds": 6,
+        "cueAt": 29,
+        "helpedBy": "Price to current cost"
+      }
+    ]
+  }
+}

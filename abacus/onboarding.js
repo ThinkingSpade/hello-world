@@ -198,7 +198,7 @@
           message: `expected ${headers.length} fields; found ${source.values.length}` });
       rows.push(headers.map((_, column) => source.values[column] ?? ""));
     }
-    if (!rows.length) throw new Error("empty file — header only");
+    if (!rows.length) throw new Error("empty file. Only a header was found");
     if (rows.length > MAX_ROWS)
       throw new Error(`table exceeds the ${MAX_ROWS.toLocaleString("en-US")}-row cap`);
     return { headers, rows, errors };
@@ -345,7 +345,7 @@
     const qTable = quoteIdent(table);
     const countRows = firstResult(db, `SELECT COUNT(*) FROM ${qTable}`);
     const rowCount = Number(countRows[0]?.[0] || 0);
-    if (!rowCount) throw new Error("empty file — selected table has no rows");
+    if (!rowCount) throw new Error("empty file. The selected table has no rows");
     if (rowCount > MAX_ROWS) throw new Error(`table exceeds the ${MAX_ROWS.toLocaleString("en-US")}-row cap`);
     const info = firstResult(db, `PRAGMA table_info(${qTable})`);
     if (!info.length) throw new Error("selected table has no columns");
@@ -546,7 +546,7 @@
     const usDb = await createCsvDatabase(Abacus, usParsed.headers, usParsed.rows, usProfiles);
     const usGenerated = generateManifest({ profiles: usProfiles, rowCount: usParsed.rows.length, normalizedDates: true });
     const usTimeSql = usGenerated.runtime.timeSql;
-    const usRows = usDb.exec(`SELECT COUNT(*) FROM uploaded WHERE ${usTimeSql} BETWEEN '2025-01-01' AND '2025-12-31'`);
+    const usRows = usDb.exec(`SELECT COUNT(*) FROM uploaded u WHERE ${usTimeSql} BETWEEN '2025-01-01' AND '2025-12-31'`);
     assert(Number(usRows[0].values[0][0]) === 2, "US-format dates filter correctly after ISO normalization");
     usDb.close();
     Abacus.mount({ manifest: generated.manifest, db, runtime: generated.runtime });

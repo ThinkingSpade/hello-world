@@ -1,0 +1,175 @@
+{
+  "id": "CALL-2031",
+  "title": "Clean booking",
+  "label": "New appointment",
+  "recordedAt": "July 17, 2026 at 9:14 AM",
+  "phone": "+1 703 *** 0184",
+  "calendar": {
+    "weekLabel": "July 20 to July 24, 2026",
+    "days": [
+      {
+        "label": "Mon",
+        "date": "Jul 20",
+        "slots": [
+          { "id": "mon-0900", "time": "9:00", "state": "open" },
+          { "id": "mon-1030", "time": "10:30", "state": "open" },
+          { "id": "mon-1400", "time": "2:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Tue",
+        "date": "Jul 21",
+        "slots": [
+          { "id": "tue-0900", "time": "9:00", "state": "open" },
+          { "id": "tue-1030", "time": "10:30", "state": "open" },
+          { "id": "tue-1330", "time": "1:30", "state": "open" }
+        ]
+      },
+      {
+        "label": "Wed",
+        "date": "Jul 22",
+        "slots": [
+          { "id": "wed-0930", "time": "9:30", "state": "open" },
+          { "id": "wed-1100", "time": "11:00", "state": "open" },
+          { "id": "wed-1500", "time": "3:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Thu",
+        "date": "Jul 23",
+        "slots": [
+          { "id": "thu-0900", "time": "9:00", "state": "open" },
+          { "id": "thu-1230", "time": "12:30", "state": "open" },
+          { "id": "thu-1600", "time": "4:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Fri",
+        "date": "Jul 24",
+        "slots": [
+          { "id": "fri-1000", "time": "10:00", "state": "open" },
+          { "id": "fri-1300", "time": "1:00", "state": "open" },
+          { "id": "fri-1530", "time": "3:30", "state": "open" }
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "speaker": "agent",
+      "text": "Thanks for calling Northline Dental. This is Alex. How can I help?",
+      "playbackMs": 2720,
+      "latency": { "hear": 0, "think": 112, "speak": 286 },
+      "understanding": {
+        "confidence": 100,
+        "callerName": "Not captured",
+        "need": "Waiting for caller",
+        "time": "Not captured",
+        "phone": "+1 703 *** 0184",
+        "intent": "Open call",
+        "next": "Ask how the caller can be helped"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "Hi, this is Jordan Lee. I need a cleaning. Tuesday morning is best.",
+      "playbackMs": 2960,
+      "latency": { "hear": 284, "think": 176, "speak": 438 },
+      "understanding": {
+        "confidence": 94,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday morning",
+        "phone": "+1 703 *** 0184",
+        "intent": "Book appointment",
+        "next": "Check Tuesday morning openings"
+      },
+      "calendar": [
+        { "slot": "tue-1030", "state": "hold", "note": "Held while Jordan decides" }
+      ]
+    },
+    {
+      "speaker": "agent",
+      "text": "I can hold Tuesday, July 21 at 10:30 AM. Does that work?",
+      "playbackMs": 2480,
+      "latency": { "hear": 284, "think": 176, "speak": 438 },
+      "understanding": {
+        "confidence": 96,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday, July 21 at 10:30 AM",
+        "phone": "+1 703 *** 0184",
+        "intent": "Offer open slot",
+        "next": "Wait for slot confirmation"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "Yes, 10:30 works.",
+      "playbackMs": 1280,
+      "latency": { "hear": 196, "think": 124, "speak": 302 },
+      "understanding": {
+        "confidence": 98,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday, July 21 at 10:30 AM",
+        "phone": "+1 703 *** 0184",
+        "intent": "Accept offered slot",
+        "next": "Verify callback number"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "agent",
+      "text": "Great. Should I use the number you are calling from?",
+      "playbackMs": 2120,
+      "latency": { "hear": 196, "think": 124, "speak": 302 },
+      "understanding": {
+        "confidence": 98,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday, July 21 at 10:30 AM",
+        "phone": "+1 703 *** 0184",
+        "intent": "Verify contact",
+        "next": "Wait for phone confirmation"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "Yes, please.",
+      "playbackMs": 960,
+      "latency": { "hear": 171, "think": 139, "speak": 356 },
+      "understanding": {
+        "confidence": 99,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday, July 21 at 10:30 AM",
+        "phone": "+1 703 *** 0184",
+        "intent": "Confirm contact",
+        "next": "Write booking to calendar"
+      },
+      "calendar": [
+        { "slot": "tue-1030", "state": "confirmed", "note": "Jordan Lee, dental cleaning" }
+      ]
+    },
+    {
+      "speaker": "agent",
+      "text": "You are booked for a cleaning on Tuesday, July 21 at 10:30 AM. We will see you then.",
+      "playbackMs": 3520,
+      "latency": { "hear": 171, "think": 139, "speak": 356 },
+      "understanding": {
+        "confidence": 99,
+        "callerName": "Jordan Lee",
+        "need": "Dental cleaning",
+        "time": "Tuesday, July 21 at 10:30 AM",
+        "phone": "+1 703 *** 0184",
+        "intent": "Confirm booking",
+        "next": "Close call"
+      },
+      "calendar": []
+    }
+  ]
+}

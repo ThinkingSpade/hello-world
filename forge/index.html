@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A recorded fixture replay of Forge scheduling disposable Linux sandboxes for agent tasks.">
+  <title>Forge | Disposable agent sandboxes</title>
+  <link rel="icon" href="/shared/icons.svg#i-signal" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/pixel.css">
+  <style>
+    :root {
+      --pi-accent: #365b2c;
+      --pi-accent-soft: #e4eedf;
+      --forge-blue: #2c4e71;
+      --forge-blue-soft: #e2eaf2;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-width: 320px; }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      padding: 24px 16px 48px;
+      overflow-x: hidden;
+      color: var(--pi-ink);
+      background-color: var(--pi-paper);
+      background-image:
+        linear-gradient(rgba(30, 26, 20, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 26, 20, .035) 1px, transparent 1px);
+      background-size: 16px 16px;
+      font-family: var(--pi-font-body);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    button, input { font: inherit; }
+    button { border-radius: 0; }
+    code { font-family: var(--pi-font-code); }
+    [hidden] { display: none !important; }
+
+    .wrap {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .site-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--pi-font-title);
+      font-size: clamp(22px, 5vw, 34px);
+      line-height: 1.45;
+      letter-spacing: .07em;
+    }
+
+    h1 span { color: var(--pi-accent); }
+
+    .tagline {
+      max-width: 820px;
+      margin: 8px auto 0;
+      color: var(--pi-muted);
+      font-size: 14px;
+    }
+
+    .honesty {
+      display: inline-block;
+      max-width: 900px;
+      margin-top: 12px;
+      border: 2px dashed var(--pi-ink);
+      background: var(--pi-panel);
+      color: var(--pi-ink);
+      text-align: left;
+    }
+
+    .pwin-title {
+      min-height: 42px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pwin-title .pi-ic { flex: none; }
+
+    .scenario-picker {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+
+    .scenario-button {
+      flex: 1 1 230px;
+      max-width: 310px;
+      height: auto;
+      min-height: 58px;
+      text-align: left;
+    }
+
+    .scenario-button strong,
+    .scenario-button small { display: block; }
+
+    .scenario-button small {
+      margin-top: 4px;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-body);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .load-state {
+      width: min(700px, 100%);
+      margin: 0 auto 18px;
+      padding: 12px;
+      background: var(--pi-panel);
+      border: 2px solid var(--pi-ink);
+      box-shadow: var(--pi-shadow-s);
+      color: var(--pi-muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .load-state.error {
+      color: var(--pi-err);
+      border-color: var(--pi-err);
+      background: var(--pi-err-soft);
+    }
+
+    .load-state .pbtn {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .throughput {
+      margin-bottom: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      padding: 0;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 14px 16px;
+      border-right: 1px solid var(--pi-line);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric-label {
+      display: block;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--pi-font-ui);
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 700;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(300px, .8fr) minmax(0, 1.45fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .queue-window,
+    .cluster-window,
+    .terminal-window { min-width: 0; }
+
+    .cluster-window { grid-column: 2; }
+    .terminal-window { grid-column: 1 / -1; }
+
+    .title-spacer { margin-left: auto; }
+
+    .scenario-summary {
+      margin: 14px 14px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .queue-count { margin-left: auto; }
+
+    .queue-body { padding: 10px 12px 14px; }
+
+    .queue-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .queue-table th:nth-child(1) { width: 23%; }
+    .queue-table th:nth-child(2) { width: 37%; }
+    .queue-table th:nth-child(3) { width: 25%; }
+    .queue-table th:nth-child(4) { width: 15%; }
+
+    .queue-table th,
+    .queue-table td {
+      padding-left: 7px;
+      padding-right: 7px;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    .queue-table code {
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    .permissions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 5px;
+    }
+
+    .permissions .pchip {
+      max-width: 100%;
+      padding: 2px 5px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-cell {
+      padding: 22px 8px !important;
+      color: var(--pi-muted);
+      text-align: center;
+    }
+
+    .cluster-board {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .node-row {
+      display: grid;
+      grid-template-columns: minmax(150px, .58fr) minmax(0, 1.42fr);
+      gap: 12px;
+      align-items: stretch;
+      padding: 12px;
+      border: 2px solid var(--pi-ink);
+      background: var(--pi-paper);
+      box-shadow: var(--pi-shadow-s);
+    }
+
+    .node-name {
+      display: block;
+      font-family: var(--pi-font-ui);
+      font-size: 16px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .node-capacity {
+      display: block;
+      margin-top: 4px;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .slot {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 6px;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      padding: 8px 9px;
+      text-align: left;
+    }
+
+    .slot-id {
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .slot-task {
+      grid-column: 1 / -1;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .slot .pchip {
+      padding: 2px 5px;
+      font-size: 12px;
+    }
+
+    .slot:disabled {
+      opacity: 1;
+      cursor: default;
+    }
+
+    .player-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+      padding: 14px;
+      border-top: 2px solid var(--pi-ink);
+    }
+
+    .control-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .speed-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .speed-controls .pbtn { padding: 9px 10px; }
+
+    #scrub {
+      flex: 1 1 190px;
+      min-width: 160px;
+      min-height: 44px;
+      accent-color: var(--pi-accent);
+      cursor: pointer;
+    }
+
+    .clock {
+      min-width: 4.5rem;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .replay-status {
+      margin: 0 14px 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-body { padding: 14px; }
+
+    .terminal {
+      min-height: 285px;
+      max-height: 430px;
+      padding: 0 14px 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: none;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 40px;
+      margin: 0 -14px 12px;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--pi-ink);
+      background: #252018;
+    }
+
+    .terminal-lamp {
+      width: 8px;
+      height: 8px;
+      border: 1px solid var(--pi-term-dim);
+      background: transparent;
+    }
+
+    .terminal-bar span:last-child {
+      min-width: 0;
+      margin-left: 5px;
+      color: var(--pi-term-fg);
+      font-family: var(--pi-font-title);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-line {
+      min-height: 1.5em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-line.cmd { color: #efcf78; font-weight: 700; }
+    .terminal-line.out { color: var(--pi-term-fg); }
+    .terminal-line.empty { color: var(--pi-term-dim); font-style: italic; }
+
+    .postmortem {
+      margin-top: 18px;
+      border: 2px solid var(--pi-err);
+      background: var(--pi-err-soft);
+      color: var(--pi-err);
+      box-shadow: var(--pi-shadow-s);
+      overflow-wrap: anywhere;
+    }
+
+    .postmortem b { color: var(--pi-ink); }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    footer {
+      margin-top: 30px;
+      color: var(--pi-muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    footer a { color: var(--forge-blue); }
+
+    @media (max-width: 820px) {
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(-n + 2) { border-bottom: 1px solid var(--pi-line); }
+      .workspace { grid-template-columns: minmax(0, 1fr); }
+      .cluster-window,
+      .terminal-window { grid-column: 1; }
+      .cluster-window { grid-row: 1; }
+      .queue-window { grid-row: 2; }
+      .terminal-window { grid-row: 3; }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 16px 12px 40px; }
+      .scenario-picker { flex-direction: column; }
+      .scenario-button { width: 100%; max-width: none; flex-basis: auto; }
+      .metric { padding: 12px; }
+      .metric-value { font-size: 21px; }
+      .node-row { grid-template-columns: minmax(0, 1fr); }
+      .slot-grid { grid-template-columns: minmax(0, 1fr); }
+      .player-controls { align-items: stretch; padding: 12px; }
+      .player-controls > .control-button { flex: 1 1 120px; }
+      .speed-controls { flex: 1 1 100%; }
+      .speed-controls .pbtn { flex: 1; }
+      #scrub { flex-basis: 100%; order: 5; min-width: 0; width: 100%; }
+      .clock { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+      .queue-table,
+      .queue-table tbody,
+      .queue-table tr,
+      .queue-table td { display: block; width: 100%; }
+      .queue-table thead { display: none; }
+      .queue-table tr {
+        padding: 9px 0;
+        border-bottom: 2px solid var(--pi-line);
+      }
+      .queue-table tr:last-child { border-bottom: 0; }
+      .queue-table td {
+        display: grid;
+        grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
+        gap: 8px;
+        padding: 4px 0;
+        border: 0;
+      }
+      .queue-table td::before {
+        content: attr(data-label);
+        color: var(--pi-muted);
+        font-family: var(--pi-font-ui);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .queue-table td.empty-cell {
+        display: block;
+        padding: 22px 6px !important;
+      }
+      .queue-table td.empty-cell::before { content: none; }
+      .permissions { margin-top: 0; }
+      .terminal-body { padding: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="site-header">
+      <h1>FORGE<span>_</span></h1>
+      <p class="tagline">Fresh Linux sandboxes for agent tasks. A Go orchestrator schedules each container on Kubernetes, then returns logs and results over NATS.</p>
+      <div class="honesty pstrip"><b>interactive recreation of the private system, replaying recorded fixtures</b></div>
+    </header>
+
+    <div class="scenario-picker" id="scenario-picker" role="group" aria-label="Scheduling run"></div>
+    <div class="load-state" id="load-state" role="status" aria-live="polite">Loading scheduling runs...</div>
+
+    <div class="app-shell" id="app-shell" hidden>
+      <section class="throughput pwin" aria-labelledby="throughput-title">
+        <h2 class="pwin-title" id="throughput-title">
+          <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"></use></svg>
+          throughput rail
+        </h2>
+        <div class="metric-grid">
+          <div class="metric">
+            <span class="metric-label">tasks completed</span>
+            <strong class="metric-value" id="metric-completed">0 / 0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">mean lifetime</span>
+            <strong class="metric-value" id="metric-lifetime">0.0 s</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">cold starts</span>
+            <strong class="metric-value" id="metric-cold">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">warm starts</span>
+            <strong class="metric-value" id="metric-warm">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="workspace">
+        <section class="queue-window pwin" aria-labelledby="queue-title">
+          <h2 class="pwin-title" id="queue-title">
+            <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"></use></svg>
+            task queue
+            <span class="queue-count pchip" id="queue-count">0 waiting</span>
+          </h2>
+          <div class="queue-body">
+            <div class="ptable-wrap">
+              <table class="queue-table ptable">
+                <thead>
+                  <tr>
+                    <th scope="col">task</th>
+                    <th scope="col">image and policy</th>
+                    <th scope="col">request</th>
+                    <th scope="col">state</th>
+                  </tr>
+                </thead>
+                <tbody id="queue-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="cluster-window pwin" aria-labelledby="cluster-title">
+          <h2 class="pwin-title" id="cluster-title">
+            <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg>
+            cluster board
+            <span class="title-spacer pchip acc" id="scenario-tag">fixture</span>
+          </h2>
+          <div class="scenario-summary pstrip" id="scenario-summary"></div>
+          <div class="cluster-board" id="cluster-board"></div>
+          <div class="player-controls">
+            <button class="control-button pbtn primary" id="play" type="button" disabled>
+              <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"></use></svg>
+              play
+            </button>
+            <button class="control-button pbtn" id="restart" type="button" disabled>
+              <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"></use></svg>
+              restart
+            </button>
+            <div class="speed-controls" id="speed-controls" role="group" aria-label="Playback speed. Changes apply to the next event.">
+              <button class="pbtn on" type="button" data-speed="1" aria-pressed="true" disabled>1×</button>
+              <button class="pbtn" type="button" data-speed="2" aria-pressed="false" disabled>2×</button>
+              <button class="pbtn" type="button" data-speed="4" aria-pressed="false" disabled>4×</button>
+            </div>
+            <input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Scrub replay timeline" disabled>
+            <span class="clock" id="clock">0:00.0</span>
+          </div>
+          <div class="replay-status pstrip" id="replay-status">Replay ready.</div>
+        </section>
+
+        <section class="terminal-window pwin" aria-labelledby="terminal-title">
+          <h2 class="pwin-title" id="terminal-title">
+            <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"></use></svg>
+            sandbox terminal
+            <span class="title-spacer pchip" id="selected-sandbox">none selected</span>
+          </h2>
+          <div class="terminal-body">
+            <div class="terminal pterm" id="terminal" role="log" aria-live="polite" aria-relevant="additions text"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="postmortem pstrip" id="postmortem" role="status" aria-live="polite" hidden></div>
+    </div>
+
+    <div class="sr-only" id="a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <footer>Go orchestrator · Docker sandboxes · Kubernetes scheduler · NATS streams · <a href="/">hnguyen.dev</a></footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+    const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const MANIFEST_PATH = "fixtures/index.json";
+
+    let fixtureList = [];
+    let fixture = null;
+    let replayState = null;
+    let index = 0;
+    let playing = false;
+    let speed = 1;
+    let generation = 0;
+    let pendingTimers = [];
+    let selectedSandbox = null;
+    let selectionPinned = false;
+    let reconstructing = false;
+
+    function iconMarkup(id) {
+      return `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"></use></svg>`;
+    }
+
+    function untrackTimer(id) {
+      pendingTimers = pendingTimers.filter((pending) => pending !== id);
+    }
+
+    function later(fn, delay, expectedGeneration = generation) {
+      const id = window.setTimeout(() => {
+        untrackTimer(id);
+        if (expectedGeneration !== generation) return;
+        fn();
+      }, delay);
+      pendingTimers.push(id);
+      return id;
+    }
+
+    function clearPendingTimers() {
+      pendingTimers.forEach((id) => window.clearTimeout(id));
+      pendingTimers = [];
+    }
+
+    function invalidatePlayback() {
+      generation += 1;
+      playing = false;
+      clearPendingTimers();
+      setPlayLabel("play");
+      return generation;
+    }
+
+    function setPlayLabel(label) {
+      const button = $("play");
+      button.innerHTML = `${iconMarkup(label === "pause" ? "i-pause" : "i-play")} ${label}`;
+    }
+
+    function setControlsDisabled(disabled) {
+      $("play").disabled = disabled;
+      $("restart").disabled = disabled;
+      $("scrub").disabled = disabled;
+      document.querySelectorAll("#speed-controls button").forEach((button) => {
+        button.disabled = disabled;
+      });
+    }
+
+    function showLoadState(message, kind = "loading", retry = null) {
+      const state = $("load-state");
+      state.className = `load-state${kind === "error" ? " error" : ""}`;
+      state.replaceChildren(document.createTextNode(message));
+      if (retry) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "pbtn";
+        button.textContent = "retry";
+        button.addEventListener("click", retry);
+        state.appendChild(button);
+      }
+      state.hidden = false;
+    }
+
+    async function fetchJson(path) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function validateFixture(data) {
+      if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.tasks) || !Array.isArray(data.events)) {
+        throw new Error("fixture shape is invalid");
+      }
+      if (data.nodes.length === 0) throw new Error("fixture has no cluster nodes");
+      return data;
+    }
+
+    function renderScenarioPicker() {
+      const picker = $("scenario-picker");
+      picker.replaceChildren();
+      fixtureList.forEach((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "scenario-button pbtn";
+        button.dataset.file = item.file;
+        button.setAttribute("aria-pressed", "false");
+
+        const title = document.createElement("strong");
+        title.textContent = item.title;
+        const tag = document.createElement("small");
+        tag.textContent = `${item.tag} · replay`;
+        button.append(title, tag);
+        button.addEventListener("click", () => loadFixture(item.file));
+        picker.appendChild(button);
+      });
+    }
+
+    function updateScenarioSelection(file) {
+      document.querySelectorAll(".scenario-button").forEach((button) => {
+        const selected = button.dataset.file === file;
+        button.classList.toggle("on", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+
+    async function loadManifest() {
+      const loadGeneration = invalidatePlayback();
+      $("app-shell").hidden = true;
+      $("scenario-picker").replaceChildren();
+      showLoadState("Loading scheduling runs...");
+
+      try {
+        const manifest = await fetchJson(MANIFEST_PATH);
+        if (loadGeneration !== generation) return;
+        fixtureList = Array.isArray(manifest.fixtures) ? manifest.fixtures : [];
+        if (fixtureList.length === 0) {
+          showLoadState("No scheduling runs are available.", "empty");
+          return;
+        }
+        renderScenarioPicker();
+        loadFixture(fixtureList[0].file);
+      } catch (error) {
+        if (loadGeneration !== generation) return;
+        showLoadState(`Could not load the run list. ${error.message}.`, "error", loadManifest);
+      }
+    }
+
+    async function loadFixture(file) {
+      const loadGeneration = invalidatePlayback();
+      setControlsDisabled(true);
+      updateScenarioSelection(file);
+      showLoadState("Loading scheduling run...");
+
+      try {
+        const data = validateFixture(await fetchJson(`fixtures/${file}`));
+        if (loadGeneration !== generation) return;
+        fixture = data;
+        if (fixture.events.length === 0) {
+          $("app-shell").hidden = true;
+          showLoadState("This scheduling run contains no events.", "empty");
+          return;
+        }
+        $("scenario-tag").textContent = fixture.tag;
+        $("scenario-summary").textContent = fixture.summary;
+        $("scrub").max = String(fixture.events.length);
+        resetReplay();
+        $("app-shell").hidden = false;
+        $("load-state").hidden = true;
+        setControlsDisabled(false);
+
+        if (REDUCED) {
+          $("replay-status").textContent = "Replay ready. Motion preference detected. Use play or the timeline.";
+          $("a11y-status").textContent = "Scheduling replay ready.";
+        } else {
+          play();
+        }
+      } catch (error) {
+        if (loadGeneration !== generation) return;
+        showLoadState(`Could not load ${file}. ${error.message}.`, "error", () => loadFixture(file));
+      }
+    }
+
+    function makeInitialSlots() {
+      const slots = new Map();
+      fixture.nodes.forEach((node) => {
+        node.slots.forEach((slotId) => {
+          slots.set(`${node.id}/${slotId}`, {
+            nodeId: node.id,
+            slotId,
+            state: "freed",
+            sandboxId: null,
+            taskId: null,
+            memoryMiB: null
+          });
+        });
+      });
+      return slots;
+    }
+
+    function deriveState(to) {
+      const state = {
+        taskStatus: new Map(fixture.tasks.map((task) => [task.id, "queued"])),
+        slots: makeInitialSlots(),
+        sandboxes: new Map(),
+        completed: new Set(),
+        starts: { cold: 0, warm: 0 },
+        lifetimes: [],
+        ledger: fixture.events.slice(0, to)
+      };
+
+      state.ledger.forEach((event) => {
+        const slotKey = event.nodeId && event.slotId ? `${event.nodeId}/${event.slotId}` : null;
+        const isStart = event.type === "allocated" || event.type === "rescheduled";
+
+        if (isStart) {
+          state.taskStatus.set(event.taskId, "scheduled");
+          state.starts[event.startKind] = (state.starts[event.startKind] || 0) + 1;
+          state.sandboxes.set(event.sandboxId, {
+            id: event.sandboxId,
+            taskId: event.taskId,
+            nodeId: event.nodeId,
+            slotId: event.slotId,
+            state: event.state,
+            startKind: event.startKind,
+            startAt: event.atMs,
+            memoryMiB: event.memoryMiB,
+            logs: []
+          });
+        }
+
+        const sandbox = event.sandboxId ? state.sandboxes.get(event.sandboxId) : null;
+        if (sandbox && event.state) sandbox.state = event.state;
+        if (sandbox && event.memoryMiB) sandbox.memoryMiB = event.memoryMiB;
+        if (sandbox && Array.isArray(event.terminal)) {
+          event.terminal.forEach((line) => {
+            sandbox.logs.push({ ...line, atMs: event.atMs });
+          });
+        }
+
+        if (slotKey && state.slots.has(slotKey) && event.state) {
+          state.slots.set(slotKey, {
+            nodeId: event.nodeId,
+            slotId: event.slotId,
+            state: event.state,
+            sandboxId: event.sandboxId,
+            taskId: event.taskId,
+            memoryMiB: event.memoryMiB || (sandbox ? sandbox.memoryMiB : null)
+          });
+        }
+
+        if (event.type === "oom") state.taskStatus.set(event.taskId, "retrying");
+        if (event.type === "completed") {
+          state.taskStatus.set(event.taskId, "completed");
+          state.completed.add(event.taskId);
+        }
+        if (event.type === "freed" && sandbox) {
+          state.lifetimes.push(event.atMs - sandbox.startAt);
+        }
+      });
+
+      return state;
+    }
+
+    function latestAutomaticSandbox(to) {
+      let latest = null;
+      fixture.events.slice(0, to).forEach((event) => {
+        if (event.type === "allocated" || event.type === "rescheduled") latest = event.sandboxId;
+      });
+      return latest;
+    }
+
+    function resetReplay() {
+      index = 0;
+      selectedSandbox = null;
+      selectionPinned = false;
+      replayState = deriveState(0);
+      $("scrub").value = "0";
+      setPlayLabel("play");
+      renderAll();
+    }
+
+    function chipClassForState(state) {
+      if (state === "streaming") return "ok";
+      if (state === "running") return "acc";
+      if (state === "provisioning" || state === "tearing_down") return "warn";
+      if (state === "failed") return "err";
+      return "";
+    }
+
+    function stateLabel(state) {
+      return state === "tearing_down" ? "tearing down" : state;
+    }
+
+    function renderQueue() {
+      const rows = $("queue-rows");
+      const waiting = fixture.tasks.filter((task) => {
+        const status = replayState.taskStatus.get(task.id);
+        return status === "queued" || status === "retrying";
+      });
+      $("queue-count").textContent = `${waiting.length} waiting`;
+      rows.replaceChildren();
+
+      if (waiting.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.className = "empty-cell";
+        cell.textContent = "Queue empty. Every task has been assigned.";
+        row.appendChild(cell);
+        rows.appendChild(row);
+        return;
+      }
+
+      waiting.forEach((task) => {
+        const status = replayState.taskStatus.get(task.id);
+        const row = document.createElement("tr");
+
+        const taskCell = document.createElement("td");
+        taskCell.dataset.label = "task";
+        const taskCode = document.createElement("code");
+        taskCode.textContent = task.id;
+        taskCell.appendChild(taskCode);
+
+        const imageCell = document.createElement("td");
+        imageCell.dataset.label = "image and policy";
+        const imageCode = document.createElement("code");
+        imageCode.textContent = task.image;
+        const permissions = document.createElement("div");
+        permissions.className = "permissions";
+        task.permissions.forEach((permission) => {
+          const chip = document.createElement("span");
+          chip.className = "pchip";
+          chip.textContent = permission;
+          permissions.appendChild(chip);
+        });
+        imageCell.append(imageCode, permissions);
+
+        const requestCell = document.createElement("td");
+        requestCell.dataset.label = "request";
+        requestCell.textContent = `${task.cpuMillicores}m CPU · ${task.memoryMiB}Mi · ${task.timeoutSec}s`;
+
+        const stateCell = document.createElement("td");
+        stateCell.dataset.label = "state";
+        const chip = document.createElement("span");
+        chip.className = `pchip${status === "retrying" ? " warn" : ""}`;
+        chip.textContent = status;
+        stateCell.appendChild(chip);
+
+        row.append(taskCell, imageCell, requestCell, stateCell);
+        rows.appendChild(row);
+      });
+    }
+
+    function renderCluster() {
+      const board = $("cluster-board");
+      board.replaceChildren();
+
+      fixture.nodes.forEach((node) => {
+        const row = document.createElement("article");
+        row.className = "node-row";
+
+        const info = document.createElement("div");
+        const name = document.createElement("span");
+        name.className = "node-name";
+        name.textContent = node.id;
+        const capacity = document.createElement("span");
+        capacity.className = "node-capacity";
+        capacity.textContent = `${node.cpuMillicores}m CPU · ${node.memoryMiB}Mi · ${node.slots.length} slots`;
+        info.append(name, capacity);
+
+        const slotGrid = document.createElement("div");
+        slotGrid.className = "slot-grid";
+        node.slots.forEach((slotId) => {
+          const slot = replayState.slots.get(`${node.id}/${slotId}`);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "slot pbtn";
+          button.disabled = !slot.sandboxId;
+          button.setAttribute("aria-pressed", String(slot.sandboxId === selectedSandbox));
+          button.setAttribute("aria-label", slot.sandboxId ? `Select ${slot.sandboxId} terminal` : `${node.id} ${slotId} is free`);
+
+          const id = document.createElement("span");
+          id.className = "slot-id";
+          id.textContent = slot.sandboxId || slotId;
+          const stateChip = document.createElement("span");
+          stateChip.className = `pchip ${chipClassForState(slot.state)}`.trim();
+          stateChip.textContent = stateLabel(slot.state);
+          const task = document.createElement("span");
+          task.className = "slot-task";
+          task.textContent = slot.taskId ? `${slot.taskId} · ${slot.memoryMiB}Mi` : "slot empty";
+          button.append(id, stateChip, task);
+
+          if (slot.sandboxId) {
+            button.addEventListener("click", () => {
+              selectedSandbox = slot.sandboxId;
+              selectionPinned = true;
+              renderCluster();
+              renderTerminal();
+              $("a11y-status").textContent = `${slot.sandboxId} terminal selected.`;
+            });
+          }
+          slotGrid.appendChild(button);
+        });
+
+        row.append(info, slotGrid);
+        board.appendChild(row);
+      });
+    }
+
+    function makeTerminalBar(label) {
+      const bar = document.createElement("div");
+      bar.className = "terminal-bar";
+      bar.setAttribute("aria-hidden", "true");
+      for (let lampIndex = 0; lampIndex < 3; lampIndex += 1) {
+        const lamp = document.createElement("span");
+        lamp.className = "terminal-lamp";
+        bar.appendChild(lamp);
+      }
+      const title = document.createElement("span");
+      title.textContent = label;
+      bar.appendChild(title);
+      return bar;
+    }
+
+    function appendTerminalLine(container, text, tone = "out") {
+      const line = document.createElement("div");
+      line.className = `terminal-line ${tone}`;
+      line.textContent = text;
+      container.appendChild(line);
+    }
+
+    function renderTerminal() {
+      const terminal = $("terminal");
+      terminal.replaceChildren();
+
+      if (!selectedSandbox || !replayState.sandboxes.has(selectedSandbox)) {
+        $("selected-sandbox").textContent = "none selected";
+        terminal.appendChild(makeTerminalBar("forge sandbox stream"));
+        appendTerminalLine(terminal, "Waiting for the first sandbox assignment.", "empty");
+        return;
+      }
+
+      const sandbox = replayState.sandboxes.get(selectedSandbox);
+      $("selected-sandbox").textContent = sandbox.id;
+      terminal.appendChild(makeTerminalBar(`${sandbox.id} · ${stateLabel(sandbox.state)}`));
+      appendTerminalLine(terminal, `[forge] task=${sandbox.taskId} node=${sandbox.nodeId}/${sandbox.slotId}`, "dim");
+      appendTerminalLine(terminal, `[forge] start=${sandbox.startKind} memory=${sandbox.memoryMiB}Mi`, "dim");
+      if (sandbox.logs.length === 0) {
+        appendTerminalLine(terminal, "Waiting for the first log line.", "empty");
+      } else {
+        sandbox.logs.forEach((line) => appendTerminalLine(terminal, line.text, line.tone));
+      }
+      if (!reconstructing) terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function renderMetrics() {
+      const lifetimes = replayState.lifetimes;
+      const meanLifetime = lifetimes.length
+        ? lifetimes.reduce((sum, value) => sum + value, 0) / lifetimes.length / 1000
+        : 0;
+      $("metric-completed").textContent = `${replayState.completed.size} / ${fixture.tasks.length}`;
+      $("metric-lifetime").textContent = `${meanLifetime.toFixed(1)} s`;
+      $("metric-cold").textContent = String(replayState.starts.cold || 0);
+      $("metric-warm").textContent = String(replayState.starts.warm || 0);
+    }
+
+    function renderPostmortem() {
+      const postmortem = $("postmortem");
+      const oomKills = replayState.ledger.filter((event) => event.type === "oom").length;
+      const classifications = replayState.ledger.filter((event) => event.type === "classified").length;
+      const reschedules = replayState.ledger.filter((event) => event.type === "rescheduled").length;
+      const failedTasks = new Set(replayState.ledger.filter((event) => event.type === "oom").map((event) => event.taskId));
+      const recoveredTasks = [...failedTasks].filter((taskId) => replayState.completed.has(taskId)).length;
+
+      if (classifications === 0) {
+        postmortem.hidden = true;
+        postmortem.replaceChildren();
+        return;
+      }
+
+      postmortem.hidden = false;
+      postmortem.replaceChildren();
+      const label = document.createElement("b");
+      label.textContent = "postmortem ledger";
+      postmortem.append(
+        label,
+        document.createTextNode(` · OOM kills ${oomKills} · classifications ${classifications} · reschedules ${reschedules} · recovered tasks ${recoveredTasks}`)
+      );
+    }
+
+    function formatTime(milliseconds) {
+      const totalTenths = Math.floor(milliseconds / 100);
+      const minutes = Math.floor(totalTenths / 600);
+      const seconds = Math.floor((totalTenths % 600) / 10);
+      const tenths = totalTenths % 10;
+      return `${minutes}:${String(seconds).padStart(2, "0")}.${tenths}`;
+    }
+
+    function renderStatus() {
+      const lastEvent = index > 0 ? fixture.events[index - 1] : null;
+      const clockMs = lastEvent ? lastEvent.atMs : 0;
+      $("clock").textContent = formatTime(clockMs);
+      $("scrub").value = String(index);
+      $("replay-status").textContent = lastEvent
+        ? `event ${index} of ${fixture.events.length} · ${lastEvent.message}`
+        : `event 0 of ${fixture.events.length} · ${fixture.tasks.length} tasks waiting`;
+    }
+
+    function renderAll() {
+      renderQueue();
+      renderCluster();
+      renderTerminal();
+      renderMetrics();
+      renderPostmortem();
+      renderStatus();
+    }
+
+    function eventDelay(event) {
+      if (REDUCED) return 0;
+      const nextEvent = fixture.events[index];
+      const recordedGap = nextEvent ? nextEvent.atMs - event.atMs : 500;
+      return Math.min(1000, Math.max(450, recordedGap)) / speed;
+    }
+
+    function finishPlayback() {
+      playing = false;
+      clearPendingTimers();
+      setPlayLabel("replay");
+      $("a11y-status").textContent = "Scheduling replay complete.";
+    }
+
+    function runNextEvent() {
+      if (!playing || !fixture) return;
+      if (index >= fixture.events.length) {
+        finishPlayback();
+        return;
+      }
+
+      const event = fixture.events[index];
+      index += 1;
+      replayState = deriveState(index);
+      if (!selectionPinned && (event.type === "allocated" || event.type === "rescheduled")) {
+        selectedSandbox = event.sandboxId;
+      }
+      renderAll();
+      $("a11y-status").textContent = event.message;
+
+      if (index >= fixture.events.length) {
+        later(finishPlayback, eventDelay(event));
+      } else {
+        later(runNextEvent, eventDelay(event));
+      }
+    }
+
+    function play() {
+      if (!fixture) return;
+      if (index >= fixture.events.length) {
+        invalidatePlayback();
+        resetReplay();
+      }
+      playing = true;
+      setPlayLabel("pause");
+      runNextEvent();
+    }
+
+    function pause() {
+      playing = false;
+      clearPendingTimers();
+      setPlayLabel("play");
+      $("a11y-status").textContent = "Scheduling replay paused.";
+    }
+
+    function restartReplay() {
+      if (!fixture) return;
+      invalidatePlayback();
+      resetReplay();
+      play();
+    }
+
+    function seek(to) {
+      if (!fixture) return;
+      invalidatePlayback();
+      index = Math.max(0, Math.min(to, fixture.events.length));
+      selectionPinned = false;
+      selectedSandbox = latestAutomaticSandbox(index);
+      reconstructing = true;
+      $("terminal").setAttribute("aria-live", "off");
+      try {
+        replayState = deriveState(index);
+        renderAll();
+      } finally {
+        reconstructing = false;
+        $("terminal").setAttribute("aria-live", "polite");
+      }
+      $("a11y-status").textContent = `Replay moved to event ${index}.`;
+    }
+
+    $("play").addEventListener("click", () => {
+      if (playing) pause();
+      else play();
+    });
+
+    $("restart").addEventListener("click", restartReplay);
+    $("scrub").addEventListener("input", (event) => seek(Number(event.target.value)));
+
+    document.querySelectorAll("#speed-controls button").forEach((button) => {
+      button.addEventListener("click", () => {
+        speed = Number(button.dataset.speed);
+        document.querySelectorAll("#speed-controls button").forEach((candidate) => {
+          const active = candidate === button;
+          candidate.classList.toggle("on", active);
+          candidate.setAttribute("aria-pressed", String(active));
+        });
+      });
+    });
+
+    loadManifest();
+  </script>
+</body>
+</html>

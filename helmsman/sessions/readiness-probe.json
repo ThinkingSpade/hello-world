@@ -7,7 +7,7 @@
  "timeline": [
   {
    "t": "page",
-   "text": "Grafana — prod/notifications: 0/3 pods Ready for 8m after config rollout, delivery queue backing up",
+   "text": "Grafana: prod/notifications has 0/3 pods Ready for 8m after a config rollout. The delivery queue is backing up.",
    "sev": "P2"
   },
   {
@@ -30,7 +30,7 @@
   {
    "t": "cmd",
    "cmd": "kubectl logs notifications-8d7c6b5f4-km3wz -n prod --previous --tail=40",
-   "out": "Error from server (BadRequest): previous terminated container \"notifications\" in pod \"notifications-8d7c6b5f4-km3wz\" not found — falling back to current container:\n16:12:09 INFO  notifications v1.19.0 starting (commit 4e9d1bb)\n16:12:09 INFO  config: PORT=8080 (from prod-notifications-config, updated 16:11)\n16:12:10 INFO  listening on 0.0.0.0:8080\n16:12:10 INFO  connected to kafka-1:9092, consumer group notifications-prod\n16:12:14 INFO  queue depth 1,204 and rising — no traffic routed to this pod yet",
+   "out": "Error from server (BadRequest): previous terminated container \"notifications\" in pod \"notifications-8d7c6b5f4-km3wz\" not found. Falling back to current container:\n16:12:09 INFO  notifications v1.19.0 starting (commit 4e9d1bb)\n16:12:09 INFO  config: PORT=8080 (from prod-notifications-config, updated 16:11)\n16:12:10 INFO  listening on 0.0.0.0:8080\n16:12:10 INFO  connected to kafka-1:9092, consumer group notifications-prod\n16:12:14 INFO  queue depth 1,204 and rising. No traffic routed to this pod yet",
    "note": "last words of the previous container"
   },
   {
@@ -47,7 +47,7 @@
   {
    "t": "diagnosis",
    "signature": "readiness-probe",
-   "cause": "Pods run fine but never go Ready: the readiness probe checks port 8081 while the app now listens on 8080 — after the config change the probe is knocking on the wrong door, so the Service won't route any traffic to the new pods.",
+   "cause": "The pods run but never become Ready. The readiness probe checks port 8081 while the app listens on 8080. After the config change, the probe is knocking on the wrong door, so the Service will not route traffic to the new pods.",
    "receipts": [
     "Readiness:      http-get http://:8081/healthz delay=5s timeout=1s period=10s #success=1 #failure=3",
     "16:12:10 INFO  listening on 0.0.0.0:8080",
@@ -58,13 +58,13 @@
   {
    "t": "proposal",
    "command": "kubectl -n prod patch deploy/notifications --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/readinessProbe/httpGet/port\",\"value\":8080}]'",
-   "explain": "Point the readiness probe at the port the app actually listens on (8080). The pods are healthy; only the probe is wrong.",
+   "explain": "Point the readiness probe at the port the app actually listens on (8080). The pods are healthy. Only the probe is wrong.",
    "risk": "medium",
    "diff": "Deployment/prod/notifications\n  spec.template.spec.containers[0].readinessProbe.httpGet\n-   port: 8081\n+   port: 8080",
    "blast_radius": "1 Deployment · 3 pods roll · prod namespace · notifications only",
    "rbac_scope": "deployments.apps/get,patch · prod",
    "rollback": "kubectl -n prod patch deploy/notifications --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/readinessProbe/httpGet/port\",\"value\":8081}]'",
-   "followup": "Decide which is canonical — probe or PORT env — and pin both in the chart so they can't drift apart again."
+   "followup": "Decide whether the probe or PORT env is canonical. Pin both in the chart so they cannot drift again."
   },
   {
    "t": "approval",
@@ -90,11 +90,11 @@
   {
    "t": "verify",
    "result": "green",
-   "text": "All replicas Running and Ready — restarts flat. Standing down."
+   "text": "All replicas are Running and Ready. Restarts are flat. Standing down."
   }
  ],
  "id": "readiness-probe",
- "title": "notifications healthy but invisible — probe knocking on the wrong port",
+ "title": "notifications healthy but invisible: probe knocking on the wrong port",
  "tag": "probe drift",
  "recorded": "fixture-replay",
  "board": {

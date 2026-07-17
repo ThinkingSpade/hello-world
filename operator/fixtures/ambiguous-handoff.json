@@ -1,0 +1,180 @@
+{
+  "id": "CALL-2114",
+  "title": "Ambiguous request",
+  "label": "Human handoff",
+  "recordedAt": "July 17, 2026 at 2:08 PM",
+  "phone": "+1 202 *** 6621",
+  "calendar": {
+    "weekLabel": "July 20 to July 24, 2026",
+    "days": [
+      {
+        "label": "Mon",
+        "date": "Jul 20",
+        "slots": [
+          { "id": "mon-0900", "time": "9:00", "state": "open" },
+          { "id": "mon-1300", "time": "1:00", "state": "open" },
+          { "id": "mon-1600", "time": "4:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Tue",
+        "date": "Jul 21",
+        "slots": [
+          { "id": "tue-1000", "time": "10:00", "state": "open" },
+          { "id": "tue-1430", "time": "2:30", "state": "open" },
+          { "id": "tue-1630", "time": "4:30", "state": "open" }
+        ]
+      },
+      {
+        "label": "Wed",
+        "date": "Jul 22",
+        "slots": [
+          { "id": "wed-0930", "time": "9:30", "state": "open" },
+          { "id": "wed-1330", "time": "1:30", "state": "open" },
+          { "id": "wed-1530", "time": "3:30", "state": "open" }
+        ]
+      },
+      {
+        "label": "Thu",
+        "date": "Jul 23",
+        "slots": [
+          { "id": "thu-1100", "time": "11:00", "state": "open" },
+          { "id": "thu-1400", "time": "2:00", "state": "open" },
+          { "id": "thu-1700", "time": "5:00", "state": "open" }
+        ]
+      },
+      {
+        "label": "Fri",
+        "date": "Jul 24",
+        "slots": [
+          { "id": "fri-1000", "time": "10:00", "state": "open" },
+          { "id": "fri-1500", "time": "3:00", "state": "open" },
+          { "id": "fri-1630", "time": "4:30", "state": "open" }
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "speaker": "agent",
+      "text": "Thanks for calling Northline Dental. This is Alex. How can I help?",
+      "playbackMs": 2720,
+      "latency": { "hear": 0, "think": 115, "speak": 291 },
+      "understanding": {
+        "confidence": 100,
+        "callerName": "Not captured",
+        "need": "Waiting for caller",
+        "time": "Not captured",
+        "phone": "+1 202 *** 6621",
+        "intent": "Open call",
+        "next": "Ask how the caller can be helped"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "I need to see someone next week, later maybe. It has been acting up again.",
+      "playbackMs": 3080,
+      "latency": { "hear": 351, "think": 278, "speak": 472 },
+      "understanding": {
+        "confidence": 54,
+        "callerName": "Not captured",
+        "need": "Unclear issue",
+        "time": "Next week, later in the day",
+        "phone": "+1 202 *** 6621",
+        "intent": "Possible appointment request",
+        "next": "Clarify the issue and preferred day"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "agent",
+      "text": "I can help narrow that down. What is acting up, and is there a day that works best?",
+      "playbackMs": 3320,
+      "latency": { "hear": 351, "think": 278, "speak": 472 },
+      "understanding": {
+        "confidence": 54,
+        "callerName": "Not captured",
+        "need": "Unclear issue",
+        "time": "Next week, later in the day",
+        "phone": "+1 202 *** 6621",
+        "intent": "Clarify request",
+        "next": "Wait for issue and day details"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "I am not sure what to call it. Maybe the setup, or my account. I just know it is wrong.",
+      "playbackMs": 3440,
+      "latency": { "hear": 382, "think": 319, "speak": 504 },
+      "understanding": {
+        "confidence": 36,
+        "callerName": "Not captured",
+        "need": "Setup or account issue",
+        "time": "Next week, later in the day",
+        "phone": "+1 202 *** 6621",
+        "intent": "Request remains ambiguous",
+        "next": "Offer a human callback"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "agent",
+      "text": "A coordinator should take this one. I can send them a summary and ask them to call you. Is after 3:00 PM best?",
+      "playbackMs": 4120,
+      "latency": { "hear": 382, "think": 319, "speak": 504 },
+      "understanding": {
+        "confidence": 36,
+        "callerName": "Not captured",
+        "need": "Setup or account issue",
+        "time": "Proposed callback after 3:00 PM",
+        "phone": "+1 202 *** 6621",
+        "intent": "Offer human handoff",
+        "next": "Confirm callback window"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "caller",
+      "text": "Yes. Any day next week after 3:00 is fine. Use this number.",
+      "playbackMs": 2560,
+      "latency": { "hear": 247, "think": 226, "speak": 447 },
+      "understanding": {
+        "confidence": 88,
+        "callerName": "Not captured",
+        "need": "Setup or account issue",
+        "time": "Any day next week after 3:00 PM",
+        "phone": "+1 202 *** 6621",
+        "intent": "Confirm human callback",
+        "next": "Package transcript summary"
+      },
+      "calendar": []
+    },
+    {
+      "speaker": "agent",
+      "text": "Got it. I sent the summary with your callback window. A coordinator can pick it up from here.",
+      "playbackMs": 3640,
+      "latency": { "hear": 247, "think": 226, "speak": 447 },
+      "understanding": {
+        "confidence": 88,
+        "callerName": "Not captured",
+        "need": "Setup or account issue",
+        "time": "Any day next week after 3:00 PM",
+        "phone": "+1 202 *** 6621",
+        "intent": "Package human handoff",
+        "next": "End automated handling"
+      },
+      "calendar": [],
+      "handoff": {
+        "summary": "Caller reports an issue that may involve setup or an account. The automated conversation did not identify the right appointment type.",
+        "captured": [
+          "Callback number: +1 202 *** 6621",
+          "Callback window: any day next week after 3:00 PM",
+          "Caller name: not captured"
+        ],
+        "reason": "Intent confidence fell to 36 percent after clarification. A calendar booking would risk choosing the wrong service."
+      }
+    }
+  ]
+}

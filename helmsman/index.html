@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Helmsman — agentic DevOps copilot</title>
+<title>Helmsman | Kubernetes incident replay</title>
 <link rel="icon" href="/shared/icons.svg#i-signal">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,6 +38,7 @@
     font-size: 14px;
     line-height: 1.55;
     padding: 24px 16px 48px;
+    overflow-x: hidden;
   }
   .wrap { max-width: 1120px; margin: 0 auto; }
   .wrap > header { text-align: center; margin-bottom: 20px; }
@@ -234,7 +235,7 @@
     background: var(--ui-accent-soft);
     border-bottom: 1px solid var(--text);
     font-family: var(--pi-font-ui);
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
   }
   .rs-strip .pchip { flex: 0 0 auto; }
@@ -330,6 +331,7 @@
     font-size: 14px;
     animation: pop 180ms steps(2, end);
   }
+  .ev[data-inspectable="true"] { cursor: pointer; }
   @keyframes pop { from { transform: translate(3px, 3px); opacity: .35; } to { transform: translate(0); opacity: 1; } }
   .ev .hd {
     display: flex;
@@ -398,6 +400,11 @@
   }
   .ev .sub { color: var(--dim); font-size: 13px; margin-top: 6px; }
   .ev .sub b { color: var(--text); }
+  .ev .raw-trigger {
+    margin-top: 10px;
+    color: var(--text);
+    background: var(--panel);
+  }
   .ev.prop {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -439,7 +446,7 @@
   .gate-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; }
   .gate-meta .pchip { color: var(--text); background: var(--panel); }
   .gate-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
-  .gate-actions .pbtn { min-height: 38px; padding: 7px 10px; }
+  .gate-actions .pbtn { min-height: 44px; padding: 7px 10px; }
   .gate-actions .approve { color: #fff; background: var(--green); }
   .gate-actions .hold { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
   .gate-diff { margin-top: 9px; }
@@ -487,6 +494,24 @@
   .spd button.on { color: #fff; background: var(--ui-accent); border-color: var(--ui-accent); }
   #scrub { flex: 1; min-width: 160px; min-height: 44px; accent-color: var(--ui-accent); touch-action: manipulation; }
   .tclock { min-width: 58px; color: var(--dim); font-family: var(--pi-font-code); font-size: 13px; text-align: right; }
+  .key-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 0 16px 16px;
+  }
+  .key-strip kbd {
+    display: inline-block;
+    min-width: 25px;
+    padding: 1px 5px;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--text);
+    box-shadow: 1px 1px 0 var(--text);
+    font-family: var(--pi-font-code);
+    font-size: 12px;
+    text-align: center;
+  }
   #toast {
     position: absolute;
     left: 50%;
@@ -531,6 +556,45 @@
   .pod-inspector dd { min-width: 0; overflow-wrap: anywhere; font-family: var(--pi-font-code); font-size: 12px; }
   .pod-inspector .close { min-width: 34px; min-height: 30px; padding: 3px 7px; }
 
+  .event-inspector {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 30;
+    width: min(92vw, 680px);
+    max-height: min(84vh, 680px);
+    overflow: auto;
+    background: var(--panel);
+    border: 2px solid var(--text);
+    box-shadow: 7px 7px 0 var(--text);
+    transform: translate(-50%, -50%);
+  }
+  .event-inspector[hidden] { display: none; }
+  .event-inspector .pwin-title { justify-content: space-between; }
+  .event-inspector .pwin-body { padding: 12px; }
+  .event-inspector .close,
+  .pod-inspector .close { min-width: 44px; min-height: 44px; padding: 7px 10px; }
+  .event-inspector .ptable { width: 100%; table-layout: fixed; }
+  .event-inspector .ptable th { width: 120px; }
+  .event-inspector .ptable td { overflow-wrap: anywhere; }
+  .event-payload {
+    max-height: 360px;
+    margin-top: 12px;
+    white-space: pre;
+    overflow: auto;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   footer { margin-top: 32px; color: var(--dim); font-size: 12px; text-align: center; }
   a { color: var(--blue); }
   :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline-color: var(--ui-accent); }
@@ -553,7 +617,9 @@
     .controls > .btn { width: 100%; }
     .spd { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); }
     #follow, #auto, #scrub { grid-column: 1 / -1; }
+    #export-postmortem { grid-column: 1 / -1; }
     .tclock { grid-column: 1 / -1; text-align: right; }
+    .key-strip { margin: 0 12px 12px; }
     .incident-title .tag { width: 100%; margin-left: 17px; }
     .ev.prop { grid-template-columns: 1fr; }
     .ev.prop .hd,
@@ -582,22 +648,29 @@
 <div class="wrap">
   <header>
     <h1>HELMSMAN<span class="dot">_</span></h1>
-    <p class="tagline">kubernetes is greek for helmsman — this one reads the logs before it touches the wheel</p>
-    <span class="honesty"><b>replay of a real engine run</b> — the pipeline below actually executed against a canned cluster fixture (<code>helmsman record</code>), and nothing mutates without the captain's stamp. Point it at a kubeconfig and it does this on a live cluster.</span>
+    <p class="tagline">Reads the logs before asking to touch the cluster.</p>
+    <span class="honesty pstrip">interactive recreation of the private system, replaying recorded fixtures</span>
   </header>
 
   <div class="picker" id="picker" role="group" aria-label="Replay incident"></div>
 
   <div class="card pwin console">
-    <div class="incident-title pwin-title" id="ititle" role="status" aria-live="polite">—</div>
+    <div class="incident-title pwin-title" id="ititle" role="status" aria-live="polite">No incident loaded</div>
     <div class="stagewrap pwin-body">
       <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
       <section class="pod-inspector pwin" id="pod-inspector" role="dialog" aria-modal="false" aria-labelledby="pod-inspector-title" hidden>
         <div class="pwin-title">
           <span id="pod-inspector-title">pod inspector</span>
-          <button class="btn ghost pbtn close" id="pod-inspector-close" type="button" aria-label="Close pod inspector">×</button>
+          <button class="btn ghost pbtn close" id="pod-inspector-close" type="button">Close</button>
         </div>
         <div class="pwin-body" id="pod-inspector-body" role="status" aria-live="polite"></div>
+      </section>
+      <section class="event-inspector pwin" id="event-inspector" role="dialog" aria-modal="false" aria-labelledby="event-inspector-title" hidden>
+        <div class="pwin-title">
+          <span id="event-inspector-title">raw fixture event</span>
+          <button class="btn ghost pbtn close" id="event-inspector-close" type="button">Close</button>
+        </div>
+        <div class="pwin-body" id="event-inspector-body" role="status" aria-live="polite"></div>
       </section>
       <div class="bridge">
         <div class="agent" id="ag-helm">
@@ -620,7 +693,7 @@
           <div class="st" id="st-capt" role="status" aria-live="polite" aria-atomic="true">coffee in hand</div>
         </div>
         <div class="boardcard pwin">
-          <h3>cluster — <span id="board-ns">prod</span></h3>
+          <h3>cluster: <span id="board-ns">prod</span></h3>
           <div id="board"></div>
         </div>
       </div>
@@ -632,8 +705,16 @@
       <div class="spd" id="spd" role="group" aria-label="Playback speed"></div>
       <button class="btn ghost pbtn" id="follow" type="button" aria-pressed="false"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"/></svg><span>Follow replay</span></button>
       <button class="btn ghost pbtn" id="auto" type="button" aria-pressed="false"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg><span>Auto replay: off</span></button>
+      <button class="btn ghost pbtn" id="export-postmortem" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg><span>Export postmortem</span></button>
       <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
       <span class="tclock" id="clock">0:00</span>
+    </div>
+    <div class="key-strip pstrip" aria-label="Replay keyboard controls">
+      <b>Keys</b>
+      <span><kbd>Space</kbd> play or pause</span>
+      <span><kbd>←</kbd> <kbd>→</kbd> step through replay</span>
+      <span><kbd>A</kbd> approve at the gate</span>
+      <span><kbd>H</kbd> hold at the gate</span>
     </div>
   </div>
 
@@ -643,10 +724,11 @@
   </div>
 
   <footer>
-    HELMSMAN · pipeline: page → triage → diagnose → propose → <b>human gate</b> → apply → verify ·
-    engine + fixtures on <a href="https://github.com/ThinkingSpade/hello-world/tree/lab/helmsman" target="_blank" rel="noopener">the branch</a> ·
+    HELMSMAN · page → triage → diagnose → propose → <b>human gate</b> → apply → verify ·
+    engine and fixtures on <a href="https://github.com/ThinkingSpade/hello-world/tree/lab/helmsman" target="_blank" rel="noopener">the branch</a> ·
     part of <a href="/">hnguyen.dev</a>
   </footer>
+  <div class="sr-only" id="a11y-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
 
 <script>
@@ -666,6 +748,8 @@
   let elapsed = 0, cmdCount = 0, authorization = null, blocked = false, seeking = false;
   let timers = [], commandTask = null, pendingStep = null, fetchController = null, boardModel = null;
   let activeGate = null, heldGate = null, inspectorRequest = 0, inspectorTrigger = null;
+  let eventInspectorTrigger = null, inspectedEvent = null;
+  const cardEvents = new WeakMap();
 
   function forgetTimer(id) {
     timers = timers.filter((timerId) => timerId !== id);
@@ -1038,8 +1122,87 @@
   }
 
   $("pod-inspector-close").addEventListener("click", closePodInspector);
+
+  function eventTimestamp(ev) {
+    for (const key of ["timestamp", "ts", "at", "time"]) {
+      if (ev && ev[key] !== undefined && ev[key] !== null && ev[key] !== "") return String(ev[key]);
+    }
+    return "not recorded in fixture";
+  }
+
+  function renderEventInspector(ev) {
+    const body = $("event-inspector-body");
+    try {
+      const type = ev && ev.t ? String(ev.t) : "not recorded in fixture";
+      const payload = Object.fromEntries(Object.entries(ev || {}).filter(([key]) =>
+        !["t", "timestamp", "ts", "at", "time"].includes(key)));
+      $("event-inspector-title").textContent = `raw fixture event: ${type}`;
+      body.replaceChildren();
+
+      const wrap = document.createElement("div");
+      wrap.className = "ptable-wrap";
+      const table = document.createElement("table");
+      table.className = "ptable";
+      const tbody = document.createElement("tbody");
+      for (const [label, value] of [["timestamp", eventTimestamp(ev)], ["type", type]]) {
+        const row = document.createElement("tr");
+        const heading = document.createElement("th");
+        heading.scope = "row";
+        heading.textContent = label;
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(heading, cell);
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      body.appendChild(wrap);
+
+      if (!Object.keys(payload).length) {
+        const empty = document.createElement("div");
+        empty.className = "surface-state empty";
+        empty.textContent = "No payload fields were recorded for this event.";
+        body.appendChild(empty);
+        return;
+      }
+      const pre = document.createElement("pre");
+      pre.className = "event-payload pterm";
+      pre.setAttribute("aria-label", "Raw fixture payload");
+      pre.textContent = JSON.stringify(payload, null, 2);
+      body.appendChild(pre);
+    } catch (error) {
+      body.innerHTML = '<div class="surface-state error">Raw event details could not be rendered.</div>';
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "btn ghost pbtn";
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () => renderEventInspector(ev));
+      body.firstElementChild.appendChild(retry);
+      console.error(error);
+    }
+  }
+
+  function openEventInspector(ev, trigger) {
+    inspectedEvent = ev;
+    eventInspectorTrigger = trigger || null;
+    $("event-inspector").hidden = false;
+    $("event-inspector-body").innerHTML = '<div class="surface-state">Reading raw fixture event...</div>';
+    renderEventInspector(ev);
+    $("event-inspector-close").focus();
+  }
+
+  function closeEventInspector() {
+    $("event-inspector").hidden = true;
+    inspectedEvent = null;
+    if (eventInspectorTrigger && eventInspectorTrigger.isConnected) eventInspectorTrigger.focus();
+    eventInspectorTrigger = null;
+  }
+
+  $("event-inspector-close").addEventListener("click", closeEventInspector);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !$("pod-inspector").hidden) closePodInspector();
+    if (event.key !== "Escape") return;
+    if (!$("event-inspector").hidden) closeEventInspector();
+    else if (!$("pod-inspector").hidden) closePodInspector();
   });
 
   /* ---------- terminal ---------- */
@@ -1064,7 +1227,7 @@
   }
 
   /* ---------- feed cards ---------- */
-  function card(cls, html, instant = false) {
+  function card(cls, html, instant = false, rawEvent = null) {
     const reconstructing = instant || seeking;
     const doc = document.documentElement;
     const nearBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 160;
@@ -1072,6 +1235,20 @@
     const d = document.createElement("div");
     d.className = "ev " + cls;
     d.innerHTML = html;
+    if (rawEvent) {
+      cardEvents.set(d, rawEvent);
+      d.dataset.inspectable = "true";
+      d.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea")) return;
+        openEventInspector(cardEvents.get(d), d);
+      });
+      const raw = document.createElement("button");
+      raw.type = "button";
+      raw.className = "raw-trigger btn ghost pbtn";
+      raw.innerHTML = `${icon("eye")}<span>Raw fixture event</span>`;
+      raw.addEventListener("click", () => openEventInspector(cardEvents.get(d), raw));
+      d.appendChild(raw);
+    }
     if (reconstructing) d.style.animation = "none";
     $("feed").appendChild(d);
     if (follow) d.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
@@ -1154,8 +1331,8 @@
       <div class="sub"><b>rollback, staged:</b> ${esc(ev.rollback)}</div>
       ${ev.followup ? `<div class="sub"><b>after the fire:</b> ${esc(ev.followup)}</div>` : ""}
       <div class="gate-shell pstrip" data-state="loading">
-        <div class="surface-state">Loading authorization context…</div>
-      </div>`, instant);
+        <div class="surface-state">Loading authorization context...</div>
+      </div>`, instant, ev);
     return d;
   }
 
@@ -1191,7 +1368,7 @@
           <div class="sub"><b>blast radius:</b> ${esc(proposal.blast_radius || "not recorded")}</div>
           <div class="sub"><b>exact command:</b> ${esc(proposal.command)}</div>
         </div>
-        <div class="gate-status" role="status">${instant ? "recorded decision" : autoReplay ? "auto replay armed — manual override available" : "manual decision required"}</div>`;
+        <div class="gate-status" role="status">${instant ? "recorded decision" : autoReplay ? "auto replay armed. Manual override available." : "manual decision required"}</div>`;
       const inspect = shell.querySelector(".inspect");
       const diff = shell.querySelector(".gate-diff");
       inspect.addEventListener("click", () => {
@@ -1237,7 +1414,7 @@
     applyStamp(decision, instant);
     $("sc-capt").textContent = ok ? "STAMPS 1" : "HOLDS 1";
     setStatus("capt", ok ? "agent cheer" : "agent", ok ? "stamped it" : "holding the line");
-    setStatus("helm", "agent", ok ? "cleared to apply" : "standing down — read-only");
+    setStatus("helm", "agent", ok ? "cleared to apply" : "standing down. Read-only.");
     const shell = document.querySelector(".ev.prop:last-of-type .gate-shell");
     if (shell) {
       for (const button of shell.querySelectorAll("button")) button.disabled = !resumable;
@@ -1253,7 +1430,7 @@
   function scheduleRecordedGate() {
     if (!activeGate || activeGate.settled || activeGate.held || activeGate.timer !== null) return;
     const status = document.querySelector(".ev.prop:last-of-type .gate-status");
-    if (status) status.textContent = "auto replay armed — recorded decision pending";
+    if (status) status.textContent = "auto replay armed. Recorded decision pending.";
     activeGate.timer = scheduleTimeout(() => {
       if (!activeGate) return;
       const recorded = activeGate.step.ev.recorded || {};
@@ -1275,7 +1452,7 @@
       applyGateDecision(decision, by, false, true);
       boardState("bad");
       setPlayLabel("review gate", "play");
-      toast("incident held — approval required to resume");
+      toast("incident held. Approval required to resume");
       return;
     }
     gate.settled = true;
@@ -1288,7 +1465,7 @@
       boardState("bad");
       card("verify held", `
         <div class="hd">${icon("hold")}<span>incident parked</span></div>
-        No mutation ran. Resume requires a new operator decision.`, false);
+        No mutation ran. Resume requires a new operator decision.`, false, gate.step.ev.recorded || gate.step.ev);
       toast("incident held");
     }
     playing = decision === "approved";
@@ -1302,6 +1479,10 @@
     t.classList.remove("show");
     void t.offsetWidth;
     if (!REDUCED) t.classList.add("show");
+  }
+
+  function announce(text) {
+    $("a11y-status").textContent = text;
   }
 
   function bumpCmds() {
@@ -1322,7 +1503,7 @@
       case "page":
         $("klaxon").classList.add("on");
         boardState("bad");
-        card("page", `<div class="hd">${icon("alert")}<span>incident paged</span></div>${esc(ev.text)}`, instant);
+        card("page", `<div class="hd">${icon("alert")}<span>incident paged</span></div>${esc(ev.text)}`, instant, ev);
         if (!instant) toast("incident paged");
         setStatus("helm", "agent thinking", "acknowledging the page");
         setStatus("capt", "agent", "watching over her shoulder");
@@ -1336,7 +1517,7 @@
           dispatchCluster({ type: "COMMAND_RESULT", ev });
           return fin();
         }
-        setStatus("helm", "agent working", "running kubectl…");
+        setStatus("helm", "agent working", "running kubectl...");
         return typeCmd(s, () => {
           dispatchCluster({ type: "COMMAND_RESULT", ev });
           setStatus("helm", "agent", "reading the output");
@@ -1348,16 +1529,16 @@
       case "diagnosis": {
         const known = ev.signature !== "unknown";
         card("diag", `
-          <div class="hd">${icon("search")}<span>diagnosis — ${esc(ev.signature)}</span>${known ? `<span class="confbadge">${ev.confidence}% confident</span>` : ""}</div>
+          <div class="hd">${icon("search")}<span>diagnosis: ${esc(ev.signature)}</span>${known ? `<span class="confbadge">${ev.confidence}% confident</span>` : ""}</div>
           ${esc(ev.cause)}
-          ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span>${icon("doc")}${esc(r)}</span>`).join("")}</div>` : ""}`, instant);
+          ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span>${icon("doc")}${esc(r)}</span>`).join("")}</div>` : ""}`, instant, ev);
         setStatus("helm", "agent", "diagnosis on the table");
         return fin();
       }
       case "proposal":
         authorization = null;
         proposalCard(ev, instant);
-        setStatus("helm", "agent", "fix drafted — over to the captain");
+        setStatus("helm", "agent", "fix drafted. Waiting for the captain.");
         setStatus("capt", "agent thinking", "reading the proposal");
         return fin();
       case "gate":
@@ -1375,18 +1556,18 @@
         applyStamp(ev.decision, instant);
         $("sc-capt").textContent = "STAMPS 1";
         setStatus("capt", ok ? "agent cheer" : "agent", ok ? "stamped it" : "holding the line");
-        setStatus("helm", "agent", ok ? "cleared to apply" : "standing down — read-only");
+        setStatus("helm", "agent", ok ? "cleared to apply" : "standing down. Read-only.");
         return fin();
       }
       case "apply":
         if (authorization !== true) {
           blocked = true;
           boardState("bad");
-          setStatus("helm", "agent", "standing down — approval required");
+          setStatus("helm", "agent", "standing down. Approval required.");
           setStatus("capt", "agent", "holding the line");
           card("verify held", `
             <div class="hd">${icon("hold")}<span>mutation blocked</span></div>
-            The latest gate was not approved. No repair command was run.`, instant);
+            The latest gate was not approved. No repair command was run.`, instant, ev);
           return fin();
         }
         bumpCmds();
@@ -1397,19 +1578,19 @@
           if (/forbidden|denied/i.test(ev.out || "") || ev.result === "denied") {
             card("verify denied", `
               <div class="hd">${icon("x")}<span>apply denied by RBAC</span></div>
-              The approved command reached the API server; authorization rejected the mutation.`, true);
+              The approved command reached the API server. Authorization rejected the mutation.`, true, ev);
           }
           return fin();
         }
-        setStatus("helm", "agent working", "applying the fix…");
-        return typeCmd({ ev: { cmd: ev.cmd, out: ev.out, note: "approved — hands on the wheel" } },
+        setStatus("helm", "agent working", "applying the fix...");
+        return typeCmd({ ev: { cmd: ev.cmd, out: ev.out, note: "approved. Hands on the wheel." } },
                        () => {
                          dispatchCluster({ type: "APPLY_RESULT", ev });
                          if (/forbidden|denied/i.test(ev.out || "") || ev.result === "denied") {
                            card("verify denied", `
                              <div class="hd">${icon("x")}<span>apply denied by RBAC</span></div>
-                             The approved command reached the API server; authorization rejected the mutation.`, false);
-                           setStatus("helm", "agent", "mutation denied — drafting escalation");
+                             The approved command reached the API server. Authorization rejected the mutation.`, false, ev);
+                           setStatus("helm", "agent", "mutation denied. Drafting escalation.");
                            setStatus("capt", "agent", "retaining the wheel");
                            toast("RBAC denied");
                          }
@@ -1424,29 +1605,30 @@
           <div class="sub"><b>Role</b></div>
           <div class="code">${esc(ev.role_manifest)}</div>
           <div class="sub"><b>RoleBinding</b></div>
-          <div class="code">${esc(ev.binding_manifest)}</div>`, instant);
-        setStatus("helm", "agent", "escalation bundle drafted — read-only");
+          <div class="code">${esc(ev.binding_manifest)}</div>`, instant, ev);
+        setStatus("helm", "agent", "escalation bundle drafted. Read-only.");
         setStatus("capt", "agent thinking", "reviewing the RBAC delta");
         return fin();
       case "verify": {
         const green = ev.result === "green";
         const denied = ev.result === "denied";
+        const decisionCount = S ? S.timeline.filter((entry) => entry.t === "approval").length : 0;
         $("klaxon").classList.toggle("on", !green);
         boardState(green ? "ok2" : denied ? "denied" : "bad");
-        const heading = green ? "verified — all clear" : denied ? "RBAC denied — escalated" : ev.result === "held" ? "held at the gate" : "not recovered";
+        const heading = green ? "verified: all clear" : denied ? "RBAC denied: escalated" : ev.result === "held" ? "held at the gate" : "not recovered";
         const postmortem = ev.postmortem || (green
           ? "diagnosis receipts above · rollback stayed staged the whole time"
           : "no recovery recorded · human retains the wheel");
         card("verify " + (green ? "green" : denied ? "denied" : "held"), `
           <div class="hd">${green ? icon("check") : icon("x")}<span>${heading}</span></div>
           ${esc(ev.text)}
-          <div class="postm">postmortem: <b>${cmdCount} commands</b> · <b>1 human decision</b> · ${esc(postmortem)}</div>`, instant);
+          <div class="postm">postmortem: <b>${cmdCount} commands</b> · <b>${decisionCount} human decisions</b> · ${esc(postmortem)}</div>`, instant, ev);
         if (green) {
           setStatus("helm", "agent cheer", "steady as she goes");
           setStatus("capt", "agent", "back to the coffee");
           if (!instant) toast("all clear");
         } else {
-          setStatus("helm", "agent", "read-only — human has the wheel");
+          setStatus("helm", "agent", "read-only. Human has the wheel.");
           setStatus("capt", "agent", denied ? "manual escalation queued" : "reviewing the bundle");
         }
         return fin();
@@ -1548,10 +1730,18 @@
     return true;
   }
 
+  function renderFeedState(kind, text) {
+    const state = document.createElement("div");
+    state.className = `surface-state ${kind}`;
+    state.textContent = text;
+    $("feed").replaceChildren(state);
+  }
+
   function resetStage(preserveHold = false) {
     activeGate = null;
     if (!preserveHold) heldGate = null;
     closePodInspector();
+    closeEventInspector();
     $("av-helm").innerHTML = pixelChar("helm");
     $("av-capt").innerHTML = pixelChar("capt");
     $("ag-helm").style.setProperty("--ac", "#2547c9");
@@ -1563,11 +1753,13 @@
     $("klaxon").classList.remove("on");
     $("term").innerHTML = terminalBar();
     $("feed").replaceChildren();
+    if (!S) renderFeedState("loading", "Loading incident events...");
+    else if (!S.timeline.length) renderFeedState("empty", "No incident events were recorded in this fixture.");
     boardModel = S ? makeClusterModel(S.board) : null;
     if (S) renderBoard();
     else {
-      $("board-ns").textContent = "—";
-      $("board").innerHTML = '<div class="surface-state">Loading cluster snapshot…</div>';
+      $("board-ns").textContent = "not loaded";
+      $("board").innerHTML = '<div class="surface-state">Loading cluster snapshot...</div>';
     }
     idx = 0; elapsed = 0; cmdCount = 0;
     authorization = null; blocked = false;
@@ -1670,6 +1862,208 @@
     spd.appendChild(b);
   }
 
+  /* ---------- postmortem export ---------- */
+  function markdownFence(value, language = "text") {
+    return [`\`\`\`${language}`, String(value ?? "not recorded in fixture"), "\`\`\`"].join("\n");
+  }
+
+  function timelineSummary(ev) {
+    switch (ev.t) {
+      case "page": return ev.text;
+      case "cmd": return `${ev.note ? `${ev.note}: ` : ""}${ev.cmd}`;
+      case "think": return ev.status;
+      case "diagnosis": return `${ev.signature}: ${ev.cause}`;
+      case "proposal": return ev.explain;
+      case "approval": return `${ev.decision} by ${ev.by || "not recorded in fixture"}`;
+      case "apply": return `${ev.cmd}${ev.result ? `, result: ${ev.result}` : ""}`;
+      case "escalation": return ev.text;
+      case "verify": return `${ev.result}: ${ev.text}`;
+      default: return "No summary was recorded for this event.";
+    }
+  }
+
+  function composePostmortem(session) {
+    const timeline = session.timeline || [];
+    const diagnosis = timeline.find((ev) => ev.t === "diagnosis");
+    const proposal = timeline.find((ev) => ev.t === "proposal");
+    const decision = timeline.find((ev) => ev.t === "approval");
+    const commands = timeline.filter((ev) => ev.t === "cmd" || ev.t === "apply");
+    const verification = [...timeline].reverse().find((ev) => ev.t === "verify");
+    const lines = [
+      `# Incident postmortem: ${session.title}`,
+      "",
+      "## Incident",
+      "",
+      `Fixture: \`${session.id || "not recorded"}\``,
+      `Namespace: \`${session.namespace || "not recorded"}\``,
+      `Selector: \`${session.selector || "not recorded"}\``
+    ];
+    if (typeof session.duration_s === "number") lines.push(`Recorded duration: ${session.duration_s} seconds`);
+
+    lines.push("", "## Timeline", "");
+    if (timeline.length) {
+      timeline.forEach((ev, index) => lines.push(`${index + 1}. \`${ev.t || "unknown"}\`: ${timelineSummary(ev) || "No summary was recorded."}`));
+    } else {
+      lines.push("No timeline events were recorded in the fixture.");
+    }
+
+    lines.push("", "## Diagnosis", "");
+    if (diagnosis) {
+      lines.push(
+        `Signature: \`${diagnosis.signature || "not recorded"}\``,
+        `Confidence: ${diagnosis.confidence === undefined ? "not recorded in fixture" : `${diagnosis.confidence}%`}`,
+        "",
+        diagnosis.cause || "No diagnosis text was recorded."
+      );
+      if (Array.isArray(diagnosis.receipts) && diagnosis.receipts.length) {
+        lines.push("", "Receipts:", "");
+        diagnosis.receipts.forEach((receipt, index) => lines.push(`${index + 1}. ${receipt}`));
+      }
+    } else {
+      lines.push("No diagnosis was recorded in the fixture.");
+    }
+
+    lines.push("", "## Decision", "");
+    if (decision) {
+      lines.push(
+        `Decision: \`${decision.decision || "not recorded"}\``,
+        `Operator: \`${decision.by || "not recorded"}\``
+      );
+    } else {
+      lines.push("No operator decision was recorded in the fixture.");
+    }
+    if (proposal) {
+      lines.push(
+        `Risk: \`${proposal.risk || "not recorded"}\``,
+        `Blast radius: ${proposal.blast_radius || "not recorded in fixture"}`,
+        "",
+        "Proposed command:",
+        "",
+        markdownFence(proposal.command, "sh"),
+        "",
+        `Rollback: \`${proposal.rollback || "not recorded in fixture"}\``
+      );
+    }
+
+    lines.push("", "## Commands run", "");
+    if (commands.length) {
+      commands.forEach((ev, index) => {
+        lines.push(
+          `### Command ${index + 1}`,
+          "",
+          markdownFence(ev.cmd, "sh"),
+          "",
+          `Event type: \`${ev.t}\``
+        );
+        if (ev.note) lines.push(`Purpose: ${ev.note}`);
+        if (ev.result) lines.push(`Result: \`${ev.result}\``);
+        lines.push("", "Recorded output:", "", markdownFence(ev.out));
+      });
+    } else {
+      lines.push("No commands were recorded in the fixture.");
+    }
+
+    lines.push("", "## Verification", "");
+    if (verification) {
+      lines.push(
+        `Result: \`${verification.result || "not recorded"}\``,
+        "",
+        verification.text || "No verification text was recorded."
+      );
+      if (verification.postmortem) lines.push("", `Ledger note: ${verification.postmortem}`);
+    } else {
+      lines.push("No verification was recorded in the fixture.");
+    }
+    return lines.join("\n") + "\n";
+  }
+
+  function downloadPostmortem() {
+    if (!S) {
+      announce("Load an incident before exporting a postmortem.");
+      return;
+    }
+    try {
+      const markdown = composePostmortem(S);
+      const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const base = String(S.id || "helmsman-incident").replace(/[^a-z0-9._-]+/gi, "-");
+      link.href = url;
+      link.download = `${base}-postmortem.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      toast("postmortem downloaded");
+      announce("Postmortem markdown downloaded.");
+    } catch (error) {
+      announce("The postmortem could not be exported.");
+      toast("export failed");
+      console.error(error);
+    }
+  }
+
+  $("export-postmortem").addEventListener("click", downloadPostmortem);
+
+  /* ---------- keyboard controls ---------- */
+  function isShortcutTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return target.isContentEditable || Boolean(target.closest("input, textarea, select, button, a"));
+  }
+
+  function approveFromKeyboard() {
+    if (!activeGate && heldGate) {
+      if (idx !== heldGate.index) seek(heldGate.index);
+      if (!activeGate) restoreHeldGate(true);
+    }
+    if (!activeGate || !activeGate.step.gateReady) {
+      announce("No approval gate is ready.");
+      return;
+    }
+    settleGate("approved", "operator@bridge");
+    announce("Gate approved. Replay resumed.");
+  }
+
+  function holdFromKeyboard() {
+    if (!activeGate || !activeGate.step.gateReady) {
+      announce("No approval gate is ready.");
+      return;
+    }
+    if (activeGate.held) {
+      announce("The incident is already held.");
+      return;
+    }
+    settleGate("held", "operator@bridge", true);
+    announce("Incident held at the approval gate.");
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || isShortcutTarget(event.target)) return;
+    if (!$("event-inspector").hidden || !$("pod-inspector").hidden) return;
+    const key = event.key.toLowerCase();
+    if (event.code === "Space") {
+      event.preventDefault();
+      if (event.repeat) return;
+      if (!S) return announce("No incident replay is loaded.");
+      if (activeGate) return announce("Replay is waiting at the approval gate.");
+      playing ? pause() : play();
+      announce(playing ? "Replay playing." : "Replay paused.");
+      return;
+    }
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      if (!S) return;
+      event.preventDefault();
+      const next = Math.max(0, Math.min(steps.length, idx + (event.key === "ArrowLeft" ? -1 : 1)));
+      seek(next);
+      announce(`Replay position ${next} of ${steps.length}.`);
+      return;
+    }
+    if ((key === "a" || key === "h") && !event.repeat) {
+      event.preventDefault();
+      key === "a" ? approveFromKeyboard() : holdFromKeyboard();
+    }
+  });
+
   /* ---------- sessions ---------- */
   function severityOf(session) {
     const page = session.timeline.find((ev) => ev.t === "page");
@@ -1681,7 +2075,7 @@
   }
 
   function setControlsEnabled(enabled) {
-    for (const el of [$("play"), $("restart"), $("follow"), $("auto"), $("scrub"), ...spd.children]) el.disabled = !enabled;
+    for (const el of [$("play"), $("restart"), $("follow"), $("auto"), $("export-postmortem"), $("scrub"), ...spd.children]) el.disabled = !enabled;
   }
 
   function selectSession(file) {
@@ -1745,6 +2139,8 @@
     } catch (error) {
       if (loadGen !== gen || error.name === "AbortError") return;
       renderLoadError("Could not load this incident replay.", () => loadSession(file));
+      renderFeedState("error", "Incident events could not be loaded.");
+      $("board").innerHTML = '<div class="surface-state error">Cluster snapshot could not be loaded.</div>';
       setStatus("helm", "agent", "replay unavailable");
     } finally {
       if (loadGen === gen) fetchController = null;
@@ -1771,7 +2167,9 @@
     stopPlayback(false);
     if (fetchController) fetchController.abort();
     fetchController = new AbortController();
+    S = null; steps = [];
     setControlsEnabled(false);
+    resetStage();
     $("ititle").textContent = "loading incident list…";
     try {
       const metas = await Promise.all(SESSIONS.map(([file]) => fetchSession(file, fetchController.signal)));
@@ -1784,6 +2182,8 @@
       fetchController.abort();
       fetchController = null;
       renderLoadError("Could not load the incident list.", bootstrap);
+      renderFeedState("error", "Incident events could not be loaded.");
+      $("board").innerHTML = '<div class="surface-state error">Cluster snapshot could not be loaded.</div>';
       setStatus("helm", "agent", "replay unavailable");
     }
   }

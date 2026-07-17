@@ -7,7 +7,7 @@
  "timeline": [
   {
    "t": "page",
-   "text": "Argo CD — prod/payments: rollout stalled 11m, 2 new pods ImagePullBackOff (old replicas still serving)",
+   "text": "Argo CD: the prod/payments rollout has stalled for 11m. Two new pods are in ImagePullBackOff. Old replicas are still serving.",
    "sev": "P2"
   },
   {
@@ -47,7 +47,7 @@
   {
    "t": "diagnosis",
    "signature": "image-pull",
-   "cause": "The rollout is pulling an image tag that doesn't exist (registry.internal/payments:v2.4.11): the registry answers 'manifest not found', so new pods can never start. Old replicas are still serving — this is a bad deploy, not an outage yet.",
+   "cause": "The rollout is pulling an image tag that does not exist: registry.internal/payments:v2.4.11. The registry answers 'manifest not found', so new pods can never start. Old replicas are still serving. This is a bad deploy, not an outage yet.",
    "receipts": [
     "payments-6c9d8e7f5-nn4kq   0/1     ImagePullBackOff   0          11m",
     "payments-6c9d8e7f5-x8w2j   0/1     ImagePullBackOff   0          11m",
@@ -98,7 +98,7 @@
   {
    "t": "verify",
    "result": "green",
-   "text": "All replicas Running and Ready — restarts flat. Standing down."
+   "text": "All replicas are Running and Ready. Restarts are flat. Standing down."
   }
  ],
  "id": "image-pull",

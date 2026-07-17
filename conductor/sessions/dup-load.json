@@ -8,7 +8,7 @@
     "label": "orders_raw",
     "kind": "source",
     "col": 0,
-    "rows": 1509,
+    "rows": 396,
     "schema": ["order_id INTEGER", "customer_id INTEGER", "order_ts TEXT", "order_total REAL", "status TEXT", "load_batch TEXT"]
    },
    {
@@ -16,7 +16,7 @@
     "label": "customers_raw",
     "kind": "source",
     "col": 0,
-    "rows": 600,
+    "rows": 120,
     "schema": ["customer_id INTEGER", "region TEXT", "updated_at TEXT"]
    },
    {
@@ -24,7 +24,7 @@
     "label": "stg_orders",
     "kind": "task",
     "col": 1,
-    "rows": 1509,
+    "rows": 396,
     "schema": ["order_id INTEGER", "customer_id INTEGER", "order_total REAL", "order_date TEXT", "load_batch TEXT"]
    },
    {
@@ -32,7 +32,7 @@
     "label": "stg_customers",
     "kind": "task",
     "col": 1,
-    "rows": 600,
+    "rows": 120,
     "schema": ["customer_id INTEGER", "region TEXT"]
    },
    {
@@ -40,7 +40,7 @@
     "label": "fct_daily_revenue",
     "kind": "task",
     "col": 2,
-    "rows": 70,
+    "rows": 40,
     "schema": ["day TEXT", "region TEXT", "orders INTEGER", "revenue REAL"]
    }
   ],
@@ -66,24 +66,24 @@
  "timeline": [
   {
    "t": "page",
-   "text": "Data-quality alarm — stg_orders: unique(order_id) failing; yesterday's revenue reads 2× and the CFO noticed before we did",
+   "text": "A data-quality check failed on stg_orders: unique(order_id). Yesterday’s revenue reads 2×.",
    "sev": "P2"
   },
   {
    "t": "run",
    "task": "stg_customers",
    "status": "ok",
-   "detail": "rebuilt — 600 rows"
+   "detail": "rebuilt. 120 rows"
   },
   {
    "t": "checks",
    "task": "stg_customers",
    "results": [
     {
-     "name": "row_count_min(500)",
+     "name": "row_count_min(100)",
      "table": "stg_customers",
      "status": "pass",
-     "detail": "600 rows (min 500)"
+     "detail": "120 rows (min 100)"
     },
     {
      "name": "unique(customer_id)",
@@ -97,7 +97,7 @@
    "t": "run",
    "task": "stg_orders",
    "status": "fail",
-   "detail": "rebuilt — 1,509 rows"
+   "detail": "rebuilt. 396 rows"
   },
   {
    "t": "checks",
@@ -107,7 +107,7 @@
      "name": "unique(order_id)",
      "table": "stg_orders",
      "status": "fail",
-     "detail": "111 duplicated order_id values"
+     "detail": "36 duplicated order_id values"
     },
     {
      "name": "not_null(order_total)",
@@ -125,14 +125,14 @@
   {
    "t": "cmd",
    "cmd": "SELECT order_id, COUNT(*) AS copies FROM stg_orders\nGROUP BY order_id HAVING copies > 1 LIMIT 5;",
-   "out": "order_id  copies\n--------  ------\n501424    2\n501425    2\n501426    2\n501427    2\n501428    2",
+   "out": "order_id  copies\n--------  ------\n500325    2\n500326    2\n500327    2\n500328    2\n500329    2",
    "note": "sample the duplicated keys"
   },
   {
    "t": "cmd",
    "cmd": "SELECT load_batch, COUNT(*) AS rows_loaded FROM orders_raw\nGROUP BY load_batch ORDER BY load_batch DESC LIMIT 6;",
-   "out": "load_batch           rows_loaded\n-------------------  -----------\nbatch-2026-07-11-01  146\nbatch-2026-07-10-02  149\nbatch-2026-07-10-01  149\nbatch-2026-07-09-01  145\nbatch-2026-07-08-01  104\nbatch-2026-07-07-01  109",
-   "note": "the batch ledger never lies — was something loaded twice?"
+   "out": "load_batch           rows_loaded\n-------------------  -----------\nbatch-2026-07-10-02  36\nbatch-2026-07-10-01  36\nbatch-2026-07-09-01  36\nbatch-2026-07-08-01  36\nbatch-2026-07-07-01  36\nbatch-2026-07-06-01  36",
+   "note": "Was a batch loaded twice?"
   },
   {
    "t": "think",
@@ -142,11 +142,11 @@
   {
    "t": "diagnosis",
    "signature": "duplicate-load",
-   "cause": "Yesterday's file was loaded twice — the loader retried after a timeout that had actually succeeded, so every order from that day exists under two batch tags and revenue reads exactly 2×. The orders are real; the second copy is not.",
+   "cause": "Yesterday’s file was loaded twice. The loader retried after a timeout that had already succeeded. Every order from that day exists under two batch tags, so revenue reads exactly 2×. The orders are real. The second copies are not.",
    "receipts": [
-    "failed check: unique(order_id) on stg_orders — 111 duplicated order_id values",
-    "501424    2",
-    "501425    2",
+    "failed check: unique(order_id) on stg_orders, 36 duplicated order_id values",
+    "500325    2",
+    "500326    2",
     "501426    2",
     "alternative untested: upstream source emitted duplicate order IDs"
    ],
@@ -155,10 +155,10 @@
   {
    "t": "proposal",
    "command": "BEGIN IMMEDIATE;\nCREATE TEMP TABLE duplicate_repair_expected AS\nSELECT COUNT(*) AS expected_duplicate_count\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id\n      HAVING COUNT(*) = 2 AND COUNT(DISTINCT load_batch) = 2);\nCREATE TEMP TABLE duplicate_repair_rows (rowid INTEGER PRIMARY KEY);\nINSERT INTO duplicate_repair_rows\nSELECT suspect.rowid FROM orders_raw AS suspect\nWHERE suspect.load_batch = 'batch-2026-07-10-02'\n  AND EXISTS (SELECT 1 FROM orders_raw AS keeper\n              WHERE keeper.order_id = suspect.order_id\n                AND keeper.load_batch = 'batch-2026-07-10-01');\nSELECT COUNT(*) AS candidate_rows, expected_duplicate_count,\n       COUNT(*) = expected_duplicate_count AS count_matches\nFROM duplicate_repair_rows, duplicate_repair_expected;\nCREATE TEMP TABLE duplicate_repair_gate\n  (check_name TEXT, passed INTEGER NOT NULL CHECK (passed = 1));\nINSERT OR ROLLBACK INTO duplicate_repair_gate\nSELECT 'candidate count', COUNT(*) = expected_duplicate_count\nFROM duplicate_repair_rows, duplicate_repair_expected;\nCREATE TABLE orders_raw_restore_20260710_02 AS\nSELECT suspect.* FROM orders_raw AS suspect\nJOIN duplicate_repair_rows AS doomed ON doomed.rowid = suspect.rowid;\nDELETE FROM orders_raw\nWHERE EXISTS (SELECT 1 FROM duplicate_repair_rows AS doomed\n              WHERE doomed.rowid = orders_raw.rowid);\nSELECT changes() AS deleted_rows;\nSELECT COUNT(*) AS remaining_cross_batch_duplicates\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id HAVING COUNT(DISTINCT load_batch) = 2);\nINSERT OR ROLLBACK INTO duplicate_repair_gate\nSELECT 'final duplicate count', COUNT(*) = 0\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id HAVING COUNT(DISTINCT load_batch) = 2);\nDROP TABLE duplicate_repair_gate;\nDROP TABLE duplicate_repair_rows;\nDROP TABLE duplicate_repair_expected;\nCOMMIT;",
-   "explain": "Compute the expected duplicate count inside the transaction, collect only the retry batch's matching rowids, and snapshot those exact rows. The run commits only because the candidate-row check matched the expected 111 duplicates and the final check returned zero remaining cross-batch duplicates; either failed gate executes INSERT OR ROLLBACK before COMMIT.",
+   "explain": "Compute the expected duplicate count inside the transaction. Collect only matching rowids from the retry batch, then snapshot those rows. The run commits when the candidate count matches the expected 36 duplicates and the final check finds no remaining cross-batch duplicates.",
    "risk": "high",
    "rollback": "BEGIN IMMEDIATE; INSERT INTO orders_raw SELECT * FROM orders_raw_restore_20260710_02; SELECT changes() AS restored_rows; DROP TABLE orders_raw_restore_20260710_02; COMMIT; -- restores only deleted rows into the original schema",
-   "followup": "Make the loader idempotent — stage into a temp table and MERGE on order_id — so a retry can never double-load again."
+   "followup": "Make the loader idempotent. Stage into a temporary table and merge on order_id so a retry cannot load the same order twice."
   },
   {
    "t": "approval",
@@ -168,7 +168,7 @@
   {
    "t": "apply",
    "cmd": "apply scoped duplicate-batch repair transaction",
-   "out": "BEGIN IMMEDIATE;\nCREATE TEMP TABLE duplicate_repair_expected AS\nSELECT COUNT(*) AS expected_duplicate_count\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id\n      HAVING COUNT(*) = 2 AND COUNT(DISTINCT load_batch) = 2);\nCREATE TEMP TABLE duplicate_repair_rows (rowid INTEGER PRIMARY KEY);\nINSERT INTO duplicate_repair_rows\nSELECT suspect.rowid FROM orders_raw AS suspect\nWHERE suspect.load_batch = 'batch-2026-07-10-02'\n  AND EXISTS (SELECT 1 FROM orders_raw AS keeper\n              WHERE keeper.order_id = suspect.order_id\n                AND keeper.load_batch = 'batch-2026-07-10-01');\nSELECT COUNT(*) AS candidate_rows, expected_duplicate_count,\n       COUNT(*) = expected_duplicate_count AS count_matches\nFROM duplicate_repair_rows, duplicate_repair_expected;\n-- candidate_rows  expected_duplicate_count  count_matches\n-- 111             111                       1\nCREATE TEMP TABLE duplicate_repair_gate\n  (check_name TEXT, passed INTEGER NOT NULL CHECK (passed = 1));\nINSERT OR ROLLBACK INTO duplicate_repair_gate\nSELECT 'candidate count', COUNT(*) = expected_duplicate_count\nFROM duplicate_repair_rows, duplicate_repair_expected;\nCREATE TABLE orders_raw_restore_20260710_02 AS\nSELECT suspect.* FROM orders_raw AS suspect\nJOIN duplicate_repair_rows AS doomed ON doomed.rowid = suspect.rowid;\nDELETE FROM orders_raw\nWHERE EXISTS (SELECT 1 FROM duplicate_repair_rows AS doomed\n              WHERE doomed.rowid = orders_raw.rowid);\nSELECT changes() AS deleted_rows;\n-- deleted_rows\n-- 111\nSELECT COUNT(*) AS remaining_cross_batch_duplicates\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id HAVING COUNT(DISTINCT load_batch) = 2);\n-- remaining_cross_batch_duplicates\n-- 0\nINSERT OR ROLLBACK INTO duplicate_repair_gate\nSELECT 'final duplicate count', COUNT(*) = 0\nFROM (SELECT order_id FROM orders_raw\n      WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02')\n      GROUP BY order_id HAVING COUNT(DISTINCT load_batch) = 2);\nDROP TABLE duplicate_repair_gate;\nDROP TABLE duplicate_repair_rows;\nDROP TABLE duplicate_repair_expected;\nCOMMIT;"
+   "out": "BEGIN IMMEDIATE;\nCREATE TABLE orders_raw_restore_20260710_02 AS SELECT * FROM orders_raw WHERE load_batch = 'batch-2026-07-10-02';\nDELETE FROM orders_raw WHERE load_batch = 'batch-2026-07-10-02';\nSELECT changes() AS deleted_rows;\n-- deleted_rows\n-- 36\nCOMMIT;"
   },
   {
    "t": "think",
@@ -179,17 +179,17 @@
    "t": "run",
    "task": "stg_customers",
    "status": "ok",
-   "detail": "rebuilt — 600 rows"
+   "detail": "rebuilt. 120 rows"
   },
   {
    "t": "checks",
    "task": "stg_customers",
    "results": [
     {
-     "name": "row_count_min(500)",
+     "name": "row_count_min(100)",
      "table": "stg_customers",
      "status": "pass",
-     "detail": "600 rows (min 500)"
+     "detail": "120 rows (min 100)"
     },
     {
      "name": "unique(customer_id)",
@@ -203,7 +203,7 @@
    "t": "run",
    "task": "stg_orders",
    "status": "ok",
-   "detail": "rebuilt — 1,398 rows"
+   "detail": "rebuilt. 360 rows"
   },
   {
    "t": "checks",
@@ -227,7 +227,7 @@
    "t": "run",
    "task": "fct_daily_revenue",
    "status": "ok",
-   "detail": "rebuilt — 70 rows"
+   "detail": "rebuilt. 40 rows"
   },
   {
    "t": "checks",
@@ -243,18 +243,35 @@
      "name": "row_count_min(10)",
      "table": "fct_daily_revenue",
      "status": "pass",
-     "detail": "70 rows (min 10)"
+     "detail": "40 rows (min 10)"
     }
    ]
   },
   {
    "t": "verify",
    "result": "green",
-   "text": "All tasks rebuilt, every check green — marts are fresh and the numbers reconcile. Standing down."
+   "text": "All tasks rebuilt. Every check passes. The marts are fresh and the numbers reconcile."
   }
  ],
  "id": "dup-load",
- "title": "revenue doubled overnight — yesterday loaded twice",
+ "title": "revenue doubled overnight: yesterday loaded twice",
  "tag": "warehouse · P2 · duplicate load",
+ "warehouse": {
+  "seed": {
+   "customers": 120,
+   "orders": 360,
+   "days": 10,
+   "latest_day": "2026-07-10",
+   "duplicate_rows": 36,
+   "regions": ["north", "south", "east", "west"]
+  },
+  "actions": [
+   {
+    "label": "delete the scoped retry batch inside a transaction",
+    "sql": "BEGIN IMMEDIATE; CREATE TABLE orders_raw_restore_20260710_02 AS SELECT * FROM orders_raw WHERE load_batch = 'batch-2026-07-10-02'; DELETE FROM orders_raw WHERE load_batch = 'batch-2026-07-10-02'; SELECT changes() AS deleted_rows; SELECT COUNT(*) AS remaining_cross_batch_duplicates FROM (SELECT order_id FROM orders_raw WHERE load_batch IN ('batch-2026-07-10-01', 'batch-2026-07-10-02') GROUP BY order_id HAVING COUNT(DISTINCT load_batch) = 2); COMMIT;"
+   }
+  ],
+  "sample_query": "SELECT load_batch, COUNT(*) AS rows_loaded FROM orders_raw GROUP BY load_batch ORDER BY load_batch DESC LIMIT 6;"
+ },
  "recorded": "scenario-replay"
 }

@@ -1,0 +1,403 @@
+{
+  "id": "degradation-drill",
+  "title": "Proxy degradation drill",
+  "tag": "drain and recovery",
+  "summary": "A proxy pool sickens during the morning ramp. Sessions throttle, failures are classified, alerts fire, and the scheduler drains the pool before warming replacements.",
+  "frameDelay": 1650,
+  "budget": 0.72,
+  "timeline": {
+    "startHour": 0,
+    "endHour": 24,
+    "ticks": [0, 6, 12, 18, 24],
+    "ramp": [
+      { "hour": 8, "load": 22, "label": "warm identities" },
+      { "hour": 9, "load": 58, "label": "ramp interrupted" },
+      { "hour": 10.25, "load": 14, "label": "pool drained" },
+      { "hour": 12, "load": 76, "label": "recovery pace" }
+    ]
+  },
+  "campaigns": [
+    {
+      "id": "camp-audit",
+      "tenant": "Northstar",
+      "name": "Listing audit",
+      "cron": "15 8,10,13 * * *",
+      "color": "#2547c9",
+      "runs": [
+        { "planned": 8.25, "actual": 8.32, "jitterMinutes": 4 },
+        { "planned": 10.25, "actual": 11.17, "jitterMinutes": 55 },
+        { "planned": 13.25, "actual": 13.38, "jitterMinutes": 8 }
+      ]
+    },
+    {
+      "id": "camp-triage",
+      "tenant": "Juniper",
+      "name": "Queue triage",
+      "cron": "30 8,10,13 * * *",
+      "color": "#0c7555",
+      "runs": [
+        { "planned": 8.5, "actual": 8.63, "jitterMinutes": 8 },
+        { "planned": 10.5, "actual": 11.58, "jitterMinutes": 65 },
+        { "planned": 13.5, "actual": 13.65, "jitterMinutes": 9 }
+      ]
+    },
+    {
+      "id": "camp-review",
+      "tenant": "Harbor",
+      "name": "Account review",
+      "cron": "45 8,10,13 * * *",
+      "color": "#a34c12",
+      "runs": [
+        { "planned": 8.75, "actual": 8.92, "jitterMinutes": 10 },
+        { "planned": 10.75, "actual": 11.88, "jitterMinutes": 68 },
+        { "planned": 13.75, "actual": 13.93, "jitterMinutes": 11 }
+      ]
+    }
+  ],
+  "proxies": [
+    { "id": "edge-chi-01", "pool": "central primary" },
+    { "id": "edge-chi-02", "pool": "central primary" },
+    { "id": "edge-iad-04", "pool": "east reserve" },
+    { "id": "edge-iad-05", "pool": "east reserve" }
+  ],
+  "sessions": [
+    {
+      "id": "brw-204",
+      "campaign": "camp-audit",
+      "identity": "id-ns-31",
+      "proxy": "edge-chi-01",
+      "streams": [
+        {
+          "tree": [
+            "main \"Listing audit\"",
+            "link \"Open listing SKU-9012\" ref=l21",
+            "status \"Audit ready\""
+          ],
+          "action": { "type": "click", "ref": "l21" },
+          "schema": "valid",
+          "result": "Navigation was blocked by the upstream route."
+        }
+      ]
+    },
+    {
+      "id": "brw-211",
+      "campaign": "camp-triage",
+      "identity": "id-jn-19",
+      "proxy": "edge-chi-02",
+      "streams": [
+        {
+          "tree": [
+            "main \"Triage queue\"",
+            "button \"Claim next case\" ref=b04",
+            "status \"7 cases waiting\""
+          ],
+          "action": { "type": "click", "ref": "b04" },
+          "schema": "valid",
+          "result": "A captcha challenge replaced the queue."
+        }
+      ]
+    },
+    {
+      "id": "brw-219",
+      "campaign": "camp-review",
+      "identity": "id-hb-37",
+      "proxy": "edge-chi-01",
+      "streams": [
+        {
+          "tree": [
+            "main \"Account review\"",
+            "link \"Open account ACCT-771\" ref=l18",
+            "status \"3 records due\""
+          ],
+          "action": { "type": "click", "ref": "l18" },
+          "schema": "valid",
+          "result": "The page timed out before navigation completed."
+        }
+      ]
+    },
+    {
+      "id": "brw-226",
+      "campaign": "camp-audit",
+      "identity": "id-ns-35",
+      "proxy": "edge-chi-02",
+      "streams": [
+        {
+          "tree": [
+            "main \"Listing audit\"",
+            "textbox \"Search listing\" ref=t09",
+            "button \"Find\" ref=b10"
+          ],
+          "action": { "type": "fill", "ref": "t09", "value": "SKU-5531" },
+          "schema": "valid",
+          "result": "Search entered before the route was drained."
+        }
+      ]
+    },
+    {
+      "id": "brw-231",
+      "campaign": "camp-triage",
+      "identity": "id-jn-26",
+      "proxy": "edge-iad-04",
+      "streams": [
+        {
+          "tree": [
+            "main \"Triage queue\"",
+            "button \"Claim next case\" ref=b04",
+            "status \"6 cases waiting\""
+          ],
+          "action": { "type": "click", "ref": "b04" },
+          "schema": "valid",
+          "result": "Claimed case CASE-334 after recovery."
+        }
+      ]
+    },
+    {
+      "id": "brw-238",
+      "campaign": "camp-review",
+      "identity": "id-hb-41",
+      "proxy": "edge-iad-05",
+      "streams": [
+        {
+          "tree": [
+            "main \"Account review\"",
+            "link \"Open account ACCT-804\" ref=l20",
+            "status \"2 records due\""
+          ],
+          "action": { "type": "click", "ref": "l20" },
+          "schema": "valid",
+          "result": "Opened account ACCT-804 on a healthy route."
+        }
+      ]
+    },
+    {
+      "id": "brw-244",
+      "campaign": "camp-audit",
+      "identity": "id-ns-42",
+      "proxy": "edge-iad-04",
+      "streams": [
+        {
+          "tree": [
+            "main \"Listing audit\"",
+            "link \"Open listing SKU-6638\" ref=l25",
+            "status \"Audit ready\""
+          ],
+          "action": { "type": "click", "ref": "l25" },
+          "schema": "valid",
+          "result": "Opened listing SKU-6638 on the reserve pool."
+        }
+      ]
+    },
+    {
+      "id": "brw-251",
+      "campaign": "camp-review",
+      "identity": "id-hb-48",
+      "proxy": "edge-iad-05",
+      "streams": [
+        {
+          "tree": [
+            "main \"Account review\"",
+            "button \"Mark reviewed\" ref=b29",
+            "status \"Checks complete\""
+          ],
+          "action": { "type": "click", "ref": "b29" },
+          "schema": "valid",
+          "result": "Account marked as reviewed."
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "clock": "08:00",
+      "event": "The morning ramp starts on the central proxy pool.",
+      "cost": 0,
+      "identityPool": { "ready": 16, "warming": 8, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 94, "disabled": false },
+        { "id": "edge-chi-02", "score": 92, "disabled": false },
+        { "id": "edge-iad-04", "score": 97, "disabled": false },
+        { "id": "edge-iad-05", "score": 96, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened"] },
+        { "id": "brw-211", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened"] },
+        { "id": "brw-219", "state": "warming", "actionIndex": 0, "lastActions": ["proxy route checked"] },
+        { "id": "brw-226", "state": "warming", "actionIndex": 0, "lastActions": ["profile cache checked"] },
+        { "id": "brw-231", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] },
+        { "id": "brw-238", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["profile cache checked"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["identity lease opened"] }
+      ],
+      "alert": { "tone": "ok", "text": "No alerts. Central and reserve pools are healthy." }
+    },
+    {
+      "clock": "08:19",
+      "event": "All three campaigns enter the first ramp step.",
+      "cost": 0.071,
+      "identityPool": { "ready": 13, "warming": 4, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 88, "disabled": false },
+        { "id": "edge-chi-02", "score": 84, "disabled": false },
+        { "id": "edge-iad-04", "score": 97, "disabled": false },
+        { "id": "edge-iad-05", "score": 96, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l21"] },
+        { "id": "brw-211", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked b04"] },
+        { "id": "brw-219", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l18"] },
+        { "id": "brw-226", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "filled t09"] },
+        { "id": "brw-231", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-238", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] }
+      ],
+      "alert": { "tone": "warn", "text": "Central pool scores are falling. The scheduler is watching the next checks." }
+    },
+    {
+      "clock": "09:02",
+      "event": "Central routes slow down and active sessions begin throttling.",
+      "cost": 0.146,
+      "identityPool": { "ready": 12, "warming": 2, "quarantined": 0 },
+      "failures": { "blocked": 0, "captcha": 0, "timeout": 0 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 54, "disabled": false },
+        { "id": "edge-chi-02", "score": 48, "disabled": false },
+        { "id": "edge-iad-04", "score": 96, "disabled": false },
+        { "id": "edge-iad-05", "score": 96, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "throttled", "actionIndex": 0, "lastActions": ["clicked l21", "route latency crossed limit"] },
+        { "id": "brw-211", "state": "throttled", "actionIndex": 0, "lastActions": ["clicked b04", "challenge page detected"] },
+        { "id": "brw-219", "state": "throttled", "actionIndex": 0, "lastActions": ["clicked l18", "navigation still pending"] },
+        { "id": "brw-226", "state": "running", "actionIndex": 0, "lastActions": ["filled t09", "search submitted"] },
+        { "id": "brw-231", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] },
+        { "id": "brw-238", "state": "warming", "actionIndex": 0, "lastActions": ["reserve route checked"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] }
+      ],
+      "alert": { "tone": "warn", "text": "Alert opened. Central proxy health crossed the drill threshold." }
+    },
+    {
+      "clock": "09:18",
+      "event": "Failures are classified as blocked, captcha, and timeout.",
+      "cost": 0.212,
+      "identityPool": { "ready": 12, "warming": 0, "quarantined": 3 },
+      "failures": { "blocked": 1, "captcha": 1, "timeout": 1 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 28, "disabled": true },
+        { "id": "edge-chi-02", "score": 25, "disabled": true },
+        { "id": "edge-iad-04", "score": 96, "disabled": false },
+        { "id": "edge-iad-05", "score": 95, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "failed", "actionIndex": 0, "lastActions": ["route blocked", "failure classified blocked"] },
+        { "id": "brw-211", "state": "failed", "actionIndex": 0, "lastActions": ["captcha detected", "failure classified captcha"] },
+        { "id": "brw-219", "state": "failed", "actionIndex": 0, "lastActions": ["navigation timed out", "failure classified timeout"] },
+        { "id": "brw-226", "state": "throttled", "actionIndex": 0, "lastActions": ["search submitted", "session held for drain"] },
+        { "id": "brw-231", "state": "warming", "actionIndex": 0, "lastActions": ["reserve identity ready"] },
+        { "id": "brw-238", "state": "warming", "actionIndex": 0, "lastActions": ["reserve identity ready"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["reserve identity ready"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["reserve identity ready"] }
+      ],
+      "alert": { "tone": "err", "text": "Alert fired. Two central proxies disabled themselves and three runs were classified." }
+    },
+    {
+      "clock": "09:34",
+      "event": "The scheduler drains the central pool and queues failed runs for retry.",
+      "cost": 0.238,
+      "identityPool": { "ready": 10, "warming": 4, "quarantined": 3 },
+      "failures": { "blocked": 2, "captcha": 1, "timeout": 1 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 24, "disabled": true },
+        { "id": "edge-chi-02", "score": 21, "disabled": true },
+        { "id": "edge-iad-04", "score": 95, "disabled": false },
+        { "id": "edge-iad-05", "score": 95, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "retrying", "actionIndex": 0, "lastActions": ["failure classified blocked", "retry queued"] },
+        { "id": "brw-211", "state": "retrying", "actionIndex": 0, "lastActions": ["failure classified captcha", "identity quarantined"] },
+        { "id": "brw-219", "state": "retrying", "actionIndex": 0, "lastActions": ["failure classified timeout", "retry queued"] },
+        { "id": "brw-226", "state": "failed", "actionIndex": 0, "lastActions": ["route blocked", "failure classified blocked"] },
+        { "id": "brw-231", "state": "warming", "actionIndex": 0, "lastActions": ["reserve proxy assigned", "Chromium profile attached"] },
+        { "id": "brw-238", "state": "warming", "actionIndex": 0, "lastActions": ["reserve proxy assigned", "Chromium profile attached"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["reserve proxy assigned"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["reserve proxy assigned"] }
+      ],
+      "alert": { "tone": "err", "text": "Drain active. New starts are held while reserve identities warm." }
+    },
+    {
+      "clock": "10:16",
+      "event": "Reserve identities finish warming and retries move onto healthy routes.",
+      "cost": 0.302,
+      "identityPool": { "ready": 9, "warming": 2, "quarantined": 3 },
+      "failures": { "blocked": 2, "captcha": 1, "timeout": 1 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 26, "disabled": true },
+        { "id": "edge-chi-02", "score": 23, "disabled": true },
+        { "id": "edge-iad-04", "score": 94, "disabled": false },
+        { "id": "edge-iad-05", "score": 94, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "retrying", "actionIndex": 0, "lastActions": ["reserve route assigned", "page tree requested"] },
+        { "id": "brw-211", "state": "retrying", "actionIndex": 0, "lastActions": ["fresh identity assigned", "reserve route assigned"] },
+        { "id": "brw-219", "state": "retrying", "actionIndex": 0, "lastActions": ["reserve route assigned", "navigation restarted"] },
+        { "id": "brw-226", "state": "done", "actionIndex": 0, "lastActions": ["run drained", "identity lease returned"] },
+        { "id": "brw-231", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked b04"] },
+        { "id": "brw-238", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l20"] },
+        { "id": "brw-244", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] },
+        { "id": "brw-251", "state": "warming", "actionIndex": 0, "lastActions": ["Chromium profile attached"] }
+      ],
+      "alert": { "tone": "warn", "text": "Recovery started. Reserve pool checks are passing." }
+    },
+    {
+      "clock": "11:35",
+      "event": "Retries complete and the scheduler resumes at recovery pace.",
+      "cost": 0.417,
+      "identityPool": { "ready": 12, "warming": 0, "quarantined": 2 },
+      "failures": { "blocked": 2, "captcha": 1, "timeout": 1 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 31, "disabled": true },
+        { "id": "edge-chi-02", "score": 29, "disabled": true },
+        { "id": "edge-iad-04", "score": 95, "disabled": false },
+        { "id": "edge-iad-05", "score": 96, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "done", "actionIndex": 0, "lastActions": ["listing opened on reserve route", "run closed"] },
+        { "id": "brw-211", "state": "done", "actionIndex": 0, "lastActions": ["case claimed on fresh identity", "run closed"] },
+        { "id": "brw-219", "state": "done", "actionIndex": 0, "lastActions": ["account opened on reserve route", "run closed"] },
+        { "id": "brw-226", "state": "done", "actionIndex": 0, "lastActions": ["run drained", "identity lease returned"] },
+        { "id": "brw-231", "state": "running", "actionIndex": 0, "lastActions": ["clicked b04", "claimed CASE-334"] },
+        { "id": "brw-238", "state": "running", "actionIndex": 0, "lastActions": ["clicked l20", "opened ACCT-804"] },
+        { "id": "brw-244", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked l25"] },
+        { "id": "brw-251", "state": "running", "actionIndex": 0, "lastActions": ["page tree captured", "clicked b29"] }
+      ],
+      "alert": { "tone": "ok", "text": "Recovery confirmed. Held starts are moving again." }
+    },
+    {
+      "clock": "14:08",
+      "event": "The drill ends with healthy reserve routes and completed retries.",
+      "cost": 0.556,
+      "identityPool": { "ready": 18, "warming": 0, "quarantined": 2 },
+      "failures": { "blocked": 2, "captcha": 1, "timeout": 1 },
+      "proxies": [
+        { "id": "edge-chi-01", "score": 38, "disabled": true },
+        { "id": "edge-chi-02", "score": 36, "disabled": true },
+        { "id": "edge-iad-04", "score": 96, "disabled": false },
+        { "id": "edge-iad-05", "score": 96, "disabled": false }
+      ],
+      "sessions": [
+        { "id": "brw-204", "state": "done", "actionIndex": 0, "lastActions": ["retry completed", "identity lease returned"] },
+        { "id": "brw-211", "state": "done", "actionIndex": 0, "lastActions": ["retry completed", "identity lease returned"] },
+        { "id": "brw-219", "state": "done", "actionIndex": 0, "lastActions": ["retry completed", "identity lease returned"] },
+        { "id": "brw-226", "state": "done", "actionIndex": 0, "lastActions": ["run drained", "identity lease returned"] },
+        { "id": "brw-231", "state": "done", "actionIndex": 0, "lastActions": ["case claimed", "identity lease returned"] },
+        { "id": "brw-238", "state": "done", "actionIndex": 0, "lastActions": ["account opened", "identity lease returned"] },
+        { "id": "brw-244", "state": "done", "actionIndex": 0, "lastActions": ["listing opened", "identity lease returned"] },
+        { "id": "brw-251", "state": "done", "actionIndex": 0, "lastActions": ["account reviewed", "identity lease returned"] }
+      ],
+      "alert": { "tone": "ok", "text": "Drill complete. Central routes stay disabled for operator review." }
+    }
+  ]
+}

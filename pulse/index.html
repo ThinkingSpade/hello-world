@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pulse — the morning brief that writes itself</title>
+<title>Pulse: morning source brief</title>
 <link rel="icon" type="image/png" href="/huy-avatar.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -75,7 +75,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 40px;
+    min-height: 44px;
   }
   .control-actions .pbtn[aria-busy="true"] .pi-ic,
   .wire.wait .wire-refresh .pi-ic { animation: wire-handshake .8s steps(2, end) infinite; }
@@ -84,7 +84,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    min-height: 40px;
+    min-height: 44px;
     padding: 7px 10px;
     border: 1.5px solid var(--pi-ink);
     background: var(--pi-paper);
@@ -110,7 +110,7 @@
   .watch-toggle span {
     display: inline-flex;
     align-items: center;
-    min-height: 36px;
+    min-height: 44px;
     padding: 5px 8px;
     border: 1.5px solid var(--pi-ink);
     background: var(--pi-panel);
@@ -145,27 +145,44 @@
   }
   .wire {
     display: grid;
-    grid-template-columns: 16px minmax(0, 1fr) 38px;
+    grid-template-columns: minmax(0, 1fr) 44px;
     align-content: center;
-    gap: 2px 8px;
-    min-height: 52px;
-    padding: 7px 8px;
+    gap: 0;
+    min-height: 56px;
+    padding: 0;
     border: 1.5px solid var(--pi-ink);
     border-radius: 0;
     background: var(--pi-panel);
     color: var(--pi-muted);
     font: 12px/1.35 var(--pi-font-code);
   }
+  .wire-open {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-content: center;
+    gap: 2px 8px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 7px 8px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .wire-open:hover { background: var(--pi-accent-soft); }
+  .wire-open:focus-visible { outline: 2px solid var(--pi-accent); outline-offset: -3px; }
   .wire b { color: var(--pi-ink); font: 13px/1.25 var(--pi-font-ui); }
   .wire .wire-ic { grid-row: 1 / span 2; align-self: center; color: var(--pi-muted); }
-  .wire > span { min-width: 0; overflow-wrap: anywhere; }
-  .wire-refresh { grid-column: 3; grid-row: 1 / span 2; min-width: 36px; min-height: 36px; padding: 6px; align-self: center; }
+  .wire-open > span { min-width: 0; overflow-wrap: anywhere; }
+  .wire-refresh { grid-column: 2; min-width: 44px; min-height: 44px; margin-right: 4px; padding: 6px; align-self: center; }
   .wire.up .wire-ic { color: var(--pi-ok); }
   .wire.down .wire-ic { color: var(--pi-err); }
   .wire.wait .wire-ic,
   .wire.stale .wire-ic,
   .wire.partial .wire-ic { color: var(--pi-warn); }
-  .wire.wait > .wire-ic { animation: wire-handshake .8s steps(2, end) infinite; }
+  .wire.wait .wire-open > .wire-ic { animation: wire-handshake .8s steps(2, end) infinite; }
   @keyframes wire-handshake { 50% { transform: translateX(3px); } }
 
   .card {
@@ -389,10 +406,10 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    min-height: 36px;
+    min-height: 44px;
     padding: 5px 8px;
     color: var(--pi-accent);
-    font: 700 11px/1.4 var(--pi-font-code);
+    font: 700 12px/1.4 var(--pi-font-code);
     cursor: pointer;
   }
   .receipt-body { display: grid; gap: 8px; padding: 0 8px 8px; }
@@ -422,6 +439,110 @@
   .receipts a:before,
   .receipts time:before { content: none; }
   .receipts a:hover { border-color: var(--pi-accent); color: var(--pi-accent); }
+
+  .brief-player {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 8px;
+    border: 1.5px solid var(--pi-ink);
+    background: var(--pi-paper);
+  }
+  .brief-player .pbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
+  .brief-player .pbtn:disabled,
+  #brief-scrub:disabled { opacity: .5; cursor: not-allowed; }
+  #brief-scrub { flex: 1; min-width: 160px; min-height: 44px; accent-color: var(--pi-accent); cursor: pointer; }
+  .brief-clock { min-width: 76px; color: var(--pi-muted); font: 12px/1.4 var(--pi-font-code); text-align: right; }
+
+  .archive-workspace {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 24px;
+  }
+  .archive-rail,
+  .archive-reader { min-width: 0; background: var(--pi-panel); box-shadow: var(--pi-shadow); }
+  .archive-workspace .pwin-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .archive-list { display: grid; gap: 8px; max-height: 520px; overflow-y: auto; padding: 10px; }
+  .archive-entry {
+    display: block;
+    width: 100%;
+    min-height: 58px;
+    padding: 8px 10px;
+    text-align: left;
+    white-space: normal;
+  }
+  .archive-entry strong,
+  .archive-entry small { display: block; overflow-wrap: anywhere; }
+  .archive-entry strong { font: 700 13px/1.35 var(--pi-font-ui); }
+  .archive-entry small { margin-top: 3px; color: var(--pi-muted); font: 12px/1.35 var(--pi-font-code); }
+  .archive-entry[aria-current="true"] { background: var(--pi-accent); color: #fff; }
+  .archive-entry[aria-current="true"] small { color: #fff; }
+  .archive-state { margin: 10px; }
+  .archive-body { padding: 12px; }
+  .archive-meta { margin-bottom: 10px; color: var(--pi-muted); font: 12px/1.5 var(--pi-font-code); }
+  .archive-headlines { margin: 0; padding-left: 22px; }
+  .archive-headlines li { margin-bottom: 8px; }
+  .archive-observations { margin-top: 12px; }
+  .archive-observations summary { display: flex; align-items: center; min-height: 44px; color: var(--pi-accent); font: 700 13px/1.4 var(--pi-font-ui); cursor: pointer; }
+  .archive-observations .ptable-wrap { max-width: 100%; overflow-x: auto; }
+  .archive-observations table { width: max-content; min-width: 100%; }
+  .archive-observations th,
+  .archive-observations td { padding: 7px 9px; text-align: left; overflow-wrap: anywhere; }
+  .compare-box { margin-top: 16px; border-top: 2px solid var(--pi-ink); padding-top: 14px; }
+  .compare-box h3 { font: 11px/1.5 var(--pi-font-title); text-transform: lowercase; }
+  .compare-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+  .compare-controls label { color: var(--pi-muted); font: 12px/1.4 var(--pi-font-code); }
+  .compare-controls select {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 4px;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-paper);
+    color: var(--pi-ink);
+    font: 12px/1.3 var(--pi-font-ui);
+  }
+  .diff-strip { min-height: 48px; padding: 10px; }
+  .diff-strip ol { margin: 8px 0 0; padding-left: 24px; }
+  .diff-strip li { margin-top: 6px; }
+  .diff-score { display: inline-flex; margin-left: 5px; vertical-align: middle; }
+
+  .wire-dialog {
+    width: min(760px, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+    padding: 0;
+    border: 2px solid var(--pi-ink);
+    border-radius: 0;
+    background: var(--pi-panel);
+    color: var(--pi-ink);
+    box-shadow: 8px 8px 0 var(--pi-ink);
+  }
+  .wire-dialog::backdrop { background: rgba(30, 26, 20, .62); }
+  .wire-dialog .pwin-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; }
+  .wire-dialog-close { flex: none; min-width: 44px; min-height: 44px; }
+  .wire-dialog-body { padding: 12px; }
+  .diagnostic-summary { margin-bottom: 10px; }
+  .diagnostic-request { margin-top: 10px; padding: 10px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+  .diagnostic-request h3 { font: 700 13px/1.4 var(--pi-font-ui); }
+  .diagnostic-request dl { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px 9px; margin-top: 8px; }
+  .diagnostic-request dt { color: var(--pi-muted); font: 12px/1.4 var(--pi-font-code); text-transform: uppercase; }
+  .diagnostic-request dd { min-width: 0; font: 12px/1.5 var(--pi-font-code); overflow-wrap: anywhere; }
+  .diagnostic-request a { overflow-wrap: anywhere; }
+  .diagnostic-url { max-width: 100%; padding: 8px; font-size: 12px; white-space: normal; overflow-wrap: anywhere; box-shadow: 2px 2px 0 var(--pi-ink); }
+  .diagnostic-url a { color: var(--pi-term-fg); }
 
   .feed-err {
     padding: 10px 12px;
@@ -484,6 +605,8 @@
     .fxtile,
     .fxtile:nth-child(-n+2) { grid-column: span 6; }
     .watch-body { grid-template-columns: 1fr; }
+    .archive-workspace { grid-template-columns: 1fr; }
+    .archive-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 280px; }
   }
   @media (max-width: 520px) {
     .honesty { font-size: 12px; }
@@ -502,6 +625,13 @@
     .fxtile,
     .fxtile:nth-child(-n+2) { grid-column: 1 / -1; }
     .wbgrid { grid-template-columns: 1fr; }
+    .archive-list,
+    .compare-controls { grid-template-columns: 1fr; }
+    .brief-player .pbtn { flex: 1; }
+    #brief-scrub { flex-basis: 100%; order: 4; }
+    .brief-clock { margin-left: auto; }
+    .diagnostic-request dl { grid-template-columns: 1fr; }
+    .diagnostic-request dd { margin-bottom: 4px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .wire.wait .wire-ic,
@@ -515,8 +645,8 @@
 <div class="wrap">
   <header>
     <h1>PULSE<span class="dot">_</span></h1>
-    <p class="tagline">the morning brief that writes itself — live numbers, narrated on the spot</p>
-    <span class="honesty pstrip"><b>live first, source by source,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between and no key. A failed wire falls back only to its last good browser snapshot, marked stale. Opened <b id="opened-at">—</b>.</span>
+    <p class="tagline">Public source observations, ranked and narrated in your browser.</p>
+    <span class="honesty pstrip"><b>Interactive recreation of the private system, replaying recorded fixtures.</b> Public feeds refresh the inputs in this browser. A failed wire uses its last good browser snapshot and marks it stale. Opened <b id="opened-at">not recorded</b>.</span>
   </header>
 
   <div class="control-bar pwin" aria-label="Pulse controls">
@@ -536,26 +666,53 @@
 
     <div class="card brief-card pwin">
       <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>The brief</h2>
-      <div class="src">ranked in your browser from observation deltas and materiality thresholds — no model, no tokens, every sentence carries its own receipt</div>
+      <div class="src">Your browser ranks observation changes against materiality thresholds. Every sentence carries its own receipt.</div>
+      <div class="brief-player" aria-label="Brief replay controls">
+        <button class="pbtn" id="brief-play" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>play</button>
+        <button class="pbtn" id="brief-restart" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg>restart</button>
+        <input id="brief-scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Scrub the brief replay" disabled>
+        <span class="brief-clock" id="brief-clock">0 / 0</span>
+      </div>
       <div class="briefrow">
         <div class="agent" id="ag-an">
           <div class="ava" id="av-an"></div>
           <div class="nm">The Analyst</div>
-          <div class="rl">Files before your coffee cools</div>
+          <div class="rl">Morning brief</div>
           <div class="tg">reads three wires, writes one page</div>
           <div class="st" id="st-an">waiting on the wires<span class="dots"></span></div>
         </div>
         <div>
-          <div id="brief"><p class="skel">the brief starts typing once at least one wire answers…</p></div>
+          <div id="brief" role="log" aria-live="off" aria-relevant="additions"><p class="skel">The brief starts once at least one wire answers...</p></div>
           <div class="receipts" id="receipts"></div>
         </div>
       </div>
     </div>
   </div>
 
+  <section class="archive-workspace" aria-label="Brief archive">
+    <aside class="archive-rail pwin">
+      <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>brief archive</h2>
+      <div id="archive-list" class="archive-list"><div class="archive-state pstrip">loading saved briefs...</div></div>
+    </aside>
+    <div class="archive-reader pwin">
+      <h2 class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"/></svg>read only brief</h2>
+      <div class="archive-body">
+        <div id="archive-view" aria-live="polite"><div class="pstrip">loading the archive...</div></div>
+        <div class="compare-box">
+          <h3>two date compare</h3>
+          <div class="compare-controls">
+            <label>from brief<select id="compare-from" aria-label="Choose the earlier archived brief"></select></label>
+            <label>to brief<select id="compare-to" aria-label="Choose the later archived brief"></select></label>
+          </div>
+          <div class="diff-strip pstrip" id="compare-result" role="status" aria-live="polite">Two saved briefs are needed for comparison.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="evidence pwin" aria-label="Evidence workspace">
     <div class="card hero" id="debt-hero">
-      <div class="label"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>US federal debt — total public debt outstanding</div>
+      <div class="label"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>US federal debt: total public debt outstanding</div>
       <div class="big" id="debt-big">loading the ledger…</div>
       <div class="sub" id="debt-sub">&nbsp;</div>
       <div class="pace" id="debt-pace" style="display:none"></div>
@@ -563,35 +720,41 @@
 
     <div class="card">
       <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>The dollar, indexed <span class="ranges" id="fx-ranges"></span></h2>
-      <div class="src">units of each currency per 1 USD, indexed to 100 at window start — up = stronger dollar · source: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a> (ECB reference rates) · <span id="fx-when">fetching…</span></div>
+      <div class="src">Units of each currency per 1 USD, indexed to 100 at the window start. Up means a stronger dollar. Source: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a>, using ECB reference rates. <span id="fx-when">Fetching...</span></div>
       <div id="fx-chart-zone"><p class="skel">calling the FX wire…</p></div>
     </div>
 
     <div class="card">
       <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>FX board</h2>
-      <div class="src">latest ECB reference rate per 1 USD, with the window's path</div>
-      <div class="fxgrid" id="fx-board"><p class="skel">…</p></div>
+      <div class="src">Latest ECB reference rate per 1 USD, with the window path.</div>
+      <div class="fxgrid" id="fx-board"><p class="skel">Loading selected rates...</p></div>
     </div>
 
     <div class="card">
       <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>The debt, one year back</h2>
-      <div class="src">daily total public debt outstanding · source: <a href="https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny" target="_blank" rel="noopener">US Treasury Fiscal Data</a> · <span id="debt-when">fetching…</span></div>
+      <div class="src">Daily total public debt outstanding. Source: <a href="https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny" target="_blank" rel="noopener">US Treasury Fiscal Data</a>. <span id="debt-when">Fetching...</span></div>
       <div id="debt-chart-zone"><p class="skel">calling the Treasury wire…</p></div>
     </div>
 
     <div class="card">
-      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>Growth &amp; prices — latest World Bank annuals</h2>
-      <div class="src">annual figures, labeled by their year — these move yearly, not daily · source: <a href="https://data.worldbank.org" target="_blank" rel="noopener">World Bank Open Data</a> · <span id="wb-when">fetching…</span></div>
-      <div class="wbgrid" id="wb-grid"><p class="skel">…</p></div>
+      <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>Growth and prices: latest World Bank annuals</h2>
+      <div class="src">Annual figures are labeled by year. They move yearly, not daily. Source: <a href="https://data.worldbank.org" target="_blank" rel="noopener">World Bank Open Data</a>. <span id="wb-when">Fetching...</span></div>
+      <div class="wbgrid" id="wb-grid"><p class="skel">Loading annual observations...</p></div>
     </div>
   </section>
 
   <footer>
-    PULSE · fetch → compute → narrate, all client-side ·
+    PULSE · fetch → compute → narrate in your browser ·
     same engine as a Python CLI (<code>pulse brief</code>) on <a href="https://github.com/ThinkingSpade/hello-world/tree/lab/pulse" target="_blank" rel="noopener">the branch</a> ·
     part of <a href="/">hnguyen.dev</a>
   </footer>
 </div>
+
+<dialog class="wire-dialog pwin" id="wire-dialog" aria-labelledby="wire-dialog-title">
+  <div class="pwin-title"><span id="wire-dialog-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>wire diagnostics</span><button class="pbtn wire-dialog-close" id="wire-dialog-close" type="button" aria-label="Close wire diagnostics">×</button></div>
+  <div class="wire-dialog-body" id="wire-dialog-body"><div class="pstrip">No wire selected.</div></div>
+</dialog>
+<div class="sr-only" id="brief-live" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
   "use strict";
@@ -674,6 +837,7 @@
   const PER = { EUR: "€ per $", GBP: "£ per $", JPY: "¥ per $", MXN: "MX$ per $", CNY: "¥ per $", CAD: "C$ per $", CHF: "CHF per $", AUD: "A$ per $", NZD: "NZ$ per $" };
   const SNAPSHOT_KEY = "pulse.observations.v2";
   const CACHE_KEY = "pulse.last-good.v2";
+  const ARCHIVE_KEY = "pulse.brief-archive.v1";
   const ALLOWED_RANGES = [30, 90, 365];
 
   const state = {
@@ -717,6 +881,16 @@
   const previousSnapshot = readStore(SNAPSHOT_KEY, null);
   const visitSnapshot = { version: 2, checkedAt: new Date().toISOString(), observations: {} };
   const lastGood = readStore(CACHE_KEY, { version: 2, wb: {} });
+  const storedArchive = readStore(ARCHIVE_KEY, []);
+  let briefArchive = Array.isArray(storedArchive)
+    ? storedArchive.filter(entry => entry && entry.id && Array.isArray(entry.headlines)).slice(0, 30)
+    : [];
+  const VISIT_ID = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID()
+    : `visit-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  let selectedArchiveId = briefArchive[0]?.id || "";
+  let compareFromId = briefArchive[1]?.id || "";
+  let compareToId = briefArchive[0]?.id || "";
   if (!lastGood.wb) lastGood.wb = {};
 
   function saveObservation(key, observation) {
@@ -748,7 +922,7 @@
     return `${Math.floor(ms / 86400000)} d`;
   }
   function staleBadge(meta) {
-    return `<span class="pchip stale-badge">STALE - ${esc(ageLabel(meta?.fetchedAt || meta?.savedAt))}</span>`;
+    return `<span class="pchip stale-badge">STALE: ${esc(ageLabel(meta?.fetchedAt || meta?.savedAt))}</span>`;
   }
   function staleBanner(meta, note = "last good browser snapshot") {
     return `<div class="stale-banner">${staleBadge(meta)} ${esc(note)} · fetched ${esc(new Date(meta?.fetchedAt || meta?.savedAt).toLocaleString())}</div>`;
@@ -836,7 +1010,7 @@
       const st = state["wire_" + k] || "wait";
       const note = state["wirenote_" + k] || "dialing";
       const icon = st === "up" ? "i-check" : st === "down" ? "i-x" : st === "partial" || st === "stale" ? "i-alert" : "i-hold";
-      return `<span class="wire pstrip ${st}" id="wire-${k}"><svg class="pi-ic wire-ic" aria-hidden="true"><use href="/shared/icons.svg#${icon}"/></svg><b>${label}</b><span>— ${esc(note)}</span><button class="pbtn wire-refresh" type="button" data-refresh-wire="${k}" aria-label="Refresh ${esc(label)}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg></button></span>`;
+      return `<div class="wire pstrip ${st}" id="wire-${k}"><button class="wire-open" type="button" data-wire-detail="${k}" aria-label="Open ${esc(label)} diagnostics"><svg class="pi-ic wire-ic" aria-hidden="true"><use href="/shared/icons.svg#${icon}"/></svg><b>${label}</b><span>${esc(note)}</span></button><button class="pbtn wire-refresh" type="button" data-refresh-wire="${k}" aria-label="Refresh ${esc(label)}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg></button></div>`;
     }).join("");
     const settled = WIRES.filter(([k]) => ["up", "down", "stale", "partial", "empty"].includes(state["wire_" + k])).length;
     $("refresh-all").setAttribute("aria-busy", String(busy));
@@ -847,10 +1021,66 @@
   wireStrip();
 
   $("wires").addEventListener("click", (event) => {
+    const detail = event.target.closest("[data-wire-detail]");
+    if (detail) {
+      openWireDiagnostics(detail.dataset.wireDetail);
+      return;
+    }
     const button = event.target.closest("[data-refresh-wire]");
     if (!button) return;
     const loaders = { fx: loadFX, debt: loadDebt, wb: loadWB };
     loaders[button.dataset.refreshWire]();
+  });
+
+  function diagnosticStatus(meta) {
+    if (Number.isFinite(meta?.httpStatus)) return `HTTP ${meta.httpStatus}`;
+    return meta?.httpStatus || meta?.status || "not recorded";
+  }
+  function wireDiagnosticRows(key) {
+    if (key === "fx") return [{
+      label: "Frankfurter rates",
+      meta: state.meta.fx,
+      url: state.meta.fx?.attemptedUrl || state.meta.fx?.url || "not-requested://fx",
+      lastGoodAt: lastGood.fx?.fetchedAt || lastGood.fx?.savedAt,
+    }];
+    if (key === "debt") return [{
+      label: "Debt to the Penny",
+      meta: state.meta.debt,
+      url: state.meta.debt?.attemptedUrl || state.meta.debt?.url || "not-requested://debt",
+      lastGoodAt: lastGood.debt?.fetchedAt || lastGood.debt?.savedAt,
+    }];
+    return Object.keys(WB_INDICATORS).map(indicatorKey => ({
+      label: `World Bank ${WB_INDICATORS[indicatorKey].label}`,
+      meta: state.meta[indicatorKey],
+      url: state.meta[indicatorKey]?.attemptedUrl || state.meta[indicatorKey]?.url || wbURL(indicatorKey),
+      lastGoodAt: lastGood.wb[indicatorKey]?.fetchedAt || lastGood.wb[indicatorKey]?.savedAt,
+    }));
+  }
+  function diagnosticURL(url) {
+    const content = /^https:\/\//.test(url)
+      ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`
+      : `<code>${esc(url)}</code>`;
+    return `<div class="pterm diagnostic-url">${content}</div>`;
+  }
+  function openWireDiagnostics(key) {
+    const wire = WIRES.find(([wireKey]) => wireKey === key);
+    if (!wire) return;
+    const status = state["wire_" + key] || "wait";
+    const note = state["wirenote_" + key] || "dialing";
+    const rows = wireDiagnosticRows(key);
+    $("wire-dialog-title").innerHTML = `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>${esc(wire[1])} diagnostics`;
+    $("wire-dialog-body").innerHTML = `<div class="diagnostic-summary pstrip"><b>wire state:</b> ${esc(status)}. ${esc(note)}</div>${rows.map(row => `<section class="diagnostic-request"><h3>${esc(row.label)}</h3><dl>
+      <dt>request URL</dt><dd>${diagnosticURL(row.url)}</dd>
+      <dt>last status</dt><dd>${esc(diagnosticStatus(row.meta))}</dd>
+      <dt>latency</dt><dd>${Number.isFinite(row.meta?.ms) ? `${row.meta.ms} ms` : "not recorded"}</dd>
+      <dt>last attempt</dt><dd>${row.meta?.attemptedAt ? `<time datetime="${esc(row.meta.attemptedAt)}">${esc(new Date(row.meta.attemptedAt).toLocaleString())}</time>` : "not recorded"}</dd>
+      <dt>last good</dt><dd>${row.lastGoodAt ? `<time datetime="${esc(row.lastGoodAt)}">${esc(new Date(row.lastGoodAt).toLocaleString())}</time>` : "not recorded"}</dd>
+    </dl></section>`).join("")}`;
+    if (!$("wire-dialog").open) $("wire-dialog").showModal();
+  }
+  $("wire-dialog-close").addEventListener("click", () => $("wire-dialog").close());
+  $("wire-dialog").addEventListener("click", (event) => {
+    if (event.target === $("wire-dialog")) $("wire-dialog").close();
   });
 
   const requestControllers = new Map();
@@ -863,14 +1093,25 @@
   async function fetchJSON(url, { timeoutMs = 12000, signal } = {}) {
     const ctl = new AbortController();
     const t0 = performance.now();
-    const to = setTimeout(() => ctl.abort(), timeoutMs);
+    let responseStatus = null;
+    let timedOut = false;
+    const to = setTimeout(() => { timedOut = true; ctl.abort(); }, timeoutMs);
     const cancel = () => ctl.abort();
     signal?.addEventListener("abort", cancel, { once: true });
     try {
       const r = await fetch(url, { signal: ctl.signal });
-      if (!r.ok) throw new Error("HTTP " + r.status);
+      responseStatus = r.status;
+      if (!r.ok) {
+        const error = new Error("HTTP " + r.status);
+        error.httpStatus = r.status;
+        throw error;
+      }
       const j = await r.json();
-      return { j, ms: Math.round(performance.now() - t0), fetchedAt: new Date().toISOString() };
+      return { j, ms: Math.round(performance.now() - t0), fetchedAt: new Date().toISOString(), httpStatus: r.status };
+    } catch (error) {
+      error.ms = Math.round(performance.now() - t0);
+      if (!error.httpStatus) error.httpStatus = responseStatus || (timedOut ? "timeout" : signal?.aborted ? "cancelled" : "network error");
+      throw error;
     } finally {
       clearTimeout(to);
       signal?.removeEventListener("abort", cancel);
@@ -897,7 +1138,7 @@
   };
 
   function errBox(zone, host, retryFn, detail = "request failed") {
-    zone.innerHTML = `<div class="feed-err"><b>wire unreachable</b> — ${esc(host)} · ${esc(detail)}.<br>
+    zone.innerHTML = `<div class="feed-err"><b>wire unreachable:</b> ${esc(host)}. ${esc(detail)}.<br>
       <button class="pbtn" type="button">try the wire again</button></div>`;
     zone.querySelector("button").addEventListener("click", retryFn);
   }
@@ -927,8 +1168,10 @@
     state.meta.fx = state.fx && state.meta.fx
       ? { ...state.meta.fx, status: "loading", attemptedUrl: url, attemptedAt }
       : { status: "loading", url, attemptedAt };
+    let requestResult = null;
     try {
-      const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
+      requestResult = await fetchJSON(url, { signal: controller.signal });
+      const { j, ms, fetchedAt, httpStatus } = requestResult;
       if (controller.signal.aborted) return;
       const dates = Object.keys(j.rates || {}).sort();
       if (dates.length < 2) throw new Error("empty series");
@@ -936,7 +1179,7 @@
         .filter(([, values]) => values.every(Number.isFinite));
       if (!entries.length) throw new Error("no complete series");
       state.fx = { dates, series: Object.fromEntries(entries), syms: entries.map(([s]) => s) };
-      state.meta.fx = { status: "fresh", url, attemptedAt, fetchedAt, observationDate: dates[dates.length - 1], ms, stale: false };
+      state.meta.fx = { status: "fresh", url, attemptedAt, fetchedAt, observationDate: dates[dates.length - 1], ms, httpStatus, stale: false };
       const missing = symbols.filter(s => !state.fx.syms.includes(s));
       setWire("fx", missing.length ? "partial" : "up", `${state.fx.syms.length}/${symbols.length} series · ${ms} ms${missing.length ? ` · missing ${missing.join(",")}` : ""}`);
       $("fx-when").textContent = `fetched ${new Date(fetchedAt).toLocaleTimeString()} · latest rate day ${dates[dates.length - 1]}`;
@@ -953,6 +1196,8 @@
       renderFXChart(); renderFXBoard(); renderBrief();
     } catch (e) {
       if (controller.signal.aborted) return;
+      const failedStatus = e.httpStatus || requestResult?.httpStatus;
+      const failedMs = Number.isFinite(e.ms) ? e.ms : requestResult?.ms;
       const cached = lastGood.fx;
       const cachedSyms = cached?.data?.syms?.filter(s => symbols.includes(s)) || [];
       if (cached && cachedSyms.length) {
@@ -961,16 +1206,16 @@
           series: Object.fromEntries(cachedSyms.map(s => [s, cached.data.series[s]])),
           syms: cachedSyms,
         };
-        state.meta.fx = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message, cachedCount: cachedSyms.length, requestedCount: symbols.length };
-        setWire("fx", cachedSyms.length === symbols.length ? "stale" : "partial", `STALE - ${ageLabel(state.meta.fx.fetchedAt)} · ${cachedSyms.length}/${symbols.length} cached`);
-        $("fx-when").textContent = `STALE - ${ageLabel(state.meta.fx.fetchedAt)} · refresh failed ${new Date(attemptedAt).toLocaleTimeString()}`;
+        state.meta.fx = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message, cachedCount: cachedSyms.length, requestedCount: symbols.length, httpStatus: failedStatus, ms: failedMs };
+        setWire("fx", cachedSyms.length === symbols.length ? "stale" : "partial", `STALE: ${ageLabel(state.meta.fx.fetchedAt)} · ${cachedSyms.length}/${symbols.length} cached`);
+        $("fx-when").textContent = `STALE: ${ageLabel(state.meta.fx.fetchedAt)}. Refresh failed at ${new Date(attemptedAt).toLocaleTimeString()}`;
         renderFXChart(); renderFXBoard();
       } else {
         state.fx = null;
-        state.meta.fx = { status: "error", stale: false, url, attemptedAt, error: e.message };
+        state.meta.fx = { status: "error", stale: false, url, attemptedAt, error: e.message, httpStatus: failedStatus, ms: failedMs };
         setWire("fx", "down", `unreachable · ${e.message}`);
         errBox(zone, "api.frankfurter.dev", loadFX, e.message);
-        $("fx-board").innerHTML = `<div class="feed-err"><b>FX wire down</b> — no last-good rates match this watchlist.</div>`;
+        $("fx-board").innerHTML = `<div class="feed-err"><b>FX wire down.</b> No last-good rates match this watchlist.</div>`;
         $("fx-when").textContent = `failed ${new Date(attemptedAt).toLocaleTimeString()} · ${e.message}`;
       }
       renderBrief();
@@ -1043,7 +1288,7 @@
       <details class="tbl"><summary>view as table (last 10 rate days)</summary><div class="ptable-wrap"><table class="ptable">
         <tr><th>date</th>${syms.map(s => `<th>${s}</th>`).join("")}</tr>
         ${dates.slice(tableStart).map((d, k) => `<tr><td>${d}</td>${syms.map(s =>
-          `<td>${(series[s][tableStart + k] ?? "—")}</td>`).join("")}</tr>`).join("")}
+          `<td>${(series[s][tableStart + k] ?? "not reported")}</td>`).join("")}</tr>`).join("")}
       </table></div></details>`;
 
     const hover = zone.querySelector("#fx-hover"), cross = zone.querySelector("#fx-cross"),
@@ -1056,7 +1301,7 @@
       cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i));
       cross.setAttribute("opacity", ".55");
       tip.innerHTML = `<div class="t">${dates[i]}</div>` + chartSyms.map(s =>
-        `<div class="row"><i style="background:${FXC[s]}"></i>${s} ${series[s][i] ?? "—"} · idx ${idx[s][i]?.toFixed(2) ?? "—"}</div>`).join("");
+        `<div class="row"><i style="background:${FXC[s]}"></i>${s} ${series[s][i] ?? "not reported"} · idx ${idx[s][i]?.toFixed(2) ?? "not reported"}</div>`).join("");
       tip.style.opacity = 1;
       const wr = wrapEl.getBoundingClientRect(), sr = svg.getBoundingClientRect();
       const px = sr.left - wr.left + (X(i) / W) * sr.width;
@@ -1118,14 +1363,16 @@
     state.meta.debt = state.debt && state.meta.debt
       ? { ...state.meta.debt, status: "loading", attemptedUrl: url, attemptedAt }
       : { status: "loading", url, attemptedAt };
+    let requestResult = null;
     try {
-      const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
+      requestResult = await fetchJSON(url, { signal: controller.signal });
+      const { j, ms, fetchedAt, httpStatus } = requestResult;
       if (controller.signal.aborted) return;
       const rows = (j.data || []).map(r => ({ date: r.record_date, rawTotal: r.tot_pub_debt_out_amt, total: +r.tot_pub_debt_out_amt }))
         .filter(r => r.total > 0);
       if (rows.length < 2) throw new Error("not enough rows");
       state.debt = rows;
-      state.meta.debt = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, observationDate: rows[rows.length - 1].date, ms };
+      state.meta.debt = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, observationDate: rows[rows.length - 1].date, ms, httpStatus };
       setWire("debt", "up", `answered in ${ms} ms`);
       $("debt-when").textContent = `fetched ${new Date(fetchedAt).toLocaleTimeString()} · latest posting ${rows[rows.length - 1].date}`;
       saveLastGood("debt", { savedAt: fetchedAt, fetchedAt, url, data: rows });
@@ -1138,17 +1385,19 @@
       renderDebt(); renderBrief();
     } catch (e) {
       if (controller.signal.aborted) return;
+      const failedStatus = e.httpStatus || requestResult?.httpStatus;
+      const failedMs = Number.isFinite(e.ms) ? e.ms : requestResult?.ms;
       const cached = lastGood.debt;
       if (cached?.data?.length) {
         state.debt = cached.data;
-        state.meta.debt = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message };
-        setWire("debt", "stale", `STALE - ${ageLabel(state.meta.debt.fetchedAt)} · refresh failed`);
-        $("debt-when").textContent = `STALE - ${ageLabel(state.meta.debt.fetchedAt)} · refresh failed ${new Date(attemptedAt).toLocaleTimeString()}`;
+        state.meta.debt = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message, httpStatus: failedStatus, ms: failedMs };
+        setWire("debt", "stale", `STALE: ${ageLabel(state.meta.debt.fetchedAt)} · refresh failed`);
+        $("debt-when").textContent = `STALE: ${ageLabel(state.meta.debt.fetchedAt)}. Refresh failed at ${new Date(attemptedAt).toLocaleTimeString()}`;
         renderDebt();
       } else {
         setWire("debt", "down", `unreachable · ${e.message}`);
         state.debt = null;
-        state.meta.debt = { status: "error", stale: false, url, attemptedAt, error: e.message };
+        state.meta.debt = { status: "error", stale: false, url, attemptedAt, error: e.message, httpStatus: failedStatus, ms: failedMs };
         clearInterval(paceTimer);
         delete $("debt-big").dataset.compact;
         $("debt-big").textContent = "Treasury wire unreachable";
@@ -1271,10 +1520,15 @@
     }));
 
   async function fetchWBIndicator(key, controller, url) {
-    const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
+    const { j, ms, fetchedAt, httpStatus } = await fetchJSON(url, { signal: controller.signal });
     const data = parseWB(j);
-    if (!Object.keys(data).length) throw new Error("empty indicator");
-    return { data, ms, fetchedAt };
+    if (!Object.keys(data).length) {
+      const error = new Error("empty indicator");
+      error.httpStatus = httpStatus;
+      error.ms = ms;
+      throw error;
+    }
+    return { data, ms, fetchedAt, httpStatus };
   }
 
   function updateWBWire() {
@@ -1302,14 +1556,16 @@
       ? { ...state.meta[key], status: "loading", attemptedUrl: url, attemptedAt }
       : { status: "loading", url, attemptedAt };
     updateWBWire(); renderWB();
+    let requestResult = null;
     try {
-      const { data, ms, fetchedAt } = await fetchWBIndicator(key, controller, url);
+      requestResult = await fetchWBIndicator(key, controller, url);
+      const { data, ms, fetchedAt, httpStatus } = requestResult;
       if (controller.signal.aborted) return;
       const selected = Object.fromEntries(Object.entries(data).filter(([code]) => state.watch.wb.includes(code)));
       if (!Object.keys(selected).length) throw new Error("no selected economies returned");
       state[key] = selected;
       state["wb_" + key] = "up";
-      state.meta[key] = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, ms };
+      state.meta[key] = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, ms, httpStatus };
       saveLastGood(`wb.${key}`, { savedAt: fetchedAt, fetchedAt, url, data: selected, countries: [...state.watch.wb] });
       saveObservations(Object.fromEntries(Object.entries(selected).map(([code, row]) => [`wb.${key}.${code}`, {
         kind: `wb-${key}`, label: `${row.name} ${WB_INDICATORS[key].label}`, value: row.rawValue,
@@ -1319,16 +1575,18 @@
       }])));
     } catch (error) {
       if (controller.signal.aborted) return;
+      const failedStatus = error.httpStatus || requestResult?.httpStatus;
+      const failedMs = Number.isFinite(error.ms) ? error.ms : requestResult?.ms;
       const cached = lastGood.wb[key];
       const selected = Object.fromEntries(Object.entries(cached?.data || {}).filter(([code]) => state.watch.wb.includes(code)));
       if (Object.keys(selected).length) {
         state[key] = selected;
         state["wb_" + key] = "stale";
-        state.meta[key] = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: error.message, cachedCount: Object.keys(selected).length, requestedCount: state.watch.wb.length };
+        state.meta[key] = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: error.message, cachedCount: Object.keys(selected).length, requestedCount: state.watch.wb.length, httpStatus: failedStatus, ms: failedMs };
       } else {
         state[key] = null;
         state["wb_" + key] = "down";
-        state.meta[key] = { status: "error", stale: false, url, attemptedAt, error: error.message };
+        state.meta[key] = { status: "error", stale: false, url, attemptedAt, error: error.message, httpStatus: failedStatus, ms: failedMs };
       }
     }
     updateWBWire(); renderWB(); renderBrief();
@@ -1367,7 +1625,7 @@
     const stale = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "stale").map(k =>
       `<div class="stale-banner">${staleBadge(state.meta[k])} ${esc(WB_INDICATORS[k].label)} refresh failed · ${state.meta[k].cachedCount}/${state.meta[k].requestedCount} economies cached · ${esc(state.meta[k].error)}<br><button class="pbtn" type="button" data-wb-retry="${k}">try ${esc(WB_INDICATORS[k].label)} again</button></div>`);
     const errors = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "down").map(k =>
-      `<div class="feed-err"><b>${WB_INDICATORS[k].label} unavailable</b> — other World Bank indicators remain usable.<br>
+      `<div class="feed-err"><b>${WB_INDICATORS[k].label} unavailable.</b> Other World Bank indicators remain usable.<br>
         <button class="pbtn" type="button" data-wb-retry="${k}">try ${WB_INDICATORS[k].label} again</button></div>`);
     const pending = Object.keys(WB_INDICATORS).some(k => state["wb_" + k] === "wait");
     const loading = pending ? '<div class="feed-note">loading remaining indicators…</div>' : "";
@@ -1463,25 +1721,34 @@
       raw: rows, formula, status: "fresh · stored locally",
     }));
   }
-  function materialChangeItems() {
-    const current = activeObservations();
-    if (!current.length) return [];
-    const previous = previousSnapshot?.version === 2 ? previousSnapshot.observations || {} : {};
-    const comparable = current.filter(([key]) => Number.isFinite(previous[key]?.value));
-    if (!comparable.length) {
-      return [{
-        text: `Baseline recorded for ${current.length} current observation${current.length === 1 ? "" : "s"}; ranked changes begin on the next check.`,
-        receipts: groupedObservationReceipts(current, "current raw value → local baseline; no prior observation to subtract"),
-      }];
-    }
-    const changes = comparable.map(([key, now]) => {
+  function rankObservationChanges(previous, currentEntries) {
+    return currentEntries.filter(([key, now]) => Number.isFinite(now?.value) && Number.isFinite(now?.threshold) && now.threshold > 0 && Number.isFinite(previous[key]?.value)).map(([key, now]) => {
       const prior = previous[key];
       const delta = now.value - prior.value;
       const pointMeasure = now.kind === "wb-gdp" || now.kind === "wb-cpi";
       const relativePct = pointMeasure ? 100 * delta / Math.max(Math.abs(prior.value), 1) : 100 * delta / prior.value;
       const thresholdMove = pointMeasure ? Math.abs(delta) : Math.abs(relativePct);
       const materiality = thresholdMove / now.threshold;
-      const score = materiality * (now.importance || 1);
+      return {
+        key, now, prior, delta, pointMeasure, relativePct, thresholdMove, materiality,
+        score: materiality * (now.importance || 1),
+        material: materiality >= 1,
+      };
+    }).sort((a, b) => b.score - a.score);
+  }
+  function materialChangeItems() {
+    const current = activeObservations();
+    if (!current.length) return [];
+    const previous = previousSnapshot?.version === 2 ? previousSnapshot.observations || {} : {};
+    const changes = rankObservationChanges(previous, current);
+    if (!changes.length) {
+      return [{
+        text: `Baseline recorded for ${current.length} current observation${current.length === 1 ? "" : "s"}. Ranked changes begin on the next check.`,
+        receipts: groupedObservationReceipts(current, "current raw value → local baseline; no prior observation to subtract"),
+      }];
+    }
+    const described = changes.map(change => {
+      const { now, prior, delta, pointMeasure, relativePct, score } = change;
       const formula = pointMeasure
         ? `${now.value} - ${prior.value} = ${signed(delta, 4)} percentage points; material if |move| ≥ ${now.threshold} point`
         : `(${now.value} - ${prior.value}) / ${prior.value} × 100 = ${signed(relativePct, 4)}%; material if |move| ≥ ${now.threshold}%`;
@@ -1491,7 +1758,7 @@
       else if (pointMeasure) text = `${now.label} moved ${signed(delta, 2)} percentage points to ${now.value.toFixed(2)}% since ${priorCheckLabel(prior.fetchedAt)}.`;
       else text = `${now.label} moved ${signed(relativePct, 2)}% since ${priorCheckLabel(prior.fetchedAt)}.`;
       return {
-        text, score, material: materiality >= 1,
+        ...change, text,
         receipt: makeReceipt(null, {
           label: `${now.label} · current vs prior`, url: now.url, fetchedAt: now.fetchedAt,
           observationDate: now.observationDate, raw: { current: now.raw, previous: prior.raw }, formula,
@@ -1500,11 +1767,11 @@
         }),
       };
     });
-    const ranked = changes.filter(change => change.material).sort((a, b) => b.score - a.score).slice(0, 3);
+    const ranked = described.filter(change => change.material).slice(0, 3);
     if (ranked.length) return ranked.map(change => ({ text: change.text, receipts: [change.receipt] }));
     return [{
       text: `No tracked observation cleared its materiality threshold since ${priorCheckLabel(previousSnapshot.checkedAt)}.`,
-      receipts: changes.map(change => change.receipt),
+      receipts: described.map(change => change.receipt),
     }];
   }
   function statusItem(label, key, emptyText) {
@@ -1529,8 +1796,8 @@
         const strongest = symbols.reduce((a, b) => mv[a] > mv[b] ? a : b);
         const weakest = symbols.reduce((a, b) => mv[a] < mv[b] ? a : b);
         const move = (symbol) => `${mv[symbol] >= 0 ? "gained" : "weakened"} against ${symbol} (${signed(mv[symbol], 1)}%)`;
-        let text = `FX${state.meta.fx?.stale ? ` [STALE - ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}.`;
-        if (strongest !== weakest) text = `FX${state.meta.fx?.stale ? ` [STALE - ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}; against ${weakest}, it ${mv[weakest] >= 0 ? "gained" : "weakened"} (${signed(mv[weakest], 1)}%).`;
+        let text = `FX${state.meta.fx?.stale ? ` [STALE: ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}.`;
+        if (strongest !== weakest) text = `FX${state.meta.fx?.stale ? ` [STALE: ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}. Against ${weakest}, it ${mv[weakest] >= 0 ? "gained" : "weakened"} (${signed(mv[weakest], 1)}%).`;
         items.push({ text, receipts: [makeReceipt(state.meta.fx, {
           label: "FX window endpoints", observationDate: dates[dates.length - 1],
           raw: Object.fromEntries([strongest, weakest].filter((x, i, all) => all.indexOf(x) === i).map(symbol => [symbol, { first: series[symbol][0], last: series[symbol][series[symbol].length - 1] }])),
@@ -1543,10 +1810,10 @@
       const rows = state.debt, first = rows[0], last = rows[rows.length - 1];
       const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
       const delta = last.total - first.total;
-      const direction = delta > 0 ? "up" : delta < 0 ? "down" : "unchanged by";
       const perDay = Math.abs(delta / days);
+      const movement = delta > 0 ? `rose ${fmtMoney(Math.abs(delta))}` : delta < 0 ? `fell ${fmtMoney(Math.abs(delta))}` : "did not change";
       items.push({
-        text: `US federal debt${state.meta.debt?.stale ? ` [STALE - ${ageLabel(state.meta.debt.fetchedAt)}]` : ""}: ${fmtMoney(last.total)} as of ${last.date}, ${direction} ${fmtMoney(Math.abs(delta))} over the window, about ${fmtMoney(perDay)} a day.`,
+        text: `US federal debt${state.meta.debt?.stale ? ` [STALE: ${ageLabel(state.meta.debt.fetchedAt)}]` : ""}: ${fmtMoney(last.total)} as of ${last.date}. It ${movement} over the window. The daily pace was about ${fmtMoney(perDay)}.`,
         receipts: [makeReceipt(state.meta.debt, {
           label: "Debt window endpoints", observationDate: last.date,
           raw: { first: { date: first.date, tot_pub_debt_out_amt: first.rawTotal ?? first.total }, last: { date: last.date, tot_pub_debt_out_amt: last.rawTotal ?? last.total }, elapsedDays: days },
@@ -1568,7 +1835,7 @@
       if (state[key]) {
         const rows = state.watch.wb.map(code => state[key][code]).filter(Boolean);
         if (rows.length) items.push({
-          text: `${label[0].toUpperCase() + label.slice(1)}${state.meta[key]?.stale ? ` [STALE - ${ageLabel(state.meta[key].fetchedAt)}]` : ""} (World Bank annuals): ${rows.map(row => `${row.name} ${row.value >= 0 && key === "gdp" ? "+" : ""}${row.value.toFixed(1)}% (${row.year})`).join(", ")}.`,
+          text: `${label[0].toUpperCase() + label.slice(1)}${state.meta[key]?.stale ? ` [STALE: ${ageLabel(state.meta[key].fetchedAt)}]` : ""} (World Bank annuals): ${rows.map(row => `${row.name} ${row.value >= 0 && key === "gdp" ? "+" : ""}${row.value.toFixed(1)}% (${row.year})`).join(", ")}.`,
           receipts: [makeReceipt(state.meta[key], {
             label: `World Bank ${label}`, observationDate: rows.map(row => row.year).filter((x, i, all) => all.indexOf(x) === i).join(", "),
             raw: rows.map(row => ({ country: row.code, year: row.year, value: row.rawValue })),
@@ -1580,7 +1847,7 @@
     const counts = Object.fromEntries(["up", "partial", "stale", "down", "wait", "empty"].map(status => [status, WIRES.filter(([key]) => state["wire_" + key] === status).length]));
     const parts = [["up", "fresh"], ["partial", "partial"], ["stale", "stale"], ["down", "down"], ["wait", "loading"], ["empty", "empty"]].filter(([status]) => counts[status]).map(([status, label]) => `${counts[status]} ${label}`);
     items.push({
-      text: `Wire check: ${parts.join(", ")}; stale values remain labeled and are excluded from the ranked change lead.`,
+      text: `Wire check: ${parts.join(", ")}. Stale values stay labeled. They are excluded from the ranked change lead.`,
       receipts: [
         makeReceipt(state.meta.fx, { label: WIRES[0][1], raw: { status: state.wire_fx, note: state.wirenote_fx }, formula: "wire outcome count only" }),
         makeReceipt(state.meta.debt, { label: WIRES[1][1], raw: { status: state.wire_debt, note: state.wirenote_debt }, formula: "wire outcome count only" }),
@@ -1588,6 +1855,105 @@
       ],
     });
     return items;
+  }
+
+  function archiveDate(entry) {
+    const date = new Date(entry.checkedAt);
+    return Number.isFinite(date.getTime()) ? date.toLocaleString() : "date not recorded";
+  }
+  function saveBriefArchive(items) {
+    const existingIndex = briefArchive.findIndex(entry => entry.id === VISIT_ID);
+    const entry = {
+      version: 1,
+      id: VISIT_ID,
+      checkedAt: new Date().toISOString(),
+      headlines: items.map(item => item.text),
+      observations: Object.fromEntries(activeObservations()),
+      wires: Object.fromEntries(WIRES.map(([key]) => [key, {
+        status: state["wire_" + key] || "wait",
+        note: state["wirenote_" + key] || "dialing",
+      }])),
+      complete: !WIRES.some(([key]) => state["wire_" + key] === "wait"),
+    };
+    const next = [...briefArchive];
+    if (existingIndex >= 0) next.splice(existingIndex, 1);
+    next.unshift(entry);
+    briefArchive = next.slice(0, 30);
+    if (!selectedArchiveId) selectedArchiveId = VISIT_ID;
+    if (!compareFromId && briefArchive.length > 1) {
+      compareFromId = briefArchive[1].id;
+      compareToId = briefArchive[0].id;
+    } else {
+      if (!compareToId) compareToId = briefArchive[0]?.id || "";
+      if (!compareFromId) compareFromId = briefArchive.find(saved => saved.id !== compareToId)?.id || "";
+    }
+    writeStore(ARCHIVE_KEY, briefArchive);
+    renderArchive();
+  }
+  function archiveOptions(selectedId) {
+    return briefArchive.map(entry => `<option value="${esc(entry.id)}" ${entry.id === selectedId ? "selected" : ""}>${esc(archiveDate(entry))}</option>`).join("");
+  }
+  function renderArchiveView() {
+    const entry = briefArchive.find(saved => saved.id === selectedArchiveId) || briefArchive[0];
+    if (!entry) {
+      $("archive-view").innerHTML = '<div class="pstrip">No saved brief is available yet. The first wire response will file this visit.</div>';
+      return;
+    }
+    selectedArchiveId = entry.id;
+    const observations = Object.values(entry.observations || {});
+    const wireText = Object.entries(entry.wires || {}).map(([key, wire]) => `${key.toUpperCase()}: ${wire.status}`).join(". ");
+    $("archive-view").innerHTML = `<div class="archive-meta"><time datetime="${esc(entry.checkedAt)}">${esc(archiveDate(entry))}</time>${entry.id === VISIT_ID ? " · current visit" : ""}${entry.complete ? " · all wires settled" : " · partial check"}${wireText ? `. ${esc(wireText)}.` : ""}</div>
+      <ol class="archive-headlines">${entry.headlines.map(headline => `<li>${esc(headline)}</li>`).join("")}</ol>
+      <details class="archive-observations"><summary>view ${observations.length} recorded observation${observations.length === 1 ? "" : "s"}</summary><div class="ptable-wrap"><table class="ptable"><thead><tr><th>observation</th><th>date</th><th>value</th></tr></thead><tbody>${observations.map(observation => `<tr><td>${esc(observation.label)}</td><td>${esc(observation.observationDate)}</td><td>${esc(observation.value)}</td></tr>`).join("") || '<tr><td colspan="3">No fresh observation was recorded for this check.</td></tr>'}</tbody></table></div></details>`;
+  }
+  function compareChangeText(change) {
+    if (change.now.kind === "debt") return `${change.now.label} changed ${change.delta >= 0 ? "+" : "−"}${fmtMoney(Math.abs(change.delta))}, or ${signed(change.relativePct, 3)}%.`;
+    if (change.pointMeasure) return `${change.now.label} changed ${signed(change.delta, 2)} percentage points.`;
+    return `${change.now.label} changed ${signed(change.relativePct, 2)}%.`;
+  }
+  function renderCompare() {
+    const result = $("compare-result");
+    const from = briefArchive.find(entry => entry.id === compareFromId);
+    const to = briefArchive.find(entry => entry.id === compareToId);
+    if (briefArchive.length < 2) {
+      result.textContent = "Two saved briefs are needed for comparison.";
+      return;
+    }
+    if (!from || !to) {
+      result.textContent = "Choose two saved briefs.";
+      return;
+    }
+    if (from.id === to.id) {
+      result.textContent = "Choose two different briefs.";
+      return;
+    }
+    const changes = rankObservationChanges(from.observations || {}, Object.entries(to.observations || {}))
+      .filter(change => change.delta !== 0);
+    if (!changes.length) {
+      result.innerHTML = `<b>${esc(archiveDate(from))}</b> to <b>${esc(archiveDate(to))}</b>. No shared observation moved.`;
+      return;
+    }
+    const materialCount = changes.filter(change => change.material).length;
+    result.innerHTML = `<b>${esc(archiveDate(from))}</b> to <b>${esc(archiveDate(to))}</b>. ${changes.length} shared observation${changes.length === 1 ? "" : "s"} moved. ${materialCount} cleared the threshold.
+      <ol>${changes.slice(0, 5).map(change => `<li>${esc(compareChangeText(change))}<span class="pchip diff-score">score ${change.score.toFixed(2)}${change.material ? " · material" : " · below threshold"}</span></li>`).join("")}</ol>`;
+  }
+  function renderArchive() {
+    const list = $("archive-list");
+    if (!briefArchive.length) {
+      list.innerHTML = `<div class="archive-state pstrip">${esc(state.storageError || "No saved briefs yet. This visit appears after the first wire answers.")}</div>`;
+    } else {
+      if (!briefArchive.some(entry => entry.id === selectedArchiveId)) selectedArchiveId = briefArchive[0].id;
+      list.innerHTML = `${state.storageError ? `<div class="archive-state pstrip">${esc(state.storageError)}</div>` : ""}${briefArchive.map(entry => `<button class="pbtn archive-entry" type="button" data-archive-open="${esc(entry.id)}" aria-current="${entry.id === selectedArchiveId}"><strong>${esc(archiveDate(entry))}</strong><small>${entry.headlines.length} sentence${entry.headlines.length === 1 ? "" : "s"}${entry.id === VISIT_ID ? " · current visit" : ""}</small></button>`).join("")}`;
+    }
+    const validIds = new Set(briefArchive.map(entry => entry.id));
+    if (!validIds.has(compareToId)) compareToId = briefArchive[0]?.id || "";
+    if (!validIds.has(compareFromId) || compareFromId === compareToId) compareFromId = briefArchive.find(entry => entry.id !== compareToId)?.id || "";
+    $("compare-from").innerHTML = archiveOptions(compareFromId);
+    $("compare-to").innerHTML = archiveOptions(compareToId);
+    $("compare-from").disabled = briefArchive.length < 2;
+    $("compare-to").disabled = briefArchive.length < 2;
+    renderArchiveView();
+    renderCompare();
   }
 
   function receiptHTML(receipts) {
@@ -1608,46 +1974,148 @@
   }
   const briefItemHTML = (item) => `<div class="bline"><div class="bline-text">${esc(item.text)}</div>${receiptHTML(item.receipts)}</div>`;
 
-  let briefTyped = false, briefTimer = null;
+  let briefItems = [], briefProgress = 0, briefPlaying = false, briefTimer = null, briefGeneration = 0;
+  function setBriefPlayLabel(label) {
+    $("brief-play").innerHTML = `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${label === "pause" ? "i-pause" : "i-play"}"/></svg>${label}`;
+  }
+  function briefTotal() {
+    return briefItems.reduce((total, item) => total + item.text.length, 0);
+  }
+  function cancelBriefTimer() {
+    if (briefTimer !== null) clearTimeout(briefTimer);
+    briefTimer = null;
+  }
+  function invalidateBriefPlayback() {
+    briefGeneration++;
+    briefPlaying = false;
+    cancelBriefTimer();
+  }
+  function briefLater(fn, delay, expectedGeneration = briefGeneration) {
+    cancelBriefTimer();
+    briefTimer = setTimeout(() => {
+      briefTimer = null;
+      if (expectedGeneration !== briefGeneration) return;
+      fn();
+    }, delay);
+  }
+  function renderBriefProgress() {
+    const total = briefTotal();
+    briefProgress = Math.max(0, Math.min(total, briefProgress));
+    let remaining = briefProgress;
+    const lines = [];
+    for (const item of briefItems) {
+      if (remaining >= item.text.length) {
+        lines.push(briefItemHTML(item));
+        remaining -= item.text.length;
+        continue;
+      }
+      if (remaining > 0 || !lines.length) {
+        lines.push(`<div class="bline"><div class="bline-text">${esc(item.text.slice(0, remaining))}${briefPlaying ? '<span class="caret2" aria-hidden="true"></span>' : ""}</div></div>`);
+      }
+      break;
+    }
+    $("brief").innerHTML = lines.join("") || '<p class="skel">Press play to read the brief.</p>';
+    $("brief-scrub").value = briefProgress;
+    $("brief-clock").textContent = `${briefProgress} / ${total}`;
+  }
+  function finishBrief(announce = true) {
+    briefPlaying = false;
+    cancelBriefTimer();
+    briefProgress = briefTotal();
+    renderBriefProgress();
+    setBriefPlayLabel("replay");
+    $("ag-an").className = "agent";
+    $("st-an").textContent = "brief filed";
+    if (announce) $("brief-live").textContent = "Brief replay complete.";
+  }
+  function runBriefFrame() {
+    if (!briefPlaying) return;
+    if (REDUCED) {
+      finishBrief();
+      return;
+    }
+    briefProgress = Math.min(briefTotal(), briefProgress + 3);
+    renderBriefProgress();
+    if (briefProgress >= briefTotal()) {
+      finishBrief();
+      return;
+    }
+    briefLater(runBriefFrame, 24);
+  }
+  function playBrief() {
+    if (!briefItems.length) return;
+    if (briefProgress >= briefTotal()) {
+      invalidateBriefPlayback();
+      briefProgress = 0;
+      renderBriefProgress();
+    }
+    briefPlaying = true;
+    setBriefPlayLabel("pause");
+    $("ag-an").className = "agent working";
+    $("st-an").innerHTML = 'typing it up<span class="dots"></span>';
+    $("brief-live").textContent = "Brief replay started.";
+    runBriefFrame();
+  }
+  function pauseBrief() {
+    briefPlaying = false;
+    briefGeneration++;
+    cancelBriefTimer();
+    renderBriefProgress();
+    setBriefPlayLabel("play");
+    $("ag-an").className = "agent";
+    $("st-an").textContent = "brief paused";
+    $("brief-live").textContent = "Brief replay paused.";
+  }
+  function restartBrief() {
+    if (!briefItems.length) return;
+    invalidateBriefPlayback();
+    briefProgress = 0;
+    renderBriefProgress();
+    playBrief();
+  }
+  function seekBrief(target) {
+    pauseBrief();
+    $("brief").setAttribute("aria-live", "off");
+    try {
+      briefProgress = target;
+      renderBriefProgress();
+    } finally {
+      $("brief").setAttribute("aria-live", "off");
+    }
+    if (briefProgress >= briefTotal()) setBriefPlayLabel("replay");
+    $("brief-live").textContent = `Brief moved to ${briefProgress} of ${briefTotal()} characters.`;
+  }
   function renderBrief() {
-    clearInterval(briefTimer); briefTimer = null;
     const firstSettled = WIRES.some(([key]) => ["up", "down", "stale", "partial", "empty"].includes(state["wire_" + key]));
     if (!firstSettled) return;
     const items = composeBrief();
+    const hadBrief = briefItems.length > 0;
+    invalidateBriefPlayback();
+    briefItems = items;
+    briefProgress = hadBrief || REDUCED ? briefTotal() : 0;
     const el = $("brief");
     const prior = previousSnapshot?.checkedAt;
     $("receipts").innerHTML = `<span class="pchip"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>thresholds · FX 0.15% · debt 0.01% · WB 0.1 pt</span>` +
       `<time class="pchip" datetime="${esc(prior || visitSnapshot.checkedAt)}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>${prior ? `prior check ${esc(new Date(prior).toLocaleString())}` : "baseline visit"}</time>`;
-    if (briefTyped || REDUCED) {
-      el.innerHTML = items.map(briefItemHTML).join("");
+    $("brief-scrub").max = Math.max(1, briefTotal());
+    $("brief-play").disabled = !items.length;
+    $("brief-restart").disabled = !items.length;
+    $("brief-scrub").disabled = !items.length;
+    saveBriefArchive(items);
+    if (hadBrief || REDUCED) {
+      renderBriefProgress();
+      setBriefPlayLabel("replay");
       $("ag-an").className = "agent";
       $("st-an").textContent = "brief filed";
       return;
     }
-    briefTyped = true;
-    $("ag-an").className = "agent working";
-    $("st-an").innerHTML = 'typing it up<span class="dots"></span>';
-    el.innerHTML = "";
-    let index = 0, character = 0;
-    let line = document.createElement("div"); line.className = "bline";
-    let text = document.createElement("div"); text.className = "bline-text"; line.appendChild(text); el.appendChild(line);
-    briefTimer = setInterval(() => {
-      character += 3;
-      text.textContent = items[index].text.slice(0, character);
-      if (character >= items[index].text.length) {
-        line.insertAdjacentHTML("beforeend", receiptHTML(items[index].receipts));
-        index++; character = 0;
-        if (index >= items.length) {
-          clearInterval(briefTimer);
-          $("ag-an").className = "agent";
-          $("st-an").textContent = "brief filed";
-          return;
-        }
-        line = document.createElement("div"); line.className = "bline";
-        text = document.createElement("div"); text.className = "bline-text"; line.appendChild(text); el.appendChild(line);
-      }
-    }, 24);
+    el.replaceChildren();
+    playBrief();
   }
+
+  $("brief-play").addEventListener("click", () => briefPlaying ? pauseBrief() : playBrief());
+  $("brief-restart").addEventListener("click", restartBrief);
+  $("brief-scrub").addEventListener("input", event => seekBrief(Number(event.target.value)));
 
   /* ranges */
   const rangesEl = $("fx-ranges");
@@ -1660,7 +2128,6 @@
         button.textContent = days + "d";
         button.dataset.days = days;
         button.addEventListener("click", () => {
-          briefTyped = true;
           setConfigHash([...state.watch.fx], [...state.watch.wb], days);
         });
         rangesEl.appendChild(button);
@@ -1670,6 +2137,21 @@
   }
   renderRangeButtons();
   renderWatchlist();
+  renderArchive();
+  $("archive-list").addEventListener("click", event => {
+    const button = event.target.closest("[data-archive-open]");
+    if (!button) return;
+    selectedArchiveId = button.dataset.archiveOpen;
+    renderArchive();
+  });
+  $("compare-from").addEventListener("change", event => {
+    compareFromId = event.target.value;
+    renderCompare();
+  });
+  $("compare-to").addEventListener("change", event => {
+    compareToId = event.target.value;
+    renderCompare();
+  });
   addEventListener("hashchange", () => applyHashConfig());
 
   function refreshAll() {

@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "title": "Renewal save",
+    "subtitle": "Upset customer renewal call",
+    "callId": "CALL-0224",
+    "rep": "Nina Patel",
+    "repNote": "Week 3",
+    "customer": "Eli Ward",
+    "account": "Cedar Systems"
+  },
+  "duration": 105,
+  "screenEvents": [
+    {
+      "at": 0,
+      "app": "CRM",
+      "screen": "Cedar Systems record",
+      "detail": "Renewal risk and recent notes"
+    },
+    {
+      "at": 21,
+      "app": "Contracts",
+      "screen": "AGR-2088",
+      "detail": "Renewal date and notice window"
+    },
+    {
+      "at": 47,
+      "app": "Support",
+      "screen": "Ticket TKT-8821",
+      "detail": "Sync incident and resolution notes"
+    },
+    {
+      "at": 65,
+      "app": "Retention",
+      "screen": "Save flow",
+      "detail": "Owner, review, and written checkpoint"
+    }
+  ],
+  "transcript": [
+    {
+      "at": 0,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "I saw your note and the open renewal risk. Tell me what happened from your side."
+    },
+    {
+      "at": 8,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "I have been asking for a real fix for three weeks. Every update makes me explain the same problem again."
+    },
+    {
+      "at": 16,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "The sync failed again yesterday. We are up for renewal next month, and I am ready to cancel."
+    },
+    {
+      "at": 24,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "You should not have had to repeat this. I am going to stay with the issue and give you a clear plan before we leave."
+    },
+    {
+      "at": 33,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "A plan is not enough. I need to know whether we are locked in."
+    },
+    {
+      "at": 40,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "Your renewal date is August 31. The agreement is still in its notice window, so no renewal is locked in today."
+    },
+    {
+      "at": 49,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "Then give me one reason not to send notice now."
+    },
+    {
+      "at": 56,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "The fastest save path is a named support owner, a sync review today, and a written checkpoint in forty eight hours. I can own all three."
+    },
+    {
+      "at": 67,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "The last ticket says resolved, but it was not resolved."
+    },
+    {
+      "at": 73,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "I have TKT-8821 open. The resolution note only covered the import job. It did not verify the nightly sync. I will reopen it with that gap called out."
+    },
+    {
+      "at": 83,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "Who is actually accountable after this call?"
+    },
+    {
+      "at": 90,
+      "speaker": "Nina",
+      "role": "rep",
+      "text": "I am. I will send the owner and review time in writing in the next hour. You do not need to wait until next week for an update."
+    },
+    {
+      "at": 99,
+      "speaker": "Eli",
+      "role": "customer",
+      "text": "All right. Send it today. I will hold the notice until we see the review."
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "name-impact",
+      "at": 18,
+      "type": "suggested_answer",
+      "title": "Name the impact",
+      "content": "Acknowledge that Eli had to repeat the issue. Promise a clear plan before the call ends.",
+      "reason": "The customer said three weeks of updates had not produced a real fix.",
+      "usedAt": 24,
+      "useEvidence": "Nina named the repeated effort and promised a plan at 00:24."
+    },
+    {
+      "id": "contract-window",
+      "at": 35,
+      "type": "account_detail",
+      "title": "Contract detail",
+      "content": "AGR-2088 renews on August 31. The account is still inside the notice window.",
+      "reason": "The customer asked whether the renewal was already locked in.",
+      "usedAt": 40,
+      "useEvidence": "Nina stated the renewal date and notice status at 00:40."
+    },
+    {
+      "id": "save-flow",
+      "at": 51,
+      "type": "objection_response",
+      "title": "Three part save flow",
+      "content": "Offer a named support owner, a sync review today, and a written checkpoint in 48 hours.",
+      "reason": "The customer asked for one concrete reason to delay cancellation notice.",
+      "usedAt": 56,
+      "useEvidence": "Nina offered all three parts of the save flow at 00:56."
+    },
+    {
+      "id": "ticket-gap",
+      "at": 69,
+      "type": "account_detail",
+      "title": "Ticket resolution gap",
+      "content": "TKT-8821 verified the import job. It did not verify the nightly sync.",
+      "reason": "The customer challenged the resolved status on the latest ticket.",
+      "usedAt": 73,
+      "useEvidence": "Nina separated the import check from the sync check at 01:13."
+    },
+    {
+      "id": "notice-hold",
+      "at": 85,
+      "type": "next_step",
+      "title": "Ask for a notice hold",
+      "content": "Ask Eli to hold the cancellation notice for 7 days while the save flow runs.",
+      "reason": "The customer asked who would be accountable after the call.",
+      "usedAt": null,
+      "useEvidence": null
+    }
+  ],
+  "recap": {
+    "talkListen": {
+      "rep": 43,
+      "customer": 57
+    },
+    "gaps": [
+      {
+        "after": "cancellation statement",
+        "seconds": 7,
+        "cueAt": 23,
+        "helpedBy": "Name the impact"
+      },
+      {
+        "after": "request for a reason to stay",
+        "seconds": 5,
+        "cueAt": 54,
+        "helpedBy": "Three part save flow"
+      }
+    ]
+  }
+}
