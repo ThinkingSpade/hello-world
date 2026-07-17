@@ -1,56 +1,49 @@
-# Huy Nguyen — Personal Site
+# Huy Nguyen — Portfolio
 
-A retro / pixel-art personal site for **Huy Nguyen** — data analyst & agentic
-experience designer based in Houston, Texas.
+This repository is Huy Nguyen's static portfolio: a pixel-window site for
+browser-native data, machine-learning, retrieval, and operations demos. It is
+built with plain HTML, CSS, and JavaScript; there is no build step.
 
-A pixel custom cursor, chunky "window" UI, and a hand-drawn SVG hover effect on
-every highlight — built in plain HTML/CSS/JS, no build step.
+The live site is [hello-world-bp7.pages.dev](https://hello-world-bp7.pages.dev).
 
-## Pages
+## Project demos
 
-| File | Page |
-|------|------|
-| `index.html` | Home — the intro statement with cursive highlights |
-| `work.html`  | Projects — featured projects as retro window cards |
-| `about.html` | About — bio with hover-reveal pop cards + portrait |
-| `styles.css` | Design system, layout, effect keyframes |
-| `script.js`  | Pixel cursor, SVG icon library + the hover effects engine |
+- **Abacus** (`/abacus/`) — compiles constrained analysis plans to SQL and runs
+  them over SQLite-WASM in the browser.
+- **Atlas** (`/atlas/`) — searches two shipped document corpora with hybrid
+  ranking and returns extractive answers with citations.
+- **Churn Radar** (`/churn/`) — scores IBM Telco records client-side with shipped
+  logistic-regression coefficients and a held-out model card.
+- **Conductor** (`/conductor/`) — replays recorded data-pipeline failures,
+  diagnoses, repair proposals, approval gates, and verification steps.
+- **Helmsman** (`/helmsman/`) — replays Kubernetes incident fixtures with staged
+  rollback and a human gate before repair commands.
+- **Oracle** (`/oracle/`) — plays scripted multi-model debate sessions as an
+  inspectable timeline with confidence changes and a final verdict.
+- **Pulse** (`/pulse/`) — fetches public macroeconomic feeds in the browser and
+  turns the returned values into charts and a sourced morning brief.
 
-## Run it
+## Site structure
 
-Open `index.html`, or serve the folder:
+- `index.html`, `work.html`, and `about.html` are the portfolio pages.
+- `styles.css` and `script.js` provide the root layout and interactions.
+- `shared/pixel.css` is the shared pixel-interface design system used by demos.
+- `shared/icons.svg` is the reusable SVG icon sprite.
+- Each project directory is a self-contained static demo.
+
+## Run locally
+
+From the repository root:
 
 ```bash
-python3 -m http.server 8000   # http://localhost:8000
+python -m http.server 8000
 ```
 
-## The interactions
+Open <http://localhost:8000>. Serving over HTTP is required for demos that
+fetch local JSON, SQLite, or WebAssembly assets.
 
-Each highlight has a `data-fx` that fires its own animation — every particle is
-a hand-drawn SVG (rocket, robot, bolt, bulb, cap, book, chart, star…) that
-sweeps across the page and fades in/out smoothly:
+## Deployment
 
-| `data-fx` | Animation |
-|-----------|-----------|
-| `confetti` | pieces + shapes erupt and rain down |
-| `data`     | charts / arrows / %·numbers flow up and out |
-| `sparks`   | electric outward zap |
-| `rocket`   | rockets blast off the top |
-| `pulse`    | expanding rings + floating bulbs |
-| `caps`     | graduation-cap toss |
-| `binary`   | matrix rain |
-| `orbit`    | icons spiral out and circle the word |
-
-- **Pixel cursor** — a rasterised pixel-art arrow replaces the native cursor
-  (falls back to native on touch / coarse pointers).
-- **Pop cards** (About) — hover a dashed term to reveal a little window card.
-- Everything respects `prefers-reduced-motion`.
-
-## Make it yours
-
-- Set your **GitHub** URL and **LinkedIn** link, and the `mailto:` address
-  (search `TODO` in `index.html`).
-- `work.html` holds **sample projects** — swap in your own titles, blurbs, links.
-- Drop a real photo into the `about.html` portrait window.
-- Mix effects by changing any `data-fx="…"`; tweak the drawings in the `ICON`
-  map or the palette/shadows in the `:root` block of `styles.css`.
+Cloudflare Pages serves the repository root directly. Root-relative project
+URLs such as `/abacus/` therefore map to their directories without a generated
+site or package build.

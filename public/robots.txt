@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://hello-world-bp7.pages.dev/sitemap-index.xml
