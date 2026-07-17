@@ -1,0 +1,8 @@
+samples:
+  - "How do we rotate the API keys?"
+  - "Who approved the rollback during the July outage?"
+  - "What was our compute cost in June 2024?"
+  - "Who is on call the week of 2025-03?"
+  - "Postgres primary is unhealthy — how do I fail over?"
+  - "A pod is in CrashLoopBackOff, what do I check first?"
+  - "How many deploys failed the canary in 2024?"

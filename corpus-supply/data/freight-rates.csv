@@ -1,0 +1,19 @@
+lane,mode,carrier,rate_usd,unit,transit_days,valid_thru
+Hangzhou CN → PDX-1,ocean,Pacific Lane,2220,per 40ft container,24,2025-06-30
+Ho Chi Minh VN → PDX-1,ocean,Pacific Lane,3589,per 40ft container,30,2025-06-30
+Guadalajara MX → CMH-1,LTL,BlueRidge Freight,224,per pallet,7,2025-06-30
+Guadalajara MX → CMH-1,FTL,BlueRidge Freight,2394,per truckload,3,2025-06-30
+Guadalajara MX → CMH-1,parcel,SwiftParcel,21,per kg,2,2025-06-30
+PDX-1 → RNO-1,LTL,BlueRidge Freight,426,per pallet,3,2025-06-30
+PDX-1 → RNO-1,FTL,BlueRidge Freight,2079,per truckload,2,2025-06-30
+PDX-1 → RNO-1,parcel,SwiftParcel,15,per kg,1,2025-06-30
+PDX-1 → CMH-1,LTL,BlueRidge Freight,384,per pallet,4,2025-06-30
+PDX-1 → CMH-1,FTL,BlueRidge Freight,1641,per truckload,3,2025-06-30
+PDX-1 → CMH-1,parcel,SwiftParcel,12,per kg,3,2025-06-30
+RNO-1 → CMH-1,LTL,BlueRidge Freight,421,per pallet,5,2025-06-30
+RNO-1 → CMH-1,FTL,BlueRidge Freight,2295,per truckload,2,2025-06-30
+RNO-1 → CMH-1,parcel,SwiftParcel,9,per kg,3,2025-06-30
+Shenzhen CN → PDX-1,ocean,Pacific Lane,3568,per 40ft container,30,2025-06-30
+Monterrey MX → CMH-1,LTL,BlueRidge Freight,203,per pallet,3,2025-06-30
+Monterrey MX → CMH-1,FTL,BlueRidge Freight,1718,per truckload,2,2025-06-30
+Monterrey MX → CMH-1,parcel,SwiftParcel,12,per kg,1,2025-06-30

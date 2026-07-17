@@ -1,0 +1,21 @@
+# Live operational state for Cascadia Distribution - the third source
+# alongside SOPs/disruption reports and datasets.
+
+shipments_in_transit:
+  ocean: "6 containers (2 Hangzhou, 2 Ho Chi Minh, 2 Shenzhen), next arrival ETA 2025-01-18 PDX"
+  ftl: "4 loads Guadalajara -> CMH-1, on schedule"
+  exceptions: "SHP-241107 customs hold at PDX (document review, day 2 of 2-4)"
+
+dock_status:
+  PDX-1: "12 appointments today, 1 lane down for lift maintenance"
+  RNO-1: "reefer bay full - cold-chain receiving diverted to morning slots"
+  CMH-1: "normal"
+
+open_purchase_orders:
+  count: 37
+  flagged: "2 POs with Shenzhen Corelight pending probation review"
+
+oncall:
+  operations: "Reyna M."
+  warehouse: "Tom B. (PDX-1)"
+  customs_broker: "Elif K."

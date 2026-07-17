@@ -1,0 +1,22 @@
+# Live system state — the third source Atlas answers from, alongside
+# runbooks and incidents. In production this file would be replaced by a
+# provider that queries your status API / service registry / paging system;
+# see atlas/state.py.
+
+services:
+  payments-api: "v2.14.1 (deployed 2024-11-28, healthy)"
+  auth-svc: "v1.9.0 (deployed 2024-11-20, healthy)"
+  search-indexer: "v0.31.2 (deployed 2024-11-25, degraded — reindex backlog 12m)"
+
+databases:
+  db-primary-2: "postgres 16.3, primary, replication lag 0s"
+  db-replica-1: "postgres 16.3, streaming replica, lag 2s"
+
+oncall:
+  primary: "Huy N. (platform)"
+  secondary: "Dana R. (database)"
+  escalation_policy: "see: On-call escalation policy"
+
+open_alerts:
+  - "search-indexer reindex backlog above 10m for 25m (warning)"
+  - "tls cert for staging.meridian.internal expires in 21 days (info)"

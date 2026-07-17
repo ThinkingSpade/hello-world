@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atlas-ops-agent"
+version = "0.1.0"
+description = "Atlas — a knowledge agent for ops. Ask questions, get cited answers from runbooks, past incidents, and live system state."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Huy Nguyen" }]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "pydantic>=2.6",
+    "numpy>=1.26",
+    "PyYAML>=6.0",
+    "langchain-text-splitters>=0.2",
+    "pypdf>=4.0",
+]
+
+[project.optional-dependencies]
+# Production stack: Groq generation, pgvector storage, Redis cache, real embeddings.
+prod = [
+    "langchain-groq>=0.1",
+    "psycopg[binary]>=3.1",
+    "pgvector>=0.2.5",
+    "redis>=5.0",
+    "fastembed>=0.3",
+]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+atlas = "atlas.cli:main"
+
+[tool.setuptools]
+packages = ["atlas"]
+
+[tool.setuptools.package-data]
+atlas = ["ui/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

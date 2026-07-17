@@ -1,0 +1,15 @@
+service,tier,owner_team,oncall_rotation,language,port,depends_on
+payments-api,1,payments,platform-oncall,python,8001,"postgres,redis,auth-svc"
+auth-svc,1,identity,platform-oncall,go,8002,"postgres,redis"
+search-indexer,2,discovery,platform-oncall,python,8003,"postgres,queue"
+billing-worker,1,payments,platform-oncall,python,-,"postgres,queue,vault"
+notification-svc,2,growth,growth-oncall,node,8005,"queue,redis"
+partner-gateway,1,integrations,platform-oncall,go,8006,"auth-svc,rate-limiter"
+rate-limiter,1,edge,edge-oncall,go,8007,redis
+edge-proxy,1,edge,edge-oncall,nginx,443,rate-limiter
+reporting-api,3,analytics,analytics-oncall,python,8009,postgres-replica
+feature-flags,2,platform,platform-oncall,go,8010,redis
+cron-runner,2,platform,platform-oncall,python,-,"postgres,vault"
+webhook-dispatch,2,integrations,platform-oncall,node,8012,"queue,partner-gateway"
+audit-writer,1,security,platform-oncall,go,-,postgres
+status-page,3,platform,platform-oncall,node,8014,-

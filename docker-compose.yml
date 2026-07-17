@@ -1,0 +1,47 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: atlas
+      POSTGRES_DB: atlas
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlas"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "${ATLAS_PORT:-8300}:8300"
+    environment:
+      ATLAS_STORE: pgvector
+      ATLAS_CACHE: redis
+      ATLAS_EMBEDDER: fastembed
+      ATLAS_LLM: ${ATLAS_LLM:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      ATLAS_MIN_SCORE: ${ATLAS_MIN_SCORE:-0.28}
+      ATLAS_ADMIN_TOKEN: ${ATLAS_ADMIN_TOKEN:-}
+      # in-network addresses — fixed by compose, not read from .env
+      DATABASE_URL: postgresql://atlas:atlas@db:5432/atlas
+      REDIS_URL: redis://cache:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+volumes:
+  pgdata:
