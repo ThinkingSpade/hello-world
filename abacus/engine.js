@@ -6,7 +6,14 @@
 "use strict";
 
 const Abacus = (() => {
-  let MAN = null, DB = null;
+  let MAN = null, DB = null, SQLMOD = null;
+  const DEFAULT_RUNTIME = Object.freeze({
+    mode: "single", base: null, joins: {}, timeSql: null, timeStart: "0001-01-01",
+    monthDimension: null, exclusiveDimensions: [], metricFilters: {},
+    driverDimensions: {}, legacyDimensions: [], volumeMetrics: {},
+    retention: null, watchlist: [],
+  });
+  let RUNTIME = { ...DEFAULT_RUNTIME };
 
   const MONTHS = ["january","february","march","april","may","june","july",
                   "august","september","october","november","december"];
@@ -115,7 +122,10 @@ const Abacus = (() => {
       m = q.match(/\b(?:in|for|during)?\s*(20\d\d)\b/);
       if (m) t = { start: `${m[1]}-01-01`, end: `${m[1]}-12-31`, label: m[1] };
     }
-    if (!t) t = { start: "2024-01-01", end: today, label: "all time (2024 → today)" };
+    if (!t) {
+      const start = RUNTIME.timeStart || "0001-01-01";
+      t = { start, end: today, label: `all time (${start.slice(0, 4)} → today)` };
+    }
 
     const compare = wantsYoy ? shiftYear(t) : wantsPrev ? prevPeriod(t) : null;
     return [t, compare];
@@ -142,21 +152,29 @@ const Abacus = (() => {
     const q = question.toLowerCase().trim();
     const [time, compare0] = parseTime(q);
     let compare = compare0;
+    if (!RUNTIME.timeSql) compare = null;
+    if (!RUNTIME.timeSql && TIME_STRIP.some((re) => new RegExp(re.source).test(q)))
+      throw new Error("time questions need a mounted date column");
 
     // ---- analyst kinds outrank plain aggregation (mirrors parser.py) ----
-    if (RETENTION_RE.test(q))
+    if (RETENTION_RE.test(q)) {
+      if (!RUNTIME.retention) throw new Error("retention needs the bundled customer history");
       return { kind: "retention", metric: null, dims: [], filters: [], time, top: null, compare: null };
-    if (ANOMALY_RE.test(q))
+    }
+    if (ANOMALY_RE.test(q)) {
+      if (!RUNTIME.timeSql) throw new Error("anomaly scans need a mounted time column");
       return { kind: "anomalies", metric: null, dims: [], filters: [], time, top: null, compare: null };
+    }
     if (INVESTIGATE_RE.test(q)) {
+      if (!RUNTIME.timeSql) throw new Error("investigations need a mounted time column");
       const mh = find(q, MAN.metrics);
       mh.sort((a, b) => (b[2] - a[2]) || (a[1] - b[1]));
-      const metric = mh.length ? mh[0][0] : "revenue";
+      const metric = mh.length ? mh[0][0] : Object.keys(MAN.metrics)[0];
       const qd0 = stripTime(q);
       const filters = [];
       for (const [dim, vals] of Object.entries(MAN.values))
         for (const v of vals)
-          if (new RegExp(`(?<![a-z])${esc(v.toLowerCase())}(?![a-z])`).test(qd0))
+          if (new RegExp(`(?<![a-z])${esc(String(v).toLowerCase())}(?![a-z])`).test(qd0))
             filters.push({ dim, value: v });
       if (!compare) compare = prevPeriod(time);
       return { kind: "investigate", metric, dims: [], filters, time, top: null, compare };
@@ -190,7 +208,7 @@ const Abacus = (() => {
     const filters = [];
     for (const [dim, vals] of Object.entries(MAN.values)) {
       for (const v of vals) {
-        if (new RegExp(`(?<![a-z])${esc(v.toLowerCase())}(?![a-z])`).test(qd)) {
+        if (new RegExp(`(?<![a-z])${esc(String(v).toLowerCase())}(?![a-z])`).test(qd)) {
           if (!dims.includes(dim)) filters.push({ dim, value: v });
         }
       }
@@ -200,22 +218,22 @@ const Abacus = (() => {
     const tm2 = qd.match(/\btop\s+(\d+)\b/);
     if (tm2) {
       top = +tm2[1];
-      if (!dims.length) dims.push("product");
+      if (!dims.length) {
+        const defaultTopDim = Object.entries(MAN.dimensions)
+          .find(([, spec]) => spec.top_default)?.[0];
+        if (defaultTopDim) dims.push(defaultTopDim);
+      }
     }
     if (dims.length > 2) dims.length = 2;
     if (compare && dims.length) compare = null;
     const plan = { kind: "aggregate", metric, dims, filters, time, top, compare };
-    if (plan.dims.includes("product") && plan.dims.length > 1)
-      throw new Error("product cannot be combined with another dimension");
+    if (!dimensionCombinationAllowed(plan.dims))
+      throw new Error("that dimension must be grouped on its own");
 
     return plan;
   }
 
   /* ---------------- compiler (mirrors semantics.py) ---------------- */
-  const BASE = "FROM fact_order_items i JOIN fact_orders o ON i.order_id = o.order_id";
-  const JOINS = { p: "JOIN dim_product p ON i.product_id = p.product_id",
-                  c: "JOIN dim_customer c ON o.customer_id = c.customer_id" };
-
   function sqlLiteral(value) {
     if ((typeof value !== "string" && typeof value !== "number") ||
         (typeof value === "number" && !Number.isFinite(value)))
@@ -223,11 +241,22 @@ const Abacus = (() => {
     return `'${String(value).replaceAll("'", "''")}'`;
   }
 
+  function dimensionCombinationAllowed(dims) {
+    const exclusive = new Set(RUNTIME.exclusiveDimensions || []);
+    return dims.length < 2 || !dims.some((dim) => exclusive.has(dim));
+  }
+
+  function joinsFor(chunks) {
+    return Object.entries(RUNTIME.joins || {})
+      .filter(([alias]) => chunks.some((chunk) => chunk && chunk.includes(alias + ".")))
+      .map(([, sql]) => " " + sql).join("");
+  }
+
   function compilePlan(plan) {
     const metric = MAN.metrics[plan.metric];
     if (!metric) throw new Error("unknown metric: " + plan.metric);
-    if ((plan.dims || []).includes("product") && plan.dims.length > 1)
-      throw new Error("product cannot be combined with another dimension");
+    if (!dimensionCombinationAllowed(plan.dims || []))
+      throw new Error("that dimension must be grouped on its own");
     const dims = (plan.dims || []).map((d) => {
       if (!MAN.dimensions[d]) throw new Error("unknown dimension: " + d);
       return MAN.dimensions[d];
@@ -248,14 +277,17 @@ const Abacus = (() => {
     }
     const fsqls = [...groupedFilters].map(([dim, values]) =>
       `${MAN.dimensions[dim].sql} IN (${values.map(sqlLiteral).join(", ")})`);
-    const fAll = plan.metric === "new_customers" ? [...fsqls, "c.customer_id IS NOT NULL"] : fsqls;
+    const metricFilter = (RUNTIME.metricFilters || {})[plan.metric];
+    const fAll = metricFilter ? [...fsqls, metricFilter] : fsqls;
     const chunks = [msql, ...dsqls, ...fsqls];
-    const joins = ["p", "c"].filter((a) => chunks.some((ch) => ch && ch.includes(a + ".")))
-      .map((a) => " " + JOINS[a]).join("");
+    const joins = joinsFor(chunks);
     const sel = dims.map((d, i) => `${d.sql} AS ${plan.dims[i]}`);
     sel.push(`${msql} AS value`);
-    const where = [`o.order_date >= '${start}'`, `o.order_date <= '${end}'`, ...fAll];
-    let sql = `SELECT ${sel.join(", ")}\n${BASE}${joins}\nWHERE ${where.join(" AND ")}`;
+    const where = RUNTIME.timeSql
+      ? [`${RUNTIME.timeSql} >= '${start}'`, `${RUNTIME.timeSql} <= '${end}'`, ...fAll]
+      : [...fAll];
+    let sql = `SELECT ${sel.join(", ")}\n${RUNTIME.base}${joins}`;
+    if (where.length) sql += `\nWHERE ${where.join(" AND ")}`;
     if (dims.length) {
       sql += `\nGROUP BY ${dims.map((_, i) => i + 1).join(", ")}`;
       sql += dims.some((d) => d.time) ? "\nORDER BY 1" : "\nORDER BY value DESC";
@@ -301,6 +333,8 @@ const Abacus = (() => {
     }
     if (kind === "money2") return "$" + nf(v, 2, 2);
     if (kind === "pct") return nf(v, 1, 1) + "%";
+    if (kind === "num2") return nf(v, 2, 2);
+    if (kind === "num") return nf(v, 0, 2);
     return nf(v, 0, 0);
   }
 
@@ -329,7 +363,7 @@ const Abacus = (() => {
       const total = vals.reduce((a, b) => a + b, 0);
       const peak = rows.reduce((a, b) => (last(a) || 0) >= (last(b) || 0) ? a : b);
       const chg = rows[0] && last(rows[0]) ? 100 * (last(rows[rows.length - 1]) - last(rows[0])) / Math.abs(last(rows[0])) : 0;
-      const isSum = kind === "money" || kind === "int";
+      const isSum = m.additive !== undefined ? m.additive : kind === "money" || kind === "int";
       const agg = isSum ? fmt(total, kind) : fmt(total / vals.length, kind);
       return `${label}${where} by ${dim0}, ${t}: ${isSum ? "total" : "average"} ${agg} across ${rows.length} ${dim0}s — peak ${peak[0]} at ${fmt(last(peak), kind)}, ${chg >= 0 ? "+" : ""}${nf(chg, 1, 1)}% first-to-last.`;
     }
@@ -339,7 +373,7 @@ const Abacus = (() => {
       const tail = rows[rows.length - 1];
       line += `; ${tail[0]} trails at ${fmt(last(tail), kind)}`;
     }
-    if (kind === "money" || kind === "int") {
+    if (m.additive !== false && (m.additive === true || kind === "money" || kind === "int")) {
       const total = rows.map(last).filter((v) => v !== null).reduce((a, b) => a + b, 0);
       if (total) line += ` (${Math.round(100 * last(top) / total)}% of the shown total)`;
     }
@@ -370,8 +404,8 @@ Question: ${question}`;
     if (dims.length > 2) throw new Error("model returned more than two dimensions");
     for (const d of dims)
       if (!MAN.dimensions[d]) throw new Error(`model picked unknown dimension "${d}"`);
-    if (dims.includes("product") && dims.length > 1)
-      throw new Error("product cannot be combined with another dimension");
+    if (!dimensionCombinationAllowed(dims))
+      throw new Error("that dimension must be grouped on its own");
     if (obj.filters !== undefined && obj.filters !== null && !Array.isArray(obj.filters))
       throw new Error("model returned invalid filters");
     const filters = obj.filters ?? [];
@@ -381,6 +415,7 @@ Question: ${question}`;
     const phrase = `${obj.time_phrase || "all time"} ${obj.compare_phrase || ""}`.toLowerCase();
     const [time, compare0] = parseTime(phrase);
     let compare = compare0;
+    if (!RUNTIME.timeSql) compare = null;
     if (compare && dims.length) compare = null;
     if (obj.top !== null && obj.top !== undefined &&
         (!Number.isInteger(obj.top) || obj.top <= 0 || obj.top > 50))
@@ -435,13 +470,35 @@ Question: ${question}`;
       paths.dbData ? Promise.resolve(paths.dbData)
                    : fetch(paths.db).then((r) => r.arrayBuffer()),
     ]);
-    MAN = manRes;
-    DB = new SQL.Database(new Uint8Array(dbRes));
+    SQLMOD = SQL;
+    mount({ manifest: manRes, dbData: dbRes });
     return { manifest: MAN };
   }
 
+  function openDatabase(dbData) {
+    if (!SQLMOD) throw new Error("sql.js is not ready");
+    return new SQLMOD.Database(new Uint8Array(dbData));
+  }
+
+  function createDatabase() {
+    if (!SQLMOD) throw new Error("sql.js is not ready");
+    return new SQLMOD.Database();
+  }
+
+  function mount({ manifest, db, dbData, runtime = {} }) {
+    if (!manifest || !manifest.metrics || !manifest.dimensions || !manifest.values || !manifest.stats)
+      throw new Error("manifest is missing required sections");
+    if (!db && dbData === undefined) throw new Error("mount needs a database");
+    const next = db || openDatabase(dbData);
+    if (DB && DB !== next) DB.close();
+    MAN = manifest;
+    DB = next;
+    RUNTIME = { ...DEFAULT_RUNTIME, ...(manifest.source || {}), ...runtime };
+    if (!RUNTIME.base) { DB.close(); DB = null; throw new Error("manifest source is missing its base query"); }
+    return { manifest: MAN, runtime: RUNTIME };
+  }
+
   /* ============ the analyst brain (mirrors abacus/analyst.py) ============ */
-  const LEGACY_DRIVER_DIMS = ["category", "region", "channel", "segment"];
   const lastCell = (r) => r[r.length - 1];
 
   function totalOf(metric, time, filters) {
@@ -470,14 +527,8 @@ Question: ${question}`;
 
   function eligibleDimensions(metric, ratio) {
     const dims = Object.keys(MAN.dimensions);
-    const sql = ratio ? ratio.denominator : MAN.metrics[metric].sql;
-    if (/COUNT\s*\(\s*DISTINCT\s+i\.order_id/i.test(sql))
-      return dims.filter((d) => d !== "category" && d !== "product");
-    if (/COUNT\s*\(\s*DISTINCT\s+o\.customer_id/i.test(sql))
-      return dims.filter((d) => d === "region" || d === "segment");
-    if (/COUNT\s*\(\s*DISTINCT\s+CASE\b/i.test(sql))
-      return dims.filter((d) => d !== "category" && d !== "product");
-    return dims;
+    const declared = MAN.metrics[metric].driver_dimensions || (RUNTIME.driverDimensions || {})[metric];
+    return Array.isArray(declared) ? dims.filter((d) => declared.includes(d)) : dims;
   }
 
   function compileParts(dim, time, filters, parts) {
@@ -492,11 +543,12 @@ Question: ${question}`;
     const fsqls = [...groupedFilters].map(([key, values]) =>
       `${MAN.dimensions[key].sql} IN (${values.map(sqlLiteral).join(", ")})`);
     const chunks = [d.sql, parts.numerator, parts.denominator, ...fsqls];
-    const joins = ["p", "c"].filter((a) => chunks.some((ch) => ch && ch.includes(a + ".")))
-      .map((a) => " " + JOINS[a]).join("");
-    const where = [`o.order_date >= '${time.start}'`, `o.order_date <= '${time.end}'`, ...fsqls];
+    const joins = joinsFor(chunks);
+    const where = RUNTIME.timeSql
+      ? [`${RUNTIME.timeSql} >= '${time.start}'`, `${RUNTIME.timeSql} <= '${time.end}'`, ...fsqls]
+      : [...fsqls];
     return `SELECT ${d.sql} AS member, ${parts.numerator} AS numerator, ${parts.denominator} AS denominator\n` +
-      `${BASE}${joins}\nWHERE ${where.join(" AND ")}\nGROUP BY 1`;
+      `${RUNTIME.base}${joins}${where.length ? `\nWHERE ${where.join(" AND ")}` : ""}\nGROUP BY 1`;
   }
 
   function partsByDim(dim, time, filters, parts) {
@@ -597,16 +649,22 @@ Question: ${question}`;
       ({ dim: winner, value: row.value, delta: row.delta })) : [];
 
     const legacyDrivers = [];
-    for (const dim of LEGACY_DRIVER_DIMS) {
+    const markedLegacy = Object.entries(MAN.dimensions)
+      .filter(([, spec]) => spec.legacy_driver === true).map(([dim]) => dim);
+    const legacyDims = (RUNTIME.legacyDimensions || markedLegacy).length
+      ? (RUNTIME.legacyDimensions || markedLegacy)
+      : Object.entries(MAN.dimensions).filter(([, spec]) => !spec.time).map(([dim]) => dim);
+    for (const dim of legacyDims) {
       for (const row of by_dim[dim] || [])
         legacyDrivers.push({ dim, value: row.value, delta: row.cur - row.prior });
     }
     legacyDrivers.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
     let vol_price = null;
-    if (metric === "revenue") {
-      const o1 = totalOf("orders", curT, filters); queries++;
-      const o0 = totalOf("orders", priT, filters); queries++;
+    const volumeMetric = MAN.metrics[metric].volume_metric || (RUNTIME.volumeMetrics || {})[metric];
+    if (volumeMetric && MAN.metrics[volumeMetric]) {
+      const o1 = totalOf(volumeMetric, curT, filters); queries++;
+      const o0 = totalOf(volumeMetric, priT, filters); queries++;
       const a1 = o1 ? cur / o1 : 0, a0 = o0 ? pri / o0 : 0;
       const vol = (o1 - o0) * a0, price = o0 * (a1 - a0);
       vol_price = { orders_cur: o1, orders_prior: o0, aov_cur: a1, aov_prior: a0,
@@ -647,8 +705,10 @@ Question: ${question}`;
   }
 
   function retention(time) {
-    const firsts = exec(`SELECT customer_id, first_order_date FROM dim_customer WHERE first_order_date >= '${time.start}' AND first_order_date <= '${time.end}'`).rows;
-    const active = exec(`SELECT DISTINCT customer_id, CAST(strftime('%Y', order_date) AS INTEGER) * 4 + (CAST(strftime('%m', order_date) AS INTEGER) + 2) / 3 - 1 FROM fact_orders WHERE order_date >= '${time.start}' AND order_date <= '${time.end}'`).rows;
+    if (!RUNTIME.retention) throw new Error("retention needs the bundled customer history");
+    const fill = (sql) => sql.replaceAll("{start}", time.start).replaceAll("{end}", time.end);
+    const firsts = exec(fill(RUNTIME.retention.firsts)).rows;
+    const active = exec(fill(RUNTIME.retention.activity)).rows;
     const qidx = (d) => (+d.slice(0, 4)) * 4 + Math.floor((+d.slice(5, 7) + 2) / 3) - 1;
     const qlabel = (i) => `${Math.floor(i / 4)}-Q${i % 4 + 1}`;
     const cohorts = new Map();
@@ -687,15 +747,16 @@ Question: ${question}`;
     return `Behavioral cohorts (quarter of first purchase): next-quarter retention averages ${Math.round(q1.reduce((a, b) => a + b, 0) / q1.length)}% across ${rows.length} cohorts — best ${best.cohort} at ${Math.round(best.cells[1])}%, softest ${worst.cohort} at ${Math.round(worst.cells[1])}%. Every row starts at 100% by construction (the first purchase defines the cohort).`;
   }
 
-  const WATCHLIST = [["revenue", null], ["revenue", "category"], ["revenue", "channel"],
-                     ["aov", null], ["return_rate", null], ["discount_rate", null],
-                     ["new_customers", null]];
-
   function anomalyScan(time, zFloor = 2.0) {
+    if (!RUNTIME.timeSql) throw new Error("anomaly scans need a mounted time column");
     const flags = [];
     let queries = 0;
-    for (const [metric, dim] of WATCHLIST) {
-      const dims = dim ? ["month", dim] : ["month"];
+    const watchlist = (RUNTIME.watchlist || Object.keys(MAN.metrics).slice(0, 7).map((metric) => [metric, null]))
+      .filter(([metric, dim]) => MAN.metrics[metric] && (!dim || MAN.dimensions[dim]));
+    for (const [metric, dim] of watchlist) {
+      const monthDimension = RUNTIME.monthDimension || "month";
+      if (!MAN.dimensions[monthDimension]) throw new Error("anomaly scans need a monthly time dimension");
+      const dims = dim ? [monthDimension, dim] : [monthDimension];
       const rows = runPlan({ metric, dims, filters: [], time, top: null }).rows; queries++;
       const series = new Map();
       for (const r of rows) {
@@ -800,8 +861,8 @@ Question: ${question}`;
     return mode === "yoy" ? shiftYear(time) : prevPeriod(time);
   }
 
-  return { init, parse, compilePlan, runPlan, runAny, canonicalCheck, canonicalPlan, plansEqual,
+  return { init, mount, openDatabase, createDatabase, parse, compilePlan, runPlan, runAny, canonicalCheck, canonicalPlan, plansEqual,
            narrate, fmt, llmPlan, llmPrompt, timeFromPhrase, comparisonFor,
-           exec, get manifest() { return MAN; } };
+           exec, get manifest() { return MAN; }, get runtime() { return RUNTIME; } };
 })();
 window.Abacus = Abacus;

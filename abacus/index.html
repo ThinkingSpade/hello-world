@@ -754,6 +754,48 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   }
+  /* dataset onboarding */
+  #source-strip { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+  #source-strip .source-copy { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #source-strip .pbtn { min-height: 30px; min-width: 30px; padding: 5px 8px; font-size: 12px; box-shadow: 2px 2px 0 var(--pi-ink); }
+  #upload-panel { margin-bottom: 14px; box-shadow: 4px 4px 0 rgba(20,20,26,.12); }
+  #upload-panel .pwin-title { justify-content: flex-start; }
+  .byo-body { display: grid; grid-template-columns: minmax(250px, .72fr) minmax(280px, 1.28fr); gap: 12px; padding: 10px 12px; }
+  .dropzone { min-height: 74px; border: 2px dashed var(--pi-ink); background: var(--pi-paper); padding: 10px; display: flex; align-items: center; gap: 10px; }
+  #upload-panel.dragover .dropzone { background: var(--pi-accent-soft); box-shadow: inset 0 0 0 2px var(--pi-accent); }
+  .file-pick { position: relative; flex: none; overflow: hidden; }
+  .file-pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .drop-copy { font-size: 12px; color: var(--pi-muted); line-height: 1.35; }
+  .drop-copy b { display: block; color: var(--pi-ink); }
+  .local-note { font-size: 12px; color: var(--pi-muted); margin-top: 6px; }
+  .upload-work { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .upload-state { min-height: 20px; font-size: 12px; color: var(--pi-muted); }
+  .upload-state.ok { color: var(--pi-ok); }
+  .upload-state.err { color: var(--pi-err); font-weight: 700; }
+  .upload-progress { height: 8px; border: 1.5px solid var(--pi-ink); background: var(--pi-panel); margin-top: 5px; display: none; }
+  .upload-progress.show { display: block; }
+  .upload-progress i { display: block; width: 0; height: 100%; background: var(--pi-accent); transition: width .12s steps(4,end); }
+  .table-picker { display: none; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 7px; }
+  .table-picker.show { display: flex; }
+  .table-picker select, .role-select { font: inherit; font-size: 12px; color: var(--pi-ink); background: #fff; border: 2px solid var(--pi-ink); border-radius: 0; padding: 6px 8px; min-height: 36px; }
+  .mount-preview { display: none; grid-column: 1 / -1; border-top: 2px solid var(--pi-ink); padding-top: 10px; }
+  .mount-preview.show { display: block; }
+  .mount-head { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; font-size: 12px; color: var(--pi-muted); }
+  .mount-head b { color: var(--pi-ink); }
+  .mount-head .pbtn { margin-left: auto; }
+  #profile-table { width: 100%; }
+  #profile-table td:nth-child(4) { text-align: right; }
+  #profile-table td:nth-child(2) small { display: block; margin-top: 2px; color: var(--pi-muted); font-size: 11px; white-space: nowrap; }
+  #profile-table .samples { max-width: 360px; color: var(--pi-muted); overflow-wrap: anywhere; }
+  .time-note { display: none; font-size: 12px; color: var(--pi-warn); font-weight: 700; }
+  .time-note.show { display: inline; }
+  @media (max-width: 760px) {
+    .byo-body { grid-template-columns: 1fr; }
+    .mount-preview { grid-column: 1; }
+    .dropzone { align-items: flex-start; flex-direction: column; }
+    #source-strip { align-items: flex-start; }
+    #source-strip .source-copy { white-space: normal; }
+  }
 </style>
 </head>
 <body>
@@ -766,6 +808,40 @@
     <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
       <div id="loadtxt">fetching the warehouse…</div></div>
   </header>
+
+  <div class="pstrip" id="source-strip">
+    <span class="source-copy" id="source-copy"><b>DATA:</b> bundled warehouse · 126K ROWS</span>
+    <button class="pbtn" id="eject-data" type="button" hidden title="return to the bundled warehouse"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-rollback"/></svg>eject</button>
+  </div>
+
+  <section class="pwin" id="upload-panel">
+    <div class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>bring your own warehouse</div>
+    <div class="byo-body">
+      <div>
+        <div class="dropzone">
+          <label class="file-pick pbtn primary"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg>choose file
+            <input id="data-file" type="file" accept=".csv,.sqlite,.db,text/csv,application/vnd.sqlite3" aria-label="choose a CSV or SQLite file"></label>
+          <div class="drop-copy"><b>or drop .csv, .sqlite, .db here</b>25 MB · 300,000 rows max</div>
+        </div>
+        <div class="local-note">Your file stays in this browser.</div>
+      </div>
+      <div class="upload-work">
+        <div class="upload-state" id="upload-state" aria-live="polite">waiting for a file</div>
+        <div class="upload-progress" id="upload-progress"><i id="upload-progress-fill"></i></div>
+        <div class="table-picker" id="table-picker">
+          <label for="table-select">table</label><select id="table-select"></select>
+          <button class="pbtn" id="inspect-table" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"/></svg>inspect</button>
+        </div>
+      </div>
+      <div class="mount-preview" id="mount-preview">
+        <div class="mount-head"><b>mount preview</b><span id="mount-summary"></span>
+          <button class="pbtn primary" id="mount-data" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg>MOUNT</button></div>
+        <div class="ptable-wrap"><table class="ptable" id="profile-table">
+          <thead><tr><th>column</th><th>type</th><th>proposed role</th><th>distinct</th><th>sample values</th></tr></thead><tbody id="profile-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
 
   <div class="crew" id="crew"></div>
 
@@ -798,10 +874,11 @@
           <button class="toggle" id="cmp-prev">vs prev</button>
           <button class="toggle" id="cmp-yoy">vs last yr</button>
           <span class="cmpnote" id="cmp-note">comparisons are available for totals only</span>
+          <span class="time-note" id="time-note">no date column mounted — time features are off</span>
           <details class="filterbox" id="filterbox"><summary>＋ filter <span id="filtercount"></span></summary>
             <div id="stamps" class="stamps"></div></details></div>
         <div class="slotrow toprow" id="toprow"><span class="slotlab">top N</span>
-          <span class="stepper" id="topstep"><button id="top-dec">−</button><b id="top-val">10</b><button id="top-inc">+</button> products</span></div>
+          <span class="stepper" id="topstep"><button id="top-dec">−</button><b id="top-val">10</b><button id="top-inc">+</button> <span id="top-unit">members</span></span></div>
       </div>
       <div class="runwrap">
         <button id="lever" disabled aria-label="run the query">
@@ -862,7 +939,7 @@
    </div>
   </div><!-- /workbench -->
 
-  <details class="card pwin evalcard">
+  <details class="card pwin evalcard" id="evalcard">
     <summary class="pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg><b>Proof it's real</b> — replay the 35-question parity eval yourself</summary>
     <div class="pwin-body">
     <div style="font-size:12px;color:var(--dim);margin:.5rem 0">
@@ -875,12 +952,13 @@
 
   <footer>
     ABACUS · plan board → semantic layer → compiled SQL → chart, entirely client-side ·
-    Python twin + goldens on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/abacus" target="_blank" rel="noopener">the branch</a> ·
+    Python twin + goldens on <a href="https://github.com/ThinkingSpade/hello-world/tree/lab/abacus" target="_blank" rel="noopener">the branch</a> ·
     part of <a href="/">hnguyen.dev</a>
   </footer>
 </div>
 
 <script src="engine.js"></script>
+<script src="onboarding.js"></script>
 <script>
   "use strict";
   const $ = (id) => document.getElementById(id);
@@ -899,7 +977,7 @@
       idles: ["dusting the catalog", "re-filing 'revenue'", "stamping new cards"] },
     { id: "machinist", name: "The Machinist", role: "Runs the warehouse", ac: "#2547c9",
       tg: "keeps the flywheel spinning", style: "cap", chip: "0 QUERIES",
-      bubs: ["tk tk tk", "125k rows, no sweat", "full scan? fine.", "wasm hums tonight"],
+      bubs: ["tk tk tk", "rows on deck", "full scan? fine.", "wasm hums tonight"],
       idles: ["oiling the flywheel", "listening to the fans", "topping off the cache"] },
     { id: "illustrator", name: "The Illustrator", role: "Inks the answer", ac: "#2547c9",
       tg: "won't ship a chart with two y-axes", style: "beret", chip: "0 CHARTS",
@@ -1129,6 +1207,7 @@
   /* ---------------- the ask flow ---------------- */
   let busy = false, nQ = 0, nSql = 0, nCharts = 0, nDocket = 0;
   let currentSharedPlan = null, copyResetTimer = null;
+  let dataMode = "bundled", bundledWarehouse = null;
 
   function planSnapshot(plan) {
     const time = (value) => value ? {
@@ -1147,7 +1226,7 @@
 
   function persistPlan(plan) {
     currentSharedPlan = planSnapshot(plan);
-    const payload = encodeURIComponent(JSON.stringify({ v: 1, plan: currentSharedPlan }));
+    const payload = encodeURIComponent(JSON.stringify({ v: 2, source: dataMode, plan: currentSharedPlan }));
     try {
       history.replaceState(null, "", `${location.pathname}${location.search}#plan=${payload}`);
       $("copy-link").disabled = false;
@@ -1162,6 +1241,8 @@
     if (!location.hash.startsWith("#plan=")) return { plan: null, error: null };
     try {
       const decoded = JSON.parse(decodeURIComponent(location.hash.slice(6)));
+      if (decoded?.source === "uploaded" && dataMode !== "uploaded")
+        throw new Error("that plan used uploaded data, which is gone after reload — the bundled warehouse is ready instead");
       const raw = decoded?.plan || decoded;
       const man = Abacus.manifest;
       const kinds = new Set(["aggregate", "investigate", "retention", "anomalies"]);
@@ -1177,8 +1258,9 @@
       if (!Array.isArray(dims) || dims.length > 2 ||
           dims.some((d) => typeof d !== "string" || !Object.hasOwn(man.dimensions, d)))
         throw new Error("invalid dimensions in link");
-      if (dims.includes("product") && dims.length > 1)
-        throw new Error("product cannot be combined with another dimension");
+      const exclusive = new Set(Abacus.runtime.exclusiveDimensions || []);
+      if (dims.length > 1 && dims.some((dim) => exclusive.has(dim)))
+        throw new Error("a single-group dimension was combined in the link");
       const filters = raw.filters || [];
       if (!Array.isArray(filters) || filters.length > 32 || filters.some((f) => !f ||
           typeof f.dim !== "string" || !Object.hasOwn(man.dimensions, f.dim) ||
@@ -1540,7 +1622,7 @@
     const mLabel = { investigate: "running the decomposition",
                      retention: "walking every customer through the quarters",
                      anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
-    await think("machinist", [mLabel, 'planning the scan over 125k rows', 'wasm engine warm — executing']);
+    await think("machinist", [mLabel, `planning the scan over ${man.stats.rows_total.toLocaleString("en-US")} rows`, 'wasm engine warm — executing']);
     let result, story2;
     const tdb0 = performance.now();
     try {
@@ -1679,6 +1761,7 @@
     return Abacus.plansEqual(a, g);
   }
   async function runEval() {
+    if (dataMode !== "bundled") return;
     $("evalbtn").disabled = true;
     const goldens = await (await fetch("data/goldens.json")).json();
     setDesk("machinist", "agent working", `replaying all ${goldens.length} goldens<span class="dots"></span>`);
@@ -1713,23 +1796,43 @@
   }
 
   /* ================= THE PLAN BOARD ================= */
-  const TIME_PRESETS = ["last quarter", "this quarter", "q4 2025", "q3 2025",
+  const BUNDLED_TIME_PRESETS = ["last quarter", "this quarter", "q4 2025", "q3 2025",
     "q2 2025", "q1 2025", "2025", "2024", "ytd", "last 6 months",
     "june 2026", "may 2026", "all time"];
-  const METRIC_ICON = { money: "$", money2: "$", pct: "%", int: "#" };
+  const METRIC_ICON = { money: "$", money2: "$", pct: "%", int: "#", num: "#", num2: "#" };
   const board = { metric: null, dims: [], filters: [], timeIdx: 0,
                   timeOverride: null, compareOverride: null, compareMode: null, top: null };
   let boardLocked = false, userTouched = false;
 
   function markTouched() { userTouched = true; }
+  function timePresets() {
+    if (dataMode === "bundled") return BUNDLED_TIME_PRESETS;
+    if (!Abacus.runtime.timeSql) return ["all time"];
+    const today = Abacus.manifest.today;
+    const year = Number(today.slice(0, 4));
+    const month = Number(today.slice(5, 7));
+    const quarter = Math.floor((month + 2) / 3);
+    const quarters = [];
+    let y = year, q = quarter;
+    for (let index = 0; index < 4; index++) {
+      q--; if (!q) { q = 4; y--; }
+      quarters.push(`q${q} ${y}`);
+    }
+    const monthName = new Date(Date.UTC(year, month - 1, 1)).toLocaleString("en-US", { month: "long", timeZone: "UTC" }).toLowerCase();
+    return ["last quarter", "this quarter", ...quarters, String(year), String(year - 1),
+      "ytd", "last 6 months", `${monthName} ${year}`, "all time"];
+  }
   function prevPeriodOf(time) {
     return Abacus.comparisonFor(time, "prev");
   }
   function boardTime() {
-    return board.timeOverride || Abacus.timeFromPhrase(TIME_PRESETS[board.timeIdx]).time;
+    if (board.timeOverride) return board.timeOverride;
+    const presets = timePresets();
+    board.timeIdx = Math.min(board.timeIdx, presets.length - 1);
+    return Abacus.timeFromPhrase(presets[board.timeIdx]).time;
   }
   function compareAllowed() {
-    return board.dims.length === 0;
+    return !!Abacus.runtime.timeSql && board.dims.length === 0;
   }
   function currentCompare() {
     if (!board.compareMode || !compareAllowed()) return null;
@@ -1783,6 +1886,9 @@
     });
     // dial
     $("dial-win").textContent = boardTime().label;
+    const hasTime = !!Abacus.runtime.timeSql;
+    $("dial-prev").disabled = !hasTime;
+    $("dial-next").disabled = !hasTime;
     // compare toggles
     const allow = compareAllowed();
     for (const [id, mode] of [["cmp-prev", "prev"], ["cmp-yoy", "yoy"]]) {
@@ -1791,21 +1897,25 @@
       b.classList.toggle("dis", !allow);
       b.disabled = !allow;
     }
-    $("cmp-note").classList.toggle("show", !allow);
+    $("cmp-note").classList.toggle("show", hasTime && !allow);
+    $("time-note").classList.toggle("show", !hasTime);
     // stamps: grey a stamp whose dim is currently grouped
     let nFilters = 0;
     for (const el of document.querySelectorAll(".stamp")) {
       const grouped = board.dims.includes(el.dataset.dim);
-      const on = board.filters.some((f) => f.dim === el.dataset.dim && f.value === el.dataset.value);
+      const on = board.filters.some((f) => f.dim === el.dataset.dim && String(f.value) === el.dataset.value);
       el.classList.toggle("on", on && !grouped);
       el.style.opacity = grouped ? ".25" : "";
       if (on && !grouped) nFilters++;
     }
     $("filtercount").textContent = nFilters ? nFilters : "";
-    // top-N row only exists when products are on the board
-    const canTop = board.dims.includes("product");
+    // top-N appears for a single high-cardinality dimension.
+    const topDim = board.dims.length === 1 && man.dimensions[board.dims[0]].top_default
+      ? board.dims[0] : null;
+    const canTop = !!topDim;
     $("toprow").classList.toggle("show", canTop);
-    $("top-val").textContent = board.top || 10;
+    $("top-val").textContent = board.top || (topDim ? man.dimensions[topDim].top_default : 10);
+    $("top-unit").textContent = topDim ? man.dimensions[topDim].label : "members";
     // rack on-states
     for (const el of document.querySelectorAll("#rack-metrics .tok"))
       el.classList.toggle("on", el.dataset.metric === board.metric);
@@ -1820,7 +1930,9 @@
     const armed = !!board.metric && !boardLocked;
     $("lever").disabled = !armed;
     $("runhint").textContent = board.metric ? "pull the lever to compile & run" : "pick a measure to arm the lever";
-    $("rep-why").disabled = !armed;
+    $("rep-why").disabled = !armed || !hasTime;
+    $("rep-cohort").disabled = boardLocked || !Abacus.runtime.retention;
+    $("rep-anom").disabled = boardLocked || !hasTime;
     updatePreview();
     renderConsole();
     if (boardLocked) {
@@ -1869,6 +1981,7 @@
     $("feed").prepend(d);
   }
   function scheduleDefaultPlan() {
+    if (dataMode !== "bundled") return;
     currentSharedPlan = null;
     board.metric = null; board.dims = []; board.filters = []; board.timeIdx = 0;
     board.timeOverride = null; board.compareOverride = null; board.compareMode = null; board.top = null;
@@ -1879,7 +1992,7 @@
       board.metric = "revenue"; renderBoard();
       setTimeout(() => {
         if (userTouched || busy) return;
-        board.timeIdx = TIME_PRESETS.indexOf("q4 2025"); renderBoard();
+        board.timeIdx = BUNDLED_TIME_PRESETS.indexOf("q4 2025"); renderBoard();
         setTimeout(() => { if (!userTouched && !busy) { userTouched = false; runReport("why"); } }, 800);
       }, 700);
     }, 1500);
@@ -1933,12 +2046,13 @@
     const i = board.dims.indexOf(d);
     if (i >= 0) board.dims.splice(i, 1);
     else if (board.dims.length < 2) {
-      if ((d === "product" && board.dims.length) || board.dims.includes("product")) {
-        consoleErr("product can only be grouped on its own"); return;
+      const exclusive = new Set(Abacus.runtime.exclusiveDimensions || []);
+      if ((exclusive.has(d) && board.dims.length) || board.dims.some((dim) => exclusive.has(dim))) {
+        consoleErr("that dimension can only be grouped on its own"); return;
       }
       board.dims.push(d);
     }
-    if (!board.dims.includes("product")) board.top = null;
+    if (board.dims.length !== 1 || !Abacus.manifest.dimensions[board.dims[0]].top_default) board.top = null;
     renderBoard();
   }
   function toggleFilter(dim, value) {
@@ -1949,7 +2063,8 @@
   }
   function setTimeIdx(i) {
     markTouched(); board.timeOverride = null; board.compareOverride = null;
-    board.timeIdx = (i + TIME_PRESETS.length) % TIME_PRESETS.length; renderBoard();
+    const presets = timePresets();
+    board.timeIdx = (i + presets.length) % presets.length; renderBoard();
   }
   function setCompare(mode) {
     if (!compareAllowed()) return;
@@ -1973,8 +2088,9 @@
         .forEach((b) => { b.disabled = true; });
     }
     document.querySelectorAll(".report").forEach((b) => {
-      if (b.id === "rep-why") b.disabled = !on || !board.metric;
-      else b.disabled = !on;
+      if (b.id === "rep-why") b.disabled = !on || !board.metric || !Abacus.runtime.timeSql;
+      else if (b.id === "rep-cohort") b.disabled = !on || !Abacus.runtime.retention;
+      else b.disabled = !on || !Abacus.runtime.timeSql;
     });
   }
 
@@ -1982,16 +2098,18 @@
     if (busy) return;
     markTouched();
     if (which === "why") {
-      if (!board.metric) return;
+      if (!board.metric || !Abacus.runtime.timeSql) return;
       const time = boardTime(), compare = currentCompare() || prevPeriodOf(time);
       const plan = { kind: "investigate", metric: board.metric, dims: [],
                      filters: board.filters, time, top: null, compare };
       runPlanFlow(plan, `why did ${Abacus.manifest.metrics[board.metric].label.toLowerCase()} move, ${time.label}?`, "INVESTIGATE");
     } else if (which === "cohort") {
+      if (!Abacus.runtime.retention) { consoleErr("retention needs the bundled customer history"); return; }
       runPlanFlow({ kind: "retention", metric: null, dims: [], filters: [],
                     time: boardTime(), top: null, compare: null },
                   "retention by signup cohort", "RETENTION");
     } else if (which === "anom") {
+      if (!Abacus.runtime.timeSql) { consoleErr("anomaly scans need a mounted time column"); return; }
       const time = boardTime();
       runPlanFlow({ kind: "anomalies", metric: null, dims: [], filters: [],
                     time, top: null, compare: null },
@@ -2058,11 +2176,12 @@
     markTouched();
     if (type === "metric" && slotId === "slot-metric") { board.metric = key; }
     else if (type === "dim" && slotId !== "slot-metric") {
-      if ((key === "product" && board.dims.length) || board.dims.includes("product")) {
-        consoleErr("product can only be grouped on its own"); return;
+      const exclusive = new Set(Abacus.runtime.exclusiveDimensions || []);
+      if ((exclusive.has(key) && board.dims.length) || board.dims.some((dim) => exclusive.has(dim))) {
+        consoleErr("that dimension can only be grouped on its own"); return;
       }
       if (!board.dims.includes(key) && board.dims.length < 2) board.dims.push(key);
-      if (!board.dims.includes("product")) board.top = null;
+      if (board.dims.length !== 1 || !Abacus.manifest.dimensions[board.dims[0]].top_default) board.top = null;
     } else return;
     renderBoard();
   }
@@ -2094,8 +2213,8 @@
   $("dial-next").addEventListener("click", () => setTimeIdx(board.timeIdx + 1));
   $("cmp-prev").addEventListener("click", () => setCompare("prev"));
   $("cmp-yoy").addEventListener("click", () => setCompare("yoy"));
-  $("top-inc").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.min(20, (board.top || 10) + 5); renderBoard(); });
-  $("top-dec").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.max(5, (board.top || 10) - 5); renderBoard(); });
+  $("top-inc").addEventListener("click", () => { if (board.dims.length !== 1 || !Abacus.manifest.dimensions[board.dims[0]].top_default) return; markTouched(); board.top = Math.min(50, (board.top || Abacus.manifest.dimensions[board.dims[0]].top_default) + 5); renderBoard(); });
+  $("top-dec").addEventListener("click", () => { if (board.dims.length !== 1 || !Abacus.manifest.dimensions[board.dims[0]].top_default) return; markTouched(); board.top = Math.max(5, (board.top || Abacus.manifest.dimensions[board.dims[0]].top_default) - 5); renderBoard(); });
   $("lever").addEventListener("click", () => {
     if (boardLocked || !board.metric) return;
     markTouched();
@@ -2171,6 +2290,317 @@
   $("copy-link").addEventListener("click", copyCurrentLink);
   $("evalbtn").addEventListener("click", runEval);
 
+  /* ---------------- bring your own warehouse ---------------- */
+  let uploadDraft = null, uploadBusy = false;
+  const roleOptions = ["measure", "dimension", "time", "excluded"];
+
+  function uploadState(message, tone = "", progress = null) {
+    $("upload-state").textContent = message;
+    $("upload-state").className = `upload-state${tone ? " " + tone : ""}`;
+    $("upload-progress").classList.toggle("show", progress !== null);
+    if (progress !== null) $("upload-progress-fill").style.width = `${Math.max(0, Math.min(100, progress))}%`;
+  }
+
+  function closeDraft() {
+    if (uploadDraft?.db) uploadDraft.db.close();
+    uploadDraft = null;
+    $("table-picker").classList.remove("show");
+    $("mount-preview").classList.remove("show");
+    $("profile-body").replaceChildren();
+  }
+
+  function formatProfileValue(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    const text = String(value);
+    return text.length > 42 ? text.slice(0, 41) + "…" : text;
+  }
+
+  function renderProfileRoles() {
+    if (!uploadDraft?.profiles) return;
+    const body = $("profile-body");
+    body.replaceChildren();
+    for (const [index, profile] of uploadDraft.profiles.entries()) {
+      const row = document.createElement("tr");
+      const select = document.createElement("select");
+      select.className = "role-select";
+      select.dataset.profileIndex = index;
+      select.setAttribute("aria-label", `role for ${profile.name}`);
+      for (const role of roleOptions) {
+        const option = document.createElement("option");
+        option.value = role;
+        option.textContent = role + (role === profile.proposedRole ? " · proposed" : "");
+        option.selected = role === profile.role;
+        select.appendChild(option);
+      }
+      const name = document.createElement("td"); name.textContent = profile.name;
+      const type = document.createElement("td");
+      const nullPct = (100 * profile.nullShare).toFixed(profile.nullShare && profile.nullShare < .01 ? 1 : 0);
+      type.innerHTML = `<b>${escH(profile.type === "DATE" ? "DATE · TEXT" : profile.type)}</b><small>${nullPct}% null · min ${escH(formatProfileValue(profile.min))} · max ${escH(formatProfileValue(profile.max))}</small>`;
+      const role = document.createElement("td"); role.appendChild(select);
+      const distinct = document.createElement("td"); distinct.textContent = profile.distinct.toLocaleString("en-US");
+      const samples = document.createElement("td"); samples.className = "samples";
+      samples.textContent = profile.samples.length ? profile.samples.join(" · ") : "—";
+      row.append(name, type, role, distinct, samples);
+      body.appendChild(row);
+    }
+  }
+
+  function showMountPreview() {
+    const draft = uploadDraft;
+    if (!draft?.profiles) return;
+    const numeric = draft.profiles.filter((profile) => profile.type === "INTEGER" || profile.type === "REAL");
+    if (!numeric.length) throw new Error("nothing to measure");
+    renderProfileRoles();
+    updateMountSummary();
+    $("mount-preview").classList.add("show");
+    uploadState("profile ready — check the roles, then mount", "ok");
+  }
+
+  function updateMountSummary() {
+    const draft = uploadDraft;
+    if (!draft?.profiles) return;
+    const time = draft.profiles.find((profile) => profile.role === "time");
+    $("mount-summary").textContent = `${draft.rowCount.toLocaleString("en-US")} rows · ${draft.profiles.length} columns${time ? ` · time: ${time.name}` : " · no date detected"}`;
+  }
+
+  async function inspectSqliteTable() {
+    if (!uploadDraft?.db || uploadBusy) return;
+    uploadBusy = true;
+    $("inspect-table").disabled = true;
+    try {
+      const table = $("table-select").value;
+      uploadState(`profiling ${table}…`, "", 8);
+      const profiled = await AbacusOnboarding.profileTable(uploadDraft.db, table, ({ column, columns, rows }) => {
+        uploadState(`profiling ${column}/${columns} columns · ${rows.toLocaleString("en-US")} rows`, "", 8 + 82 * column / columns);
+      });
+      uploadDraft.table = table;
+      uploadDraft.rowCount = profiled.rowCount;
+      uploadDraft.profiles = profiled.profiles;
+      showMountPreview();
+    } catch (error) {
+      $("mount-preview").classList.remove("show");
+      uploadState(error.message, "err");
+    } finally {
+      uploadBusy = false;
+      $("inspect-table").disabled = false;
+    }
+  }
+
+  async function receiveDataFile(file) {
+    if (!file || uploadBusy) return;
+    if (busy || llmPending) { uploadState("finish the running query first", "err"); return; }
+    userTouched = true;
+    closeDraft();
+    $("data-file").value = "";
+    const extension = (file.name.match(/\.[^.]+$/)?.[0] || "").toLowerCase();
+    if (![".csv", ".sqlite", ".db"].includes(extension)) {
+      uploadState("unparseable file — use .csv, .sqlite, or .db", "err"); return;
+    }
+    if (!file.size) { uploadState("empty file", "err"); return; }
+    if (file.size > AbacusOnboarding.MAX_BYTES) { uploadState("file exceeds the 25 MB cap", "err"); return; }
+    uploadBusy = true;
+    try {
+      if (extension === ".csv") {
+        uploadState("parsing 0 rows…", "", 0);
+        const parsed = await AbacusOnboarding.parseCsvFile(file, ({ bytes, total, rows }) => {
+          uploadState(`parsing ${rows.toLocaleString("en-US")} rows…`, "", total ? 80 * bytes / total : 0);
+        });
+        if (parsed.errors.length) throw new Error(AbacusOnboarding.csvErrorMessage(parsed.errors));
+        uploadState(`profiling ${parsed.rows.length.toLocaleString("en-US")} rows…`, "", 86);
+        const profiles = AbacusOnboarding.profileRows(parsed.headers, parsed.rows);
+        uploadDraft = { kind: "csv", file, headers: parsed.headers, rows: parsed.rows,
+          profiles, rowCount: parsed.rows.length, table: "uploaded", db: null };
+        showMountPreview();
+      } else {
+        uploadState("opening SQLite…", "", 18);
+        const buffer = await file.arrayBuffer();
+        let db;
+        try {
+          db = Abacus.openDatabase(buffer);
+          const tables = AbacusOnboarding.userTables(db);
+          if (!tables.length) throw new Error("SQLite file has no user tables");
+          uploadDraft = { kind: "sqlite", file, db, tables, profiles: null, rowCount: 0, table: null };
+          const select = $("table-select"); select.replaceChildren();
+          for (const table of tables) {
+            const option = document.createElement("option"); option.value = table; option.textContent = table;
+            select.appendChild(option);
+          }
+          if (tables.length > 1) {
+            $("table-picker").classList.add("show");
+            uploadState(`${tables.length} tables found — pick one`, "ok");
+          } else {
+            $("table-picker").classList.remove("show");
+            uploadBusy = false;
+            await inspectSqliteTable();
+          }
+        } catch (error) {
+          if (db && db !== uploadDraft?.db) db.close();
+          throw error;
+        }
+      }
+    } catch (error) {
+      closeDraft();
+      const message = /file is not a database|malformed|out of memory/i.test(error.message)
+        ? "unparseable SQLite file" : error.message;
+      uploadState(message, "err");
+    } finally {
+      uploadBusy = false;
+    }
+  }
+
+  function resetWorkspace(manifest) {
+    currentSharedPlan = null;
+    board.metric = null; board.dims = []; board.filters = []; board.timeIdx = 0;
+    board.timeOverride = null; board.compareOverride = null; board.compareMode = null; board.top = null;
+    userTouched = true;
+    nQ = 0; nSql = 0; nCharts = 0; nDocket = 0;
+    chip("analyst", "0 QUESTIONS"); chip("machinist", "0 QUERIES"); chip("illustrator", "0 CHARTS");
+    chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
+    $("feed").innerHTML = '<div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div>';
+    $("evalout").replaceChildren();
+    $("copy-link").disabled = true;
+    setCopyState("no saved plan");
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (_) { /* no-op */ }
+    buildRacks(manifest);
+    renderBoard();
+  }
+
+  function setSourceMode(mode, meta = {}) {
+    dataMode = mode;
+    const rows = Abacus.manifest.stats.rows_total;
+    if (mode === "uploaded") {
+      $("source-copy").innerHTML = `<b>DATA:</b> ${escH(meta.name)} · ${rows.toLocaleString("en-US")} ROWS · ${meta.columns} COLS`;
+      $("eject-data").hidden = false;
+      $("evalcard").hidden = true;
+      $("hdr-rows").textContent = rows.toLocaleString("en-US");
+      const hasTime = !!Abacus.runtime.timeSql;
+      $("rep-cohort").querySelector(".rd").textContent = "bundled customer history only";
+      $("rep-anom").querySelector(".rd").textContent = hasTime ? "z-scores over the mounted calendar" : "needs a mounted date column";
+    } else {
+      $("source-copy").innerHTML = `<b>DATA:</b> bundled warehouse · ${(rows / 1000).toFixed(0)}K ROWS`;
+      $("eject-data").hidden = true;
+      $("evalcard").hidden = false;
+      $("evalbtn").disabled = false;
+      $("hdr-rows").textContent = (rows / 1000).toFixed(0) + "k";
+      $("rep-cohort").querySelector(".rd").textContent = "cohorts by first-purchase quarter";
+      $("rep-anom").querySelector(".rd").textContent = "z-scores over the window on the dial";
+    }
+  }
+
+  async function mountDraft() {
+    if (!uploadDraft?.profiles || uploadBusy || busy || llmPending) return;
+    uploadBusy = true;
+    $("mount-data").disabled = true;
+    try {
+      const roles = uploadDraft.profiles;
+      const timeProfiles = roles.filter((profile) => profile.role === "time");
+      if (timeProfiles.length > 1) throw new Error("pick one time column");
+      if (timeProfiles.length && timeProfiles[0].date.rate < .8)
+        throw new Error("time role needs a date-parsing column");
+      if (!roles.some((profile) => profile.role === "measure" && (profile.type === "INTEGER" || profile.type === "REAL")))
+        throw new Error("nothing to measure");
+      uploadState("mounting…", "", 4);
+      const generated = AbacusOnboarding.generateManifest({ profiles: roles,
+        rowCount: uploadDraft.rowCount, table: uploadDraft.table,
+        normalizedDates: uploadDraft.kind === "csv" });
+      let db = uploadDraft.db;
+      if (uploadDraft.kind === "csv") {
+        db = await AbacusOnboarding.createCsvDatabase(Abacus, uploadDraft.headers, uploadDraft.rows, roles,
+          ({ rows, total }) => uploadState(`mounting ${rows.toLocaleString("en-US")} / ${total.toLocaleString("en-US")} rows…`, "", 5 + 90 * rows / total));
+      }
+      const source = { name: uploadDraft.file.name, columns: roles.length };
+      Abacus.mount({ manifest: generated.manifest, db, runtime: generated.runtime });
+      uploadDraft.db = null;
+      dataMode = "uploaded";
+      resetWorkspace(generated.manifest);
+      setSourceMode("uploaded", source);
+      board.metric = Object.keys(generated.manifest.metrics)[0];
+      renderBoard();
+      $("mount-preview").classList.remove("show");
+      $("table-picker").classList.remove("show");
+      uploadDraft = null;
+      uploadState(`mounted ${source.name}`, "ok");
+      setDesk("analyst", "agent cheer", "your warehouse is mounted ✓");
+      setTimeout(() => setDesk("analyst", "agent", "ready — build a question on your data"), 1200);
+    } catch (error) {
+      uploadState(error.message, "err");
+    } finally {
+      uploadBusy = false;
+      $("mount-data").disabled = false;
+    }
+  }
+
+  async function ejectUpload() {
+    if (dataMode !== "uploaded" || uploadBusy || busy || llmPending || !bundledWarehouse) return;
+    uploadBusy = true;
+    $("eject-data").disabled = true;
+    try {
+      uploadState("returning to the bundled warehouse…", "", 35);
+      Abacus.mount({ manifest: bundledWarehouse.manifest, dbData: bundledWarehouse.dbData, runtime: {} });
+      dataMode = "bundled";
+      resetWorkspace(bundledWarehouse.manifest);
+      setSourceMode("bundled");
+      uploadState("waiting for a file");
+      userTouched = false;
+      scheduleDefaultPlan();
+    } catch (error) {
+      uploadState(`eject failed — ${error.message}`, "err");
+    } finally {
+      uploadBusy = false;
+      $("eject-data").disabled = false;
+    }
+  }
+
+  async function runBootAssertions() {
+    AbacusOnboarding.runPureAssertions();
+    await AbacusOnboarding.runEngineAssertions(Abacus);
+    Abacus.mount({ manifest: bundledWarehouse.manifest, dbData: bundledWarehouse.dbData, runtime: {} });
+    const goldens = await (await fetch("data/goldens.json")).json();
+    let passed = 0;
+    for (const golden of goldens) {
+      const plan = Abacus.parse(golden.q);
+      const check = Abacus.canonicalCheck(plan, Abacus.runAny(plan).result);
+      const same = Abacus.plansEqual(plan, golden.plan) && check.length === golden.rows.length && check.every((row, index) =>
+        row.every((cell, column) => typeof cell === "number" && typeof golden.rows[index][column] === "number"
+          ? close(cell, golden.rows[index][column]) : String(cell) === String(golden.rows[index][column])));
+      if (same) passed++;
+    }
+    if (passed !== goldens.length) throw new Error(`bundled golden assertion failed: ${passed}/${goldens.length}`);
+    console.info(`Abacus onboarding assertions ✓ parser · profiler · manifest · calendar · ${passed}/${goldens.length} goldens`);
+  }
+
+  $("profile-body").addEventListener("change", (event) => {
+    const select = event.target.closest(".role-select");
+    if (!select || !uploadDraft?.profiles) return;
+    const profile = uploadDraft.profiles[Number(select.dataset.profileIndex)];
+    profile.role = select.value;
+    if (profile.role === "time") {
+      for (const other of uploadDraft.profiles) {
+        if (other !== profile && other.role === "time") other.role = other.proposedRole === "time" ? "excluded" : other.proposedRole;
+      }
+      renderProfileRoles();
+    }
+    updateMountSummary();
+  });
+  $("data-file").addEventListener("change", (event) => receiveDataFile(event.target.files[0]));
+  $("inspect-table").addEventListener("click", inspectSqliteTable);
+  $("mount-data").addEventListener("click", mountDraft);
+  $("eject-data").addEventListener("click", ejectUpload);
+  for (const eventName of ["dragenter", "dragover"]) {
+    $("upload-panel").addEventListener(eventName, (event) => {
+      if (!event.dataTransfer?.types.includes("Files")) return;
+      event.preventDefault(); $("upload-panel").classList.add("dragover");
+    });
+  }
+  $("upload-panel").addEventListener("dragleave", (event) => {
+    if (!$("upload-panel").contains(event.relatedTarget)) $("upload-panel").classList.remove("dragover");
+  });
+  $("upload-panel").addEventListener("drop", (event) => {
+    if (!event.dataTransfer?.files.length) return;
+    event.preventDefault(); $("upload-panel").classList.remove("dragover");
+    receiveDataFile(event.dataTransfer.files[0]);
+  });
+
   /* ---------------- boot ---------------- */
   async function fetchWithProgress(url) {
     const r = await fetch(url);
@@ -2199,10 +2629,13 @@
       const { manifest } = await Abacus.init({
         vendor: "vendor/", manifest: "data/manifest.json", dbData });
       const ms = Math.round(performance.now() - t0);
-      $("loadtxt").textContent = `warehouse open — ${ms} ms`;
+      bundledWarehouse = { manifest, dbData };
+      $("loadtxt").textContent = "checking parser · profiler · compiler · 35 goldens…";
+      await runBootAssertions();
+      $("loadtxt").textContent = `warehouse open — ${ms} ms · assertions ✓`;
       setTimeout(() => $("loadwrap").classList.remove("show"), 900);
       const st = manifest.stats;
-      $("hdr-rows").textContent = (st.rows_total / 1000).toFixed(0) + "k";
+      setSourceMode("bundled");
       chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
       // the crew clocks in one by one
       const wake = [
