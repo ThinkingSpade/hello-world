@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Churn Radar — analytics & live scoring</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23b8463a'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #F7F5EF; --panel: #ffffff; --panel-2: #f1eee6; --line: #d9d4c8;
+    --text: #1c1a17; --dim: #5f5a51; --blue: #3f5aa0; --gold: #8f6f1d;
+    --green: #2f8a58; --coral: #b8463a; --violet: #6a47a0;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    min-height: 100vh; padding: 1.6rem 1rem 4rem;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: .4em; padding-left: .4em; }
+  h1 .dot { color: var(--coral); }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .25rem; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.15rem; box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
+  }
+  .card h2 {
+    font-size: .7rem; color: var(--dim); text-transform: uppercase;
+    letter-spacing: .11em; margin-bottom: .6rem;
+  }
+  /* filter bar */
+  .filterbar {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    margin-bottom: .9rem; min-height: 2rem;
+  }
+  .filterbar .lbl { font-size: .7rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .fchip {
+    font-size: .72rem; background: var(--blue); color: #fff; border: 0;
+    border-radius: 999px; padding: .22rem .7rem; cursor: pointer;
+  }
+  .fchip:after { content: " ✕"; opacity: .8; }
+  .fclear {
+    font: inherit; font-size: .7rem; color: var(--dim); background: none;
+    border: 1px solid var(--line); border-radius: 999px; padding: .2rem .7rem; cursor: pointer;
+  }
+  .fclear:hover { color: var(--coral); border-color: var(--coral); }
+  .hint { font-size: .7rem; color: var(--dim); }
+  /* KPI tiles */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-bottom: .8rem; }
+  @media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { border-top: 3px solid var(--blue); }
+  .kpi .num { font-size: 1.7rem; font-weight: 800; line-height: 1.15; }
+  .kpi .cap { font-size: .66rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .kpi .sub { font-size: .68rem; color: var(--dim); margin-top: .15rem; }
+  .kpi.rate { border-top-color: var(--coral); }
+  .kpi.money { border-top-color: var(--gold); }
+  .kpi.model { border-top-color: var(--green); }
+  /* chart grid */
+  .charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: .8rem; }
+  @media (max-width: 1000px) { .charts { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 680px) { .charts { grid-template-columns: 1fr; } }
+  .hrow { display: grid; grid-template-columns: 118px 1fr 74px; gap: .5rem; align-items: center; padding: .22rem 0; cursor: pointer; border-radius: 4px; }
+  .hrow:hover { background: var(--panel-2); }
+  .hrow .cat { font-size: .7rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hrow .track { height: 14px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+  .hrow .track i { display: block; height: 100%; background: var(--blue); border-radius: 3px 0 0 3px; transition: width .25s; }
+  .hrow .pct { font-size: .7rem; color: var(--text); font-weight: 700; text-align: right; white-space: nowrap; }
+  .hrow .pct small { color: var(--dim); font-weight: 400; }
+  .hrow.sel .track i { background: var(--coral); }
+  .hrow.dim2 { opacity: .45; }
+  .vchart { display: flex; align-items: flex-end; gap: .5rem; height: 128px; padding-top: .4rem; }
+  .vbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; height: 100%; }
+  .vbar i { width: 100%; background: var(--blue); border-radius: 3px 3px 0 0; transition: height .25s; }
+  .vbar.sel i { background: var(--coral); }
+  .vbar.dim2 { opacity: .45; }
+  .vbar .v { font-size: .64rem; font-weight: 700; margin-bottom: .15rem; }
+  .vbar .c { font-size: .6rem; color: var(--dim); margin-top: .25rem; text-align: center; }
+  .chart-note { font-size: .64rem; color: var(--dim); margin-top: .5rem; }
+  .mini-lbl { font-size: .62rem; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .1rem; }
+  .datalinks { font-size: .7rem; color: var(--dim); margin-top: .45rem; }
+  .kpis { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 1060px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+  .kpi.predicted { border-top-color: var(--violet); }
+  #km, #profit { width: 100%; height: auto; display: block; }
+  .dec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 860px) { .dec-grid { grid-template-columns: 1fr; } }
+  .dec-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: .7rem; }
+  .dec-out div { border: 1px solid var(--line); border-radius: 8px; padding: .45rem .6rem; background: var(--panel-2); }
+  .dec-out b { display: block; font-size: 1.05rem; }
+  .dec-out span { font-size: .6rem; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  .dec-net { color: var(--green); }
+  .dec-net.neg { color: var(--coral); }
+  .risk-table { border-collapse: collapse; width: 100%; font-size: .74rem; }
+  .risk-table th { background: var(--panel-2); text-transform: uppercase; font-size: .62rem; letter-spacing: .06em; text-align: left; }
+  .risk-table th, .risk-table td { border: 1px solid var(--line); padding: .3rem .55rem; }
+  .risk-table tr.r { cursor: pointer; }
+  .risk-table tr.r:hover td { background: var(--panel-2); }
+  .risk-table .p { font-weight: 700; }
+  .risk-table .p.high { color: var(--coral); }
+  .risk-table .why-cell { background: var(--panel-2); }
+  /* tooltip */
+  #tip {
+    position: fixed; display: none; z-index: 30; pointer-events: none;
+    background: var(--text); color: #fff; font-size: .7rem; line-height: 1.4;
+    padding: .4rem .6rem; border-radius: 6px; max-width: 240px;
+  }
+  /* scorer */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: .8rem; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  .presets { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .chip {
+    font-size: .72rem; color: var(--dim); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: .26rem .7rem; cursor: pointer;
+  }
+  .chip:hover { color: var(--blue); border-color: var(--blue); }
+  .ctl { margin-bottom: .65rem; }
+  .ctl label { display: block; font-size: .64rem; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .2rem; }
+  .ctl select, .ctl input[type=range] { width: 100%; font: inherit; }
+  .ctl select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: .3rem .5rem; font-size: .78rem; }
+  .ctl .val { color: var(--text); font-size: .74rem; font-weight: 700; }
+  input[type=range] { accent-color: var(--blue); }
+  .verdict { text-align: center; padding: .4rem 0 .9rem; }
+  .prob { font-size: 3rem; font-weight: 800; line-height: 1.1; }
+  .prob.low { color: var(--green); } .prob.mid { color: var(--gold); } .prob.high { color: var(--coral); }
+  .band { font-size: .74rem; color: var(--dim); }
+  .band b.low { color: var(--green); } .band b.mid { color: var(--gold); } .band b.high { color: var(--coral); }
+  .meter { height: 10px; border: 1px solid var(--line); border-radius: 999px; margin: .6rem auto 0; max-width: 400px; overflow: hidden; background: var(--panel-2); position: relative; }
+  .meter i { display: block; height: 100%; background: var(--coral); transition: width .25s; }
+  .meter .base { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--dim); }
+  .meter-label { font-size: .62rem; color: var(--dim); margin-top: .3rem; }
+  .crow { display: grid; grid-template-columns: 190px 1fr 56px; gap: .55rem; align-items: center; font-size: .72rem; padding: .16rem 0; }
+  .crow .name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cbar { position: relative; height: 12px; }
+  .cbar .zero { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line); }
+  .cbar i { position: absolute; top: 1px; height: 10px; border-radius: 3px; }
+  .crow .num { text-align: right; color: var(--dim); font-size: .68rem; }
+  .note { font-size: .68rem; color: var(--dim); margin-top: .7rem; line-height: 1.5; }
+  .model-card table { border-collapse: collapse; font-size: .74rem; width: 100%; }
+  .model-card td, .model-card th { border: 1px solid var(--line); padding: .3rem .55rem; text-align: left; }
+  .model-card th { background: var(--panel-2); font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; }
+  .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .6rem; }
+  @media (max-width: 860px) { .imgs { grid-template-columns: 1fr; } }
+  .imgs img { width: 100%; border: 1px solid var(--line); border-radius: 8px; }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  .mb { margin-bottom: .8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>CHURN RADAR<span class="dot">_</span></h1>
+    <p class="tagline">7,043 real telco customers · every tile computed live in your browser · click any bar to cross-filter</p>
+    <p class="datalinks">the real data:
+      <a href="data.csv" download>raw CSV (7,043 rows)</a> ·
+      <a href="rows.json">rows.json</a> ·
+      <a href="model.json">model.json</a> ·
+      <a href="https://github.com/IBM/telco-customer-churn-on-icp4d" target="_blank" rel="noopener">IBM source</a> ·
+      <a href="https://github.com/ThinkingSpade/hello-world/blob/claude/churn-radar/ANALYSIS.md" target="_blank" rel="noopener">full analysis ↗</a></p>
+  </header>
+
+  <div class="filterbar">
+    <span class="lbl">Filters</span>
+    <span id="active-filters"></span>
+    <button class="fclear hide" id="clear-filters" type="button">clear all</button>
+    <span class="hint" id="filter-hint">none — click any bar below to slice the data</span>
+  </div>
+
+  <div class="kpis">
+    <div class="card kpi"><div class="num" id="kpi-n">—</div><div class="cap">customers in view</div><div class="sub" id="kpi-n-sub"></div></div>
+    <div class="card kpi rate"><div class="num" id="kpi-rate">—</div><div class="cap">churn rate in view</div><div class="sub" id="kpi-rate-sub"></div></div>
+    <div class="card kpi money"><div class="num" id="kpi-mrr">—</div><div class="cap">monthly $ lost to churn</div><div class="sub">sum of churned customers' monthly charges</div></div>
+    <div class="card kpi predicted"><div class="num" id="kpi-par">—</div><div class="cap">predicted monthly $ at risk</div><div class="sub">Σ churn probability × monthly charges, in view</div></div>
+    <div class="card kpi model"><div class="num" id="kpi-auc">—</div><div class="cap">model AUC (held-out)</div><div class="sub">logistic regression — beats gradient boosting</div></div>
+  </div>
+
+  <div class="charts">
+    <section class="card"><h2>Churn rate by contract</h2><div id="ch-Contract"></div></section>
+    <section class="card"><h2>By internet service</h2><div id="ch-InternetService"></div></section>
+    <section class="card"><h2>By payment method</h2><div id="ch-PaymentMethod"></div></section>
+    <section class="card"><h2>By tenure (months)</h2><div class="vchart" id="ch-tenure"></div><div class="chart-note">new customers churn hardest — loyalty compounds</div></section>
+    <section class="card"><h2>By monthly charges</h2><div class="vchart" id="ch-charges"></div><div class="chart-note">expensive plans without long contracts are flight risks</div></section>
+    <section class="card"><h2>Small slicers</h2>
+      <div class="mini-lbl">tech support</div><div id="ch-TechSupport"></div>
+      <div class="mini-lbl" style="margin-top:.55rem">paperless billing</div><div id="ch-PaperlessBilling"></div>
+      <div class="mini-lbl" style="margin-top:.55rem">senior citizen</div><div id="ch-SeniorCitizen"></div></section>
+  </div>
+
+  <section class="card mb">
+    <h2>Retention over time — Kaplan-Meier survival by contract</h2>
+    <svg id="km" viewBox="0 0 720 240" role="img" aria-label="Kaplan-Meier retention curves by contract type"></svg>
+    <p class="chart-note" id="km-note">Tenure treated as time-to-event; active customers censored at current
+      tenure (this dataset is a snapshot — stated caveat, see the analysis). Curves respect every filter
+      except contract itself.</p>
+  </section>
+
+  <section class="card mb">
+    <h2>Intervention simulator — from probabilities to money</h2>
+    <div class="dec-grid">
+      <div>
+        <div class="ctl"><label>risk threshold — target customers above <span class="val" id="v-tau"></span></label>
+          <input type="range" id="in-tau" min="5" max="90" value="45"></div>
+        <div class="ctl"><label>cost per retention offer — <span class="val" id="v-cost"></span></label>
+          <input type="range" id="in-cost" min="5" max="150" step="5" value="40"></div>
+        <div class="ctl"><label>chance an offer saves a churner — <span class="val" id="v-save"></span></label>
+          <input type="range" id="in-save" min="5" max="60" step="5" value="30"></div>
+        <div class="ctl"><label>value horizon — <span class="val" id="v-hor"></span> of monthly charges</label>
+          <input type="range" id="in-hor" min="3" max="24" value="12"></div>
+        <p class="note">Expected net = save-rate × Σ pᵢ × horizon × chargesᵢ (targeted) − offer cost × targeted.
+          Probabilities are calibrated (see analysis), so this arithmetic is meaningful — and every assumption
+          is yours to move.</p>
+      </div>
+      <div>
+        <div class="dec-out">
+          <div><b id="d-net" class="dec-net">—</b><span>expected net over horizon</span></div>
+          <div><b id="d-n">—</b><span>customers targeted</span></div>
+          <div><b id="d-saves">—</b><span>expected saves</span></div>
+          <div><b id="d-cost">—</b><span>total offer cost</span></div>
+          <div><b id="d-prec">—</b><span>realized precision at τ</span></div>
+          <div><b id="d-rec">—</b><span>realized recall at τ</span></div>
+        </div>
+        <svg id="profit" viewBox="0 0 360 150" role="img" aria-label="Expected net vs threshold"></svg>
+        <p class="chart-note">expected net vs threshold — dot marks the optimum for current assumptions</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mb">
+    <h2>Top at-risk customers in view — who to call Monday morning</h2>
+    <table class="risk-table" id="risk-table"></table>
+    <p class="chart-note">Real customer IDs from the dataset, scored by the shipped model, respecting your
+      filters. Click a row for the model's reasoning.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>What-if scorer — the customer</h2>
+      <div class="presets" id="presets"></div>
+      <div id="controls"></div>
+      <p class="note" id="fixed-note"></p>
+    </section>
+    <section class="card">
+      <h2>The prediction</h2>
+      <div class="verdict">
+        <div class="prob" id="prob">—</div>
+        <div class="band" id="band"></div>
+        <div class="meter"><i id="meter-fill"></i><span class="base" id="meter-base"></span></div>
+        <div class="meter-label">marker = dataset base rate</div>
+      </div>
+      <h2>Why — top signals for this customer</h2>
+      <div id="contrib"></div>
+      <p class="note">Bars are each input's contribution to the log-odds:
+        <b style="color:var(--gold)">gold pushes toward churn</b>,
+        <b style="color:var(--blue)">blue pulls away</b> — the model's own
+        arithmetic, not a post-hoc explainer.</p>
+    </section>
+  </div>
+
+  <section class="card model-card mb">
+    <h2>Model card — honest numbers on held-out data</h2>
+    <table id="metrics-table"></table>
+    <p class="note">Plain logistic regression, shipped as coefficients
+      (<a href="model.json">model.json</a>) and scored in ~30 lines of JS.
+      Trained on the public IBM Telco dataset; 25% stratified hold-out;
+      TotalCharges dropped as collinear with tenure × monthly charges.</p>
+    <div class="imgs">
+      <img src="assets/roc.png" alt="ROC curves — logistic regression vs gradient boosting">
+      <img src="assets/top-drivers.png" alt="Top model drivers by log-odds">
+    </div>
+  </section>
+
+  <footer>churn radar · real data, real coefficients, no server — audit rows.json &amp; model.json</footer>
+</div>
+<div id="tip"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => n.toLocaleString();
+  const tip = $("tip");
+
+  /* ================= dashboard: real rows, cross-filtering ================= */
+  const DIMS = ["Contract", "InternetService", "PaymentMethod", "TechSupport", "PaperlessBilling", "SeniorCitizen"];
+  const TENURE_BUCKETS = [[0, 6, "0–6"], [7, 12, "7–12"], [13, 24, "13–24"], [25, 48, "25–48"], [49, 72, "49–72"]];
+  const CHARGE_BUCKETS = [[0, 35, "<$35"], [35, 60, "$35–60"], [60, 80, "$60–80"], [80, 100, "$80–100"], [100, 999, "$100+"]];
+  let ROWS = null;              // decoded columnar data
+  const filters = {};           // dim -> Set(values); tenure/charges -> Set(bucket idx)
+
+  function decode(raw) {
+    const n = raw.n, c = raw.cols;
+    const out = { n, ids: raw.ids, score: raw.score,
+                  tenure: c.tenure, charges: c.MonthlyCharges, churn: c.Churn, cats: {} };
+    for (const [name, col] of Object.entries(c)) {
+      if (col && col.codes) { out.cats[name] = col; if (DIMS.includes(name)) out[name] = col; }
+    }
+    return out;
+  }
+
+  // value of any model feature for row i (for per-customer explanations)
+  function featValue(i, name) {
+    if (name === "tenure") return ROWS.tenure[i];
+    if (name === "MonthlyCharges") return ROWS.charges[i];
+    const col = ROWS.cats[name];
+    return col.values[col.codes[i]];
+  }
+
+  function rowContribs(i) {
+    const out = [];
+    for (const f of MODEL.features) {
+      if (f.kind === "numeric") {
+        const v = featValue(i, f.name);
+        out.push([`${f.name} = ${v}`, f.coef * ((v - f.mean) / f.std)]);
+      } else {
+        const v = featValue(i, f.name);
+        const e = f.values.find((x) => x.value === v) || f.values[0];
+        out.push([`${f.name}: ${v}`, e.coef]);
+      }
+    }
+    return out.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  }
+
+  function inView(i) {
+    for (const [dim, set] of Object.entries(filters)) {
+      if (!set.size) continue;
+      if (dim === "tenure") {
+        const t = ROWS.tenure[i];
+        if (![...set].some((b) => t >= TENURE_BUCKETS[b][0] && t <= TENURE_BUCKETS[b][1])) return false;
+      } else if (dim === "charges") {
+        const v = ROWS.charges[i];
+        if (![...set].some((b) => v >= CHARGE_BUCKETS[b][0] && v < CHARGE_BUCKETS[b][1])) return false;
+      } else {
+        if (!set.has(ROWS[dim].codes[i])) return false;
+      }
+    }
+    return true;
+  }
+
+  function toggleFilter(dim, key) {
+    filters[dim] = filters[dim] || new Set();
+    if (filters[dim].has(key)) filters[dim].delete(key);
+    else filters[dim].add(key);
+    if (!filters[dim].size) delete filters[dim];
+    renderDash();
+  }
+
+  function showTip(ev, html) {
+    tip.innerHTML = html;
+    tip.style.display = "block";
+    tip.style.left = Math.min(ev.clientX + 14, window.innerWidth - 250) + "px";
+    tip.style.top = (ev.clientY + 14) + "px";
+  }
+  const hideTip = () => (tip.style.display = "none");
+
+  function hbarChart(container, dim) {
+    const box = $(container);
+    box.replaceChildren();
+    const { values, codes } = ROWS[dim];
+    const stats = values.map(() => [0, 0]);       // [churned, total]
+    for (let i = 0; i < ROWS.n; i++) {
+      if (!inView(i)) continue;
+      const s = stats[codes[i]];
+      s[1]++; s[0] += ROWS.churn[i];
+    }
+    const active = filters[dim];
+    values.forEach((v, vi) => {
+      const [ch, tot] = stats[vi];
+      const rate = tot ? ch / tot : 0;
+      const row = document.createElement("div");
+      row.className = "hrow" + (active ? (active.has(vi) ? " sel" : " dim2") : "");
+      const cat = document.createElement("span"); cat.className = "cat"; cat.textContent = v;
+      const track = document.createElement("div"); track.className = "track";
+      const fill = document.createElement("i"); fill.style.width = (rate * 100 * 1.6) + "%";
+      track.appendChild(fill);
+      const pct = document.createElement("span"); pct.className = "pct";
+      pct.innerHTML = `${(rate * 100).toFixed(0)}% <small>· ${fmt(tot)}</small>`;
+      row.append(cat, track, pct);
+      row.addEventListener("click", () => toggleFilter(dim, vi));
+      row.addEventListener("mousemove", (ev) =>
+        showTip(ev, `<b>${dim}: ${v}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view<br><i>click to ${active && active.has(vi) ? "remove" : "apply"} filter</i>`));
+      row.addEventListener("mouseleave", hideTip);
+      box.appendChild(row);
+    });
+  }
+
+  function vbarChart(container, dim, buckets, valueOf) {
+    const box = $(container);
+    box.replaceChildren();
+    const stats = buckets.map(() => [0, 0]);
+    for (let i = 0; i < ROWS.n; i++) {
+      if (!inView(i)) continue;
+      const v = valueOf(i);
+      const bi = buckets.findIndex(([lo, hi]) => v >= lo && (dim === "tenure" ? v <= hi : v < hi));
+      if (bi >= 0) { stats[bi][1]++; stats[bi][0] += ROWS.churn[i]; }
+    }
+    const active = filters[dim];
+    const maxRate = Math.max(...stats.map(([c, t]) => (t ? c / t : 0)), 0.01);
+    buckets.forEach(([lo, hi, label], bi) => {
+      const [ch, tot] = stats[bi];
+      const rate = tot ? ch / tot : 0;
+      const bar = document.createElement("div");
+      bar.className = "vbar" + (active ? (active.has(bi) ? " sel" : " dim2") : "");
+      const v = document.createElement("span"); v.className = "v"; v.textContent = (rate * 100).toFixed(0) + "%";
+      const fill = document.createElement("i"); fill.style.height = (rate / maxRate * 82) + "%";
+      const c = document.createElement("span"); c.className = "c"; c.textContent = label;
+      bar.append(v, fill, c);
+      bar.addEventListener("click", () => toggleFilter(dim, bi));
+      bar.addEventListener("mousemove", (ev) =>
+        showTip(ev, `<b>${label}</b><br>${(rate * 100).toFixed(1)}% churn · ${fmt(tot)} customers in view`));
+      bar.addEventListener("mouseleave", hideTip);
+      box.appendChild(bar);
+    });
+  }
+
+  let VIEW = [];
+  function renderDash() {
+    VIEW = [];
+    let n = 0, churned = 0, mrrLost = 0, predicted = 0;
+    for (let i = 0; i < ROWS.n; i++) {
+      if (!inView(i)) continue;
+      VIEW.push(i);
+      n++;
+      predicted += ROWS.score[i] * ROWS.charges[i];
+      if (ROWS.churn[i]) { churned++; mrrLost += ROWS.charges[i]; }
+    }
+    $("kpi-par").textContent = "$" + fmt(Math.round(predicted));
+    renderSurvival();
+    renderDecision();
+    renderRiskTable();
+    $("kpi-n").textContent = fmt(n);
+    $("kpi-n-sub").textContent = n === ROWS.n ? "the full dataset" : `of ${fmt(ROWS.n)} total`;
+    $("kpi-rate").textContent = n ? (churned / n * 100).toFixed(1) + "%" : "—";
+    $("kpi-rate-sub").textContent = `${fmt(churned)} churned · dataset base 26.5%`;
+    $("kpi-mrr").textContent = "$" + fmt(Math.round(mrrLost));
+    for (const d of ["Contract", "InternetService", "PaymentMethod", "TechSupport", "PaperlessBilling", "SeniorCitizen"])
+      hbarChart("ch-" + d, d);
+    vbarChart("ch-tenure", "tenure", TENURE_BUCKETS, (i) => ROWS.tenure[i]);
+    vbarChart("ch-charges", "charges", CHARGE_BUCKETS, (i) => ROWS.charges[i]);
+
+    // filter bar
+    const box = $("active-filters");
+    box.replaceChildren();
+    let any = false;
+    for (const [dim, set] of Object.entries(filters)) {
+      for (const key of set) {
+        any = true;
+        const label = dim === "tenure" ? `tenure ${TENURE_BUCKETS[key][2]}`
+          : dim === "charges" ? `charges ${CHARGE_BUCKETS[key][2]}`
+          : `${dim}: ${ROWS[dim].values[key]}`;
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "fchip"; b.textContent = label;
+        b.addEventListener("click", () => toggleFilter(dim, key));
+        box.appendChild(b);
+      }
+    }
+    $("clear-filters").classList.toggle("hide", !any);
+    $("filter-hint").style.display = any ? "none" : "";
+  }
+
+  $("clear-filters").addEventListener("click", () => {
+    for (const k of Object.keys(filters)) delete filters[k];
+    renderDash();
+  });
+
+  /* ================= Kaplan-Meier survival by contract ================= */
+  const KM_COLORS = ["#3f5aa0", "#8f6f1d", "#2f8a58"];
+
+  function kmCurve(indices) {
+    // events/at-risk per tenure month; S(t) = Π (1 - d_t / n_t)
+    const events = new Array(74).fill(0), present = new Array(74).fill(0);
+    for (const i of indices) {
+      const t = Math.min(ROWS.tenure[i], 72);
+      present[t]++;
+      if (ROWS.churn[i]) events[t]++;
+    }
+    let atRisk = indices.length, S = 1;
+    const pts = [[0, 1]];
+    for (let t = 0; t <= 72; t++) {
+      if (events[t] > 0 && atRisk > 0) {
+        S *= 1 - events[t] / atRisk;
+        pts.push([t, S]);
+      }
+      atRisk -= present[t];
+    }
+    return pts;
+  }
+
+  function renderSurvival() {
+    const svg = $("km");
+    const W = 720, H = 240, L = 46, B = 26, T = 10, R = 120;
+    const X = (t) => L + (t / 72) * (W - L - R);
+    const Y = (s) => T + (1 - s) * (H - T - B);
+    let out = "";
+    for (let g = 0; g <= 4; g++) {
+      const y = Y(g / 4);
+      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#d9d4c8" stroke-width="0.7"/>`;
+      out += `<text x="${L - 6}" y="${y + 3}" font-size="9" fill="#5f5a51" text-anchor="end">${g * 25}%</text>`;
+    }
+    for (const t of [0, 12, 24, 36, 48, 60, 72])
+      out += `<text x="${X(t)}" y="${H - 8}" font-size="9" fill="#5f5a51" text-anchor="middle">${t}</text>`;
+    const contract = ROWS.cats.Contract;
+    contract.values.forEach((cv, ci) => {
+      // survival respects every filter EXCEPT contract (it stratifies by it)
+      const saved = filters.Contract;
+      delete filters.Contract;
+      const idx = [];
+      for (let i = 0; i < ROWS.n; i++)
+        if (contract.codes[i] === ci && inView(i)) idx.push(i);
+      if (saved) filters.Contract = saved;
+      const pts = kmCurve(idx);
+      if (pts.length < 2) return;
+      let d = `M ${X(0)} ${Y(1)}`;
+      let last = 1;
+      for (const [t, s] of pts.slice(1)) {
+        d += ` L ${X(t)} ${Y(last)} L ${X(t)} ${Y(s)}`;   // step function
+        last = s;
+      }
+      d += ` L ${X(72)} ${Y(last)}`;
+      out += `<path d="${d}" fill="none" stroke="${KM_COLORS[ci]}" stroke-width="2"/>`;
+      out += `<text x="${W - R + 6}" y="${Y(last) + 3}" font-size="10" font-weight="bold" fill="${KM_COLORS[ci]}">${cv} · ${(last * 100).toFixed(0)}%</text>`;
+    });
+    out += `<text x="${L}" y="${H - 8}" font-size="9" fill="#5f5a51">months →</text>`;
+    svg.innerHTML = out;
+  }
+
+  /* ================= intervention simulator ================= */
+  function decisionInputs() {
+    return {
+      tau: Number($("in-tau").value) / 100,
+      cost: Number($("in-cost").value),
+      save: Number($("in-save").value) / 100,
+      hor: Number($("in-hor").value),
+    };
+  }
+
+  function economics(tau, cost, save, hor) {
+    let nT = 0, expChurn = 0, value = 0, tp = 0, churnedInView = 0;
+    for (const i of VIEW) {
+      if (ROWS.churn[i]) churnedInView++;
+      if (ROWS.score[i] < tau) continue;
+      nT++;
+      expChurn += ROWS.score[i];
+      value += ROWS.score[i] * hor * ROWS.charges[i];
+      if (ROWS.churn[i]) tp++;
+    }
+    return {
+      nT, tp, churnedInView,
+      saves: save * expChurn,
+      net: save * value - cost * nT,
+      cost: cost * nT,
+    };
+  }
+
+  function renderDecision() {
+    const { tau, cost, save, hor } = decisionInputs();
+    $("v-tau").textContent = ` ${(tau * 100).toFixed(0)}% risk`;
+    $("v-cost").textContent = ` $${cost}`;
+    $("v-save").textContent = ` ${(save * 100).toFixed(0)}%`;
+    $("v-hor").textContent = ` ${hor} months`;
+    const e = economics(tau, cost, save, hor);
+    const net = $("d-net");
+    net.textContent = (e.net < 0 ? "−$" : "$") + fmt(Math.abs(Math.round(e.net)));
+    net.classList.toggle("neg", e.net < 0);
+    $("d-n").textContent = fmt(e.nT);
+    $("d-saves").textContent = e.saves.toFixed(0);
+    $("d-cost").textContent = "$" + fmt(Math.round(e.cost));
+    $("d-prec").textContent = e.nT ? (e.tp / e.nT * 100).toFixed(0) + "%" : "—";
+    $("d-rec").textContent = e.churnedInView ? (e.tp / e.churnedInView * 100).toFixed(0) + "%" : "—";
+
+    // profit curve
+    const pts = [];
+    let best = [0, -Infinity];
+    for (let t = 5; t <= 90; t += 5) {
+      const v = economics(t / 100, cost, save, hor).net;
+      pts.push([t / 100, v]);
+      if (v > best[1]) best = [t / 100, v];
+    }
+    const lo = Math.min(...pts.map((p) => p[1]), 0), hi = Math.max(...pts.map((p) => p[1]), 1);
+    const W = 360, H = 150, L = 8, R = 8, T = 10, B = 18;
+    const X = (t) => L + ((t - 0.05) / 0.85) * (W - L - R);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+    let out = `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="#d9d4c8"/>`;
+    out += `<path d="M ${pts.map(([t, v]) => `${X(t)} ${Y(v)}`).join(" L ")}" fill="none" stroke="#2f8a58" stroke-width="2"/>`;
+    out += `<circle cx="${X(best[0])}" cy="${Y(best[1])}" r="4" fill="#b8463a"/>`;
+    out += `<text x="${X(best[0])}" y="${Y(best[1]) - 8}" font-size="9" fill="#b8463a" text-anchor="middle">optimum τ=${(best[0] * 100).toFixed(0)}%</text>`;
+    out += `<line x1="${X(tau)}" y1="${T}" x2="${X(tau)}" y2="${H - B}" stroke="#3f5aa0" stroke-dasharray="3 3"/>`;
+    out += `<text x="${L}" y="${H - 4}" font-size="9" fill="#5f5a51">τ 5%</text>`;
+    out += `<text x="${W - R}" y="${H - 4}" font-size="9" fill="#5f5a51" text-anchor="end">90%</text>`;
+    $("profit").innerHTML = out;
+  }
+  for (const id of ["in-tau", "in-cost", "in-save", "in-hor"])
+    document.addEventListener("DOMContentLoaded", () => {});
+  ["in-tau", "in-cost", "in-save", "in-hor"].forEach((id) => {
+    document.addEventListener("input", (ev) => {
+      if (ev.target && ev.target.id === id) renderDecision();
+    });
+  });
+
+  /* ================= top at-risk table ================= */
+  let openRow = null;
+  function renderRiskTable() {
+    const table = $("risk-table");
+    const top = [...VIEW].sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 20);
+    table.replaceChildren();
+    const head = table.insertRow();
+    for (const h of ["customer", "contract", "internet", "tenure", "$ / mo", "churn probability"]) {
+      const th = document.createElement("th"); th.textContent = h; head.appendChild(th);
+    }
+    for (const i of top) {
+      const tr = table.insertRow();
+      tr.className = "r";
+      const p = ROWS.score[i];
+      const cells = [
+        ROWS.ids[i], featValue(i, "Contract"), featValue(i, "InternetService"),
+        ROWS.tenure[i] + " mo", "$" + ROWS.charges[i].toFixed(0),
+      ];
+      for (const c of cells) { const td = tr.insertCell(); td.textContent = c; }
+      const td = tr.insertCell();
+      td.className = "p" + (p >= 0.6 ? " high" : "");
+      td.textContent = (p * 100).toFixed(1) + "%";
+      tr.addEventListener("click", () => {
+        if (openRow) { openRow.remove(); if (openRow.dataset.i === String(i)) { openRow = null; return; } }
+        const ex = table.insertRow(tr.rowIndex);
+        ex.dataset.i = String(i);
+        const cell = ex.insertCell();
+        cell.colSpan = 6; cell.className = "why-cell";
+        const top5 = rowContribs(i).filter((c) => Math.abs(c[1]) > 0.01).slice(0, 5);
+        cell.textContent = "why: " + top5.map(([l, c]) =>
+          `${l} (${c > 0 ? "+" : ""}${c.toFixed(2)})`).join(" · ");
+        openRow = ex;
+      });
+    }
+  }
+
+  /* ================= what-if scorer (the shipped model) ================= */
+  const CONTROLS = ["Contract", "InternetService", "OnlineSecurity", "TechSupport",
+                    "PaymentMethod", "PaperlessBilling", "SeniorCitizen", "Dependents"];
+  const SLIDERS = { tenure: [0, 72, "months"], MonthlyCharges: [18, 119, "$ / month"] };
+  const PRESETS = [
+    ["Two-year veteran", { Contract: "Two year", tenure: 64, MonthlyCharges: 84,
+      InternetService: "DSL", OnlineSecurity: "Yes", TechSupport: "Yes",
+      PaymentMethod: "Credit card (automatic)", PaperlessBilling: "No",
+      SeniorCitizen: "No", Dependents: "Yes" }],
+    ["Brand-new fiber", { Contract: "Month-to-month", tenure: 2, MonthlyCharges: 95,
+      InternetService: "Fiber optic", OnlineSecurity: "No", TechSupport: "No",
+      PaymentMethod: "Electronic check", PaperlessBilling: "Yes",
+      SeniorCitizen: "No", Dependents: "No" }],
+    ["Typical month-to-month", null],
+  ];
+  let MODEL = null;
+  const state = {};
+  const sigmoid = (z) => 1 / (1 + Math.exp(-z));
+
+  function defaults() {
+    for (const f of MODEL.features)
+      state[f.name] = f.kind === "numeric" ? Math.round(f.mean) : f.mode;
+  }
+
+  function score() {
+    let z = MODEL.intercept;
+    const contribs = [];
+    for (const f of MODEL.features) {
+      let c = 0, label = "";
+      if (f.kind === "numeric") {
+        c = f.coef * ((state[f.name] - f.mean) / f.std);
+        label = `${f.name} = ${state[f.name]}`;
+      } else {
+        const entry = f.values.find((v) => v.value === state[f.name]) || f.values[0];
+        c = entry.coef;
+        label = `${f.name}: ${entry.value}`;
+      }
+      z += c;
+      contribs.push([label, c]);
+    }
+    return { p: sigmoid(z), contribs };
+  }
+
+  function renderScore() {
+    const { p, contribs } = score();
+    const pct = (p * 100).toFixed(1);
+    const base = MODEL.metrics.churn_rate;
+    const band = p < 0.15 ? "low" : p < 0.4 ? "mid" : "high";
+    const bandText = { low: "low risk", mid: "elevated", high: "high risk" }[band];
+    $("prob").textContent = pct + "%";
+    $("prob").className = "prob " + band;
+    $("band").innerHTML = `churn probability — <b class="${band}">${bandText}</b> (dataset base rate ${(base * 100).toFixed(0)}%)`;
+    $("meter-fill").style.width = pct + "%";
+    $("meter-base").style.left = (base * 100) + "%";
+    const box = $("contrib");
+    box.replaceChildren();
+    const top = contribs.filter((c) => Math.abs(c[1]) > 0.001)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 8);
+    const maxAbs = Math.max(...top.map((c) => Math.abs(c[1])), 0.01);
+    for (const [label, c] of top) {
+      const row = document.createElement("div"); row.className = "crow";
+      const name = document.createElement("span"); name.className = "name"; name.textContent = label;
+      const bar = document.createElement("div"); bar.className = "cbar";
+      const zero = document.createElement("span"); zero.className = "zero";
+      const fill = document.createElement("i");
+      fill.style.width = (Math.abs(c) / maxAbs * 50) + "%";
+      fill.style.background = c > 0 ? "var(--gold)" : "var(--blue)";
+      if (c > 0) fill.style.left = "50%"; else fill.style.right = "50%";
+      bar.append(zero, fill);
+      const num = document.createElement("span"); num.className = "num";
+      num.textContent = (c > 0 ? "+" : "") + c.toFixed(2);
+      row.append(name, bar, num);
+      box.appendChild(row);
+    }
+  }
+
+  function buildControls() {
+    const box = $("controls");
+    box.replaceChildren();
+    for (const [name, [lo, hi, unit]] of Object.entries(SLIDERS)) {
+      const div = document.createElement("div"); div.className = "ctl"; div.dataset.for = name;
+      const label = document.createElement("label");
+      const valSpan = document.createElement("span"); valSpan.className = "val";
+      valSpan.textContent = ` ${state[name]} ${unit}`;
+      label.append(name + " —", valSpan);
+      const input = document.createElement("input");
+      input.type = "range"; input.min = lo; input.max = hi; input.value = state[name];
+      input.addEventListener("input", () => {
+        state[name] = Number(input.value);
+        valSpan.textContent = ` ${state[name]} ${unit}`;
+        renderScore();
+      });
+      div.append(label, input);
+      box.appendChild(div);
+    }
+    for (const name of CONTROLS) {
+      const f = MODEL.features.find((x) => x.name === name);
+      const div = document.createElement("div"); div.className = "ctl"; div.dataset.for = name;
+      const label = document.createElement("label"); label.textContent = name;
+      const sel = document.createElement("select");
+      for (const v of f.values) {
+        const o = document.createElement("option");
+        o.value = v.value; o.textContent = v.value;
+        sel.appendChild(o);
+      }
+      sel.value = state[name];
+      sel.addEventListener("change", () => { state[name] = sel.value; renderScore(); });
+      div.append(label, sel);
+      box.appendChild(div);
+    }
+    const fixed = MODEL.features
+      .filter((f) => f.kind === "categorical" && !CONTROLS.includes(f.name))
+      .map((f) => `${f.name}=${f.mode}`);
+    $("fixed-note").textContent = "Held at dataset-typical values: " + fixed.join(", ") + ".";
+  }
+
+  function syncControls() {
+    document.querySelectorAll("#controls .ctl").forEach((div) => {
+      const name = div.dataset.for;
+      const input = div.querySelector("input, select");
+      if (!input || state[name] === undefined) return;
+      input.value = state[name];
+      const valSpan = div.querySelector(".val");
+      if (valSpan) valSpan.textContent = ` ${state[name]} ${SLIDERS[name][2]}`;
+    });
+  }
+
+  function buildPresets() {
+    for (const [name, preset] of PRESETS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = name;
+      b.addEventListener("click", () => {
+        defaults();
+        if (preset) Object.assign(state, preset);
+        syncControls(); renderScore();
+      });
+      $("presets").appendChild(b);
+    }
+  }
+
+  Promise.all([
+    fetch("model.json").then((r) => r.json()),
+    fetch("rows.json").then((r) => r.json()),
+  ]).then(([m, raw]) => {
+    MODEL = m;
+    ROWS = decode(raw);
+    const met = m.metrics;
+    $("kpi-auc").textContent = met.lr.auc.toFixed(3);
+    $("metrics-table").innerHTML = `
+      <tr><th>model</th><th>ROC AUC</th><th>avg precision</th><th>Brier</th><th>5-fold CV AUC</th></tr>
+      <tr><td>logistic regression (shipped)</td><td><b>${met.lr.auc.toFixed(3)}</b></td>
+          <td>${met.lr.avg_precision.toFixed(3)}</td><td>${met.lr.brier.toFixed(3)}</td>
+          <td>${met.lr.auc_cv_mean.toFixed(3)} ± ${met.lr.auc_cv_std.toFixed(3)}</td></tr>
+      <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
+          <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
+    renderDash();
+    defaults();
+    buildPresets();
+    buildControls();
+    renderScore();
+  });
+</script>
+<style>.hide{display:none}</style>
+</body>
+</html>
