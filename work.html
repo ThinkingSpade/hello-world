@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projects — Huy Nguyen</title>
-  <meta name="description" content="Selected work by Huy Nguyen — browser demos for analytics, retrieval, incident response, and public data." />
+  <meta name="description" content="Selected work by Huy Nguyen — agentic experiences, analytics platforms, and data engineering." />
   <link rel="icon" type="image/png" href="huy-avatar.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,7 +18,7 @@
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="index.html">HOME</a>
-      <a href="work.html" class="active is-work">WORK</a>
+      <a href="work.html" class="active is-work">PROJECTS</a>
       <a href="about.html">ABOUT</a>
     </nav>
     <span class="nav-spacer" aria-hidden="true"></span>
@@ -28,7 +28,7 @@
     <header class="page-head">
       <span class="eyebrow">▸ ls ~/projects</span>
       <h1 class="page-title">PROJECTS</h1>
-      <p class="page-lead">Things I've built to <mark class="hl h-violet" data-fx="sparks">query data, explain models, and replay decisions</mark>.</p>
+      <p class="page-lead">Things I've built where <mark class="hl h-violet" data-fx="sparks">data &amp; agents</mark> meet.</p>
     </header>
 
     <div class="exp-list">
@@ -40,21 +40,17 @@
           <div class="exp-main">
             <h2>Abacus</h2>
             <p class="exp-role">A data analyst you can interrogate</p>
-            <p class="exp-meta">Browser analytics · 2026</p>
-            <p class="exp-desc exp-tie"><b>PROBLEM</b>Analytical questions need reproducible queries without letting free-form model output author SQL.</p>
+            <p class="exp-meta">Data · AI agents · 2026</p>
+            <p class="exp-desc">A data analyst you can interrogate — and it doesn't just answer, it investigates. Ask "why did revenue jump?" and it decomposes the change across every dimension into a waterfall that reconciles to the dollar; ask for cohort retention or an anomaly scan and it computes those too, live, on a 125,000-row warehouse running on SQLite-in-WebAssembly in your browser. A pixel crew of four narrates each step, a public 35-question eval proves the browser engine matches its Python twin to the cent, and pasting your own API key puts a live LLM in the planner's seat — guardrailed so it can never write raw SQL.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="JavaScript, SQL, SQLite, WebAssembly, Anthropic API, OpenAI API, JSON">
-                <li><span>JavaScript</span></li><li><span>SQL</span></li><li><span>SQLite</span></li><li><span>WebAssembly</span></li><li><span>Anthropic API</span></li><li><span>OpenAI API</span></li><li><span>JSON</span></li>
-              </ul>
+              <ul class="chips-tech" data-stack="Python, SQL, SQLite, WebAssembly, JavaScript, Claude API, OpenAI API, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>HOW IT WORKS</b>A deterministic parser or BYO-model planner emits constrained plan JSON. <code>engine.js</code> validates it against the manifest's semantic layer, compiles SQL, and runs it over <code>warehouse.sqlite</code> in SQLite-WASM; <code>goldens.json</code> replays 35 Python-frozen plans and results for parity.</p>
-              <p class="exp-tie"><b>HARDEST PART</b>The guardrail limits plans to known metrics and dimensions and rejects unsupported combinations. That trades arbitrary SQL for inspectable, repeatable behavior.</p>
-              <div class="exp-tie"><b>TRY</b><div class="exp-cta">
-                <a class="btn primary" href="/abacus/">Live demo&nbsp;↗</a>
+              <p class="exp-tie"><b>↳ How it fits</b>The semantic layer defines every metric exactly once for both engines; the deterministic parser and the LLM planner both emit the same plan schema, validated key-by-key before the guarded compiler writes any SQL. Your key stays in your tab — calls go straight from the browser to the provider.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/abacus/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/abacus" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
               </div>
             </div></div>
           </div>
@@ -67,146 +63,18 @@
           <div class="exp-logo" style="--accent:var(--violet-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9.6" r="6.4"/><path d="M8.7 7.2 a4.1 4.1 0 0 1 2.9 -1.7" fill="none" stroke-width="1.2"/><path d="M13.9 7.1 l.55 1.25 1.25 .55 -1.25 .55 -.55 1.25 -.55 -1.25 -1.25 -.55 1.25 -.55 z" fill="#1c1a17" stroke="none"/><circle cx="10.2" cy="11.4" r=".7" fill="#1c1a17" stroke="none"/><path d="M8.6 15.6 H15.4 L16.8 17.6 H7.2 Z"/><path d="M6.2 17.6 H17.8 L18.6 20.3 H5.4 Z"/><path d="M20.2 3.1 v2.2 M19.1 4.2 h2.2" fill="none" stroke-width="1.2"/><path d="M3.4 6.3 v1.8 M2.5 7.2 h1.8" fill="none" stroke-width="1.2"/><path d="M20.6 10.7 v1.6 M19.8 11.5 h1.6" fill="none" stroke-width="1.2"/></svg></div>
           <div class="exp-main">
             <h2>Oracle</h2>
-            <p class="exp-role">Multi-model debate replay</p>
-            <p class="exp-meta">Interactive fixture player · 2026</p>
-            <p class="exp-desc exp-tie"><b>PROBLEM</b>A final verdict alone hides the argument sequence and confidence changes that produced it.</p>
+            <p class="exp-role">Multi-agent reasoning engine</p>
+            <p class="exp-meta">Agentic AI · 2026</p>
+            <p class="exp-desc">A council of debating agents, a skeptic, an optimist, a fact-checker, and a wildcard, each one running on a different frontier model, argue over your data until they reach consensus, then hand back the answer with a confidence score drawn straight from where they disagreed.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, Grok 4.1, JavaScript, JSON, SVG">
-                <li><span>GPT-5.5</span></li><li><span>Claude Opus 4.8</span></li><li><span>Gemini 3.1 Pro</span></li><li><span>Grok 4.1</span></li><li><span>JavaScript</span></li><li><span>JSON</span></li><li><span>SVG</span></li>
-              </ul>
+              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Grok 4.1, Python, LangGraph, FastAPI"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>HOW IT WORKS</b>The page fetches one of three JSON sessions, expands its events into a think/speak timeline, and animates the transcript, per-round confidence arcs, consensus, and moderator verdict. The fixtures identify GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, and Grok 4.1.</p>
-              <p class="exp-tie"><b>HARDEST PART</b>The demo replays scripted samples instead of calling models live. That makes playback deterministic and key-free, but the arguments and scores are fixed by the selected fixture.</p>
-              <div class="exp-tie"><b>TRY</b><div class="exp-cta">
-                <a class="btn primary" href="/oracle/">Live demo&nbsp;↗</a>
+              <p class="exp-tie"><b>↳ How it fits</b>Each agent is a LangGraph node wired to a different model, Claude, GPT, Gemini, and Grok, so they genuinely disagree; a moderator node weighs the arguments and turns the spread of opinion into the confidence score, so the disagreement <em>is</em> the metric.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/oracle/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/oracle" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
-              </div>
-            </div></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="window exp" style="--dot:var(--coral-tx)">
-        <div class="window-bar" style="--accent:var(--coral-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">churn.ipynb</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand churn.ipynb"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
-        <div class="window-body exp-body">
-          <div class="exp-logo" style="--accent:var(--coral-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.9"/><circle cx="12" cy="12" r="6" fill="none" stroke-width="1.1"/><circle cx="12" cy="12" r="3.2" fill="none" stroke-width="1.1"/><path d="M12 3.1 v1.7 M12 19.2 v1.7 M3.1 12 h1.7 M19.2 12 h1.7" fill="none" stroke-width="1.1"/><path d="M12 12 L17.9 5.4 A8.9 8.9 0 0 1 20.9 12 Z" fill="#1c1a17" fill-opacity=".13" stroke="none"/><path d="M12 12 L17.9 5.4" fill="none"/><circle cx="15.6" cy="8.7" r="1.05" fill="#1c1a17" stroke="none"/><circle cx="8.6" cy="14.8" r=".85" fill="#1c1a17" stroke="none"/><circle cx="14.2" cy="15.8" r=".6" fill="#1c1a17" stroke="none"/><circle cx="12" cy="12" r=".7" fill="#1c1a17" stroke="none"/></svg></div>
-          <div class="exp-main">
-            <h2>Churn Radar</h2>
-            <p class="exp-role">Telecom customer churn scoring</p>
-            <p class="exp-meta">Interpretable machine learning · 2026</p>
-            <p class="exp-desc exp-tie"><b>PROBLEM</b>A churn probability is hard to act on when the score cannot show which customer attributes moved it.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, JavaScript, JSON">
-                <li><span>Python</span></li><li><span>Pandas</span></li><li><span>scikit-learn</span></li><li><span>JavaScript</span></li><li><span>JSON</span></li>
-              </ul>
-            </div>
-            <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>HOW IT WORKS</b><code>model.json</code> ships the logistic-regression intercept, training means and scales, categorical coefficients, and held-out metrics. About 30 lines of JavaScript rebuild the logit client-side; the model card reports a stratified 25% hold-out alongside the gradient-boosting benchmark.</p>
-              <p class="exp-tie"><b>HARDEST PART</b>The frozen feature schema keeps scoring small and auditable, but it only understands the IBM Telco categories it was trained to encode. Its coefficient contributions are associations, not causal explanations.</p>
-              <div class="exp-tie"><b>TRY</b><div class="exp-cta">
-                <a class="btn primary" href="/churn/">Live demo&nbsp;↗</a>
-                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/churn-radar" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
-              </div>
-            </div></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="window exp" style="--dot:var(--peach-tx)">
-        <div class="window-bar" style="--accent:var(--peach-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">helmsman.yaml</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand helmsman.yaml"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
-        <div class="window-body exp-body">
-          <div class="exp-logo" style="--accent:var(--peach-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.7" fill="none"/><circle cx="12" cy="12" r="4.8" fill="none" stroke-width="1.1"/><path d="M12 7.2 V10 M12 14 V16.8 M7.2 12 H10 M14 12 H16.8 M8.6 8.6 L10.2 10.2 M13.8 13.8 L15.4 15.4 M8.6 15.4 L10.2 13.8 M13.8 10.2 L15.4 8.6" fill="none" stroke-width="1.2"/><path d="M12 5.3 V2.6 M12 18.7 V21.4 M5.3 12 H2.6 M18.7 12 H21.4 M7.26 7.26 L5.4 5.4 M16.74 16.74 L18.6 18.6 M7.26 16.74 L5.4 18.6 M16.74 7.26 L18.6 5.4" fill="none"/><circle cx="12" cy="2.2" r=".8"/><circle cx="12" cy="21.8" r=".8"/><circle cx="2.2" cy="12" r=".8"/><circle cx="21.8" cy="12" r=".8"/><circle cx="5.1" cy="5.1" r=".8"/><circle cx="18.9" cy="5.1" r=".8"/><circle cx="5.1" cy="18.9" r=".8"/><circle cx="18.9" cy="18.9" r=".8"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r=".65" fill="#1c1a17" stroke="none"/></svg></div>
-          <div class="exp-main">
-            <h2>Helmsman</h2>
-            <p class="exp-role">Kubernetes incident replay</p>
-            <p class="exp-meta">Incident response · 2026</p>
-            <p class="exp-desc">Replays recorded fixture sessions for an OOM crash loop, an image-pull failure, a broken readiness probe, and an RBAC-denied repair that escalates to a human. Each timeline exposes kubectl output, a signature diagnosis, a proposed repair, a staged rollback, the human decision, and verification.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="JavaScript, JSON, Kubernetes, kubectl, SVG"></ul>
-            </div>
-            <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>The static page fetches session JSON and steps through its command, diagnosis, proposal, approval, apply, and verify events. It does not run kubectl itself; the recorded ledger lets the player show the gate and the blocked path without access to a cluster.</p>
-              <div class="exp-cta">
-                <a class="btn primary" href="/helmsman/">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/helmsman" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
-            </div></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="window exp" style="--dot:var(--blue-tx)">
-        <div class="window-bar" style="--accent:var(--blue-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">atlas.db</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand atlas.db"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
-        <div class="window-body exp-body">
-          <div class="exp-logo" style="--accent:var(--blue-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="10.2" r="6.8"/><ellipse cx="12" cy="10.2" rx="2.9" ry="6.8" fill="none" stroke-width="1.1"/><path d="M5.2 10.2 H18.8" fill="none" stroke-width="1.1"/><path d="M6.2 6.7 Q12 8.8 17.8 6.7 M6.2 13.7 Q12 11.6 17.8 13.7" fill="none" stroke-width="1.1"/><path d="M12 1.4 a8.8 8.8 0 0 1 0 17.6" fill="none"/><circle cx="12" cy="1.4" r=".75"/><circle cx="12" cy="19" r=".75"/><path d="M12 19.7 v1.2" fill="none"/><path d="M8.3 22.6 c.5 -1.3 1.9 -1.9 3.7 -1.9 s3.2 .6 3.7 1.9 z"/></svg></div>
-          <div class="exp-main">
-            <h2>Atlas</h2>
-            <p class="exp-role">Cited corpus search</p>
-            <p class="exp-meta">Information retrieval · 2026</p>
-            <p class="exp-desc">Searches two shipped operations corpora containing runbooks, incidents, CSV extracts, diagram notes, and PDF text. It returns an extractive answer with the source chunks and declines questions below its relevance floor.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="JavaScript, JSON, Hashing vectors, Hybrid ranking, SVG"></ul>
-            </div>
-            <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>The browser rebuilds a hashing vector for the question, combines cosine similarity with IDF-weighted keyword and title overlap, caps results per document, and selects up to five chunks above a fixed floor. A JavaScript extractive answerer then cites those chunks.</p>
-              <div class="exp-cta">
-                <a class="btn primary" href="/atlas/">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/atlas" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
-            </div></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="window exp" style="--dot:var(--pink-tx)">
-        <div class="window-bar" style="--accent:var(--pink-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">conductor.db</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand conductor.db"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
-        <div class="window-body exp-body">
-          <div class="exp-logo" style="--accent:var(--pink-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8.2" y="2.6" width="7.6" height="12.2" rx="2.4"/><circle cx="12" cy="6.6" r="1.65" fill="none" stroke-width="1.2"/><circle cx="12" cy="11" r="1.65" fill="#1c1a17" stroke="none"/><path d="M12 14.8 V18.6" fill="none"/><path d="M3 21.4 H21" fill="none"/><path d="M4.6 18.9 H19.4" fill="none" stroke-width="1.1"/><path d="M6.8 18.9 V21.4 M10.3 18.9 V21.4 M13.7 18.9 V21.4 M17.2 18.9 V21.4" fill="none" stroke-width="1.1"/></svg></div>
-          <div class="exp-main">
-            <h2>Conductor</h2>
-            <p class="exp-role">Data-pipeline incident replay</p>
-            <p class="exp-meta">Data reliability · 2026</p>
-            <p class="exp-desc">Replays four recorded pipeline ledgers: schema drift, null join keys, a duplicate load, and a failed repair that ends in a verified rollback. The player exposes each probe, diagnosis, repair proposal, rollback, human decision, apply step, and verification result.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="JavaScript, JSON, SQL, Data quality, SVG"></ul>
-            </div>
-            <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>The static page fetches a session JSON file and turns its ledger into a timed event sequence. SQL, result rows, evidence receipts, the proposed command, rollback, and approval decision remain visible while the player demonstrates the gated repair path.</p>
-              <div class="exp-cta">
-                <a class="btn primary" href="/conductor/">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/conductor" target="_blank" rel="noopener">Source&nbsp;↗</a>
-              </div>
-            </div></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="window exp" style="--dot:var(--peach-tx)">
-        <div class="window-bar" style="--accent:var(--peach-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">pulse.wire</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand pulse.wire"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
-        <div class="window-body exp-body">
-          <div class="exp-logo" style="--accent:var(--peach-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2.6" y="3.4" width="18.8" height="14.6" rx="2"/><path d="M4.6 12 H8 L10 7.4 L12.6 15 L14.4 10.6 L15.4 12 H19.4" fill="none" stroke-width="1.4"/><circle cx="19" cy="6.6" r="1.5" fill="#1c1a17" stroke="none"/><path d="M9 21 h6 M12 18 v3" fill="none" stroke-width="1.2"/></svg></div>
-          <div class="exp-main">
-            <h2>Pulse</h2>
-            <p class="exp-role">Browser macro briefing desk</p>
-            <p class="exp-meta">Business intelligence · 2026</p>
-            <p class="exp-desc">Fetches exchange rates from Frankfurter's ECB-backed feed, debt records from US Treasury Fiscal Data, and annual indicators from World Bank Open Data. The page charts the returned values and composes a template-based brief in the browser.</p>
-            <div class="stack">
-              <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="JavaScript, REST APIs, SVG charts"></ul>
-            </div>
-            <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Fetch, compute, and narration are client-side. The code derives the dollar scoreboard, labels debt-per-second as an extrapolation between Treasury postings, calculates per-resident debt from the World Bank population value, records fetch times, and renders an explicit error when a feed fails.</p>
-              <div class="exp-cta">
-                <a class="btn primary" href="/pulse/">Live Run&nbsp;↗</a>
-                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/pulse" target="_blank" rel="noopener">Source&nbsp;↗</a>
               </div>
             </div></div>
           </div>
@@ -224,13 +92,11 @@
             <p class="exp-desc">A control plane for running fleets of real browsers as a managed service. Operators compose multi-tenant campaigns in a React console, a scheduler spreads them across the day, and every run drives a live Chromium session by handing the page's accessibility tree to a frontier model that replies with one schema-checked action.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker">
-                <li><span>Claude Opus 4.8</span></li><li><span>GPT</span></li><li><span>Ollama</span></li><li><span>Python</span></li><li><span>FastAPI</span></li><li><span>Celery</span></li><li><span>Playwright</span></li><li><span>Postgres</span></li><li><span>Redis</span></li><li><span>React</span></li><li><span>Docker</span></li>
-              </ul>
+              <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>Under the hood is the unglamorous platform that keeps it alive: a scheduler with cron, jitter, and ramp-up, warmed persistent identities pulled from a pool, health-scored proxies that disable themselves, classified failures with alerting, and cost metered against a hard ceiling so a runaway run halts itself. Every action is a strict JSON schema, so the model can only click, fill, scroll, or stop, and I can VNC straight into any live worker to watch it think. All of it on Postgres and Redis, running unattended on a single Mac Mini in the corner.</p>
-            <div class="exp-cta"><span class="btn locked status">Private build</span></div></div></div>
+            </div></div>
           </div>
         </div>
       </article>
@@ -250,7 +116,55 @@
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>Twilio streams the call audio in, Whisper turns it into text, an agent decides what to say and checks the calendar for open slots, then speaks back and writes the booking, all fast enough to feel like a normal conversation.</p>
-            <div class="exp-cta"><span class="btn locked status">Private build</span></div></div></div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp" style="--dot:var(--green-tx)">
+        <div class="window-bar" style="--accent:var(--green-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">churn.ipynb</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand churn.ipynb"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--green-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.9"/><circle cx="12" cy="12" r="6" fill="none" stroke-width="1.1"/><circle cx="12" cy="12" r="3.2" fill="none" stroke-width="1.1"/><path d="M12 3.1 v1.7 M12 19.2 v1.7 M3.1 12 h1.7 M19.2 12 h1.7" fill="none" stroke-width="1.1"/><path d="M12 12 L17.9 5.4 A8.9 8.9 0 0 1 20.9 12 Z" fill="#1c1a17" fill-opacity=".13" stroke="none"/><path d="M12 12 L17.9 5.4" fill="none"/><circle cx="15.6" cy="8.7" r="1.05" fill="#1c1a17" stroke="none"/><circle cx="8.6" cy="14.8" r=".85" fill="#1c1a17" stroke="none"/><circle cx="14.2" cy="15.8" r=".6" fill="#1c1a17" stroke="none"/><circle cx="12" cy="12" r=".7" fill="#1c1a17" stroke="none"/></svg></div>
+          <div class="exp-main">
+            <h2>Churn Radar</h2>
+            <p class="exp-role">Telecom customer churn prediction</p>
+            <p class="exp-meta">Machine learning · 2026</p>
+            <p class="exp-desc">A model that flags the telecom customers most likely to cancel before they actually do — trained on 7,043 real customer records from the public IBM Telco dataset, then exported to score customers live in your browser, with the exact reasons behind every prediction.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, Matplotlib"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>I cleaned the data in pandas, built an explicit one-hot feature matrix, and put logistic regression up against gradient boosting — and the readable model wins (AUC 0.845 vs 0.830). Every prediction is a sum of named coefficients, so the live demo can show exactly why each customer scores the way they do — the model's own arithmetic, not a post-hoc explainer.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/churn/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/churn-radar" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp" style="--dot:var(--peach-tx)">
+        <div class="window-bar" style="--accent:var(--peach-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">helmsman.yaml</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand helmsman.yaml"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--peach-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.7" fill="none"/><circle cx="12" cy="12" r="4.8" fill="none" stroke-width="1.1"/><path d="M12 7.2 V10 M12 14 V16.8 M7.2 12 H10 M14 12 H16.8 M8.6 8.6 L10.2 10.2 M13.8 13.8 L15.4 15.4 M8.6 15.4 L10.2 13.8 M13.8 10.2 L15.4 8.6" fill="none" stroke-width="1.2"/><path d="M12 5.3 V2.6 M12 18.7 V21.4 M5.3 12 H2.6 M18.7 12 H21.4 M7.26 7.26 L5.4 5.4 M16.74 16.74 L18.6 18.6 M7.26 16.74 L5.4 18.6 M16.74 7.26 L18.6 5.4" fill="none"/><circle cx="12" cy="2.2" r=".8"/><circle cx="12" cy="21.8" r=".8"/><circle cx="2.2" cy="12" r=".8"/><circle cx="21.8" cy="12" r=".8"/><circle cx="5.1" cy="5.1" r=".8"/><circle cx="18.9" cy="5.1" r=".8"/><circle cx="5.1" cy="18.9" r=".8"/><circle cx="18.9" cy="18.9" r=".8"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r=".65" fill="#1c1a17" stroke="none"/></svg></div>
+          <div class="exp-main">
+            <h2>Helmsman</h2>
+            <p class="exp-role">Agentic DevOps copilot</p>
+            <p class="exp-meta">DevOps · 2026</p>
+            <p class="exp-desc">A side project to make DevOps on-call less painful. It keeps an eye on the cluster, and when something breaks it reads the logs, explains the likely cause in plain English, and drafts the kubectl fix — rollback staged up front — for a human to approve before anything touches production.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="Python, Kubernetes, kubectl, Linux, Bash, pytest"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>It shells out to kubectl for pods, logs, and events, matches the evidence against vetted failure signatures, and drafts the fix from templates with a risk grade and a staged rollback. The approval gate is code, not convention — mutating commands are refused at the subprocess layer until a human hits <em>approve</em>.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/helmsman/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/helmsman" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
           </div>
         </div>
       </article>
@@ -270,7 +184,7 @@
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>It captures the call audio and the rep's screen, transcribes locally with almost no lag, and streams the context to a model that drafts the next answer or step, surfaced in a glanceable side panel so a new team member gets live guidance without breaking the flow of the call.</p>
-            <div class="exp-cta"><span class="btn locked status">Private build</span></div></div></div>
+            </div></div>
           </div>
         </div>
       </article>
@@ -286,7 +200,7 @@
             <p class="exp-desc">Gives every agent its own disposable Linux sandbox to run code, browse, and call tools safely — a fresh container per task, scheduled across the cluster and torn down the moment the agent is done.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
-              <ul class="chips-tech" data-stack="Go, Docker, Kubernetes, NATS, Linux"></ul>
+              <ul class="chips-tech" data-stack="Docker, Linux, Kubernetes, Python, FastAPI, Redis"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
               <p class="exp-tie"><b>↳ How it fits</b>A Go orchestrator schedules one Docker sandbox per agent task on Kubernetes, streams stdout and results back over NATS, and Redis tracks state so nothing leaks between runs.</p>
@@ -294,6 +208,91 @@
                 <span class="btn locked status">Private build</span>
               </div>
             </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp" style="--dot:var(--blue-tx)">
+        <div class="window-bar" style="--accent:var(--blue-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">atlas.db</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand atlas.db"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--blue-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="10.2" r="6.8"/><ellipse cx="12" cy="10.2" rx="2.9" ry="6.8" fill="none" stroke-width="1.1"/><path d="M5.2 10.2 H18.8" fill="none" stroke-width="1.1"/><path d="M6.2 6.7 Q12 8.8 17.8 6.7 M6.2 13.7 Q12 11.6 17.8 13.7" fill="none" stroke-width="1.1"/><path d="M12 1.4 a8.8 8.8 0 0 1 0 17.6" fill="none"/><circle cx="12" cy="1.4" r=".75"/><circle cx="12" cy="19" r=".75"/><path d="M12 19.7 v1.2" fill="none"/><path d="M8.3 22.6 c.5 -1.3 1.9 -1.9 3.7 -1.9 s3.2 .6 3.7 1.9 z"/></svg></div>
+          <div class="exp-main">
+            <h2>Atlas</h2>
+            <p class="exp-role">Knowledge agent for ops</p>
+            <p class="exp-meta">RAG · 2026</p>
+            <p class="exp-desc">Ask &ldquo;how do we rotate the API keys?&rdquo; and Atlas answers from your runbooks, past incidents, and live system state — with citations — instead of digging through a wiki at 2&nbsp;a.m.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="Python, LangChain, Postgres, Redis, Docker, Groq"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>Runbooks, incidents, PDFs, CSVs, and diagram notes are chunked with LangChain splitters and embedded into Postgres with pgvector; a hand-rolled hybrid ranker (cosine + keywords, behind a relevance floor) retrieves, Groq drafts the cited answer fast, and Redis caches hot queries for instant repeats. The live demo runs the same pipeline entirely in your browser — real embeddings, no server.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/atlas/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/atlas" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp" style="--dot:var(--pink-tx)">
+        <div class="window-bar" style="--accent:var(--pink-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">conductor.db</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand conductor.db"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--pink-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8.2" y="2.6" width="7.6" height="12.2" rx="2.4"/><circle cx="12" cy="6.6" r="1.65" fill="none" stroke-width="1.2"/><circle cx="12" cy="11" r="1.65" fill="#1c1a17" stroke="none"/><path d="M12 14.8 V18.6" fill="none"/><path d="M3 21.4 H21" fill="none"/><path d="M4.6 18.9 H19.4" fill="none" stroke-width="1.1"/><path d="M6.8 18.9 V21.4 M10.3 18.9 V21.4 M13.7 18.9 V21.4 M17.2 18.9 V21.4" fill="none" stroke-width="1.1"/></svg></div>
+          <div class="exp-main">
+            <h2>Conductor</h2>
+            <p class="exp-role">Data-pipeline reliability agent</p>
+            <p class="exp-meta">Data engineering · 2026</p>
+            <p class="exp-desc">When the nightly pipeline derails — a vendor renames a column, join keys change shape, a file loads twice — Conductor reads the run ledger, probes the warehouse with real SQL, explains the break in plain English with the evidence quoted, and drafts the repair with a rollback staged. A human clears every fix before a single row is rewritten.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="Python, SQL, SQLite, Data quality, pytest"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>The staging-and-facts pipeline really runs — SQL with data-quality checks after every task. Diagnoses are deterministic signature matches over probed evidence, fixes come from vetted templates (destructive repairs snapshot the table first), and the demo replays a genuine end-to-end run: the data actually broke, and actually got repaired.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/conductor/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/conductor" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp" style="--dot:var(--peach-tx)">
+        <div class="window-bar" style="--accent:var(--peach-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">pulse.wire</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand pulse.wire"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--peach-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2.6" y="3.4" width="18.8" height="14.6" rx="2"/><path d="M4.6 12 H8 L10 7.4 L12.6 15 L14.4 10.6 L15.4 12 H19.4" fill="none" stroke-width="1.4"/><circle cx="19" cy="6.6" r="1.5" fill="#1c1a17" stroke="none"/><path d="M9 21 h6 M12 18 v3" fill="none" stroke-width="1.2"/></svg></div>
+          <div class="exp-main">
+            <h2>Pulse</h2>
+            <p class="exp-role">Live macro briefing desk</p>
+            <p class="exp-meta">Business intelligence · 2026</p>
+            <p class="exp-desc">A morning brief that writes itself from real live data. Your browser pulls the numbers directly from public feeds — ECB exchange rates, the US Treasury's Debt to the Penny ledger, World Bank indicators — charts them, and composes the day's plain-English brief on the spot. No server, no key, no stale screenshot: the numbers are whatever the world says they are the moment you open it.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="JavaScript, Python, REST APIs, SVG charts, pytest"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>Fetch, compute, and narrate all happen client-side: the dollar scoreboard, the debt's $-per-second pace (labeled extrapolation between daily Treasury postings), and per-resident math are derived in the browser, every claim stapled to its source and fetch time — and a down feed is reported down, never papered over. The same engine ships as a Python CLI with offline fixture tests.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/pulse/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/claude/pulse" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="window exp coming" style="--dot:var(--gold-tx)">
+        <div class="window-bar" style="--accent:var(--gold-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">coming-soon</span></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--gold-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5.5 2.4 H18.5 M5.5 21.6 H18.5" fill="none"/><path d="M7 2.9 C7 8.5 11 10.6 12 12 C13 10.6 17 8.5 17 2.9 Z"/><path d="M7 21.1 C7 15.5 11 13.4 12 12 C13 13.4 17 15.5 17 21.1 Z"/><path d="M9.1 19.2 Q12 17 14.9 19.2 L14.9 20.4 H9.1 Z" fill="#1c1a17" stroke="none"/><path d="M12 12.6 V15.4" fill="none" stroke-width="1.1"/><circle cx="12" cy="8.8" r="0.75" fill="#1c1a17" stroke="none"/></svg></div>
+          <div class="exp-main">
+            <h2>More on the way</h2>
+            <p class="exp-role">Projects in progress</p>
+            <p class="exp-meta">Coming soon</p>
+            <p class="exp-desc">I'm always building something. A few more projects are in the works and will land right here.</p>
           </div>
         </div>
       </article>
