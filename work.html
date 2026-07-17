@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Projects — Huy Nguyen</title>
+  <title>Projects: Huy Nguyen</title>
   <meta name="description" content="Selected work by Huy Nguyen — agentic experiences, analytics platforms, and data engineering." />
   <link rel="icon" type="image/png" href="huy-avatar.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,13 +41,13 @@
             <h2>Abacus</h2>
             <p class="exp-role">A data analyst you can interrogate</p>
             <p class="exp-meta">Data · AI agents · 2026</p>
-            <p class="exp-desc">A data analyst you can interrogate — and it doesn't just answer, it investigates. Ask "why did revenue jump?" and it decomposes the change across every dimension into a waterfall that reconciles to the dollar; ask for cohort retention or an anomaly scan and it computes those too, live, on a 125,000-row warehouse running on SQLite-in-WebAssembly in your browser. A pixel crew of four narrates each step, a public 35-question eval proves the browser engine matches its Python twin to the cent, and pasting your own API key puts a live LLM in the planner's seat — guardrailed so it can never write raw SQL.</p>
+            <p class="exp-desc">A data analyst you can interrogate. It does not just answer; it investigates. Ask "why did revenue jump?" and it breaks the change across every dimension into a waterfall that reconciles to the dollar. Ask for cohort retention or an anomaly scan and it computes those live too, against a 125,000-row warehouse running on SQLite-in-WebAssembly in your browser. A pixel crew of four talks through each step. A public 35-question eval shows the browser engine matches its Python twin to the cent. Paste your API key and a live LLM takes the planner's seat, with guardrails that keep it from ever writing raw SQL.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, SQL, SQLite, WebAssembly, JavaScript, Claude API, OpenAI API, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>The semantic layer defines every metric exactly once for both engines; the deterministic parser and the LLM planner both emit the same plan schema, validated key-by-key before the guarded compiler writes any SQL. Your key stays in your tab — calls go straight from the browser to the provider.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>One semantic layer defines every metric exactly once for both engines. The deterministic parser and the LLM planner emit the same plan schema, checked one key at a time before the guarded compiler writes any SQL. Your key stays in your tab. Calls go straight from the browser to the provider.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/abacus/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/abacus" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -65,13 +65,13 @@
             <h2>Oracle</h2>
             <p class="exp-role">Multi-agent reasoning engine</p>
             <p class="exp-meta">Agentic AI · 2026</p>
-            <p class="exp-desc">A council of debating agents, a skeptic, an optimist, a fact-checker, and a wildcard, each one running on a different frontier model, argue over your data until they reach consensus, then hand back the answer with a confidence score drawn straight from where they disagreed.</p>
+            <p class="exp-desc">Put your data in front of a skeptic, an optimist, a fact-checker, and a wildcard. Each agent runs on a different frontier model. They debate until they reach consensus, then hand back an answer with a confidence score pulled straight from their disagreements.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Grok 4.1, Python, LangGraph, FastAPI"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Each agent is a LangGraph node wired to a different model, Claude, GPT, Gemini, and Grok, so they genuinely disagree; a moderator node weighs the arguments and turns the spread of opinion into the confidence score, so the disagreement <em>is</em> the metric.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>Each agent lives in its own LangGraph node and talks to Claude, GPT, Gemini, or Grok. They really do disagree. A moderator weighs the arguments and turns the spread of opinion into the confidence score. The disagreement <em>is</em> the metric.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/oracle/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/oracle" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -89,13 +89,17 @@
             <h2>Armada</h2>
             <p class="exp-role">A control plane for browser fleets</p>
             <p class="exp-meta">Distributed Systems · Agentic Automation · 2026</p>
-            <p class="exp-desc">A control plane for running fleets of real browsers as a managed service. Operators compose multi-tenant campaigns in a React console, a scheduler spreads them across the day, and every run drives a live Chromium session by handing the page's accessibility tree to a frontier model that replies with one schema-checked action.</p>
+            <p class="exp-desc">Armada runs fleets of real browsers as a managed service. Operators build multi-tenant campaigns in a React console, then a scheduler spreads the work across the day. Each run opens a live Chromium session, hands the page's accessibility tree to a frontier model, and accepts one schema-checked action in return.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Claude Opus 4.8, GPT, Ollama, Python, FastAPI, Celery, Playwright, Postgres, Redis, React, Docker"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Under the hood is the unglamorous platform that keeps it alive: a scheduler with cron, jitter, and ramp-up, warmed persistent identities pulled from a pool, health-scored proxies that disable themselves, classified failures with alerting, and cost metered against a hard ceiling so a runaway run halts itself. Every action is a strict JSON schema, so the model can only click, fill, scroll, or stop, and I can VNC straight into any live worker to watch it think. All of it on Postgres and Redis, running unattended on a single Mac Mini in the corner.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>The less glamorous platform work keeps the fleet alive. The scheduler handles cron, jitter, and ramp-up. Warmed persistent identities come from a pool, health-scored proxies disable themselves, failures are classified with alerting, and costs are metered against a hard ceiling that stops a runaway run. Every action must match a strict JSON schema, so the model can only click, fill, scroll, or stop. I can VNC into any live worker and watch it think. Postgres and Redis hold it together, unattended, on a single Mac Mini in the corner.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/armada/">Live Demo&nbsp;&#8599;</a>
+                <span class="btn locked status">Production system is private; this demo replays recorded fixtures.</span>
+              </div>
             </div></div>
           </div>
         </div>
@@ -109,13 +113,17 @@
             <h2>Operator</h2>
             <p class="exp-role">AI receptionist that answers the phone</p>
             <p class="exp-meta">Voice AI · Twilio · 2026</p>
-            <p class="exp-desc">An AI voice agent that picks up real phone calls, talks to the caller in natural speech, works out what they need, and books them straight onto a live calendar. No hold music, no phone tag. It runs on a real Twilio number, so to the caller it is just someone answering the phone.</p>
+            <p class="exp-desc">Operator answers real phone calls, talks naturally, figures out what the caller needs, and books the appointment on a live calendar. No hold music. No phone tag. It uses a real Twilio number, so callers just hear someone pick up the phone.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Twilio, Python, FastAPI, Whisper, Supabase, AWS, Google Calendar"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Twilio streams the call audio in, Whisper turns it into text, an agent decides what to say and checks the calendar for open slots, then speaks back and writes the booking, all fast enough to feel like a normal conversation.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>Twilio streams in the call audio and Whisper turns it into text. An agent works out what to say, checks the calendar for an open slot, speaks the answer, and writes the booking. It all moves fast enough to feel like a normal conversation.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/operator/">Live Demo&nbsp;&#8599;</a>
+                <span class="btn locked status">Production system is private; this demo replays recorded fixtures.</span>
+              </div>
             </div></div>
           </div>
         </div>
@@ -129,13 +137,13 @@
             <h2>Churn Radar</h2>
             <p class="exp-role">Telecom customer churn prediction</p>
             <p class="exp-meta">Machine learning · 2026</p>
-            <p class="exp-desc">A model that flags the telecom customers most likely to cancel before they actually do — trained on 7,043 real customer records from the public IBM Telco dataset, then exported to score customers live in your browser, with the exact reasons behind every prediction.</p>
+            <p class="exp-desc">Churn Radar flags the telecom customers most likely to cancel before they do. It was trained on 7,043 real customer records from the public IBM Telco dataset, then exported to score customers live in your browser and show the exact reasons behind every prediction.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, Pandas, scikit-learn, Matplotlib"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>I cleaned the data in pandas, built an explicit one-hot feature matrix, and put logistic regression up against gradient boosting — and the readable model wins (AUC 0.845 vs 0.830). Every prediction is a sum of named coefficients, so the live demo can show exactly why each customer scores the way they do — the model's own arithmetic, not a post-hoc explainer.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>I cleaned the data in pandas, built an explicit one-hot feature matrix, and tested logistic regression against gradient boosting. The readable model wins, with an AUC of 0.845 versus 0.830. Each prediction is the sum of named coefficients, so the live demo shows exactly why a customer got that score. It is the model's own arithmetic, not a post-hoc explainer.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/churn/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/churn-radar" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -153,13 +161,13 @@
             <h2>Helmsman</h2>
             <p class="exp-role">Agentic DevOps copilot</p>
             <p class="exp-meta">DevOps · 2026</p>
-            <p class="exp-desc">A side project to make DevOps on-call less painful. It keeps an eye on the cluster, and when something breaks it reads the logs, explains the likely cause in plain English, and drafts the kubectl fix — rollback staged up front — for a human to approve before anything touches production.</p>
+            <p class="exp-desc">A side project for making DevOps on-call a little less painful. It watches the cluster. When something breaks, it reads the logs, explains the likely cause in plain English, and drafts the kubectl fix with the rollback staged up front. A human has to approve it before anything touches production.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, Kubernetes, kubectl, Linux, Bash, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>It shells out to kubectl for pods, logs, and events, matches the evidence against vetted failure signatures, and drafts the fix from templates with a risk grade and a staged rollback. The approval gate is code, not convention — mutating commands are refused at the subprocess layer until a human hits <em>approve</em>.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>It calls kubectl for pods, logs, and events, matches the evidence to vetted failure signatures, then drafts a fix from templates with a risk grade and staged rollback. The approval gate lives in code, not convention. The subprocess layer refuses mutating commands until a human hits <em>approve</em>.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/helmsman/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/helmsman" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -177,13 +185,17 @@
             <h2>Cue</h2>
             <p class="exp-role">Live-call copilot for new hires</p>
             <p class="exp-meta">Voice AI · Onboarding · 2025</p>
-            <p class="exp-desc">A real-time assist panel for newly onboarded team members. It follows the live call and reads the screen, then surfaces the right answer, the account detail, or the next thing to say while the rep is still talking, so new hires can handle calls with confidence while they ramp up instead of stalling or putting people on hold. It tracks the conversation, not just the transcript.</p>
+            <p class="exp-desc">Cue is a real-time assist panel for newly onboarded team members. It follows the live call and reads the screen, surfacing the right answer, account detail, or next thing to say while the rep is still talking. New hires can handle calls with confidence while they ramp up, without stalling or putting anyone on hold. It follows the conversation, not just the transcript.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Electron, TypeScript, Whisper, GPT-5.5, FastAPI"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>It captures the call audio and the rep's screen, transcribes locally with almost no lag, and streams the context to a model that drafts the next answer or step, surfaced in a glanceable side panel so a new team member gets live guidance without breaking the flow of the call.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>It captures the call audio and the rep's screen, then transcribes locally with almost no lag. That context streams to a model, which drafts the next answer or step for a glanceable side panel. New team members get live guidance without breaking the flow of the call.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/cue/">Live Demo&nbsp;&#8599;</a>
+                <span class="btn locked status">Production system is private; this demo replays recorded fixtures.</span>
+              </div>
             </div></div>
           </div>
         </div>
@@ -197,15 +209,16 @@
             <h2>Forge</h2>
             <p class="exp-role">Isolated runtime for agents</p>
             <p class="exp-meta">Infra · 2024</p>
-            <p class="exp-desc">Gives every agent its own disposable Linux sandbox to run code, browse, and call tools safely — a fresh container per task, scheduled across the cluster and torn down the moment the agent is done.</p>
+            <p class="exp-desc">Forge gives every agent a disposable Linux sandbox for running code, browsing, and calling tools safely. Each task gets a fresh container, scheduled across the cluster and torn down as soon as the agent finishes.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Docker, Linux, Kubernetes, Python, FastAPI, Redis"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>A Go orchestrator schedules one Docker sandbox per agent task on Kubernetes, streams stdout and results back over NATS, and Redis tracks state so nothing leaks between runs.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>A Go orchestrator schedules one Docker sandbox per agent task on Kubernetes and streams stdout and results back over NATS. Redis tracks state, so nothing leaks from one run to the next.</p>
               <div class="exp-cta">
-                <span class="btn locked status">Private build</span>
+                <a class="btn primary" href="/forge/">Live Demo&nbsp;&#8599;</a>
+                <span class="btn locked status">Production system is private; this demo replays recorded fixtures.</span>
               </div>
             </div></div>
           </div>
@@ -220,13 +233,13 @@
             <h2>Atlas</h2>
             <p class="exp-role">Knowledge agent for ops</p>
             <p class="exp-meta">RAG · 2026</p>
-            <p class="exp-desc">Ask &ldquo;how do we rotate the API keys?&rdquo; and Atlas answers from your runbooks, past incidents, and live system state — with citations — instead of digging through a wiki at 2&nbsp;a.m.</p>
+            <p class="exp-desc">Ask Atlas, &ldquo;how do we rotate the API keys?&rdquo; It answers from your runbooks, past incidents, and live system state, with citations, so nobody has to dig through a wiki at 2&nbsp;a.m.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, LangChain, Postgres, Redis, Docker, Groq"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Runbooks, incidents, PDFs, CSVs, and diagram notes are chunked with LangChain splitters and embedded into Postgres with pgvector; a hand-rolled hybrid ranker (cosine + keywords, behind a relevance floor) retrieves, Groq drafts the cited answer fast, and Redis caches hot queries for instant repeats. The live demo runs the same pipeline entirely in your browser — real embeddings, no server.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>LangChain splitters chunk the runbooks, incidents, PDFs, CSVs, and diagram notes, then they are embedded into Postgres with pgvector. A hand-rolled hybrid ranker combines cosine similarity and keywords behind a relevance floor. Groq drafts the cited answer quickly, and Redis caches hot queries for instant repeats. The live demo runs the same pipeline entirely in your browser with real embeddings and no server.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/atlas/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/atlas" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -244,13 +257,13 @@
             <h2>Conductor</h2>
             <p class="exp-role">Data-pipeline reliability agent</p>
             <p class="exp-meta">Data engineering · 2026</p>
-            <p class="exp-desc">When the nightly pipeline derails — a vendor renames a column, join keys change shape, a file loads twice — Conductor reads the run ledger, probes the warehouse with real SQL, explains the break in plain English with the evidence quoted, and drafts the repair with a rollback staged. A human clears every fix before a single row is rewritten.</p>
+            <p class="exp-desc">When the nightly pipeline derails, Conductor reads the run ledger and probes the warehouse with real SQL. Maybe a vendor renamed a column, join keys changed shape, or a file loaded twice. It explains the break in plain English with quoted evidence, then drafts a repair with the rollback staged. A human clears every fix before a single row gets rewritten.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="Python, SQL, SQLite, Data quality, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>The staging-and-facts pipeline really runs — SQL with data-quality checks after every task. Diagnoses are deterministic signature matches over probed evidence, fixes come from vetted templates (destructive repairs snapshot the table first), and the demo replays a genuine end-to-end run: the data actually broke, and actually got repaired.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>The staging-and-facts pipeline really runs, with SQL and data-quality checks after every task. Diagnoses use deterministic signature matches over probed evidence, and fixes come from vetted templates. Destructive repairs snapshot the table first. The demo replays a genuine end-to-end run: the data actually broke, and it actually got repaired.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/conductor/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/conductor" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -268,13 +281,13 @@
             <h2>Pulse</h2>
             <p class="exp-role">Live macro briefing desk</p>
             <p class="exp-meta">Business intelligence · 2026</p>
-            <p class="exp-desc">A morning brief that writes itself from real live data. Your browser pulls the numbers directly from public feeds — ECB exchange rates, the US Treasury's Debt to the Penny ledger, World Bank indicators — charts them, and composes the day's plain-English brief on the spot. No server, no key, no stale screenshot: the numbers are whatever the world says they are the moment you open it.</p>
+            <p class="exp-desc">Pulse writes a morning brief from live data. Your browser pulls numbers straight from public feeds: ECB exchange rates, the US Treasury's Debt to the Penny ledger, and World Bank indicators. It charts them and writes the day's plain-English brief on the spot. There is no server or key, and no stale screenshot. The numbers are whatever the world says when you open it.</p>
             <div class="stack">
               <span class="stack-label">STACK</span>
               <ul class="chips-tech" data-stack="JavaScript, Python, REST APIs, SVG charts, pytest"></ul>
             </div>
             <div class="expand"><div class="expand-inner">
-              <p class="exp-tie"><b>↳ How it fits</b>Fetch, compute, and narrate all happen client-side: the dollar scoreboard, the debt's $-per-second pace (labeled extrapolation between daily Treasury postings), and per-resident math are derived in the browser, every claim stapled to its source and fetch time — and a down feed is reported down, never papered over. The same engine ships as a Python CLI with offline fixture tests.</p>
+              <p class="exp-tie"><b>↳ How it fits</b>The whole brief runs client-side. The browser builds the dollar scoreboard and calculates the debt's pace in dollars per second, clearly labeled as an extrapolation between daily Treasury postings. It also handles the math for each resident. Every claim carries its source and fetch time. If a feed is down, Pulse says so. The same engine ships as a Python CLI with offline fixture tests.</p>
               <div class="exp-cta">
                 <a class="btn primary" href="/pulse/">Live Run&nbsp;↗</a>
                 <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/pulse" target="_blank" rel="noopener">Source&nbsp;↗</a>
@@ -292,7 +305,7 @@
             <h2>More on the way</h2>
             <p class="exp-role">Projects in progress</p>
             <p class="exp-meta">Coming soon</p>
-            <p class="exp-desc">I'm always building something. A few more projects are in the works and will land right here.</p>
+            <p class="exp-desc">I'm always building something. A few more projects are in progress and will show up right here.</p>
           </div>
         </div>
       </article>
