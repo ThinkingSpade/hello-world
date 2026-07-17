@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conductor-agent"
+version = "0.1.0"
+description = "Conductor — data-pipeline reliability agent: when the nightly run derails it reads the ledger, diffs the schemas, samples the bad rows, and drafts the SQL repair with a staged rollback — and rewrites nothing without a human yes."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Huy Nguyen" }]
+# stdlib only: sqlite3 is the warehouse, SQL does the work
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+conductor = "conductor.cli:main"
+
+[tool.setuptools]
+packages = ["conductor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

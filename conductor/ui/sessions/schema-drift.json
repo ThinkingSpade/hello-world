@@ -1,0 +1,223 @@
+{
+ "resolved": true,
+ "duration_s": 0.0,
+ "board": {
+  "nodes": [
+   {
+    "id": "orders_raw",
+    "label": "orders_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "customers_raw",
+    "label": "customers_raw",
+    "kind": "source",
+    "col": 0
+   },
+   {
+    "id": "stg_orders",
+    "label": "stg_orders",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "stg_customers",
+    "label": "stg_customers",
+    "kind": "task",
+    "col": 1
+   },
+   {
+    "id": "fct_daily_revenue",
+    "label": "fct_daily_revenue",
+    "kind": "task",
+    "col": 2
+   }
+  ],
+  "edges": [
+   [
+    "orders_raw",
+    "stg_orders"
+   ],
+   [
+    "customers_raw",
+    "stg_customers"
+   ],
+   [
+    "stg_orders",
+    "fct_daily_revenue"
+   ],
+   [
+    "stg_customers",
+    "fct_daily_revenue"
+   ]
+  ]
+ },
+ "timeline": [
+  {
+   "t": "page",
+   "text": "Airflow — nightly-revenue failed at stg_orders: OperationalError: no such column: o.order_total (0 of 3 marts refreshed, finance dashboard is stale)",
+   "sev": "P2"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "fail",
+   "detail": "no such column: o.order_total"
+  },
+  {
+   "t": "think",
+   "ms": 1600,
+   "status": "reading the failure"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT cid, name, type FROM pragma_table_info('orders_raw');",
+   "out": "cid  name          type\n---  ------------  -------\n0    order_id      INTEGER\n1    customer_id   INTEGER\n2    order_ts      TEXT\n3    total_amount  REAL\n4    status        TEXT\n5    load_batch    TEXT",
+   "note": "what does the raw table actually look like now?"
+  },
+  {
+   "t": "think",
+   "ms": 2200,
+   "status": "matching against known derailments"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "schema-drift",
+   "cause": "Upstream schema drift: the vendor's export renamed `order_total` to `total_amount`, so the staging build now references a column that no longer exists and the whole pipeline halts at stg_orders. The raw data itself arrived fine — only the contract moved.",
+   "receipts": [
+    "no such column: o.order_total",
+    "3    total_amount  REAL"
+   ],
+   "confidence": 94
+  },
+  {
+   "t": "proposal",
+   "command": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.order_total AS order_total\n+ o.total_amount AS order_total   -- vendor renamed the column",
+   "explain": "Alias the new column name back to `order_total` in staging, so every downstream table keeps its contract. One line, rebuilds staging from raw — no source data touched.",
+   "risk": "low",
+   "rollback": "Reverse the patch: `o.total_amount AS order_total` → `o.order_total AS order_total`, re-run the pipeline.",
+   "followup": "Add a schema contract check at load time so a renamed column pages BEFORE the nightly run, not during it."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "dispatcher"
+  },
+  {
+   "t": "apply",
+   "cmd": "patch tasks/stg_orders.sql",
+   "out": "--- tasks/stg_orders.sql\n+++ tasks/stg_orders.sql\n- o.order_total AS order_total\n+ o.total_amount AS order_total   -- vendor renamed the column"
+  },
+  {
+   "t": "think",
+   "ms": 1800,
+   "status": "re-running the pipeline"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {
+     "name": "row_count_min(500)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "600 rows (min 500)"
+    },
+    {
+     "name": "unique(customer_id)",
+     "table": "stg_customers",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "ok",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {
+     "name": "unique(order_id)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no duplicate keys"
+    },
+    {
+     "name": "not_null(order_total)",
+     "table": "stg_orders",
+     "status": "pass",
+     "detail": "no NULLs"
+    }
+   ]
+  },
+  {
+   "t": "run",
+   "task": "fct_daily_revenue",
+   "status": "ok",
+   "detail": "rebuilt — 70 rows"
+  },
+  {
+   "t": "checks",
+   "task": "fct_daily_revenue",
+   "results": [
+    {
+     "name": "not_null(region)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "no NULLs"
+    },
+    {
+     "name": "row_count_min(10)",
+     "table": "fct_daily_revenue",
+     "status": "pass",
+     "detail": "70 rows (min 10)"
+    }
+   ]
+  },
+  {
+   "t": "verify",
+   "result": "green",
+   "text": "All tasks rebuilt, every check green — marts are fresh and the numbers reconcile. Standing down."
+  }
+ ],
+ "id": "schema-drift",
+ "title": "nightly-revenue derailed — vendor renamed a column overnight",
+ "tag": "warehouse · P2 · schema drift",
+ "recorded": "scenario-replay"
+}
