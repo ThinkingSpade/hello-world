@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pulse-brief"
+version = "0.1.0"
+description = "Pulse — a morning macro briefing that writes itself: live FX, US federal debt, and World Bank indicators fetched from free public feeds and narrated deterministically. Stdlib only."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Huy Nguyen" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+pulse = "pulse.cli:main"
+
+[tool.setuptools]
+packages = ["pulse"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
