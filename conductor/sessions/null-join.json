@@ -7,31 +7,41 @@
     "id": "orders_raw",
     "label": "orders_raw",
     "kind": "source",
-    "col": 0
+    "col": 0,
+    "rows": 1718,
+    "schema": ["order_id INTEGER", "customer_id INTEGER | TEXT", "order_ts TEXT", "order_total REAL", "status TEXT", "load_batch TEXT"]
    },
    {
     "id": "customers_raw",
     "label": "customers_raw",
     "kind": "source",
-    "col": 0
+    "col": 0,
+    "rows": 600,
+    "schema": ["customer_id INTEGER", "region TEXT", "updated_at TEXT"]
    },
    {
     "id": "stg_orders",
     "label": "stg_orders",
     "kind": "task",
-    "col": 1
+    "col": 1,
+    "rows": 1398,
+    "schema": ["order_id INTEGER", "customer_id INTEGER", "order_total REAL", "order_date TEXT", "load_batch TEXT"]
    },
    {
     "id": "stg_customers",
     "label": "stg_customers",
     "kind": "task",
-    "col": 1
+    "col": 1,
+    "rows": 600,
+    "schema": ["customer_id INTEGER", "region TEXT"]
    },
    {
     "id": "fct_daily_revenue",
     "label": "fct_daily_revenue",
     "kind": "task",
-    "col": 2
+    "col": 2,
+    "rows": 70,
+    "schema": ["day TEXT", "region TEXT", "orders INTEGER", "revenue REAL"]
    }
   ],
   "edges": [
@@ -167,7 +177,8 @@
     "failed check: not_null(region) on fct_daily_revenue — 1 NULL region rows of 66 (1.5%)",
     "text      146",
     "'CUST-1339'",
-    "'CUST-1371'"
+    "'CUST-1371'",
+    "alternative untested: missing customer dimension row"
    ],
    "confidence": 90
   },

@@ -184,6 +184,514 @@
     return flat.length <= limit ? flat : flat.slice(0, limit - 1).trimEnd() + "…";
   };
 
+  // ---- typed query planning + evidence ----------------------------------
+  const sourceCache = new Map();
+  const MONTHS = {
+    january: "01", february: "02", march: "03", april: "04", may: "05", june: "06",
+    july: "07", august: "08", september: "09", october: "10", november: "11", december: "12",
+  };
+
+  const flatText = (text) => text.replace(/\s+/g, " ").trim();
+  const cleanMarkdown = (text) => flatText(text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_~`#>]/g, "")
+    .replace(/^\s*[-+]\s+/gm, ""));
+
+  function fuzzyWordHit(word, haystack) {
+    if (haystack.has(word)) return true;
+    if (word.length < 5) return false;
+    for (const candidate of haystack)
+      if (candidate.length >= 5 && word.slice(0, 5) === candidate.slice(0, 5)) return true;
+    return false;
+  }
+
+  function overlapCount(questionWords, text) {
+    const target = contentWords(text);
+    let hits = 0;
+    for (const word of questionWords) if (fuzzyWordHit(word, target)) hits++;
+    return hits;
+  }
+
+  const docById = (data, id) => data.doclist.find((doc) => doc.id === id);
+  const docWords = (doc) => contentWords([
+    doc.title, doc.service, ...(doc.tags || []), doc.source,
+  ].join(" "));
+
+  function docScores(data, question, type, results = []) {
+    const qWords = contentWords(question);
+    const retrieved = new Map();
+    for (const [point, score] of results)
+      retrieved.set(point.doc_id, Math.max(retrieved.get(point.doc_id) || 0, score));
+    return data.doclist
+      .filter((doc) => !type || doc.type === type)
+      .map((doc) => {
+        const words = docWords(doc);
+        let lexical = 0;
+        for (const word of qWords) if (fuzzyWordHit(word, words)) lexical++;
+        if (question.toLowerCase().includes(doc.title.toLowerCase())) lexical += 4;
+        return { doc, score: lexical + 4 * (retrieved.get(doc.id) || 0) };
+      })
+      .sort((a, b) => b.score - a.score || a.doc.title.localeCompare(b.doc.title));
+  }
+
+  async function loadSource(doc) {
+    const key = `${current ? current.slug : "default"}:${doc.id}`;
+    if (!sourceCache.has(key)) {
+      let pending;
+      pending = fetch(window.ATLAS_FILES_BASE + doc.source)
+        .then((response) => {
+          if (!response.ok) throw new Error(`source ${response.status}: ${doc.source}`);
+          return response.text();
+        })
+        .catch((error) => {
+          if (sourceCache.get(key) === pending) sourceCache.delete(key);
+          throw error;
+        });
+      sourceCache.set(key, pending);
+    }
+    return sourceCache.get(key);
+  }
+
+  function parseCSVRows(text) {
+    const rows = [];
+    let row = [], field = "", quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (quoted) {
+        if (char === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (char === '"') quoted = false;
+        else field += char;
+      } else if (char === '"') quoted = true;
+      else if (char === ",") { row.push(field); field = ""; }
+      else if (char === "\n") {
+        row.push(field); field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+      } else if (char !== "\r") field += char;
+    }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    const headers = rows[0] || [];
+    return {
+      headers,
+      rows: rows.slice(1).map((cells, index) => ({
+        cells,
+        rowNumber: index + 2,
+        values: Object.fromEntries(headers.map((header, column) => [header, cells[column] || ""])),
+      })),
+    };
+  }
+
+  function explicitSnapshotIntent(question) {
+    return /\b(live|current|currently|right now|system state|status now|open alerts?)\b/i.test(question);
+  }
+
+  function matchingSnapshot(question, data) {
+    if (!explicitSnapshotIntent(question) || !data.state) return null;
+    const ignored = new Set(["live", "current", "currently", "right", "now", "system", "state", "status", "any"]);
+    const words = new Set([...contentWords(question)].filter((word) => !ignored.has(word)));
+    const all = [];
+    let header = "";
+    for (const line of data.state.split("\n")) {
+      if (line && !/^\s/.test(line)) { header = line; continue; }
+      if (line.trim()) all.push({ header, line });
+    }
+    const scored = all.map((entry) => ({
+      ...entry,
+      score: [...words].filter((word) => word.length >= 4 && fuzzyWordHit(word, contentWords(`${entry.header} ${entry.line}`))).length,
+    }));
+    const bestScore = Math.max(0, ...scored.map((entry) => entry.score));
+    const matches = scored.filter((entry) => entry.score === bestScore && bestScore > 0);
+    if (!matches.length) return null;
+    const lines = [];
+    let lastHeader = "";
+    for (const match of matches.slice(0, 7)) {
+      if (match.header !== lastHeader) { lines.push(match.header); lastHeader = match.header; }
+      lines.push(match.line);
+    }
+    const date = data.doclist.map((doc) => doc.updated || "").sort().at(-1) || "unknown";
+    return { date, lines };
+  }
+
+  function classifyIntent(question) {
+    if (/\b(how do|how should|how to|what do (?:we|i)|steps?|procedure|runbook|fail over|check first)\b/i.test(question))
+      return "procedure";
+    const structured = /\b(how many|count|average|total|sum)\b/i.test(question) ||
+      /\b(which|what)\b.*\b(below|under|above|over)\b/i.test(question) ||
+      /\bon[ -]?call\b.*\b(week|month|20\d\d)/i.test(question) ||
+      /\bwhat was (?:our )?[\w -]+ cost in\b/i.test(question) ||
+      /\bhow much (?:does|is|for)\b.*\b(cost|rate)\b/i.test(question);
+    if (structured) return "aggregate";
+    return "lookup";
+  }
+
+  function nearestDocuments(data, question, results, type) {
+    return docScores(data, question, type, results).slice(0, 3).map(({ doc }) => ({
+      doc_id: doc.id, doc_title: doc.title, doc_type: doc.type, updated: doc.updated,
+      format: doc.format, source: doc.source,
+    }));
+  }
+
+  function ambiguousQuestion(question, scoredDocs) {
+    const generic = new Set(["document", "runbook", "incident", "procedure", "say", "says", "mean"]);
+    const meaningful = [...contentWords(question)].filter((word) => !generic.has(word));
+    if (scoredDocs.length < 2) return false;
+    if (meaningful.length <= 1) return true;
+    return scoredDocs[0].score < 1.15 && scoredDocs[0].score - scoredDocs[1].score < 0.08;
+  }
+
+  function sectionFromMarkdown(markdown, heading) {
+    const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = markdown.match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im"));
+    return match ? match[1].trim() : "";
+  }
+
+  function parseProcedureSteps(markdown) {
+    const section = sectionFromMarkdown(markdown, "Steps");
+    if (!section) return [];
+    const starts = [...section.matchAll(/^\d+\.\s+/gm)];
+    return starts.map((match, index) => {
+      const raw = section.slice(match.index, starts[index + 1] ? starts[index + 1].index : section.length).trim();
+      const body = raw.replace(/^\d+\.\s+/, "");
+      const fence = body.match(/```[^\n]*\n([\s\S]*?)```/);
+      const prose = cleanMarkdown(body.replace(/```[\s\S]*?```/g, " "));
+      const lead = flatText(body.split("\n")[0]).replace(/[*_`]/g, "");
+      return { text: prose, command: fence ? fence[1].trim() : "", evidence: lead };
+    }).filter((step) => step.text);
+  }
+
+  function citationBase(doc, point) {
+    const page = /page\s+(\d+)/i.exec(point ? point.section : "");
+    return {
+      doc_id: doc.id,
+      doc_title: doc.title,
+      doc_type: doc.type,
+      source: doc.source,
+      document_version: doc.updated || "unknown",
+      section: point ? point.section : "",
+      chunk_id: point ? point.id : "",
+      format: doc.format,
+      media: point ? point.media_path || "" : "",
+      anchor: page ? { type: "page", page: Number(page[1]) } : null,
+    };
+  }
+
+  async function executeProcedure(data, question, results) {
+    const scored = docScores(data, question, "runbook", results);
+    if (!scored.length || scored[0].score < 1) return null;
+    if (ambiguousQuestion(question, scored)) return { ambiguous: nearestDocuments(data, question, results, "runbook") };
+    const doc = scored[0].doc;
+    const markdown = await loadSource(doc);
+    const steps = parseProcedureSteps(markdown);
+    if (!steps.length) throw new Error(`no ordered Steps section in ${doc.source}`);
+    const point = results.find(([candidate]) => candidate.doc_id === doc.id)?.[0] ||
+      data.points.find((candidate) => candidate.doc_id === doc.id && /^Steps$/i.test(candidate.section));
+    const citation = citationBase(doc, point);
+    citation.section = "Steps";
+    citation.excerpts = steps.map((step) => step.evidence);
+    citation.excerpt = citation.excerpts.join("\n");
+    citation.anchor = { type: "text", heading: "Steps", excerpt: steps[0].evidence };
+    return {
+      answer: `${doc.title}: ${steps.length} ordered steps.`,
+      answer_blocks: [
+        { type: "text", text: `${doc.title}: ${steps.length} ordered steps.` },
+        { type: "ol", items: steps.map(({ text, command }) => ({ text, command })) },
+      ],
+      citations: [citation],
+      plan: {
+        intent: "PROCEDURE", source: doc.title,
+        operation: "EXTRACT ordered items FROM section = Steps",
+        freshness: doc.updated || "unknown",
+      },
+    };
+  }
+
+  function datePredicate(question, headers) {
+    const dateColumn = headers.find((header) => header === "month") ||
+      headers.find((header) => header === "week_start") ||
+      headers.find((header) => /(^|_)date$/.test(header));
+    if (!dateColumn) return null;
+    const iso = question.match(/\b((?:19|20)\d{2})-(0[1-9]|1[0-2])\b/);
+    if (iso) return { column: dateColumn, op: "starts with", value: iso[0] };
+    const month = question.toLowerCase().match(new RegExp(`\\b(${Object.keys(MONTHS).join("|")})\\s+((?:19|20)\\d{2})\\b`));
+    if (month) return { column: dateColumn, op: "starts with", value: `${month[2]}-${MONTHS[month[1]]}` };
+    const year = question.match(/\b((?:19|20)\d{2})\b/);
+    return year ? { column: dateColumn, op: "starts with", value: year[1] } : null;
+  }
+
+  function structuredPredicates(question, csv) {
+    const predicates = [];
+    const date = datePredicate(question, csv.headers);
+    if (date) predicates.push(date);
+    const lower = question.toLowerCase();
+    if (/\b(on time|on-time)\b/.test(lower) && csv.headers.includes("on_time"))
+      predicates.push({ column: "on_time", op: "=", value: "yes" });
+    let outcome = null;
+    if (/\b(rolled back|rollback)\b/.test(lower)) outcome = "rolled_back";
+    else if (/\b(fail|failed|failure|failures|unsuccessful)\b/.test(lower)) outcome = "failed";
+    else if (/\b(succeed|succeeded|success|successful|passed)\b/.test(lower)) outcome = "succeeded";
+    if (outcome) {
+      if (outcome === "rolled_back" && csv.headers.includes("rolled_back")) {
+        const value = csv.rows.map((row) => row.values.rolled_back)
+          .find((candidate) => /^(yes|true|1)$/i.test(candidate));
+        if (value) predicates.push({ column: "rolled_back", op: "=", value });
+      } else {
+        const aliases = outcome === "failed"
+          ? ["fail", "failed", "failure", "unsuccessful"]
+          : outcome === "succeeded"
+            ? ["pass", "passed", "success", "succeeded", "successful", "ok"]
+            : ["rolled back", "rollback"];
+        const columns = csv.headers.filter((header) =>
+          /(^|_)(status|result|outcome|resolution)(_|$)/.test(header)
+        ).sort((a, b) => overlapCount(contentWords(question), b) - overlapCount(contentWords(question), a));
+        for (const column of columns) {
+          const value = [...new Set(csv.rows.map((row) => row.values[column]))].find((candidate) => {
+            const normalized = candidate.toLowerCase().replace(/[-_]+/g, " ");
+            const words = new Set(tokens(normalized));
+            return aliases.some((alias) => alias.includes(" ") ? normalized.includes(alias) : words.has(alias));
+          });
+          if (value) { predicates.push({ column, op: "=", value }); break; }
+        }
+      }
+    }
+    const compare = lower.match(/\b(below|under|less than|above|over|greater than)\s+(?:the\s+)?(\d+(?:\.\d+)?)\s*%?/);
+    if (compare) {
+      const qWords = contentWords(question);
+      const numeric = csv.headers.filter((header) =>
+        csv.rows.some((row) => row.values[header] !== "" && Number.isFinite(Number(row.values[header])))
+      ).sort((a, b) => overlapCount(qWords, b) - overlapCount(qWords, a));
+      if (numeric[0]) predicates.push({
+        column: numeric[0],
+        op: /below|under|less/.test(compare[1]) ? "<" : ">",
+        value: Number(compare[2]),
+      });
+    }
+    for (const column of ["line_item", "service", "mode", "status"]) {
+      if (!csv.headers.includes(column)) continue;
+      const value = [...new Set(csv.rows.map((row) => row.values[column]))].find((candidate) => {
+        const words = [...contentWords(candidate)];
+        return words.length && words.every((word) => fuzzyWordHit(word, contentWords(question)));
+      });
+      if (value) predicates.push({ column, op: "=", value });
+    }
+    return predicates.filter((predicate, index, all) =>
+      all.findIndex((other) => other.column === predicate.column && other.op === predicate.op) === index
+    );
+  }
+
+  function applyPredicates(rows, predicates) {
+    return rows.filter((row) => predicates.every((predicate) => {
+      const value = row.values[predicate.column] || "";
+      if (predicate.op === "starts with") return value.startsWith(String(predicate.value));
+      if (predicate.op === "<") return Number(value) < predicate.value;
+      if (predicate.op === ">") return Number(value) > predicate.value;
+      return value.toLowerCase() === String(predicate.value).toLowerCase();
+    }));
+  }
+
+  function selectLookupRows(question, rows, operation) {
+    if (operation !== "LOOKUP" || rows.length <= 1) return rows;
+    const qWords = contentWords(question);
+    const scored = rows.map((row) => ({ row, score: overlapCount(qWords, Object.values(row.values).join(" ")) }));
+    scored.sort((a, b) => b.score - a.score || a.row.rowNumber - b.row.rowNumber);
+    if (!scored.length || scored[0].score < 1) return [];
+    return scored.filter((item) => item.score === scored[0].score).slice(0, 8).map((item) => item.row);
+  }
+
+  function structuredOperation(question) {
+    if (/\b(how many|count)\b/i.test(question)) return "COUNT";
+    if (/\b(average|avg|mean)\b/i.test(question)) return "AVG";
+    if (/\b(total|sum)\b/i.test(question)) return "SUM";
+    if (/\b(below|under|less than|above|over|greater than|which)\b/i.test(question)) return "FILTER";
+    return "LOOKUP";
+  }
+
+  function numericValue(value) {
+    const number = Number(String(value).replace(/[$,%]/g, ""));
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function aggregateColumn(csv, question) {
+    const qWords = contentWords(question);
+    return csv.headers
+      .filter((header) => csv.rows.some((row) => numericValue(row.values[header]) !== null))
+      .map((header, index) => ({ header, index, score: overlapCount(qWords, header) }))
+      .filter((candidate) => candidate.score > 0)
+      .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.header || null;
+  }
+
+  function displayColumns(headers, question) {
+    const qWords = contentWords(question);
+    const selected = headers.filter((header) => overlapCount(qWords, header) > 0);
+    for (const header of headers) {
+      if (/(_id|^date$|_date$|month|week_start|name|supplier|primary|secondary|line_item|result|status|cost|rate|unit|lane|on_time|risk_flag)$/.test(header) && !selected.includes(header))
+        selected.push(header);
+    }
+    return (selected.length ? selected : headers).slice(0, 7);
+  }
+
+  function money(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? `$${number.toLocaleString("en-US")}` : value;
+  }
+
+  function structuredSummary(question, doc, operation, rows, predicates, aggregate) {
+    const first = rows[0] ? rows[0].values : {};
+    if (operation === "COUNT") {
+      const subject = question.replace(/^.*?how many\s+/i, "").replace(/[?.!]\s*$/, "");
+      return `${rows.length.toLocaleString("en-US")} ${subject}.`;
+    }
+    if (aggregate) {
+      const label = aggregate.column.replace(/_/g, " ");
+      const formatted = /(?:^|_)(cost|rate|value)(?:_|$)|usd/.test(aggregate.column)
+        ? `$${aggregate.value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`
+        : aggregate.value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+      return `${operation === "SUM" ? "Total" : "Average"} ${label}: ${formatted} across ${rows.length.toLocaleString("en-US")} contributing rows.`;
+    }
+    const compare = question.match(/\b(below|under|above|over)\b.*?(\d+(?:\.\d+)?)\s*%?/i);
+    if (compare) {
+      const subject = question.match(/\bwhich\s+([a-z-]+)/i)?.[1] || "rows";
+      return `${rows.length.toLocaleString("en-US")} ${subject} match ${compare[1].toLowerCase()} ${compare[2]}%.`;
+    }
+    if (first.rate_usd) return `${first.lane}: ${money(first.rate_usd)} ${first.unit} via ${first.carrier}; ${first.transit_days} days; valid through ${first.valid_thru}.`;
+    if (first.cost_usd) return `${first.month} ${first.line_item} cost: ${money(first.cost_usd)} (${first.usage}).`;
+    if (first.week_start) {
+      const period = predicates.find((predicate) => predicate.column === "week_start")?.value || "the requested period";
+      return `${rows.length} on-call rotations match ${period}.`;
+    }
+    return `${rows.length.toLocaleString("en-US")} matching ${rows.length === 1 ? "row" : "rows"} in ${doc.title}.`;
+  }
+
+  async function executeStructured(data, question, results) {
+    const scored = docScores(data, question, "dataset", results);
+    if (!scored.length || scored[0].score < 1) return null;
+    if (ambiguousQuestion(question, scored)) return { ambiguous: nearestDocuments(data, question, results, "dataset") };
+    const doc = scored[0].doc;
+    const raw = await loadSource(doc);
+    const csv = parseCSVRows(raw);
+    if (!csv.headers.length) throw new Error(`empty CSV: ${doc.source}`);
+    const predicates = structuredPredicates(question, csv);
+    const operation = structuredOperation(question);
+    let matching = applyPredicates(csv.rows, predicates);
+    matching = selectLookupRows(question, matching, operation);
+    if (!matching.length) return { empty: doc, predicates };
+    let aggregate = null;
+    if (operation === "SUM" || operation === "AVG") {
+      const column = aggregateColumn(csv, question);
+      if (!column) return null;
+      matching = matching.filter((row) => numericValue(row.values[column]) !== null);
+      if (!matching.length) return { empty: doc, predicates };
+      const total = matching.reduce((sum, row) => sum + numericValue(row.values[column]), 0);
+      aggregate = { column, value: operation === "AVG" ? total / matching.length : total };
+    }
+    const columns = displayColumns(csv.headers, question);
+    if (aggregate && !columns.includes(aggregate.column)) columns.unshift(aggregate.column);
+    const shown = matching.slice(0, 12);
+    const summary = structuredSummary(question, doc, operation, matching, predicates, aggregate);
+    const scanStart = 2, scanEnd = csv.rows.length + 1;
+    const excerptRows = shown.slice(0, 8);
+    const citation = citationBase(doc, data.points.find((point) => point.doc_id === doc.id));
+    const rowNumbers = matching.map((row) => row.rowNumber);
+    const consecutive = rowNumbers.every((number, index) => !index || number === rowNumbers[index - 1] + 1);
+    citation.section = matching.length <= 12
+      ? matching.length === 1
+        ? `CSV row ${rowNumbers[0]}`
+        : consecutive
+          ? `CSV rows ${rowNumbers[0]}-${rowNumbers.at(-1)}`
+          : `CSV rows ${rowNumbers.join(", ")}`
+      : `CSV scan rows ${scanStart}-${scanEnd} - ${matching.length.toLocaleString("en-US")} matched`;
+    citation.excerpt = [columns.join(","), ...excerptRows.map((row) => columns.map((column) => row.values[column]).join(","))].join("\n");
+    citation.anchor = { type: "csv", row_numbers: shown.map((row) => row.rowNumber) };
+    return {
+      answer: summary,
+      answer_blocks: [
+        { type: "text", text: summary },
+        {
+          type: "table", columns,
+          rows: shown.map((row) => columns.map((column) => row.values[column])),
+          caption: `${shown.length.toLocaleString("en-US")} of ${matching.length.toLocaleString("en-US")} ${aggregate ? "contributing" : "matching"} rows`,
+        },
+      ],
+      citations: [citation],
+      plan: {
+        intent: operation, source: doc.title,
+        filters: predicates.map((predicate) => `${predicate.column} ${predicate.op} ${predicate.value}`),
+        operation: operation === "COUNT"
+          ? `COUNT(${matching.length.toLocaleString("en-US")} matching rows)`
+          : aggregate
+            ? `${operation}(${aggregate.column}) over ${matching.length.toLocaleString("en-US")} matching rows`
+            : `${operation}(${matching.length.toLocaleString("en-US")} rows)`,
+        freshness: doc.updated || "unknown",
+      },
+    };
+  }
+
+  function sentenceUnits(text) {
+    const units = [];
+    let inFence = false;
+    for (const rawLine of text.split("\n")) {
+      const line = rawLine.trim();
+      if (line.startsWith("```")) { inFence = !inFence; continue; }
+      if (inFence || !line || /^#+\s/.test(line)) continue;
+      if (/^(?:[-*]|\d+\.)\s/.test(line) || line.startsWith("**")) units.push(line);
+      else for (const sentence of line.split(/(?<=[.!?])\s+/)) if (sentence.trim()) units.push(sentence.trim());
+    }
+    return units;
+  }
+
+  function coherentLookupExcerpt(point, question) {
+    const units = sentenceUnits(point.text);
+    if (!units.length) return cleanMarkdown(point.text);
+    const qWords = contentWords(question);
+    const ranked = units.map((unit, index) => ({ unit, index, score: overlapCount(qWords, unit) }))
+      .sort((a, b) => b.score - a.score || a.unit.length - b.unit.length);
+    const best = ranked[0];
+    const start = Math.max(0, best.index - 1), end = Math.min(units.length, best.index + 2);
+    return units.slice(start, end).join("\n");
+  }
+
+  function executeLookup(data, question, results) {
+    const retrieved = new Map(results.map(([point, score]) => [point.id, score]));
+    const qWords = contentWords(question);
+    const monthWords = new Set(Object.keys(MONTHS));
+    const unsupported = [...qWords].filter((word) => !monthWords.has(word) &&
+      !data.points.some((point) => fuzzyWordHit(word, point._words)));
+    if (unsupported.length) return null;
+    const rankedPoints = data.points.map((point) => ({
+      point,
+      score: 2 * overlapCount(qWords, point.text) +
+        overlapCount(qWords, `${point.title} ${point.section}`) +
+        2 * (retrieved.get(point.id) || 0) +
+        (/\bcost\b/i.test(question) ? Math.min(8, (point.text.match(/\$[\d,]+/g) || []).length * 2) : 0) +
+        (/\bwho approved\b/i.test(question) && /\bapproved?\b/i.test(point.text) ? 4 : 0),
+    })).sort((a, b) => b.score - a.score);
+    if (!rankedPoints.length || rankedPoints[0].score < 1) return null;
+    const { point, score } = rankedPoints[0];
+    const distinctDocs = [];
+    for (const entry of rankedPoints)
+      if (!distinctDocs.some((candidate) => candidate.point.doc_id === entry.point.doc_id)) distinctDocs.push(entry);
+    const ambiguityScores = distinctDocs.slice(0, 5).map((entry) => ({ doc: docById(data, entry.point.doc_id), score: entry.score }));
+    if (ambiguousQuestion(question, ambiguityScores)) return { ambiguous: nearestDocuments(data, question, results) };
+    const doc = docById(data, point.doc_id);
+    const excerpt = coherentLookupExcerpt(point, question);
+    if (!doc || !excerpt) return null;
+    const citation = citationBase(doc, point);
+    citation.excerpt = excerpt;
+    if (!citation.anchor) citation.anchor = { type: "text", heading: point.section, excerpt: excerpt.split("\n")[0] };
+    return {
+      answer: cleanMarkdown(excerpt),
+      answer_blocks: [{ type: "text", text: cleanMarkdown(excerpt) }],
+      citations: [citation],
+      plan: {
+        intent: "LOOKUP", source: doc.title,
+        operation: `BEST sentence + adjacent context FROM ${point.section}`,
+        freshness: doc.updated || "unknown",
+      },
+      score,
+    };
+  }
+
   // ---- data loading + the api implementation ----------------------------
   // atlas-manifest.json lists the exported datasets; the first is default.
   let manifest = null;
@@ -280,7 +788,7 @@
         status: "ok",
         version: "static",
         components: {
-          store: "in-browser", llm: "extractive-js",
+          store: "in-browser", llm: "typed-js",
           cache: "none", embedder: "hashing-js",
         },
         docs: d.docs,
@@ -300,20 +808,66 @@
       const d = await loadData();
       const qv = embed(question, d.dims);
       const results = retrieve(d, question, qv);
-      const sources = results.map(([p], i) => [i + 1, p]);
-      const answer = generate(question, sources, d.state);
-      const citations = results.map(([p, s], i) => ({
-        n: i + 1,
-        doc_id: p.doc_id,
-        doc_title: p.title,
-        doc_type: p.type,
-        section: p.section,
-        snippet: snippet(p.text),
-        score: Math.round(s * 10000) / 10000,
-        chunk_id: p.id,
-        format: p.format,
-        media: p.media_path || "",
-      }));
+      const intent = classifyIntent(question);
+      const snapshot = intent === "procedure" ? null : matchingSnapshot(question, d);
+      let executed = null;
+      let answerState = "answered";
+      let sourceScope = "corpus";
+      let warnings = [];
+
+      if (snapshot && intent === "lookup") {
+        executed = {
+          answer: `SNAPSHOT ${snapshot.date}\n${snapshot.lines.join("\n")}`,
+          answer_blocks: [{ type: "snapshot", date: snapshot.date, lines: snapshot.lines }],
+          citations: [],
+          plan: {
+            intent: "SNAPSHOT", source: "packaged system state",
+            operation: "FILTER snapshot lines by explicit current-state terms",
+            freshness: snapshot.date,
+          },
+        };
+        sourceScope = "snapshot";
+        warnings.push("Uncited snapshot state - not backed by a corpus document or connector.");
+      } else if (intent === "aggregate") {
+        executed = await executeStructured(d, question, results);
+      } else if (intent === "procedure") {
+        executed = await executeProcedure(d, question, results);
+      } else {
+        executed = executeLookup(d, question, results);
+      }
+
+      if (executed && executed.ambiguous) {
+        answerState = "ambiguous";
+        const names = executed.ambiguous.map((doc) => doc.doc_title);
+        executed = {
+          answer: `Which document do you mean? ${names.join("; ")}.`,
+          answer_blocks: [
+            { type: "text", text: "Which document do you mean?" },
+            { type: "documents", documents: executed.ambiguous },
+          ],
+          citations: [], plan: { intent: intent.toUpperCase(), operation: "CLARIFY document scope" },
+        };
+      } else if (!executed || executed.empty) {
+        answerState = "not_in_corpus";
+        const nearest = nearestDocuments(d, question, results, intent === "procedure" ? "runbook" : intent === "aggregate" ? "dataset" : null);
+        const emptySource = executed && executed.empty ? ` No matching rows in ${executed.empty.title}.` : "";
+        const nearestText = nearest.length ? ` Nearest documents: ${nearest.map((doc) => doc.doc_title).join("; ")}.` : "";
+        executed = {
+          answer: `Not in corpus.${emptySource}${nearestText}`,
+          answer_blocks: [
+            { type: "text", text: `Not in corpus.${emptySource}` },
+            { type: "documents", label: "Nearest documents", documents: nearest },
+          ],
+          citations: [], plan: { intent: intent.toUpperCase(), operation: "NO supported answer" },
+        };
+      } else if (snapshot && sourceScope !== "snapshot") {
+        executed.answer_blocks.push({ type: "snapshot", date: snapshot.date, lines: snapshot.lines });
+        executed.answer += `\n\nSNAPSHOT ${snapshot.date}\n${snapshot.lines.join("\n")}`;
+        sourceScope = "mixed";
+        warnings.push("Uncited snapshot state - not backed by a corpus document or connector.");
+      }
+
+      const citations = (executed.citations || []).map((citation, index) => ({ ...citation, n: index + 1 }));
       // project the query into the same PCA basis as the map
       let query_xy = null;
       if (d.mean && d.comps) {
@@ -327,9 +881,15 @@
       }
       return {
         question,
-        answer,
+        answer: executed.answer,
+        answer_blocks: executed.answer_blocks,
+        answer_state: answerState,
+        source_scope: sourceScope,
+        intent,
+        plan: executed.plan,
+        warnings,
         citations,
-        mode: { store: "in-browser", llm: "extractive-js", cache: "none", embedder: "hashing-js" },
+        mode: { store: "in-browser", llm: "typed-js", cache: "none", embedder: "hashing-js" },
         cached: false,
         latency_ms: Math.max(1, Math.round(performance.now() - t0)),
         retrieved: results.length,

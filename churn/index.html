@@ -185,6 +185,51 @@
   .model-figure text { fill: var(--dim); font-size: 12px; }
   .model-figure .label { fill: var(--text); font-weight: 700; }
   .model-figure .label.blue { fill: var(--blue); }
+  .surface-head, .surface-actions, .queue-tools, .batch-actions {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  }
+  .surface-head { margin-bottom: 12px; }
+  .surface-head h3 { margin: 0; font: 700 13px/1.35 var(--pi-font-ui); text-transform: uppercase; letter-spacing: .05em; }
+  .surface-actions .pbtn, .queue-tools .pbtn, .batch-actions .pbtn { min-height: 38px; }
+  .state-strip { margin: 10px 0; }
+  .state-strip[data-state="loading"] { border-color: var(--blue); }
+  .state-strip[data-state="ready"] { border-color: var(--green); background: var(--pi-ok-soft); }
+  .state-strip[data-state="partial"] { border-color: var(--gold); background: var(--pi-warn-soft); }
+  .state-strip[data-state="empty"] { border-color: var(--dim); }
+  .state-strip[data-state="error"] { border-color: var(--coral); background: var(--pi-err-soft); }
+  .mode-grid, .validation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+  .metric-box { min-width: 0; padding: 8px; border: 2px solid var(--text); background: var(--pi-paper); }
+  .metric-box b { display: block; font: 700 20px/1.1 var(--pi-font-ui); font-variant-numeric: tabular-nums; }
+  .metric-box span { display: block; margin-top: 3px; color: var(--dim); font: 600 11px/1.25 var(--pi-font-ui); text-transform: uppercase; }
+  .queue-tools { justify-content: flex-start; margin-bottom: 10px; }
+  .queue-tools label { font: 600 12px/1.3 var(--pi-font-ui); color: var(--dim); text-transform: uppercase; }
+  .queue-tools select, .batch-file {
+    min-height: 40px; padding: 6px 8px; border: 2px solid var(--text); border-radius: 0;
+    color: var(--text); background: var(--panel); font: 13px/1.3 var(--pi-font-body);
+  }
+  .why-list { margin: 0; padding-left: 18px; }
+  .why-list li + li { margin-top: 3px; }
+  .calibration-svg { width: 100%; height: auto; display: block; border: 2px solid var(--text); background: var(--pi-paper); }
+  .calibration-svg .grid { stroke: var(--line); stroke-width: 1; }
+  .calibration-svg .axis { stroke: var(--text); stroke-width: 2; shape-rendering: crispEdges; }
+  .calibration-svg .ideal { stroke: var(--dim); stroke-width: 2; stroke-dasharray: 7 5; }
+  .calibration-svg .curve { fill: none; stroke: var(--blue); stroke-width: 4; stroke-linejoin: miter; }
+  .calibration-svg .point { fill: var(--coral); stroke: var(--text); stroke-width: 1; }
+  .threshold-control { margin-bottom: 12px; }
+  .threshold-control input { width: 100%; }
+  .confusion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+  .confusion div { padding: 8px; border: 2px solid var(--text); background: var(--pi-paper); }
+  .confusion b { display: block; font: 700 20px/1 var(--pi-font-ui); }
+  .confusion .ok { background: var(--pi-ok-soft); }
+  .confusion .err { background: var(--pi-err-soft); }
+  .delta-up { color: var(--coral); } .delta-down { color: var(--blue); }
+  .batch-zone { padding: 12px; border: 2px dashed var(--text); background: var(--pi-paper); }
+  .batch-actions { justify-content: flex-start; }
+  .batch-results { margin-top: 12px; }
+  .batch-errors { max-height: 240px; overflow: auto; }
+  .icon-btn .pi-ic, h2 .pi-ic { flex: 0 0 auto; }
+  .compact-note { margin: 6px 0 0; color: var(--dim); font-size: 12px; }
   footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 32px; }
   a { color: var(--blue); }
   .mb { margin-bottom: 16px; }
@@ -204,7 +249,8 @@
     .kpi.card { border-bottom: 1px solid var(--line); }
   }
   @media (max-width: 860px) {
-    .dec-grid, .grid2 { grid-template-columns: 1fr; }
+    .dec-grid, .grid2, .mode-grid, .validation-grid { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 700px) {
     .charts { grid-template-columns: 1fr; }
@@ -302,8 +348,7 @@
         <div class="ctl"><label for="in-hor">value horizon — <span class="val" id="v-hor"></span> of monthly charges</label>
           <input type="range" id="in-hor" min="3" max="24" value="12"></div>
         <p class="note">Expected net = save-rate × Σ pᵢ × horizon × chargesᵢ (targeted) − offer cost × targeted.
-          Probabilities are calibrated (see analysis), so this arithmetic is meaningful — and every assumption
-          is yours to move.</p>
+          Held-out reliability is shown in the validation workbench; move every assumption to test sensitivity.</p>
       </div>
       <div>
         <div class="dec-out">
@@ -314,20 +359,74 @@
           <div><b id="d-prec">—</b><span>held-out precision at τ</span></div>
           <div><b id="d-rec">—</b><span>held-out recall at τ</span></div>
         </div>
-        <p class="chart-note" id="eval-note">Precision and recall are unavailable because row-level hold-out membership was not shipped.</p>
+        <p class="chart-note" id="eval-note">Loading held-out evaluation provenance…</p>
         <svg id="profit" viewBox="0 0 360 150" role="img" aria-label="Expected net vs threshold"></svg>
         <p class="chart-note">expected net vs threshold — dot marks a unique optimum when one exists</p>
       </div>
     </div>
   </section>
 
-  <section class="card mb">
-    <h2>Top at-risk active customers in view — who to call Monday morning</h2>
-    <div class="risk-table-wrap ptable-wrap" role="region" aria-label="Top at-risk active customers" tabindex="0">
+  <section class="card pwin mb" id="backtest-section">
+    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"/></svg> Historical backtest — held-out evaluation only</h2>
+    <div class="surface-head">
+      <h3>Realized outcomes at <span id="backtest-threshold">45%</span> threshold</h3>
+      <div class="surface-actions">
+        <label for="backtest-filter" class="mini-lbl">rows</label>
+        <select id="backtest-filter" class="pbtn">
+          <option value="churned">churned: hits + misses</option>
+          <option value="all">all held-out predictions</option>
+          <option value="errors">all errors</option>
+        </select>
+      </div>
+    </div>
+    <div class="pstrip state-strip" id="backtest-state" role="status">Loading eligible held-out predictions…</div>
+    <div class="metric-grid" id="backtest-metrics" aria-label="Held-out backtest metrics"></div>
+    <div class="risk-table-wrap ptable-wrap" role="region" aria-label="Historical held-out outcomes" tabindex="0">
+      <table class="risk-table ptable" id="backtest-table"></table>
+    </div>
+    <p class="chart-note" id="backtest-note">Evaluation cohort and split provenance load from provenance.json.</p>
+  </section>
+
+  <section class="card pwin mb" id="queue-section">
+    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg> Active-customer queue — outreach candidates only</h2>
+    <div class="queue-tools">
+      <label for="queue-sort">sort by</label>
+      <select id="queue-sort">
+        <option value="probability">churn probability</option>
+        <option value="risk_value">monthly $ at risk</option>
+      </select>
+      <button class="pbtn icon-btn" id="queue-download" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> download queue CSV</button>
+    </div>
+    <div class="pstrip state-strip" id="queue-state" role="status">Loading active customers…</div>
+    <div class="risk-table-wrap ptable-wrap" role="region" aria-label="Active-customer outreach queue" tabindex="0">
       <table class="risk-table ptable" id="risk-table"></table>
     </div>
-    <p class="chart-note">Real customer IDs from the dataset, scored by the shipped model, respecting your
-      filters. Customers with recorded churn are excluded; use each customer button for the model's reasoning.</p>
+    <p class="chart-note" id="queue-note">IBM sample customer IDs; recorded churners are excluded. The table previews 50 rows; export includes the full filtered queue.</p>
+  </section>
+
+  <section class="card pwin mb" id="validation-section">
+    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg> Validation workbench — 25% stratified hold-out</h2>
+    <div class="pstrip state-strip" id="validation-state" role="status">Loading calibration and audit evidence…</div>
+    <div class="validation-grid">
+      <div>
+        <div class="surface-head"><h3>Reliability curve</h3><span class="pchip" id="calibration-bins">— bins</span></div>
+        <svg class="calibration-svg" id="calibration-chart" viewBox="0 0 520 340" role="img" aria-label="Predicted probability versus observed churn on held-out records"></svg>
+        <p class="compact-note">Diagonal = perfect calibration. Points are equal-width probability bins on untouched predictions.</p>
+      </div>
+      <div>
+        <div class="threshold-control ctl">
+          <label for="validation-threshold">decision threshold — <span class="val" id="validation-threshold-value">45%</span></label>
+          <input type="range" id="validation-threshold" min="5" max="90" value="45">
+        </div>
+        <div class="confusion" id="confusion-matrix" aria-label="Held-out confusion matrix"></div>
+        <div class="metric-grid" id="validation-metrics"></div>
+        <p class="compact-note" id="validation-cost-note"></p>
+      </div>
+    </div>
+    <h2>Held-out segment audit</h2>
+    <div class="model-table-wrap ptable-wrap" role="region" aria-label="Held-out segment AUC and calibration deltas" tabindex="0">
+      <table class="ptable" id="segment-table"></table>
+    </div>
   </section>
 
   <div class="grid2">
@@ -353,6 +452,24 @@
         arithmetic, not a post-hoc explainer.</p>
     </section>
   </div>
+
+  <section class="card pwin mb" id="batch-section">
+    <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> CSV batch scoring — IBM Telco schema</h2>
+    <div class="batch-zone">
+      <div class="batch-actions">
+        <input class="batch-file" id="batch-file" type="file" accept=".csv,text/csv" aria-describedby="batch-help">
+        <button class="pbtn" id="batch-sample" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg> load sample rows</button>
+        <button class="pbtn" id="batch-download" type="button" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> download scored CSV</button>
+      </div>
+      <p class="compact-note" id="batch-help">Required: the 18 model inputs from the IBM Telco CSV. customerID and non-model columns may be included.</p>
+    </div>
+    <div class="pstrip state-strip" id="batch-state" role="status">No file loaded. Choose a CSV or load sample rows.</div>
+    <div class="metric-grid batch-results hide" id="batch-summary" aria-label="Batch score distribution"></div>
+    <div class="batch-errors hide" id="batch-errors" role="region" aria-label="First ten row validation errors"></div>
+    <div class="risk-table-wrap ptable-wrap batch-results hide" id="batch-table-wrap" role="region" aria-label="Batch scoring preview" tabindex="0">
+      <table class="risk-table ptable" id="batch-table"></table>
+    </div>
+  </section>
 
   <section class="card model-card mb">
     <h2>Model card — honest numbers on held-out data</h2>
@@ -400,7 +517,7 @@
     </div>
   </section>
 
-  <footer>churn radar · real data, real coefficients, no server — audit rows.json &amp; model.json</footer>
+  <footer>churn radar · IBM sample records, shipped coefficients, no server — audit rows.json &amp; model.json</footer>
 </div>
 <div id="tip" role="tooltip"></div>
 
@@ -409,12 +526,16 @@
   const fmt = (n) => n.toLocaleString();
   const tip = $("tip");
 
-  /* ================= dashboard: real rows, cross-filtering ================= */
+  /* ================= dashboard: IBM sample rows, cross-filtering ================= */
   const DIMS = ["Contract", "InternetService", "PaymentMethod", "TechSupport", "PaperlessBilling", "SeniorCitizen"];
   const TENURE_BUCKETS = [[0, 6, "0–6"], [7, 12, "7–12"], [13, 24, "13–24"], [25, 48, "25–48"], [49, 72, "49–72"]];
   const CHARGE_BUCKETS = [[0, 35, "<$35"], [35, 60, "$35–60"], [60, 80, "$60–80"], [80, 100, "$80–100"], [100, 999, "$100+"]];
   let ROWS = null;              // decoded columnar data
   let PROVENANCE = null;        // row-level prediction and evaluation provenance
+  let HOLDOUT = null;           // eligible untouched row indices decoded from provenance
+  let QUEUE_ROWS = [];
+  let BATCH_RESULTS = [];
+  let BATCH_HEADERS = [];
   const filters = {};           // dim -> Set(values); tenure/charges -> Set(bucket idx)
 
   function decode(raw) {
@@ -473,6 +594,7 @@
     if (!filters[dim].size) delete filters[dim];
     hideTip();
     renderDash();
+    persistHash();
   }
 
   function showTip(ev, html) {
@@ -578,6 +700,7 @@
     renderSurvival();
     renderDecision();
     renderRiskTable();
+    renderBacktest();
     $("kpi-n").textContent = fmt(n);
     $("kpi-n-sub").textContent = n === ROWS.n ? "the full dataset" : `of ${fmt(ROWS.n)} total`;
     $("kpi-rate").textContent = n ? (churned / n * 100).toFixed(1) + "%" : "—";
@@ -611,6 +734,7 @@
   $("clear-filters").addEventListener("click", () => {
     for (const k of Object.keys(filters)) delete filters[k];
     renderDash();
+    persistHash();
   });
 
   /* ================= Kaplan-Meier survival by contract ================= */
@@ -674,6 +798,203 @@
     svg.innerHTML = out;
   }
 
+  /* ================= held-out evaluation + validation ================= */
+  function setSurfaceState(id, kind, message) {
+    const box = $(id);
+    box.dataset.state = kind;
+    box.textContent = message;
+    box.classList.remove("hide");
+  }
+
+  function metricBox(value, label) {
+    return `<div class="metric-box"><b>${value}</b><span>${label}</span></div>`;
+  }
+
+  function decodeHoldout(provenance, n) {
+    const audit = provenance && provenance.aggregate_evaluation;
+    if (!audit || !audit.membership_bitset_base64)
+      throw new Error("held-out membership is missing from provenance.json");
+    let bytes;
+    try {
+      bytes = Uint8Array.from(atob(audit.membership_bitset_base64), (char) => char.charCodeAt(0));
+    } catch (error) {
+      throw new Error("held-out membership bitset is invalid");
+    }
+    const indices = [];
+    for (let i = 0; i < n; i++)
+      if ((bytes[Math.floor(i / 8)] || 0) & (1 << (i % 8))) indices.push(i);
+    if (indices.length !== audit.records)
+      throw new Error(`held-out membership has ${indices.length} rows; expected ${audit.records}`);
+    const positives = indices.reduce((sum, i) => sum + ROWS.churn[i], 0);
+    if (audit.positive_records !== undefined && positives !== audit.positive_records)
+      throw new Error(`held-out membership has ${positives} positives; expected ${audit.positive_records}`);
+    return indices;
+  }
+
+  function confusionAt(tau, indices) {
+    const out = { tp: 0, fp: 0, tn: 0, fn: 0, fnCharges: 0 };
+    for (const i of indices || []) {
+      const predicted = ROWS.score[i] >= tau;
+      const actual = Boolean(ROWS.churn[i]);
+      if (predicted && actual) out.tp++;
+      else if (predicted) out.fp++;
+      else if (actual) { out.fn++; out.fnCharges += ROWS.charges[i]; }
+      else out.tn++;
+    }
+    return out;
+  }
+
+  function renderBacktest() {
+    const table = $("backtest-table");
+    table.replaceChildren();
+    if (!Array.isArray(HOLDOUT)) {
+      setSurfaceState("backtest-state", "error", "Error: no eligible held-out predictions are available.");
+      $("backtest-metrics").replaceChildren();
+      return;
+    }
+    const tau = Number($("validation-threshold").value) / 100;
+    $("backtest-threshold").textContent = `${Math.round(tau * 100)}%`;
+    const cohort = HOLDOUT.filter(inView);
+    if (!cohort.length) {
+      setSurfaceState("backtest-state", "empty", "Empty: current filters exclude every held-out record.");
+      $("backtest-metrics").replaceChildren();
+      const row = table.insertRow();
+      const cell = row.insertCell(); cell.textContent = "No held-out records in view.";
+      return;
+    }
+    const cm = confusionAt(tau, cohort);
+    const precision = cm.tp + cm.fp ? cm.tp / (cm.tp + cm.fp) : 0;
+    const recall = cm.tp + cm.fn ? cm.tp / (cm.tp + cm.fn) : 0;
+    $("backtest-metrics").innerHTML =
+      metricBox(fmt(cohort.length), "eligible records in view") +
+      metricBox((precision * 100).toFixed(1) + "%", "realized precision") +
+      metricBox((recall * 100).toFixed(1) + "%", "realized recall") +
+      metricBox(fmt(cm.tp + cm.fn), "realized churners");
+
+    const mode = $("backtest-filter").value;
+    let selected = [...cohort];
+    if (mode === "churned") {
+      const hits = selected.filter((i) => ROWS.churn[i] && ROWS.score[i] >= tau)
+        .sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 12);
+      const misses = selected.filter((i) => ROWS.churn[i] && ROWS.score[i] < tau)
+        .sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 12);
+      selected = hits.concat(misses);
+    } else if (mode === "errors") {
+      selected = selected.filter((i) => (ROWS.score[i] >= tau) !== Boolean(ROWS.churn[i]))
+        .sort((a, b) => Math.abs(ROWS.score[a] - tau) - Math.abs(ROWS.score[b] - tau)).slice(0, 24);
+    } else {
+      selected.sort((a, b) => ROWS.score[b] - ROWS.score[a]);
+      selected = selected.slice(0, 24);
+    }
+
+    const head = table.insertRow();
+    for (const label of ["sample customer", "model call", "realized outcome", "risk", "contract", "$ / mo"]) {
+      const th = document.createElement("th"); th.textContent = label; head.appendChild(th);
+    }
+    for (const i of selected) {
+      const predicted = ROWS.score[i] >= tau;
+      const actual = Boolean(ROWS.churn[i]);
+      const status = actual ? (predicted ? "hit / true positive" : "miss / false negative")
+        : (predicted ? "false positive" : "true negative");
+      const row = table.insertRow();
+      const values = [ROWS.ids[i], status, actual ? "churned" : "stayed",
+        (ROWS.score[i] * 100).toFixed(1) + "%", featValue(i, "Contract"), "$" + ROWS.charges[i].toFixed(2)];
+      values.forEach((value) => { const cell = row.insertCell(); cell.textContent = value; });
+    }
+    setSurfaceState("backtest-state", "ready", `Ready: ${fmt(cohort.length)} eligible held-out records in the current view.`);
+    const audit = PROVENANCE.aggregate_evaluation;
+    $("backtest-note").textContent = `${audit.split}; n=${fmt(audit.records)}; ${fmt(audit.positive_records)} churners; random_state=${audit.random_state}. Dashboard filters may narrow this cohort but never add training rows.`;
+  }
+
+  function renderCalibration() {
+    const svg = $("calibration-chart");
+    const bins = MODEL && MODEL.calibration;
+    if (!Array.isArray(bins) || !bins.length) throw new Error("calibration bins are missing from model.json");
+    const W = 520, H = 340, L = 48, R = 18, T = 16, B = 42;
+    const X = (value) => L + value * (W - L - R);
+    const Y = (value) => T + (1 - value) * (H - T - B);
+    let out = "";
+    for (let tick = 0; tick <= 5; tick++) {
+      const value = tick / 5;
+      out += `<line class="grid" x1="${L}" y1="${Y(value)}" x2="${W - R}" y2="${Y(value)}"/>`;
+      out += `<line class="grid" x1="${X(value)}" y1="${T}" x2="${X(value)}" y2="${H - B}"/>`;
+      out += `<text x="${L - 7}" y="${Y(value) + 4}" text-anchor="end">${value.toFixed(1)}</text>`;
+      out += `<text x="${X(value)}" y="${H - 20}" text-anchor="middle">${value.toFixed(1)}</text>`;
+    }
+    out += `<line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/><line class="axis" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/>`;
+    out += `<line class="ideal" x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(1)}"/>`;
+    out += `<polyline class="curve" points="${bins.map((bin) => `${X(bin.predicted)},${Y(bin.observed)}`).join(" ")}"/>`;
+    for (const bin of bins) {
+      out += `<circle class="point" cx="${X(bin.predicted)}" cy="${Y(bin.observed)}" r="5"><title>predicted ${(bin.predicted * 100).toFixed(1)}%; observed ${(bin.observed * 100).toFixed(1)}%; n=${bin.n}</title></circle>`;
+    }
+    out += `<text x="${(L + W - R) / 2}" y="${H - 3}" text-anchor="middle">mean predicted probability</text>`;
+    out += `<text x="14" y="${H / 2}" text-anchor="middle" transform="rotate(-90 14 ${H / 2})">observed churn rate</text>`;
+    svg.innerHTML = out;
+    $("calibration-bins").textContent = `${bins.length} bins`;
+  }
+
+  function renderSegmentAudit() {
+    const table = $("segment-table");
+    table.replaceChildren();
+    if (!MODEL || !Array.isArray(MODEL.audit) || !MODEL.audit.length)
+      throw new Error("held-out segment audit is missing from model.json");
+    const head = table.insertRow();
+    for (const label of ["held-out segment", "n", "ROC AUC", "observed churn", "predicted churn", "calibration delta"]) {
+      const th = document.createElement("th"); th.textContent = label; head.appendChild(th);
+    }
+    for (const segment of MODEL.audit) {
+      const delta = segment.predicted_churn - segment.observed_churn;
+      const row = table.insertRow();
+      const values = [segment.segment, fmt(segment.n), segment.auc.toFixed(3),
+        (segment.observed_churn * 100).toFixed(1) + "%", (segment.predicted_churn * 100).toFixed(1) + "%"];
+      values.forEach((value) => { const cell = row.insertCell(); cell.textContent = value; });
+      const cell = row.insertCell();
+      cell.textContent = `${delta >= 0 ? "+" : ""}${(delta * 100).toFixed(1)} pp`;
+      cell.className = delta > 0.005 ? "delta-up" : delta < -0.005 ? "delta-down" : "";
+    }
+  }
+
+  function renderValidation() {
+    try {
+      if (!Array.isArray(HOLDOUT)) throw new Error("eligible held-out predictions are unavailable");
+      if (Array.isArray(MODEL.calibration) && !MODEL.calibration.length) {
+        setSurfaceState("validation-state", "empty", "Empty: model.json contains no calibration bins.");
+        $("calibration-chart").innerHTML = `<text x="260" y="170" text-anchor="middle">No calibration bins available</text>`;
+        $("confusion-matrix").replaceChildren();
+        $("validation-metrics").replaceChildren();
+        $("segment-table").replaceChildren();
+        return;
+      }
+      const tau = Number($("validation-threshold").value) / 100;
+      $("validation-threshold-value").textContent = `${Math.round(tau * 100)}%`;
+      const cm = confusionAt(tau, HOLDOUT);
+      $("confusion-matrix").innerHTML =
+        `<div class="ok"><b>${fmt(cm.tp)}</b>true positive</div>` +
+        `<div class="err"><b>${fmt(cm.fp)}</b>false positive</div>` +
+        `<div class="err"><b>${fmt(cm.fn)}</b>false negative</div>` +
+        `<div class="ok"><b>${fmt(cm.tn)}</b>true negative</div>`;
+      const precision = cm.tp + cm.fp ? cm.tp / (cm.tp + cm.fp) : 0;
+      const recall = cm.tp + cm.fn ? cm.tp / (cm.tp + cm.fn) : 0;
+      const specificity = cm.tn + cm.fp ? cm.tn / (cm.tn + cm.fp) : 0;
+      $("validation-metrics").innerHTML = metricBox((precision * 100).toFixed(1) + "%", "precision") +
+        metricBox((recall * 100).toFixed(1) + "%", "recall") +
+        metricBox((specificity * 100).toFixed(1) + "%", "specificity") +
+        metricBox(fmt(cm.tp + cm.fp), "flagged");
+      const assumptions = decisionInputs();
+      const policyCost = cm.fp * assumptions.cost + cm.fnCharges * assumptions.hor * assumptions.save;
+      $("validation-cost-note").textContent = `Policy error cost: $${fmt(Math.round(policyCost))} = false-positive offers + missed-churn value, using simulator assumptions (${Math.round(assumptions.save * 100)}% save chance, ${assumptions.hor} months, $${assumptions.cost}/offer).`;
+      renderCalibration();
+      renderSegmentAudit();
+      setSurfaceState("validation-state", "ready", `Ready: threshold metrics use all ${fmt(HOLDOUT.length)} untouched hold-out predictions.`);
+    } catch (error) {
+      setSurfaceState("validation-state", "error", `Error: ${error.message}.`);
+      $("confusion-matrix").replaceChildren();
+      $("validation-metrics").replaceChildren();
+      $("calibration-chart").replaceChildren();
+      $("segment-table").replaceChildren();
+    }
+  }
+
   /* ================= intervention simulator ================= */
   function decisionInputs() {
     return {
@@ -702,9 +1023,8 @@
   }
 
   function evaluationAt(tau) {
-    const source = PROVENANCE && PROVENANCE.rows_score;
-    const indices = source && source.untouched_indices;
-    if (!source || !source.eligible_for_evaluation || !Array.isArray(indices)) return null;
+    const indices = HOLDOUT;
+    if (!Array.isArray(indices)) return null;
     let targeted = 0, tp = 0, churned = 0;
     for (const i of indices) {
       if (!inView(i)) continue;
@@ -733,8 +1053,8 @@
     $("d-prec").textContent = evaluation && evaluation.targeted ? (evaluation.tp / evaluation.targeted * 100).toFixed(0) + "%" : "—";
     $("d-rec").textContent = evaluation && evaluation.churned ? (evaluation.tp / evaluation.churned * 100).toFixed(0) + "%" : "—";
     $("eval-note").textContent = evaluation
-      ? `Precision and recall use ${fmt(PROVENANCE.rows_score.untouched_indices.length)} untouched hold-out predictions.`
-      : "Precision and recall are unavailable because row-level hold-out membership was not shipped.";
+      ? `Precision and recall use ${fmt(HOLDOUT.length)} untouched hold-out predictions, narrowed by dashboard filters.`
+      : "Precision and recall are unavailable because eligible held-out predictions could not be loaded.";
 
     // profit curve
     const pts = [];
@@ -768,72 +1088,118 @@
     $("profit").innerHTML = out;
   }
   for (const id of ["in-tau", "in-cost", "in-save", "in-hor"])
-    $(id).addEventListener("input", renderDecision);
+    $(id).addEventListener("input", () => { renderDecision(); renderValidation(); persistHash(); });
 
   /* ================= top at-risk table ================= */
+  function csvCell(value) {
+    const text = String(value ?? "");
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }
+
+  function downloadText(filename, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  function queueSortValue(i) {
+    return $("queue-sort").value === "risk_value" ? ROWS.score[i] * ROWS.charges[i] : ROWS.score[i];
+  }
+
   let openRow = null;
   let openButton = null;
   function renderRiskTable() {
     const table = $("risk-table");
-    const top = [...VIEW].filter((i) => !ROWS.churn[i])
-      .sort((a, b) => ROWS.score[b] - ROWS.score[a]).slice(0, 20);
+    QUEUE_ROWS = [...VIEW].filter((i) => !ROWS.churn[i])
+      .sort((a, b) => queueSortValue(b) - queueSortValue(a));
     openRow = null;
     openButton = null;
     table.replaceChildren();
     const head = table.insertRow();
-    for (const h of ["customer", "contract", "internet", "tenure", "$ / mo", "churn probability"]) {
+    for (const h of ["sample customer", "risk", "$ at risk / mo", "contract", "internet", "tenure", "$ / mo", "why: top 3 log-odds contributions"]) {
       const th = document.createElement("th"); th.textContent = h; head.appendChild(th);
     }
-    if (!top.length) {
+    if (!QUEUE_ROWS.length) {
       const tr = table.insertRow();
       const td = tr.insertCell();
-      td.colSpan = 6; td.textContent = "No active customers in view.";
+      td.colSpan = 8; td.textContent = "No active customers in view.";
+      $("queue-download").disabled = true;
+      setSurfaceState("queue-state", "empty", "Empty: current filters leave no active outreach candidates.");
       return;
     }
-    for (const i of top) {
+    for (const i of QUEUE_ROWS.slice(0, 50)) {
       const tr = table.insertRow();
       tr.className = "r";
       const p = ROWS.score[i];
-      const cells = [
-        featValue(i, "Contract"), featValue(i, "InternetService"),
-        ROWS.tenure[i] + " mo", "$" + ROWS.charges[i].toFixed(0),
-      ];
+      const why = rowContribs(i).filter((entry) => Math.abs(entry[1]) > 0.01).slice(0, 3);
+      const values = [ROWS.ids[i], (p * 100).toFixed(1) + "%",
+        "$" + (p * ROWS.charges[i]).toFixed(2), featValue(i, "Contract"),
+        featValue(i, "InternetService"), ROWS.tenure[i] + " mo", "$" + ROWS.charges[i].toFixed(2),
+        why.map(([label, contribution]) => `${label} (${contribution >= 0 ? "+" : ""}${contribution.toFixed(2)})`).join(" · ")];
       const customer = tr.insertCell();
       const button = document.createElement("button");
-      button.type = "button"; button.className = "disclose"; button.textContent = ROWS.ids[i];
+      button.type = "button"; button.className = "disclose"; button.textContent = values[0];
       button.setAttribute("aria-expanded", "false");
-      button.setAttribute("aria-label", `Show model reasoning for customer ${ROWS.ids[i]}`);
+      button.setAttribute("aria-label", `Show full model reasoning for customer ${values[0]}`);
       customer.appendChild(button);
-      for (const c of cells) { const td = tr.insertCell(); td.textContent = c; }
-      const td = tr.insertCell();
-      td.className = "p" + (p >= 0.6 ? " high" : "");
-      td.textContent = (p * 100).toFixed(1) + "%";
+      values.slice(1).forEach((value, offset) => {
+        const index = offset + 1;
+        const cell = tr.insertCell(); cell.textContent = value;
+        if (index === 1) cell.className = "p" + (p >= 0.6 ? " high" : "");
+        if (index === 7) cell.className = "why-cell";
+      });
       button.addEventListener("click", () => {
         const wasOpen = openRow && openRow.dataset.i === String(i);
         if (openRow) {
           openRow.remove();
           openButton.setAttribute("aria-expanded", "false");
           openButton.removeAttribute("aria-controls");
-          openButton.setAttribute("aria-label", `Show model reasoning for customer ${openButton.textContent}`);
+          openButton.setAttribute("aria-label", `Show full model reasoning for customer ${openButton.textContent}`);
           openRow = null; openButton = null;
         }
         if (wasOpen) return;
-        const ex = table.insertRow(tr.rowIndex + 1);
-        ex.id = `risk-details-${i}`;
-        ex.dataset.i = String(i);
-        const cell = ex.insertCell();
-        cell.colSpan = 6; cell.className = "why-cell";
-        const top5 = rowContribs(i).filter((c) => Math.abs(c[1]) > 0.01).slice(0, 5);
-        cell.textContent = "why: " + top5.map(([l, c]) =>
-          `${l} (${c > 0 ? "+" : ""}${c.toFixed(2)})`).join(" · ");
-        openRow = ex;
-        openButton = button;
+        const details = table.insertRow(tr.rowIndex + 1);
+        details.id = `risk-details-${i}`; details.dataset.i = String(i);
+        const cell = details.insertCell(); cell.colSpan = 8; cell.className = "why-cell";
+        const full = rowContribs(i).filter((entry) => Math.abs(entry[1]) > 0.01).slice(0, 8);
+        cell.textContent = "full reasoning: " + full.map(([label, contribution]) =>
+          `${label} (${contribution >= 0 ? "+" : ""}${contribution.toFixed(2)})`).join(" · ");
+        openRow = details; openButton = button;
         button.setAttribute("aria-expanded", "true");
-        button.setAttribute("aria-controls", ex.id);
-        button.setAttribute("aria-label", `Hide model reasoning for customer ${ROWS.ids[i]}`);
+        button.setAttribute("aria-controls", details.id);
+        button.setAttribute("aria-label", `Hide full model reasoning for customer ${button.textContent}`);
       });
     }
+    $("queue-download").disabled = false;
+    const sortLabel = $("queue-sort").value === "risk_value" ? "monthly dollars at risk" : "churn probability";
+    setSurfaceState("queue-state", "ready", `Ready: ${fmt(QUEUE_ROWS.length)} active customers, sorted by ${sortLabel}.`);
+    $("queue-note").textContent = `IBM sample customer IDs; recorded churners are excluded. Showing ${fmt(Math.min(50, QUEUE_ROWS.length))} of ${fmt(QUEUE_ROWS.length)} rows; export includes the full filtered queue.`;
   }
+
+  function downloadQueue() {
+    if (!QUEUE_ROWS.length) return;
+    const headers = ["customerID", "churn_probability", "MonthlyCharges", "monthly_dollars_at_risk", "tenure", "Contract", "InternetService", "why_1", "why_2", "why_3"];
+    const lines = [headers.join(",")];
+    for (const i of QUEUE_ROWS) {
+      const why = rowContribs(i).filter((entry) => Math.abs(entry[1]) > 0.01).slice(0, 3)
+        .map(([label, contribution]) => `${label} (${contribution >= 0 ? "+" : ""}${contribution.toFixed(4)})`);
+      const values = [ROWS.ids[i], ROWS.score[i].toFixed(6), ROWS.charges[i].toFixed(2),
+        (ROWS.score[i] * ROWS.charges[i]).toFixed(2), ROWS.tenure[i], featValue(i, "Contract"),
+        featValue(i, "InternetService"), why[0] || "", why[1] || "", why[2] || ""];
+      lines.push(values.map(csvCell).join(","));
+    }
+    downloadText("active-customer-outreach-queue.csv", lines.join("\r\n"));
+  }
+
+  $("queue-sort").addEventListener("change", () => { if (ROWS) renderRiskTable(); persistHash(); });
+  $("queue-download").addEventListener("click", downloadQueue);
+  $("backtest-filter").addEventListener("change", () => { if (ROWS) renderBacktest(); });
+  $("validation-threshold").addEventListener("input", () => {
+    if (!ROWS) return;
+    renderValidation(); renderBacktest(); persistHash();
+  });
 
   /* ================= what-if scorer (the shipped model) ================= */
   const CONTROLS = ["Contract", "InternetService", "OnlineSecurity", "TechSupport",
@@ -996,6 +1362,311 @@
     }
   }
 
+  /* ================= CSV batch scoring ================= */
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], field = "", quoted = false, afterQuote = false, rowErrors = [];
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (quoted) {
+        if (char === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (char === '"') { quoted = false; afterQuote = true; }
+        else field += char;
+      } else if (afterQuote) {
+        if (char === ",") {
+          row.push(field); field = ""; afterQuote = false;
+        } else if (char === "\n" || char === "\r") {
+          if (char === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); field = ""; afterQuote = false;
+          if (row.some((value) => value.trim() !== "") || rowErrors.length) {
+            row.csvErrors = rowErrors; rows.push(row);
+          }
+          row = []; rowErrors = [];
+        } else {
+          if (!rowErrors.some((error) => error.startsWith("unexpected character after closing quote")))
+            rowErrors.push(`unexpected character after closing quote near character ${i + 1}`);
+          field += char;
+        }
+      } else if (char === '"') {
+        if (field) throw new Error(`unexpected quote near character ${i + 1}`);
+        quoted = true;
+      } else if (char === ",") {
+        row.push(field); field = "";
+      } else if (char === "\n" || char === "\r") {
+        if (char === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = "";
+        if (row.some((value) => value.trim() !== "") || rowErrors.length) {
+          row.csvErrors = rowErrors; rows.push(row);
+        }
+        row = []; rowErrors = [];
+      } else field += char;
+    }
+    if (quoted) throw new Error("unterminated quoted field");
+    row.push(field);
+    if (row.some((value) => value.trim() !== "") || rowErrors.length) {
+      row.csvErrors = rowErrors; rows.push(row);
+    }
+    if (rows.length) rows[0][0] = rows[0][0].replace(/^\uFEFF/, "");
+    return rows;
+  }
+
+  function normalizeBatchRow(source) {
+    const normalized = {};
+    const errors = [];
+    for (const feature of MODEL.features) {
+      let value = (source[feature.name] ?? "").trim();
+      if (!value) { errors.push(`${feature.name}: missing`); continue; }
+      if (feature.kind === "numeric") {
+        const number = Number(value);
+        if (!Number.isFinite(number)) errors.push(`${feature.name}: expected a number`);
+        else if (feature.name === "tenure" && (!Number.isInteger(number) || number < 0 || number > 72))
+          errors.push("tenure: expected an integer from 0 to 72");
+        else if (feature.name === "MonthlyCharges" && (number <= 0 || number > 500))
+          errors.push("MonthlyCharges: expected a value above 0 and at most 500");
+        else normalized[feature.name] = number;
+      } else {
+        if (feature.name === "SeniorCitizen") {
+          if (value === "0") value = "No";
+          if (value === "1") value = "Yes";
+        }
+        if (!feature.values.some((entry) => entry.value === value))
+          errors.push(`${feature.name}: unsupported value “${value}”`);
+        else normalized[feature.name] = value;
+      }
+    }
+    if (!errors.length) {
+      if (normalized.InternetService === "No") {
+        for (const name of INTERNET_FEATURES)
+          if (normalized[name] !== "No internet service") errors.push(`${name}: must be “No internet service” when InternetService is No`);
+      } else {
+        for (const name of INTERNET_FEATURES)
+          if (normalized[name] === "No internet service") errors.push(`${name}: conflicts with InternetService ${normalized.InternetService}`);
+      }
+      if (normalized.PhoneService === "No" && normalized.MultipleLines !== "No phone service")
+        errors.push("MultipleLines: must be “No phone service” when PhoneService is No");
+      if (normalized.PhoneService === "Yes" && normalized.MultipleLines === "No phone service")
+        errors.push("MultipleLines: conflicts with PhoneService Yes");
+    }
+    return { normalized, errors };
+  }
+
+  function scoreRecord(record) {
+    let logOdds = MODEL.intercept;
+    for (const feature of MODEL.features) {
+      if (feature.kind === "numeric") logOdds += feature.coef * ((record[feature.name] - feature.mean) / feature.std);
+      else logOdds += feature.values.find((entry) => entry.value === record[feature.name]).coef;
+    }
+    return sigmoid(logOdds);
+  }
+
+  function resetBatchOutput() {
+    BATCH_RESULTS = [];
+    BATCH_HEADERS = [];
+    $("batch-download").disabled = true;
+    $("batch-summary").classList.add("hide");
+    $("batch-errors").classList.add("hide");
+    $("batch-table-wrap").classList.add("hide");
+    $("batch-summary").replaceChildren();
+    $("batch-errors").replaceChildren();
+    $("batch-table").replaceChildren();
+  }
+
+  function renderBatchErrors(errors) {
+    const box = $("batch-errors");
+    box.replaceChildren();
+    if (!errors.length) { box.classList.add("hide"); return; }
+    const table = document.createElement("table"); table.className = "ptable";
+    const head = table.insertRow();
+    for (const label of ["CSV row", "validation errors"]) {
+      const th = document.createElement("th"); th.textContent = label; head.appendChild(th);
+    }
+    for (const error of errors.slice(0, 10)) {
+      const row = table.insertRow();
+      const rowCell = row.insertCell(); rowCell.textContent = String(error.row);
+      const messageCell = row.insertCell(); messageCell.textContent = error.errors.join("; ");
+    }
+    box.appendChild(table);
+    box.classList.remove("hide");
+  }
+
+  function renderBatchResults(errors, totalRows) {
+    renderBatchErrors(errors);
+    if (!BATCH_RESULTS.length) {
+      setSurfaceState("batch-state", errors.length ? "error" : "empty",
+        errors.length ? `Error: all ${fmt(totalRows)} data rows failed validation.` : "Empty: the CSV has no data rows.");
+      return;
+    }
+    const probabilities = BATCH_RESULTS.map((result) => result.probability);
+    const mean = probabilities.reduce((sum, value) => sum + value, 0) / probabilities.length;
+    const high = probabilities.filter((value) => value >= 0.6).length;
+    $("batch-summary").innerHTML = metricBox(fmt(BATCH_RESULTS.length), "valid rows scored") +
+      metricBox(fmt(errors.length), "invalid rows skipped") +
+      metricBox((mean * 100).toFixed(1) + "%", "mean probability") +
+      metricBox(fmt(high), "high risk ≥60%");
+    $("batch-summary").classList.remove("hide");
+    const table = $("batch-table"); table.replaceChildren();
+    const head = table.insertRow();
+    for (const label of ["CSV row", "customerID", "churn probability", "band", "contract", "tenure", "$ / mo"]) {
+      const th = document.createElement("th"); th.textContent = label; head.appendChild(th);
+    }
+    const preview = [...BATCH_RESULTS].sort((a, b) => b.probability - a.probability).slice(0, 20);
+    for (const result of preview) {
+      const band = result.probability < 0.15 ? "low" : result.probability < 0.4 ? "elevated" : "high";
+      const values = [result.row, result.source.customerID || "—", (result.probability * 100).toFixed(1) + "%",
+        band, result.normalized.Contract, result.normalized.tenure, "$" + result.normalized.MonthlyCharges.toFixed(2)];
+      const row = table.insertRow();
+      values.forEach((value) => { const cell = row.insertCell(); cell.textContent = value; });
+    }
+    $("batch-table-wrap").classList.remove("hide");
+    $("batch-download").disabled = false;
+    setSurfaceState("batch-state", errors.length ? "partial" : "ready",
+      `Ready: scored ${fmt(BATCH_RESULTS.length)} of ${fmt(totalRows)} rows${errors.length ? `; first ${Math.min(10, errors.length)} errors shown` : ""}.`);
+  }
+
+  function processBatchRows(parsedRows) {
+    resetBatchOutput();
+    if (!parsedRows.length) {
+      setSurfaceState("batch-state", "empty", "Empty: the CSV contains no rows.");
+      return;
+    }
+    const headers = parsedRows[0].map((header) => header.trim());
+    const empty = headers.map((header, index) => header ? null : index + 1).filter(Boolean);
+    if (empty.length) {
+      setSurfaceState("batch-state", "error", `Error: empty column names at positions: ${empty.join(", ")}.`);
+      return;
+    }
+    const duplicates = headers.filter((header, index) => headers.indexOf(header) !== index);
+    if (duplicates.length) {
+      setSurfaceState("batch-state", "error", `Error: duplicate columns: ${[...new Set(duplicates)].join(", ")}.`);
+      return;
+    }
+    const missing = MODEL.features.map((feature) => feature.name).filter((name) => !headers.includes(name));
+    if (missing.length) {
+      setSurfaceState("batch-state", "error", `Error: missing required columns: ${missing.join(", ")}.`);
+      return;
+    }
+    BATCH_HEADERS = headers;
+    const errors = [];
+    for (let index = 1; index < parsedRows.length; index++) {
+      const values = parsedRows[index];
+      const source = Object.fromEntries(headers.map((header, column) => [header, values[column] ?? ""]));
+      const rowErrors = [...(values.csvErrors || [])];
+      if (values.length !== headers.length) rowErrors.push(`expected ${headers.length} columns; found ${values.length}`);
+      const checked = normalizeBatchRow(source);
+      rowErrors.push(...checked.errors);
+      if (rowErrors.length) errors.push({ row: index + 1, errors: rowErrors });
+      else BATCH_RESULTS.push({ row: index + 1, source, normalized: checked.normalized, probability: scoreRecord(checked.normalized) });
+    }
+    renderBatchResults(errors, Math.max(0, parsedRows.length - 1));
+  }
+
+  function loadSampleBatch() {
+    if (!ROWS || !MODEL) return;
+    setSurfaceState("batch-state", "loading", "Loading sample rows…");
+    const headers = ["customerID", ...MODEL.features.map((feature) => feature.name)];
+    const parsed = [headers];
+    for (const i of [0, 1, 2, 3, 4]) {
+      parsed.push(headers.map((header) => {
+        if (header === "customerID") return ROWS.ids[i];
+        const value = featValue(i, header);
+        if (header === "SeniorCitizen") return value === "Yes" ? "1" : "0";
+        return String(value);
+      }));
+    }
+    processBatchRows(parsed);
+  }
+
+  function downloadBatch() {
+    if (!BATCH_RESULTS.length) return;
+    const headers = [...BATCH_HEADERS, "churn_probability", "risk_band"];
+    const lines = [headers.map(csvCell).join(",")];
+    for (const result of BATCH_RESULTS) {
+      const band = result.probability < 0.15 ? "low" : result.probability < 0.4 ? "elevated" : "high";
+      const values = BATCH_HEADERS.map((header) => result.source[header] ?? "");
+      values.push(result.probability.toFixed(6), band);
+      lines.push(values.map(csvCell).join(","));
+    }
+    downloadText("scored-telco-customers.csv", lines.join("\r\n"));
+  }
+
+  $("batch-file").addEventListener("change", async () => {
+    const file = $("batch-file").files[0];
+    resetBatchOutput();
+    if (!file) { setSurfaceState("batch-state", "empty", "No file loaded. Choose a CSV or load sample rows."); return; }
+    setSurfaceState("batch-state", "loading", `Loading ${file.name}…`);
+    try {
+      const text = await file.text();
+      processBatchRows(parseCSV(text));
+    } catch (error) {
+      resetBatchOutput();
+      setSurfaceState("batch-state", "error", `Error: ${error.message}.`);
+    }
+  });
+  $("batch-sample").addEventListener("click", loadSampleBatch);
+  $("batch-download").addEventListener("click", downloadBatch);
+
+  /* ================= shareable URL state ================= */
+  let RESTORING_HASH = false;
+
+  function persistHash() {
+    if (RESTORING_HASH) return;
+    const params = new URLSearchParams();
+    const serializedFilters = Object.fromEntries(Object.entries(filters)
+      .filter(([, values]) => values.size)
+      .map(([dim, values]) => [dim, [...values].sort((a, b) => a - b)]));
+    if (Object.keys(serializedFilters).length) params.set("f", JSON.stringify(serializedFilters));
+    params.set("tau", $("in-tau").value);
+    params.set("cost", $("in-cost").value);
+    params.set("save", $("in-save").value);
+    params.set("hor", $("in-hor").value);
+    params.set("vt", $("validation-threshold").value);
+    params.set("qs", $("queue-sort").value);
+    const next = params.toString();
+    history.replaceState(null, "", `${location.pathname}${location.search}${next ? `#${next}` : ""}`);
+  }
+
+  function restoreRangeParam(params, key, id) {
+    const input = $(id), value = Number(params.get(key));
+    if (!params.has(key) || !Number.isFinite(value)) return;
+    if (value >= Number(input.min) && value <= Number(input.max)) input.value = String(value);
+  }
+
+  function restoreHash() {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+    RESTORING_HASH = true;
+    try {
+      const restoredFilters = {};
+      if (params.has("f")) {
+        const parsed = JSON.parse(params.get("f"));
+        for (const [dim, values] of Object.entries(parsed)) {
+          if (![...DIMS, "tenure", "charges"].includes(dim) || !Array.isArray(values)) continue;
+          const limit = dim === "tenure" ? TENURE_BUCKETS.length : dim === "charges" ? CHARGE_BUCKETS.length : ROWS[dim].values.length;
+          const valid = values.filter((value) => Number.isInteger(value) && value >= 0 && value < limit);
+          if (valid.length) restoredFilters[dim] = new Set(valid);
+        }
+      }
+      for (const key of Object.keys(filters)) delete filters[key];
+      Object.assign(filters, restoredFilters);
+      restoreRangeParam(params, "tau", "in-tau");
+      restoreRangeParam(params, "cost", "in-cost");
+      restoreRangeParam(params, "save", "in-save");
+      restoreRangeParam(params, "hor", "in-hor");
+      restoreRangeParam(params, "vt", "validation-threshold");
+      if (["probability", "risk_value"].includes(params.get("qs"))) $("queue-sort").value = params.get("qs");
+    } catch (error) {
+      setSurfaceState("load-error", "error", `URL state was ignored: ${error.message}.`);
+    } finally {
+      RESTORING_HASH = false;
+    }
+  }
+
+  window.addEventListener("hashchange", () => {
+    if (!ROWS) return;
+    restoreHash();
+    renderDash();
+    renderValidation();
+  });
+
   function fetchJSON(url) {
     return fetch(url).then((response) => {
       if (!response.ok) throw new Error(`${url} returned ${response.status}`);
@@ -1013,10 +1684,19 @@
     retry.addEventListener("click", loadData);
     box.append(message, retry);
     box.classList.remove("hide");
+    setSurfaceState("backtest-state", "error", `Error: ${error.message}.`);
+    setSurfaceState("queue-state", "error", `Error: ${error.message}.`);
+    setSurfaceState("validation-state", "error", `Error: ${error.message}.`);
+    setSurfaceState("batch-state", "error", "Error: model artifacts are unavailable; batch scoring is disabled.");
+    $("queue-download").disabled = true;
+    $("batch-sample").disabled = true;
   }
 
   function loadData() {
     $("load-error").classList.add("hide");
+    setSurfaceState("backtest-state", "loading", "Loading eligible held-out predictions…");
+    setSurfaceState("queue-state", "loading", "Loading active customers…");
+    setSurfaceState("validation-state", "loading", "Loading calibration and audit evidence…");
     Promise.all([
       fetchJSON("model.json"),
       fetchJSON("rows.json"),
@@ -1025,6 +1705,8 @@
       MODEL = m;
       ROWS = decode(raw);
       PROVENANCE = provenance;
+      HOLDOUT = decodeHoldout(provenance, ROWS.n);
+      restoreHash();
       const met = m.metrics;
       $("kpi-auc").textContent = met.lr.auc.toFixed(3);
       $("metrics-table").innerHTML = `
@@ -1035,10 +1717,13 @@
         <tr><td>gradient boosting (benchmark)</td><td>${met.gb.auc.toFixed(3)}</td>
             <td>${met.gb.avg_precision.toFixed(3)}</td><td>${met.gb.brier.toFixed(3)}</td><td>—</td></tr>`;
       renderDash();
+      renderValidation();
       defaults();
       buildPresets();
       buildControls();
       renderScore();
+      $("batch-sample").disabled = false;
+      persistHash();
     }).catch(showLoadError);
   }
 

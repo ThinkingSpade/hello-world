@@ -697,6 +697,25 @@
   #evalout ul { font-size: 12px; }
   .spark { display: none !important; }
 
+  .reslab #copy-link { margin-left: auto; min-height: 32px; min-width: 0; padding: 5px 8px; font-size: 12px; }
+  .reslab #copy-state { margin-left: 6px; }
+  .dimension-switch, .drill-breadcrumbs, .rate-effects {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0;
+  }
+  .dimension-switch .pchip, .drill-breadcrumbs .pchip {
+    min-height: 28px; border-radius: 0; cursor: pointer; text-transform: none;
+  }
+  .dimension-switch .pchip[aria-pressed="true"] { box-shadow: 2px 2px 0 var(--pi-ink); }
+  .dimension-switch .switch-label, .drill-breadcrumbs .path-label {
+    color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 12px; text-transform: uppercase;
+  }
+  .rate-effects { justify-content: space-between; }
+  .rate-effects span { white-space: nowrap; }
+  .drill-status:not(:empty) { margin: 8px 0; }
+  .bar-drill { cursor: pointer; outline: none; }
+  .bar-drill:hover, .bar-drill:focus { opacity: .72; stroke: var(--pi-ink); stroke-width: 2px; }
+  .inv-empty { margin: 10px 0; }
+
   footer { color: var(--pi-muted); font-family: var(--pi-font-body); font-size: 12px; }
 
   @media (max-width: 940px) {
@@ -835,7 +854,10 @@
    </div><!-- /wb-build -->
 
    <div class="wb-results pwin">
-     <div class="reslab pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>results — newest on top</div>
+     <div class="reslab pwin-title"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>results — newest on top
+       <button id="copy-link" class="pbtn" disabled title="copy a link to the current plan"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>copy link</button>
+       <span id="copy-state" class="pchip" aria-live="polite">no saved plan</span>
+     </div>
      <div id="feed" class="pwin-body"><div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div></div>
    </div>
   </div><!-- /workbench -->
@@ -1020,7 +1042,11 @@
   const spriteIcon = (id) => `<svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#${id}"></use></svg>`;
 
   /* ---------------- charts ---------------- */
-  function barChart(zone, rows, kind) {
+  function barChart(zone, rows, kind, onBar) {
+    if (!rows.length) {
+      zone.innerHTML = `<div class="pstrip inv-empty"><b>EMPTY</b> no rows matched this plan.</div>`;
+      return;
+    }
     const n = rows.length, W = 860, rowH = 30, L = 210, R = 96;
     const H = n * rowH + 12;
     const vmax = Math.max(...rows.map((r) => r[r.length - 1] || 0));
@@ -1031,10 +1057,19 @@
       const y = 6 + i * rowH;
       const label = r.slice(0, -1).join(" · ");
       g += `<text x="${L - 8}" y="${y + 18}" font-size="13" fill="var(--text)" text-anchor="end">${escH(label.length > 28 ? label.slice(0, 27) + "…" : label)}</text>
-            <rect class="bar" x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="0" fill="#2547c9"><title>${escH(label)}: ${F(v, kind)}</title></rect>
+            <rect class="bar${onBar ? " bar-drill" : ""}" data-bar-index="${i}" ${onBar ? 'role="button" tabindex="0"' : ""} x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="0" fill="#2547c9"><title>${escH(label)}: ${F(v, kind)}${onBar ? " — drill into member" : ""}</title></rect>
             <text x="${L + w + 7}" y="${y + 18}" font-size="12" font-weight="bold" fill="var(--dim)">${F(v, kind)}</text>`;
     });
     zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+    if (onBar) {
+      zone.querySelectorAll("[data-bar-index]").forEach((bar) => {
+        const open = () => onBar(rows[Number(bar.dataset.barIndex)]);
+        bar.addEventListener("click", open);
+        bar.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+        });
+      });
+    }
   }
 
   function lineChart(zone, rows, kind) {
@@ -1093,6 +1128,127 @@
 
   /* ---------------- the ask flow ---------------- */
   let busy = false, nQ = 0, nSql = 0, nCharts = 0, nDocket = 0;
+  let currentSharedPlan = null, copyResetTimer = null;
+
+  function planSnapshot(plan) {
+    const time = (value) => value ? {
+      start: value.start, end: value.end, label: value.label || `${value.start} → ${value.end}`,
+    } : null;
+    return { kind: plan.kind || "aggregate", metric: plan.metric || null,
+      dims: [...(plan.dims || [])], filters: (plan.filters || []).map((f) => ({ dim: f.dim, value: f.value })),
+      time: time(plan.time), top: plan.top || null, compare: time(plan.compare) };
+  }
+
+  function setCopyState(text, tone = "") {
+    const state = $("copy-state");
+    state.textContent = text;
+    state.className = `pchip${tone ? " " + tone : ""}`;
+  }
+
+  function persistPlan(plan) {
+    currentSharedPlan = planSnapshot(plan);
+    const payload = encodeURIComponent(JSON.stringify({ v: 1, plan: currentSharedPlan }));
+    try {
+      history.replaceState(null, "", `${location.pathname}${location.search}#plan=${payload}`);
+      $("copy-link").disabled = false;
+      setCopyState("link ready", "ok");
+    } catch (e) {
+      $("copy-link").disabled = true;
+      setCopyState("link error", "err");
+    }
+  }
+
+  function parseSharedPlan() {
+    if (!location.hash.startsWith("#plan=")) return { plan: null, error: null };
+    try {
+      const decoded = JSON.parse(decodeURIComponent(location.hash.slice(6)));
+      const raw = decoded?.plan || decoded;
+      const man = Abacus.manifest;
+      const kinds = new Set(["aggregate", "investigate", "retention", "anomalies"]);
+      const kind = raw.kind || "aggregate";
+      if (!kinds.has(kind)) throw new Error("unknown analysis kind");
+      const metric = raw.metric == null ? null : raw.metric;
+      if ((kind === "aggregate" || kind === "investigate") &&
+          (typeof metric !== "string" || !Object.hasOwn(man.metrics, metric)))
+        throw new Error("unknown metric in link");
+      if (kind !== "aggregate" && kind !== "investigate" && metric !== null)
+        throw new Error("unexpected metric in link");
+      const dims = raw.dims || [];
+      if (!Array.isArray(dims) || dims.length > 2 ||
+          dims.some((d) => typeof d !== "string" || !Object.hasOwn(man.dimensions, d)))
+        throw new Error("invalid dimensions in link");
+      if (dims.includes("product") && dims.length > 1)
+        throw new Error("product cannot be combined with another dimension");
+      const filters = raw.filters || [];
+      if (!Array.isArray(filters) || filters.length > 32 || filters.some((f) => !f ||
+          typeof f.dim !== "string" || !Object.hasOwn(man.dimensions, f.dim) ||
+          (typeof f.value !== "string" && typeof f.value !== "number") ||
+          (typeof f.value === "number" && !Number.isFinite(f.value))))
+        throw new Error("invalid filters in link");
+      const domain = Abacus.timeFromPhrase("all time").time;
+      const validDate = (value) => {
+        if (typeof value !== "string") return false;
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (!match) return false;
+        const [, year, month, day] = match.map(Number);
+        const date = new Date(0);
+        date.setUTCHours(0, 0, 0, 0);
+        date.setUTCFullYear(year, month - 1, day);
+        return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 &&
+          date.getUTCDate() === day;
+      };
+      const clampDate = (value) => value < domain.start ? domain.start
+        : value > domain.end ? domain.end : value;
+      const readTime = (value, name) => {
+        if (!value || !validDate(value.start) || !validDate(value.end) || value.start > value.end)
+          throw new Error(`invalid ${name} in link`);
+        const start = clampDate(value.start), end = clampDate(value.end);
+        const clamped = start !== value.start || end !== value.end;
+        return { start, end, label: !clamped && typeof value.label === "string" && value.label
+          ? value.label.slice(0, 120) : `${start} → ${end}` };
+      };
+      const time = readTime(raw.time, "time window");
+      const compare = raw.compare ? readTime(raw.compare, "comparison window") : null;
+      if (kind === "investigate" && !compare) throw new Error("investigation link has no comparison");
+      const top = raw.top == null ? null : Number(raw.top);
+      if (top !== null && (!Number.isInteger(top) || top < 1 || top > 50))
+        throw new Error("invalid top value in link");
+      const plan = { kind, metric: kind === "aggregate" || kind === "investigate" ? metric : null,
+        dims: [...dims], filters: filters.map((f) => ({ dim: f.dim, value: f.value })), time, top, compare };
+      if (plan.metric) {
+        Abacus.compilePlan({ ...plan, kind: "aggregate", dims: kind === "investigate" ? [] : plan.dims,
+          compare: null });
+        if (compare) Abacus.compilePlan({ ...plan, kind: "aggregate", dims: [], time: compare, compare: null });
+      }
+      return { plan, error: null };
+    } catch (e) {
+      return { plan: null, error: e.message };
+    }
+  }
+
+  async function copyCurrentLink() {
+    if (!currentSharedPlan) return;
+    clearTimeout(copyResetTimer);
+    $("copy-link").disabled = true;
+    setCopyState("copying…", "warn");
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(location.href);
+      else {
+        const area = document.createElement("textarea");
+        area.value = location.href; area.setAttribute("readonly", "");
+        area.style.position = "fixed"; area.style.opacity = "0";
+        document.body.appendChild(area); area.select();
+        if (!document.execCommand("copy")) throw new Error("copy command failed");
+        area.remove();
+      }
+      setCopyState("copied", "ok");
+      copyResetTimer = setTimeout(() => setCopyState("link ready", "ok"), 1800);
+    } catch (e) {
+      setCopyState("copy failed", "err");
+    } finally {
+      $("copy-link").disabled = false;
+    }
+  }
 
   function planChips(plan, extra) {
     const bits = [];
@@ -1109,9 +1265,10 @@
   }
 
   /* ---------- analyst renderers ---------- */
-  function waterfallChart(zone, w, kind) {
+  function waterfallChart(zone, w, kind, onStep) {
     const items = [{ label: "prior", v: w.start, type: "total" },
-                   ...w.steps.map((s) => ({ label: s.label, v: s.delta, type: s.delta >= 0 ? "up" : "dn" })),
+                   ...w.steps.map((s, stepIndex) => ({ label: s.label, v: s.delta,
+                     type: s.delta >= 0 ? "up" : "dn", step: s, stepIndex })),
                    { label: "current", v: w.end, type: "total" }];
     const W = 860, H = 280, L = 70, R = 16, T = 18, B = 56;
     let run = 0;
@@ -1134,8 +1291,13 @@
       const [a, b] = levels[i];
       const y0 = Y(Math.max(a, b)), h = Math.max(2, Math.abs(Y(a) - Y(b)));
       const fill = it.type === "total" ? "#6d6353" : it.type === "up" ? "#246b45" : "#b3372c";
-      g += `<rect x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="0" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${F(it.v, kind)}</title></rect>`;
-      const vtxt = it.type === "total" ? F(it.v, kind) : (it.v >= 0 ? "+" : "−") + F(Math.abs(it.v), kind);
+      const drillable = !!(onStep && it.step?.filterable);
+      const rateDetail = w.mode === "ratio" && Number.isFinite(it.step?.mix_effect) && Number.isFinite(it.step?.rate_effect)
+        ? `; volume mix ${signedContributionF(it.step.mix_effect, kind)}; rate ${signedContributionF(it.step.rate_effect, kind)}` : "";
+      const displayedValue = it.type === "total" ? F(it.v, kind)
+        : w.mode === "ratio" ? signedContributionF(it.v, kind) : signedF(it.v, kind);
+      g += `<rect class="bar${drillable ? " bar-drill" : ""}" ${it.step ? `data-step-index="${it.stepIndex}"` : ""} ${drillable ? 'role="button" tabindex="0"' : ""} x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="0" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${displayedValue}${rateDetail}${drillable ? " — drill into member" : ""}</title></rect>`;
+      const vtxt = displayedValue;
       g += `<text x="${X(i) + bw / 2}" y="${y0 - 5}" font-size="13" font-weight="bold" fill="var(--dim)" text-anchor="middle">${vtxt}</text>`;
       const lbl = String(it.label).length > 12 ? String(it.label).slice(0, 11) + "…" : it.label;
       g += `<text x="${X(i) + bw / 2}" y="${H - B + (i % 2 ? 27 : 15)}" font-size="12" fill="var(--text)" text-anchor="middle">${escH(lbl)}</text>`;
@@ -1143,7 +1305,16 @@
         g += `<line x1="${X(i) + bw}" y1="${Y(levels[i][1])}" x2="${X(i + 1)}" y2="${Y(levels[i][1])}" stroke="var(--dim)" stroke-dasharray="3 3" opacity=".5"/>`;
     });
     g += `<text x="${L}" y="${H - 6}" font-size="12" fill="var(--dim)">bridge by ${escH(w.dim)} — steps reconcile exactly to the total change</text>`;
-    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escH(w.dim)} waterfall">${g}</svg></div>`;
+    if (onStep) {
+      zone.querySelectorAll("[data-step-index].bar-drill").forEach((bar) => {
+        const open = () => onStep(w.steps[Number(bar.dataset.stepIndex)]);
+        bar.addEventListener("click", open);
+        bar.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+        });
+      });
+    }
   }
 
   function heatmap(zone, matrix) {
@@ -1204,13 +1375,104 @@
       `</table></div><div style="font-size:12px;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
   }
 
+  const signedF = (value, kind) => `${value >= 0 ? "+" : "−"}${F(Math.abs(value), kind)}`;
+  const contributionF = (value, kind) => kind === "pct"
+    ? `${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 2 })} pp`
+    : F(Math.abs(value), kind);
+  const signedContributionF = (value, kind) => `${value >= 0 ? "+" : "−"}${contributionF(value, kind)}`;
+
+  function mergeDrillFilters(filters, additions) {
+    const replaced = new Set(additions.map((f) => f.dim));
+    return [...(filters || []).filter((f) => !replaced.has(f.dim)), ...additions];
+  }
+
+  function investigationBreadcrumbs(plan) {
+    const filters = plan.filters || [];
+    const path = filters.length
+      ? filters.map((f, i) => `<button class="pchip acc" data-remove-filter="${i}" title="remove this filter">${escH(f.dim)}: ${escH(f.value)} ×</button>`).join("")
+      : `<span class="pchip">all rows</span>`;
+    return `<div class="drill-breadcrumbs pstrip"><span class="path-label">drill path</span>${path}</div>`;
+  }
+
+  async function rerunInvestigation(sourceCard, basePlan, nextFilters) {
+    if (busy) return;
+    const status = sourceCard.querySelector(".drill-status");
+    if (status) {
+      status.className = "drill-status pstrip";
+      status.innerHTML = `<b>LOADING</b> recomputing the narrowed slice…`;
+    }
+    const next = { kind: "investigate", metric: basePlan.metric, dims: [],
+      filters: nextFilters, time: basePlan.time, top: null,
+      compare: basePlan.compare || prevPeriodOf(basePlan.time) };
+    const label = `why did ${Abacus.manifest.metrics[next.metric].label.toLowerCase()} move, ${next.time.label}?`;
+    const ok = await runPlanFlow(next, label, "DRILL-DOWN");
+    if (status) {
+      status.className = `drill-status pstrip${ok ? "" : " err"}`;
+      status.innerHTML = ok ? `<b>OPENED</b> narrowed investigation filed above.`
+        : `<b>ERROR</b> narrowed investigation could not be filed.`;
+    }
+  }
+
+  function wireBreadcrumbs(card, plan) {
+    card.querySelectorAll("[data-remove-filter]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.removeFilter);
+        rerunInvestigation(card, plan, (plan.filters || []).filter((_, i) => i !== index));
+      });
+    });
+  }
+
+  function renderInvestigationZone(zone, inv, kind, plan, card, requestedDim) {
+    const ranking = inv.dimension_ranking || [];
+    if (!ranking.length) {
+      zone.innerHTML = `<div class="pstrip inv-empty"><b>EMPTY</b> no eligible dimension remains on this drill path.</div>`;
+      return;
+    }
+    const active = inv.waterfalls[requestedDim] ? requestedDim : ranking[0].dim;
+    const w = inv.waterfalls[active];
+    try {
+      const switches = ranking.map((rank, i) => {
+        const label = Abacus.manifest.dimensions[rank.dim]?.label || rank.dim;
+        return `<button class="pchip${rank.dim === active ? " acc" : ""}" data-waterfall-dim="${escH(rank.dim)}" aria-pressed="${rank.dim === active}">${i + 1}. ${escH(label)} · ${Math.round(100 * rank.concentration)}%</button>`;
+      }).join("");
+      const effects = w.mode === "ratio" && w.effects
+        ? `<div class="rate-effects pstrip"><span><b>VOLUME MIX SHIFT</b> ${signedContributionF(w.effects.mix, kind)}</span><span><b>WITHIN-MEMBER RATE</b> ${signedContributionF(w.effects.rate, kind)}</span><span><b>TOTAL</b> ${signedContributionF(inv.delta, kind)}</span></div>` : "";
+      zone.innerHTML = `<div class="dimension-switch pstrip"><span class="switch-label">waterfall · ranked by peak |contribution| concentration</span>${switches}</div>${effects}<div class="waterfall-host"></div>`;
+      const host = zone.querySelector(".waterfall-host");
+      waterfallChart(host, w, kind, (step) => {
+        if (!step.filterable || busy) return;
+        const filters = mergeDrillFilters(plan.filters || [], [{ dim: active, value: step.value }]);
+        rerunInvestigation(card, plan, filters);
+      });
+      zone.querySelectorAll("[data-waterfall-dim]").forEach((button) => {
+        button.addEventListener("click", () => renderInvestigationZone(
+          zone, inv, kind, plan, card, button.dataset.waterfallDim));
+      });
+    } catch (e) {
+      zone.innerHTML = `<div class="err"><b>waterfall error</b> — ${escH(e.message)}</div>`;
+    }
+  }
+
   function driverDrilldown(inv, kind) {
-    return `<details><summary>every dimension's contribution (each partitions the exact delta)</summary>` +
-      Object.entries(inv.by_dim).map(([dim, rows]) => `
-        <div class="table-scroll ptable-wrap"><table class="ptable" style="margin-top:.4rem"><tr><th style="text-align:left">${escH(dim)}</th><th>prior</th><th>current</th><th>Δ</th></tr>
-        ${rows.map((r) => `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td>
-          <td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${r.delta >= 0 ? "+" : "−"}${F(Math.abs(r.delta), kind)}</td></tr>`).join("")}
-        </table></div>`).join("") + `</details>`;
+    const ranking = inv.dimension_ranking || [];
+    if (!ranking.length)
+      return `<details><summary>dimension detail</summary><div class="pstrip inv-empty"><b>EMPTY</b> no eligible dimensions remain.</div></details>`;
+    return `<details><summary>${ranking.length} eligible dimensions · ranked decompositions</summary>` +
+      ranking.map((rank, index) => {
+        const rows = inv.by_dim[rank.dim] || [];
+        const header = inv.mode === "ratio"
+          ? `<th>prior rate</th><th>current rate</th><th>volume mix</th><th>within rate</th><th>contribution</th>`
+          : `<th>prior</th><th>current</th><th>contribution</th>`;
+        const body = rows.length ? rows.map((r) => inv.mode === "ratio" ? `<tr>
+          <td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td>
+          <td>${signedContributionF(r.mix_effect, kind)}</td><td>${signedContributionF(r.rate_effect, kind)}</td>
+          <td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${signedContributionF(r.delta, kind)}</td></tr>`
+          : `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td>
+          <td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${signedF(r.delta, kind)}</td></tr>`).join("")
+          : `<tr><td colspan="${inv.mode === "ratio" ? 6 : 4}" style="text-align:left">no members matched</td></tr>`;
+        return `<div class="pstrip" style="margin-top:8px"><b>#${index + 1} ${escH(rank.dim)}</b> · ${Math.round(100 * rank.concentration)}% peak concentration · ${rank.members} members</div>
+          <div class="table-scroll ptable-wrap"><table class="ptable" style="margin-top:.4rem"><tr><th style="text-align:left">${escH(rank.dim)}</th>${header}</tr>${body}</table></div>`;
+      }).join("") + `</details>`;
   }
 
   function resultTable(result, kind) {
@@ -1291,7 +1553,7 @@
       d.className = "err";
       d.innerHTML = `<b>${escH(label)}</b> — the compiler refused the plan: ${escH(e.message)}${opts.fromLLM ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
       $("feed").prepend(d);
-      return;
+      return false;
     }
     const dbMs = result.ms !== undefined ? result.ms : performance.now() - tdb0;
     if (plan.kind === "investigate") {
@@ -1345,8 +1607,10 @@
       <div class="dk-stamp">FILED</div>
       <div class="qline">${KIND_ICON[plan.kind] || spriteIcon("i-chart")} ${escH(label.replace(/^\s*[🔎🧭📡▦]\s*/, ""))}</div>
       ${planChips(plan)}
+      ${plan.kind === "investigate" ? investigationBreadcrumbs(plan) : ""}
       <div class="story"></div>
       <div class="zone"></div>
+      <div class="drill-status" aria-live="polite"></div>
       <div class="meta">${metaBits} · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
       ${plan.kind === "aggregate" ? `<details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>` : ""}
       ${plan.kind === "investigate" ? driverDrilldown(result, kind) : ""}
@@ -1355,14 +1619,18 @@
     $("feed").prepend(card);
     const zone = card.querySelector(".zone");
     if (plan.kind === "investigate") {
-      if (result.waterfall) waterfallChart(zone, result.waterfall, kind);
-      else zone.innerHTML = "";
+      renderInvestigationZone(zone, result, kind, plan, card);
+      wireBreadcrumbs(card, plan);
     } else if (plan.kind === "retention") heatmap(zone, result.matrix);
     else if (plan.kind === "anomalies") anomalyList(zone, result);
     else if (!plan.dims.length) statTile(zone, plan, result, kind);
     else if (man.dimensions[plan.dims[0]].time && plan.dims.length === 1 && result.rows.length > 1)
       lineChart(zone, result.rows, kind);
-    else barChart(zone, result.rows.slice(0, 14), kind);
+    else barChart(zone, result.rows.slice(0, 14), kind, (row) => {
+      if (busy) return;
+      const additions = plan.dims.map((dim, i) => ({ dim, value: row[i] }));
+      rerunInvestigation(card, plan, mergeDrillFilters(plan.filters || [], additions));
+    });
     const story = card.querySelector(".story");
     const text = story2;
     if (REDUCED) story.textContent = text;
@@ -1394,9 +1662,11 @@
       card.scrollIntoView({ block: "start", behavior: "auto" });
     }
     nCharts++; chip("illustrator", `${nCharts} CHART${nCharts > 1 ? "S" : ""}`);
+    persistPlan(plan);
     stageClear();
     setDesk("illustrator", "agent cheer", "filed ✓");
     setTimeout(() => setDesk("illustrator", "agent", "cleaning brushes"), 1800);
+    return true;
     } finally {
       busy = false;
       setBoardEnabled(true);
@@ -1589,6 +1859,46 @@
     board.compareOverride = plan.compare || null;
     board.compareMode = plan.compare ? (/prior year/.test(plan.compare.label) ? "yoy" : "prev") : null;
     renderBoard();
+  }
+  function savedPlanNote(message) {
+    setCopyState("invalid link", "err");
+    const empty = document.querySelector(".feedempty"); if (empty) empty.remove();
+    const d = document.createElement("div");
+    d.className = "pstrip";
+    d.innerHTML = `<b>saved link ignored</b> — ${escH(message)}. Showing the default analysis instead.`;
+    $("feed").prepend(d);
+  }
+  function scheduleDefaultPlan() {
+    currentSharedPlan = null;
+    board.metric = null; board.dims = []; board.filters = []; board.timeIdx = 0;
+    board.timeOverride = null; board.compareOverride = null; board.compareMode = null; board.top = null;
+    userTouched = false;
+    renderBoard();
+    setTimeout(() => {
+      if (userTouched || busy) return;
+      board.metric = "revenue"; renderBoard();
+      setTimeout(() => {
+        if (userTouched || busy) return;
+        board.timeIdx = TIME_PRESETS.indexOf("q4 2025"); renderBoard();
+        setTimeout(() => { if (!userTouched && !busy) { userTouched = false; runReport("why"); } }, 800);
+      }, 700);
+    }, 1500);
+  }
+  async function restoreSharedPlan(plan) {
+    try {
+      const snapshot = planSnapshot(plan);
+      const label = consoleKindLabel(plan);
+      userTouched = true;
+      currentSharedPlan = snapshot;
+      setCopyState("restoring…", "warn");
+      reflectPlanToBoard(plan);
+      $("loadtxt").textContent = "restoring saved analysis…";
+      if (!await runPlanFlow(plan, label, "SAVED LINK"))
+        throw new Error("saved analysis could not be restored");
+    } catch (e) {
+      savedPlanNote(e.message);
+      scheduleDefaultPlan();
+    }
   }
   function consoleKindLabel(plan) {
     const man = Abacus.manifest;
@@ -1858,6 +2168,7 @@
     $("llm-model").value = $("llm-provider").value === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
     $("llm-key").placeholder = $("llm-provider").value === "anthropic" ? "sk-ant-… (stays in this tab)" : "sk-… (stays in this tab)";
   });
+  $("copy-link").addEventListener("click", copyCurrentLink);
   $("evalbtn").addEventListener("click", runEval);
 
   /* ---------------- boot ---------------- */
@@ -1908,16 +2219,16 @@
       buildRacks(manifest);
       renderBoard();
       $("evalbtn").disabled = false;
-      // auto-showcase: if untouched, the desk builds a plan and investigates
-      setTimeout(() => {
-        if (userTouched || busy) return;
-        board.metric = "revenue"; renderBoard();
-        setTimeout(() => {
-          if (userTouched || busy) return;
-          board.timeIdx = TIME_PRESETS.indexOf("q4 2025"); renderBoard();
-          setTimeout(() => { if (!userTouched && !busy) { userTouched = false; runReport("why"); } }, 800);
-        }, 700);
-      }, 1500);
+      const shared = parseSharedPlan();
+      if (shared.error) {
+        savedPlanNote(shared.error);
+        scheduleDefaultPlan();
+      } else if (shared.plan) {
+        await restoreSharedPlan(shared.plan);
+      } else {
+        // auto-showcase: if untouched, the desk builds a plan and investigates
+        scheduleDefaultPlan();
+      }
     } catch (e) {
       setDesk("analyst", "agent", "warehouse failed to load ✗");
       const d = document.createElement("div");

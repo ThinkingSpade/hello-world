@@ -60,13 +60,16 @@
    "command": "kubectl -n prod patch deploy/notifications --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/readinessProbe/httpGet/port\",\"value\":8080}]'",
    "explain": "Point the readiness probe at the port the app actually listens on (8080). The pods are healthy; only the probe is wrong.",
    "risk": "medium",
+   "diff": "Deployment/prod/notifications\n  spec.template.spec.containers[0].readinessProbe.httpGet\n-   port: 8081\n+   port: 8080",
+   "blast_radius": "1 Deployment · 3 pods roll · prod namespace · notifications only",
+   "rbac_scope": "deployments.apps/get,patch · prod",
    "rollback": "kubectl -n prod patch deploy/notifications --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/readinessProbe/httpGet/port\",\"value\":8081}]'",
    "followup": "Decide which is canonical — probe or PORT env — and pin both in the chart so they can't drift apart again."
   },
   {
    "t": "approval",
    "decision": "approved",
-   "by": "operator"
+   "by": "operator@bridge"
   },
   {
    "t": "apply",

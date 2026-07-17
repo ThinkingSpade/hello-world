@@ -1,0 +1,213 @@
+{
+ "resolved": false,
+ "duration_s": 0.0,
+ "board": {
+  "nodes": [
+   {
+    "id": "orders_raw",
+    "label": "orders_raw",
+    "kind": "source",
+    "col": 0,
+    "rows": 1398,
+    "schema": ["order_id INTEGER", "customer_id INTEGER", "order_ts TEXT", "order_total REAL", "settlement_ref TEXT", "load_batch TEXT"]
+   },
+   {
+    "id": "customers_raw",
+    "label": "customers_raw",
+    "kind": "source",
+    "col": 0,
+    "rows": 600,
+    "schema": ["customer_id INTEGER", "region TEXT", "updated_at TEXT"]
+   },
+   {
+    "id": "stg_orders",
+    "label": "stg_orders",
+    "kind": "task",
+    "col": 1,
+    "rows": 1398,
+    "schema": ["order_id INTEGER", "customer_id INTEGER", "order_total REAL", "settlement_status TEXT", "order_date TEXT"]
+   },
+   {
+    "id": "stg_customers",
+    "label": "stg_customers",
+    "kind": "task",
+    "col": 1,
+    "rows": 600,
+    "schema": ["customer_id INTEGER", "region TEXT"]
+   },
+   {
+    "id": "fct_daily_revenue",
+    "label": "fct_daily_revenue",
+    "kind": "task",
+    "col": 2,
+    "rows": 70,
+    "schema": ["day TEXT", "region TEXT", "orders INTEGER", "revenue REAL"]
+   }
+  ],
+  "edges": [
+   ["orders_raw", "stg_orders"],
+   ["customers_raw", "stg_customers"],
+   ["stg_orders", "fct_daily_revenue"],
+   ["stg_customers", "fct_daily_revenue"]
+  ]
+ },
+ "timeline": [
+  {
+   "t": "page",
+   "text": "Settlement audit — stg_orders expected 120 cleared orders from the bank file; observed 0. Revenue is intact, but payout reconciliation is blocked.",
+   "sev": "P2"
+  },
+  {
+   "t": "run",
+   "task": "stg_customers",
+   "status": "ok",
+   "detail": "rebuilt — 600 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_customers",
+   "results": [
+    {"name": "row_count_min(500)", "table": "stg_customers", "status": "pass", "detail": "600 rows (min 500)"},
+    {"name": "unique(customer_id)", "table": "stg_customers", "status": "pass", "detail": "no duplicate keys"}
+   ]
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "fail",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {"name": "settled_count(120)", "table": "stg_orders", "status": "fail", "detail": "0 settled rows (expected 120)"},
+    {"name": "unique(order_id)", "table": "stg_orders", "status": "pass", "detail": "no duplicate keys"}
+   ]
+  },
+  {
+   "t": "think",
+   "ms": 1700,
+   "status": "tracing the settlement join"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT COUNT(*) AS bank_rows, COUNT(DISTINCT settlement_ref) AS refs FROM bank_settlements WHERE settled_on = '2026-07-11';",
+   "out": "bank_rows  refs\n---------  ----\n120        120",
+   "note": "did the bank file land cleanly?"
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT COUNT(*) AS exact_matches FROM orders_raw o JOIN bank_settlements b ON o.settlement_ref = b.settlement_ref WHERE b.settled_on = '2026-07-11';",
+   "out": "exact_matches\n-------------\n120",
+   "note": "does the raw join identify the expected repair set?"
+  },
+  {
+   "t": "think",
+   "ms": 1900,
+   "status": "bounding a reversible backfill"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "stale-settlement-state",
+   "cause": "The bank file landed and all 120 references match orders_raw, but settlement_status was not promoted during staging. The repair set is bounded by the dated bank file; the row snapshot is staged before any update.",
+   "receipts": [
+    "failed check: settled_count(120) on stg_orders — 0 settled rows",
+    "bank_rows 120 / refs 120",
+    "exact_matches 120",
+    "alternative untested: late reversal file changed three settlement outcomes"
+   ],
+   "confidence": 88
+  },
+  {
+   "t": "proposal",
+   "command": "BEGIN IMMEDIATE;\nCREATE TABLE orders_raw_restore_settlement_20260711 AS\nSELECT o.rowid AS source_rowid, o.* FROM orders_raw o\nJOIN bank_settlements b ON o.settlement_ref = b.settlement_ref\nWHERE b.settled_on = '2026-07-11';\nUPDATE orders_raw SET settlement_status = 'settled'\nWHERE rowid IN (SELECT source_rowid FROM orders_raw_restore_settlement_20260711);\nSELECT changes() AS updated_rows;\nCOMMIT;",
+   "explain": "Snapshot the exact 120-row repair set, update only those matched references, then rebuild staging and require the post-check to equal the snapshot count.",
+   "risk": "high",
+   "rollback": "BEGIN IMMEDIATE; UPDATE orders_raw SET settlement_status = (SELECT r.settlement_status FROM orders_raw_restore_settlement_20260711 r WHERE r.source_rowid = orders_raw.rowid) WHERE rowid IN (SELECT source_rowid FROM orders_raw_restore_settlement_20260711); SELECT changes() AS restored_rows; COMMIT;",
+   "followup": "Reconcile reversal files before promotion and make expected settlement count a pre-commit gate."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "dispatcher"
+  },
+  {
+   "t": "apply",
+   "cmd": "apply bounded settlement backfill transaction",
+   "out": "BEGIN IMMEDIATE;\nCREATE TABLE orders_raw_restore_settlement_20260711 AS SELECT rowid AS source_rowid, * FROM orders_raw WHERE settlement_ref IN (SELECT settlement_ref FROM bank_settlements WHERE settled_on = '2026-07-11');\nUPDATE orders_raw SET settlement_status = 'settled' WHERE rowid IN (SELECT source_rowid FROM orders_raw_restore_settlement_20260711);\nSELECT changes() AS updated_rows;\nupdated_rows\n------------\n120\nCOMMIT;"
+  },
+  {
+   "t": "think",
+   "ms": 1500,
+   "status": "running the post-apply check"
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "fail",
+   "detail": "rebuilt — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {"name": "settled_count(120)", "table": "stg_orders", "status": "fail", "detail": "117 settled rows (expected 120)"},
+    {"name": "unique(order_id)", "table": "stg_orders", "status": "pass", "detail": "no duplicate keys"}
+   ]
+  },
+  {
+   "t": "cmd",
+   "cmd": "SELECT COUNT(*) AS observed, (SELECT COUNT(*) FROM orders_raw_restore_settlement_20260711) AS expected FROM stg_orders WHERE settlement_status = 'settled';",
+   "out": "observed  expected\n--------  --------\n117       120\nERROR: post-check count mismatch; rollback required",
+   "note": "does rebuilt staging match the snapshotted repair set?"
+  },
+  {
+   "t": "apply",
+   "cmd": "execute staged rollback from orders_raw_restore_settlement_20260711",
+   "out": "BEGIN IMMEDIATE;\nUPDATE orders_raw SET settlement_status = (SELECT r.settlement_status FROM orders_raw_restore_settlement_20260711 r WHERE r.source_rowid = orders_raw.rowid) WHERE rowid IN (SELECT source_rowid FROM orders_raw_restore_settlement_20260711);\nSELECT changes() AS restored_rows;\nrestored_rows\n-------------\n120\nCOMMIT;"
+  },
+  {
+   "t": "think",
+   "ms": 1300,
+   "status": "verifying restoration"
+  },
+  {
+   "t": "run",
+   "task": "stg_orders",
+   "status": "ok",
+   "detail": "restored baseline — 1,398 rows"
+  },
+  {
+   "t": "checks",
+   "task": "stg_orders",
+   "results": [
+    {"name": "restore_checksum", "table": "stg_orders", "status": "pass", "detail": "matches pre-repair snapshot"},
+    {"name": "unique(order_id)", "table": "stg_orders", "status": "pass", "detail": "no duplicate keys"}
+   ]
+  },
+  {
+   "t": "run",
+   "task": "fct_daily_revenue",
+   "status": "ok",
+   "detail": "unchanged — 70 rows"
+  },
+  {
+   "t": "checks",
+   "task": "fct_daily_revenue",
+   "results": [
+    {"name": "revenue_checksum", "table": "fct_daily_revenue", "status": "pass", "detail": "matches pre-repair snapshot"},
+    {"name": "row_count_min(10)", "table": "fct_daily_revenue", "status": "pass", "detail": "70 rows (min 10)"}
+   ]
+  },
+  {
+   "t": "verify",
+   "result": "rolled_back",
+   "text": "Repair failed verification: 117 observed versus 120 expected. The staged rollback restored all 120 source rows; baseline checks and downstream checks match their pre-repair snapshots. Incident parked for a revised repair."
+  }
+ ],
+ "id": "rollback-drill",
+ "title": "repair missed three rows — rollback restored the warehouse",
+ "tag": "warehouse · P2 · rollback drill",
+ "recorded": "scenario-replay"
+}

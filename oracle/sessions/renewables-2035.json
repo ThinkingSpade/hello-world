@@ -2,6 +2,10 @@
  "question": "Will renewables generate more than half of the world's electricity by 2035?",
  "recorded": "scripted-sample",
  "topic_tag": "energy",
+ "vote_enum": {
+  "probably yes": "yes",
+  "lean yes": "yes"
+ },
  "agents": [
   {
    "id": "gpt",
@@ -128,6 +132,7 @@
      "agent": "claude",
      "target": "grok",
      "think": 2800,
+     "concession": true,
      "text": "I fact-checked the denominator take, and it's real but sized wrong. Global demand grows a few percent a year, and recent wind and solar additions have covered most of that growth — Ember's Global Electricity Review shows clean sources meeting the bulk of new demand. When new clean supply covers growth plus some displacement, share still climbs. Your treadmill slows the runner; it doesn't stop them. So the wildcard effect delays the crossing — it doesn't cancel it. One concession for the minutes: data-center load is the genuinely new variable. The IEA Electricity 2024 projections weren't in anyone's model two years ago. That's a line item, not a rewrite.",
      "sources": [
       "Ember Global Electricity Review 2024",
@@ -138,6 +143,7 @@
      "agent": "gemini",
      "target": "claude",
      "think": 2900,
+     "concession": true,
      "text": "On the data, I concede — plainly, since you'll minute it anyway. Solar additions really have doubled about every three years, 2024 set another record, and I was underweighting how much of the thirty-to-fifty gap hydro and existing wind already cover: new wind and solar need maybe twenty points of share, not the whole distance. That moves me. But my objection was never the panels. It's whether grids and storage let those electrons reach the meter, and your own IEA citations name exactly that bottleneck. I'm updating upward, not surrendering.",
      "sources": [
       "IEA Renewables 2024"
@@ -147,6 +153,7 @@
      "agent": "grok",
      "target": "claude",
      "think": 2100,
+     "concession": true,
      "text": "Fine, the math checks — I ran it twice hoping it wouldn't. If clean builds cover demand growth plus some displacement, share grinds up even with my sprinting denominator. I'll move. But I want it minuted, per my last hot take: a couple of AI buildout years like 2024 and 2025 landing outside the forecast bands stretches the date, and IEA's own Electricity 2024 numbers treat the data-center curve as the least certain line in the deck. I'm conceding the direction and keeping the treadmill.",
      "sources": [
       "IEA Electricity 2024"
@@ -213,7 +220,6 @@
  },
  "result": {
   "answer": "Probably yes. Deployment data and cost trajectories make renewables crossing half of global electricity generation by 2035 the most likely outcome, with the IEA already projecting roughly 46-50 percent by 2030. The timing hinges on grid buildout and storage keeping pace with record solar and wind additions, and on demand growth from data centers and broader electrification not outrunning the forecasts.",
-  "confidence": 86,
   "consensus": "4 of 4 leaning yes",
   "votes": {
    "gpt": "Yes",
@@ -243,7 +249,6 @@
     65
    ]
   },
-  "dissent": "All four agents lean yes; the residual split is over what could slip the crossing past 2035 — grid and storage buildout pace, per the skeptic, versus demand outrunning the forecasts, per the wildcard.",
-  "how_scored": "consensus 100% · mean self-confidence 69% · convergence +66% → 86%"
+  "dissent": "All four agents lean yes; the residual split is over what could slip the crossing past 2035 — grid and storage buildout pace, per the skeptic, versus demand outrunning the forecasts, per the wildcard."
  }
 }

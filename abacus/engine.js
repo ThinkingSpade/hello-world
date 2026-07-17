@@ -216,6 +216,13 @@ const Abacus = (() => {
   const JOINS = { p: "JOIN dim_product p ON i.product_id = p.product_id",
                   c: "JOIN dim_customer c ON o.customer_id = c.customer_id" };
 
+  function sqlLiteral(value) {
+    if ((typeof value !== "string" && typeof value !== "number") ||
+        (typeof value === "number" && !Number.isFinite(value)))
+      throw new Error("filter values must be text or finite numbers");
+    return `'${String(value).replaceAll("'", "''")}'`;
+  }
+
   function compilePlan(plan) {
     const metric = MAN.metrics[plan.metric];
     if (!metric) throw new Error("unknown metric: " + plan.metric);
@@ -227,8 +234,9 @@ const Abacus = (() => {
     });
     const filters = plan.filters || [];
     for (const f of filters) {
-      if (!MAN.values[f.dim] || !MAN.values[f.dim].includes(f.value))
+      if (!f || !MAN.dimensions[f.dim])
         throw new Error("unknown filter: " + JSON.stringify(f));
+      sqlLiteral(f.value);
     }
     const { start, end } = plan.time;
     const msql = metric.sql.replaceAll("{start}", start).replaceAll("{end}", end);
@@ -239,7 +247,7 @@ const Abacus = (() => {
       groupedFilters.get(f.dim).push(f.value);
     }
     const fsqls = [...groupedFilters].map(([dim, values]) =>
-      `${MAN.dimensions[dim].sql} IN (${values.map((v) => `'${v}'`).join(", ")})`);
+      `${MAN.dimensions[dim].sql} IN (${values.map(sqlLiteral).join(", ")})`);
     const fAll = plan.metric === "new_customers" ? [...fsqls, "c.customer_id IS NOT NULL"] : fsqls;
     const chunks = [msql, ...dsqls, ...fsqls];
     const joins = ["p", "c"].filter((a) => chunks.some((ch) => ch && ch.includes(a + ".")))
@@ -253,7 +261,7 @@ const Abacus = (() => {
       sql += dims.some((d) => d.time) ? "\nORDER BY 1" : "\nORDER BY value DESC";
     }
     let top = plan.top;
-    if (!top && dims.length) {
+    if (!plan.allRows && !top && dims.length) {
       const td = Math.max(...dims.map((d) => d.top_default || 0));
       if (td) top = td;
     }
@@ -433,8 +441,7 @@ Question: ${question}`;
   }
 
   /* ============ the analyst brain (mirrors abacus/analyst.py) ============ */
-  const DRIVER_DIMS = ["category", "region", "channel", "segment"];
-  const ADDITIVE = new Set(["revenue", "gross_margin", "orders", "units"]);
+  const LEGACY_DRIVER_DIMS = ["category", "region", "channel", "segment"];
   const lastCell = (r) => r[r.length - 1];
 
   function totalOf(metric, time, filters) {
@@ -442,34 +449,162 @@ Question: ${question}`;
     return (r.rows.length ? lastCell(r.rows[0]) : 0) || 0;
   }
   function byDim(metric, dim, time, filters) {
-    const r = runPlan({ metric, dims: [dim], filters, time, top: null });
+    const r = runPlan({ metric, dims: [dim], filters, time, top: null, allRows: true });
     return Object.fromEntries(r.rows.map((row) => [row[0], lastCell(row) || 0]));
+  }
+
+  function ratioParts(metric) {
+    let expr = MAN.metrics[metric].sql.trim(), scale = 1;
+    const scaled = expr.match(/^([0-9.]+)\s*\*\s*/);
+    if (scaled) {
+      scale = Number(scaled[1]);
+      expr = expr.slice(scaled[0].length);
+    }
+    const marker = " / NULLIF(";
+    const split = expr.lastIndexOf(marker);
+    if (split < 0) return null;
+    const numerator = expr.slice(0, split).trim();
+    const denominator = expr.slice(split + marker.length).replace(/,\s*0\)\s*$/, "").trim();
+    return numerator && denominator ? { numerator, denominator, scale } : null;
+  }
+
+  function eligibleDimensions(metric, ratio) {
+    const dims = Object.keys(MAN.dimensions);
+    const sql = ratio ? ratio.denominator : MAN.metrics[metric].sql;
+    if (/COUNT\s*\(\s*DISTINCT\s+i\.order_id/i.test(sql))
+      return dims.filter((d) => d !== "category" && d !== "product");
+    if (/COUNT\s*\(\s*DISTINCT\s+o\.customer_id/i.test(sql))
+      return dims.filter((d) => d === "region" || d === "segment");
+    if (/COUNT\s*\(\s*DISTINCT\s+CASE\b/i.test(sql))
+      return dims.filter((d) => d !== "category" && d !== "product");
+    return dims;
+  }
+
+  function compileParts(dim, time, filters, parts) {
+    const d = MAN.dimensions[dim];
+    if (!d) throw new Error("unknown dimension: " + dim);
+    const groupedFilters = new Map();
+    for (const f of filters || []) {
+      if (!f || !MAN.dimensions[f.dim]) throw new Error("unknown filter: " + JSON.stringify(f));
+      if (!groupedFilters.has(f.dim)) groupedFilters.set(f.dim, []);
+      groupedFilters.get(f.dim).push(f.value);
+    }
+    const fsqls = [...groupedFilters].map(([key, values]) =>
+      `${MAN.dimensions[key].sql} IN (${values.map(sqlLiteral).join(", ")})`);
+    const chunks = [d.sql, parts.numerator, parts.denominator, ...fsqls];
+    const joins = ["p", "c"].filter((a) => chunks.some((ch) => ch && ch.includes(a + ".")))
+      .map((a) => " " + JOINS[a]).join("");
+    const where = [`o.order_date >= '${time.start}'`, `o.order_date <= '${time.end}'`, ...fsqls];
+    return `SELECT ${d.sql} AS member, ${parts.numerator} AS numerator, ${parts.denominator} AS denominator\n` +
+      `${BASE}${joins}\nWHERE ${where.join(" AND ")}\nGROUP BY 1`;
+  }
+
+  function partsByDim(dim, time, filters, parts) {
+    const r = exec(compileParts(dim, time, filters, parts));
+    return Object.fromEntries(r.rows.map((row) => [row[0], {
+      numerator: Number(row[1]) || 0,
+      denominator: Number(row[2]) || 0,
+    }]));
+  }
+
+  function contributionScore(rows) {
+    const magnitudes = rows.map((r) => Math.abs(r.delta));
+    const gross = magnitudes.reduce((a, b) => a + b, 0);
+    const peak = magnitudes.length ? Math.max(...magnitudes) : 0;
+    return { concentration: rows.length > 1 && gross ? peak / gross : 0, peak, gross };
+  }
+
+  function makeWaterfall(dim, rows, prior, cur, mode, effects) {
+    const ordered = [...rows].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+    const shown = ordered.slice(0, 6);
+    const remainder = (cur - prior) - shown.reduce((sum, row) => sum + row.delta, 0);
+    const steps = shown.map((row) => ({
+      label: row.value,
+      value: row.value,
+      delta: row.delta,
+      mix_effect: row.mix_effect,
+      rate_effect: row.rate_effect,
+      filterable: true,
+    }));
+    if (ordered.length > shown.length || Math.abs(remainder) > 1e-9)
+      steps.push({ label: "everything else", delta: remainder, filterable: false });
+    return { dim, start: prior, end: cur, steps, mode, effects };
   }
 
   function investigate(plan) {
     const { metric } = plan, curT = plan.time, priT = plan.compare;
+    if (!priT) throw new Error("investigations require a comparison period");
     const filters = plan.filters || [];
     let queries = 0;
     const cur = totalOf(metric, curT, filters); queries++;
     const pri = totalOf(metric, priT, filters); queries++;
     const delta = cur - pri;
-    const additive = ADDITIVE.has(metric);
-
-    const drivers = [], by_dim = {};
-    for (const dim of DRIVER_DIMS) {
-      const a = byDim(metric, dim, curT, filters); queries++;
-      const b = byDim(metric, dim, priT, filters); queries++;
-      const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
-      const rows = keys.map((k) => ({ value: k, cur: a[k] || 0, prior: b[k] || 0,
-                                      delta: (a[k] || 0) - (b[k] || 0) }));
-      by_dim[dim] = rows;
-      if (additive) for (const r of rows) drivers.push({ dim, value: r.value, delta: r.delta });
+    const ratio = ratioParts(metric);
+    const mode = ratio ? "ratio" : "partition";
+    const saturated = new Map();
+    for (const f of filters) {
+      if (!saturated.has(f.dim)) saturated.set(f.dim, new Set());
+      saturated.get(f.dim).add(String(f.value));
     }
-    drivers.sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta));
-    const top_drivers = drivers.slice(0, 6);
+    const eligible = eligibleDimensions(metric, ratio)
+      .filter((dim) => !saturated.has(dim) || saturated.get(dim).size > 1);
+    const by_dim = {}, waterfalls = {}, dimension_ranking = [];
+
+    for (const dim of eligible) {
+      let rows, effects = null;
+      if (ratio) {
+        const a = partsByDim(dim, curT, filters, ratio); queries++;
+        const b = partsByDim(dim, priT, filters, ratio); queries++;
+        const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+        const denCur = keys.reduce((sum, key) => sum + (a[key]?.denominator || 0), 0);
+        const denPri = keys.reduce((sum, key) => sum + (b[key]?.denominator || 0), 0);
+        rows = keys.map((key) => {
+          const ac = a[key] || { numerator: 0, denominator: 0 };
+          const bp = b[key] || { numerator: 0, denominator: 0 };
+          const rateCur = ac.denominator ? ratio.scale * ac.numerator / ac.denominator : 0;
+          const ratePri = bp.denominator ? ratio.scale * bp.numerator / bp.denominator : 0;
+          const weightCur = denCur ? ac.denominator / denCur : 0;
+          const weightPri = denPri ? bp.denominator / denPri : 0;
+          const mix = (weightCur - weightPri) * (rateCur + ratePri) / 2;
+          const rate = (rateCur - ratePri) * (weightCur + weightPri) / 2;
+          return { value: key, cur: rateCur, prior: ratePri, weight_cur: weightCur,
+            weight_prior: weightPri, mix_effect: mix, rate_effect: rate, delta: mix + rate };
+        });
+        effects = {
+          mix: rows.reduce((sum, row) => sum + row.mix_effect, 0),
+          rate: rows.reduce((sum, row) => sum + row.rate_effect, 0),
+        };
+      } else {
+        const a = byDim(metric, dim, curT, filters); queries++;
+        const b = byDim(metric, dim, priT, filters); queries++;
+        const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+        rows = keys.map((key) => ({ value: key, cur: a[key] || 0, prior: b[key] || 0,
+          delta: (a[key] || 0) - (b[key] || 0) }));
+      }
+      rows.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+      by_dim[dim] = rows;
+      const score = contributionScore(rows);
+      const dominant = rows[0] || null;
+      dimension_ranking.push({ dim, ...score, members: rows.length,
+        dominant: dominant ? dominant.value : null, dominant_delta: dominant ? dominant.delta : 0,
+        effects });
+      waterfalls[dim] = makeWaterfall(dim, rows, pri, cur, mode, effects);
+    }
+    dimension_ranking.sort((a, b) => (b.concentration - a.concentration) ||
+      (b.peak - a.peak) || a.dim.localeCompare(b.dim));
+    const winner = dimension_ranking[0]?.dim || null;
+    const drivers = winner ? by_dim[winner].slice(0, 6).map((row) =>
+      ({ dim: winner, value: row.value, delta: row.delta })) : [];
+
+    const legacyDrivers = [];
+    for (const dim of LEGACY_DRIVER_DIMS) {
+      for (const row of by_dim[dim] || [])
+        legacyDrivers.push({ dim, value: row.value, delta: row.cur - row.prior });
+    }
+    legacyDrivers.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
     let vol_price = null;
-    if (metric === "revenue" && additive) {
+    if (metric === "revenue") {
       const o1 = totalOf("orders", curT, filters); queries++;
       const o0 = totalOf("orders", priT, filters); queries++;
       const a1 = o1 ? cur / o1 : 0, a0 = o0 ? pri / o0 : 0;
@@ -478,34 +613,27 @@ Question: ${question}`;
                     volume_effect: vol, price_effect: price, interaction: delta - vol - price };
     }
 
-    let waterfall = null;
-    if (additive && delta !== 0 && top_drivers.length) {
-      const wdim = top_drivers[0].dim;
-      const rows = [...by_dim[wdim]].sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta));
-      const shown = rows.slice(0, 6);
-      const other = delta - shown.reduce((s, r) => s + r.delta, 0);
-      waterfall = { dim: wdim, start: pri, end: cur,
-        steps: [...shown.map((r) => ({ label: r.value, delta: r.delta })),
-                ...(Math.abs(other) > 1e-9 ? [{ label: "everything else", delta: other }] : [])] };
-    }
-    return { kind: "investigate", metric, cur, prior: pri, delta, additive,
-             drivers: top_drivers, by_dim, vol_price, waterfall, queries };
+    const waterfall = winner ? waterfalls[winner] : null;
+    return { kind: "investigate", metric, cur, prior: pri, delta,
+      additive: mode === "partition", mode, eligible_dimensions: eligible,
+      drivers, legacy_drivers: legacyDrivers.slice(0, 6), by_dim, waterfalls,
+      dimension_ranking, vol_price, waterfall, queries };
   }
 
   function narrateInvestigation(plan, inv) {
     const m = MAN.metrics[plan.metric], kind = m.fmt;
     const pct = inv.prior ? 100 * inv.delta / Math.abs(inv.prior) : 0;
-    const verb = inv.delta > 0 ? "rose" : "fell";
+    const verb = inv.delta > 0 ? "rose" : inv.delta < 0 ? "fell" : "held steady";
     let line = inv.prior === 0
       ? `${m.label} ${inv.cur === 0 ? "held at zero" : `${verb} from zero`} in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`
       : `${m.label} ${verb} ${nf(Math.abs(pct), 1, 1)}% in ${plan.time.label} vs ${plan.compare.label} (${fmt(inv.prior, kind)} → ${fmt(inv.cur, kind)}, ${inv.delta >= 0 ? "+" : "−"}${fmt(Math.abs(inv.delta), kind)}).`;
-    if (inv.additive && inv.drivers.length) {
-      const d0 = inv.drivers[0];
-      const share = inv.delta ? 100 * d0.delta / inv.delta : 0;
-      line += ` The move concentrates in ${d0.dim}: ${d0.value} ${d0.delta >= 0 ? "+" : "−"}${fmt(Math.abs(d0.delta), kind)} (${Math.round(share)}% of the change)`;
-      const offs = inv.drivers.filter((d) => (d.delta > 0) !== (inv.delta > 0));
-      if (offs.length) line += `; biggest offset ${offs[0].value} ${offs[0].delta >= 0 ? "+" : "−"}${fmt(Math.abs(offs[0].delta), kind)}`;
-      line += ".";
+    const ranked = inv.dimension_ranking[0];
+    if (ranked && ranked.dominant !== null) {
+      line += ` ${ranked.dim} is the most concentrated cut (${nf(100 * ranked.concentration, 0, 0)}% in its largest member): ${ranked.dominant} ${ranked.dominant_delta >= 0 ? "+" : "−"}${fmt(Math.abs(ranked.dominant_delta), kind)}.`;
+      if (inv.mode === "ratio" && ranked.effects) {
+        const effect = (value) => `${value >= 0 ? "+" : "−"}${kind === "pct" ? nf(Math.abs(value), 1, 2) + " pp" : fmt(Math.abs(value), kind)}`;
+        line += ` Volume mix shift contributes ${effect(ranked.effects.mix)}; within-${ranked.dim} rate change ${effect(ranked.effects.rate)}.`;
+      }
     }
     const vp = inv.vol_price;
     if (vp && inv.delta) {
@@ -514,7 +642,7 @@ Question: ${question}`;
       else
         line += ` Volume vs price: order count explains ${Math.round(100 * vp.volume_effect / inv.delta)}% of it (orders ${vp.orders_prior.toLocaleString("en-US")} → ${vp.orders_cur.toLocaleString("en-US")}), basket size ${Math.round(100 * vp.price_effect / inv.delta)}% (AOV ${fmt(vp.aov_prior, "money2")} → ${fmt(vp.aov_cur, "money2")}).`;
     }
-    if (!inv.additive) line += " (Rate metric — showing level shifts per dimension rather than additive contributions.)";
+    if (!ranked) line += " No eligible dimension remains after the active drill filters.";
     return line;
   }
 
@@ -640,7 +768,7 @@ Question: ${question}`;
     if (kind === "aggregate") return result.rows;
     if (kind === "investigate")
       return [["_total", r4(result.cur), r4(result.prior)],
-              ...result.drivers.map((d) => [d.dim, d.value, r4(d.delta)])];
+              ...(result.legacy_drivers || result.drivers).map((d) => [d.dim, d.value, r4(d.delta)])];
     if (kind === "retention")
       return result.matrix.map((r) => [r.cohort, r.size, ...r.cells]);
     if (kind === "anomalies")

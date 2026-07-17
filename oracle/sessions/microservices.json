@@ -2,6 +2,10 @@
  "question": "Should we rewrite our monolith as microservices?",
  "recorded": "scripted-sample",
  "topic_tag": "engineering",
+ "vote_enum": {
+  "qualified yes": "yes",
+  "qualified no": "no"
+ },
  "agents": [
   {
    "id": "gpt",
@@ -109,6 +113,7 @@
      "agent": "gpt",
      "target": "gemini",
      "think": 2400,
+     "concession": true,
      "text": "Fair hit on team size — I'll concede that one before the hard stop: this is a poor prescription for a ten-person team. But 'just have discipline' has its own base rate problem. Every monolith I've seen promised modularity in the design doc and delivered a tangle, because nothing enforces the boundary. A network boundary is one somebody has to consciously violate; a module boundary is one import statement away from spaghetti the first time a deadline shows up. The modular monolith works exactly until the quarter gets tight. I'm still at 66.",
      "sources": []
     },
@@ -136,6 +141,7 @@
      "agent": "gemini",
      "target": "claude",
      "think": 1900,
+     "concession": true,
      "text": "I'll take the fact-checker's amendment: strangler-fig extraction is the defensible version of the optimist's pitch, and I'd rather concede that than pretend modular discipline always holds — I've watched it fail too, and I'll say so plainly. But let's log what just happened in the minutes: 'rewrite as microservices' quietly became 'extract incrementally where boundaries prove themselves.' That's a different, smaller, better question. To the item actually on the agenda, my answer is still no — though the concessions move me to 38.",
      "sources": []
     },
@@ -153,6 +159,7 @@
      "agent": "gpt",
      "target": "claude",
      "think": 2200,
+     "concession": true,
      "text": "Accepting the strangler-fig framing gladly — that's still microservices as the destination, just an honest migration path instead of a cliff dive. Where I hold my ground before we take this offline: the destination matters. Extract two services and stop, and you've bought complexity without the payoff. The bet only makes sense if the org is growing into the architecture — which loops back to the fact-checker's team-size condition, and I think that's genuinely common ground now, wildcard included.",
      "sources": []
     }
@@ -209,7 +216,6 @@
  },
  "result": {
   "answer": "Not as a rewrite — fix ownership and modularity where you stand first. If multiple teams are still genuinely blocked on one release train, extract services incrementally at boundaries that prove themselves; otherwise invest in a modular monolith and revisit when the org outgrows it.",
-  "confidence": 50,
   "consensus": "2 of 4 leaning yes",
   "votes": {
    "gpt": "qualified yes",
@@ -239,7 +245,6 @@
     52
    ]
   },
-  "dissent": "The council split 2–2 on whether the charitable reading of 'rewrite' deserves a yes, with the Wildcard holding that the question itself is the symptom.",
-  "how_scored": "consensus 33% · mean self-confidence 56% · convergence +57% → 50%"
+  "dissent": "The council split 2–2 on whether the charitable reading of 'rewrite' deserves a yes, with the Wildcard holding that the question itself is the symptom."
  }
 }

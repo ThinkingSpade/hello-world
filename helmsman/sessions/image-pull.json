@@ -68,13 +68,16 @@
    "command": "kubectl -n prod rollout undo deploy/payments --to-revision=11",
    "explain": "Roll back explicitly to revision 11, the history table's last-good image. Zero-downtime: the old pods are still up.",
    "risk": "low",
+   "diff": "Deployment/prod/payments\n- revision 12: registry.internal/payments:v2.4.11\n+ revision 11: registry.internal/payments:v2.4.10",
+   "blast_radius": "1 Deployment · 2 failed pods replaced · 2 serving pods remain available",
+   "rbac_scope": "deployments.apps/get,patch · prod",
    "rollback": "kubectl -n prod rollout undo deploy/payments --to-revision=11  # explicit last-good target from rollout history",
    "followup": "Fix the tag in the pipeline (looks like a typo) and re-deploy."
   },
   {
    "t": "approval",
    "decision": "approved",
-   "by": "operator"
+   "by": "operator@bridge"
   },
   {
    "t": "apply",

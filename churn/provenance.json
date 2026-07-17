@@ -1,14 +1,21 @@
 {
   "rows_score": {
     "method": "inference with the shipped model.json coefficients",
-    "coverage": "all 7043 rows",
-    "row_level_split_membership": "not available",
+    "coverage": "all 7043 IBM sample rows",
+    "row_level_split_membership": "available as a little-endian bitset; bit i marks source row i as held out",
     "eligible_for_evaluation": false,
     "untouched_indices": null
   },
   "aggregate_evaluation": {
     "split": "25% stratified hold-out",
+    "holdout_subset_eligible_for_evaluation": true,
     "records": 1761,
-    "metrics_source": "model.json.metrics"
+    "positive_records": 467,
+    "source_rows": 7043,
+    "random_state": 42,
+    "reproduction": "sklearn.model_selection.train_test_split(indices, test_size=0.25, random_state=42, stratify=Churn)",
+    "metrics_source": "model.json.metrics",
+    "membership_encoding": "base64 bitset, least-significant bit first within each byte",
+    "membership_bitset_base64": "wEOFAVgEKgUDhqAAIUACyBFIQBY4hLICLQwwgQIAEQdQDiAQDNCAGDABRkWBQACBAQI0AAESoJBuBCCQ4hCASqDciGYARQFAcBAIDAQmlBAEVQaIDGkAOAAsQAGADAoDAYiAEKESKACBABIgFAAV4RAJAASwQeLEwEEMgwIiSLEAOrEASFASChGAA+yIAICBBkyICQkAwEAJAiBkRBAIIVE7IRIQAmKAjgBAALIwQALQMACAWwlkGCEAAABgoAtAkCVlwSHGBQjUgAjAiBBhIAEIECGLBEKALQxAMFPVwkBBjsAAIURQiGAIaIskACAAQAEAABABkIBIiaiYIAAUCBAAkYhTAUkAQCAA3UAcAhE4AoRYBGqJLFDACBDIRXwBEoAJIiTAAIIkqgEkACCgASmBCRYNg0AliHawRgCAQEAgARFEApgBAIgAQI6AAwXSiGihAAEKwNCKCXiDqnEgDhlAAAAGEBQkAVFYgI7ICIAgBJZB5UCCwABghRC8BAErAKIFCCChAABAQk1EUEACIIYIAxgUJwgAACSJKAAGIQFCAESgJYkTAEUSCQgAIEtDoE0TBQAAUjUwUCNJByhBCACAECCEUUGQAgVzwQRg4J2BywDjgQ6OEiNowQhQRIE0MAUDIRYgKA9OQARBEQG4QYRkkiEQiUZY0cAAIErggAAQgRdDEBiZBWeIEAaCQgShjQQBIgkNCAMAMZohoQCQAgxkIEpkAgyBwEDQCoMwBU5AGEAWI4IkogCVIBwLKhYJAABqQkFpFG9UQDARUgA2IbJQWCIOYIEBJISCA0Tgs8nIoUAARAAVKHoACABAAOIFDEkwCCiEECMCDGRFKNZKiA4ggGAASCGqAASkFGwABAQFQFEESABSwNAAIABBGBGCKCADRZTAQAIQImFCBJAAGSiJESABiAABeCAKaQLmjpgIhJBgoAgCWBREWaInAVIQgDAEKCByEsgU0ARAFJDgUoxAogCRAYAApCCBIACAAIjAAgBIYhJACgIBJtkM4jHSKKgB5HnDAMQBEECAMAiAUAKQEBAxLDQYCocaLAKCEYoAEIkkHqDABhVAIpUgIIAsBgoBIBBoAgOKCEiAECIChBsDxAUEIABg4YhQGDEKAIoEFDGDABhIgDQgB4kgYkQEgiARaJYEsnQKggAHCYGBEgI="
   }
 }

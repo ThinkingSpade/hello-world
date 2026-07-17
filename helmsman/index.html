@@ -222,37 +222,48 @@
     text-transform: uppercase;
   }
   #board { padding: 8px; }
+  .rs-strip {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    min-height: 34px;
+    margin: -8px -8px 8px;
+    padding: 6px 8px;
+    overflow-x: auto;
+    color: var(--dim);
+    background: var(--ui-accent-soft);
+    border-bottom: 1px solid var(--text);
+    font-family: var(--pi-font-ui);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .rs-strip .pchip { flex: 0 0 auto; }
   .node { margin-bottom: 8px; }
   .node:last-child { margin-bottom: 0; }
   .node .nl { display: flex; gap: 5px; align-items: center; margin-bottom: 4px; color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; }
   .pods { display: flex; gap: 6px; flex-wrap: wrap; }
   .pod {
-    width: 112px;
+    appearance: none;
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) 16px;
+    gap: 5px;
+    align-items: center;
+    width: 132px;
     min-height: 44px;
+    padding: 4px 6px;
     color: var(--dim);
     background: var(--panel-2);
     border: 1px solid var(--text);
     border-radius: 0;
     font-family: var(--pi-font-ui);
     font-size: 12px;
-  }
-  .pod summary {
-    display: grid;
-    grid-template-columns: 8px minmax(0, 1fr) 16px;
-    gap: 5px;
-    align-items: center;
-    min-height: 44px;
-    padding: 4px 6px;
-    list-style: none;
+    text-align: left;
     cursor: pointer;
     touch-action: manipulation;
   }
-  .pod summary::-webkit-details-marker { display: none; }
-  .pod summary:hover { background: var(--ui-accent-soft); color: var(--text); }
+  .pod:hover { background: var(--ui-accent-soft); color: var(--text); }
   .pod .led { width: 7px; height: 7px; border: 1px solid var(--text); border-radius: 0; background: var(--dim); }
   .pod-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pod-detail { display: block; padding: 0 6px 6px; overflow-wrap: anywhere; font-family: var(--pi-font-body); font-size: 12px; line-height: 1.35; }
-  .pod[open] { width: min(100%, 230px); }
   .pod.bad { border-color: var(--coral); background: var(--coral-bg); }
   .pod.bad .led { background: var(--coral); }
   .pod.fixing { border-color: var(--gold); background: var(--pi-warn-soft); }
@@ -394,7 +405,8 @@
   }
   .ev.prop .hd { grid-column: 1; min-width: 0; }
   .ev.prop .code,
-  .ev.prop .sub { grid-column: 1 / -1; }
+  .ev.prop .sub,
+  .ev.prop .gate-shell { grid-column: 1 / -1; }
   .stamp {
     grid-column: 2;
     grid-row: 1;
@@ -418,9 +430,33 @@
   .stamp.show { animation: stampin 260ms steps(3, end) forwards; }
   .stamp.held { border-color: var(--coral); color: var(--coral); }
   @keyframes stampin { from { transform: scale(1.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .gate-shell {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--panel-2);
+    border: 2px solid var(--text);
+  }
+  .gate-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; }
+  .gate-meta .pchip { color: var(--text); background: var(--panel); }
+  .gate-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+  .gate-actions .pbtn { min-height: 38px; padding: 7px 10px; }
+  .gate-actions .approve { color: #fff; background: var(--green); }
+  .gate-actions .hold { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .gate-diff { margin-top: 9px; }
+  .gate-diff[hidden] { display: none; }
+  .gate-diff .code { margin-bottom: 6px; }
+  .gate-status { min-height: 1.4em; margin-top: 7px; color: var(--dim); font-size: 12px; }
+  .gate-status.error { color: var(--coral); }
+  .surface-state { display: flex; gap: 8px; align-items: center; min-height: 42px; color: var(--dim); font-size: 12px; }
+  .surface-state.error { color: var(--coral); }
+  .surface-state.empty { color: var(--gold); }
+  .ev.escalation { border-color: var(--coral); }
+  .ev.escalation .hd { color: var(--coral); }
+  .ev.escalation .code { white-space: pre-wrap; }
   .ev.verify.green { border-color: var(--green); background: var(--green-bg); }
   .ev.verify.green .hd { color: var(--green); }
   .ev.verify.held { border-color: var(--coral); background: var(--coral-bg); }
+  .ev.verify.denied { border-color: var(--coral); background: var(--coral-bg); }
   .postm { font-size: 12px; color: var(--dim); margin-top: 8px; }
   .postm b { color: var(--text); }
 
@@ -443,6 +479,7 @@
   .btn.ghost { color: var(--text); background: var(--panel); }
   .btn.ghost:hover { color: var(--ui-accent); border-color: var(--ui-accent); background: var(--ui-accent-soft); }
   #follow[aria-pressed="true"] { color: var(--ui-accent); background: var(--ui-accent-soft); border-color: var(--ui-accent); }
+  #auto[aria-pressed="true"] { color: var(--green); background: var(--green-bg); border-color: var(--green); }
   .loaderr { color: var(--coral); font-family: var(--pi-font-body); font-size: 13px; font-weight: 500; }
   .loaderr .btn { margin-left: 8px; }
   .spd { display: flex; gap: 6px; }
@@ -473,6 +510,27 @@
   #toast.show { animation: toast 1.4s steps(4, end) 1; }
   @keyframes toast { 0% { opacity: 0; } 18% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 
+  .pod-inspector {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 20;
+    width: min(92vw, 430px);
+    max-height: min(80vh, 520px);
+    overflow: auto;
+    background: var(--panel);
+    border: 2px solid var(--text);
+    box-shadow: 7px 7px 0 var(--text);
+    transform: translate(-50%, -50%);
+  }
+  .pod-inspector[hidden] { display: none; }
+  .pod-inspector .pwin-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pod-inspector .pwin-body { padding: 12px; }
+  .pod-inspector dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 7px 10px; }
+  .pod-inspector dt { color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; }
+  .pod-inspector dd { min-width: 0; overflow-wrap: anywhere; font-family: var(--pi-font-code); font-size: 12px; }
+  .pod-inspector .close { min-width: 34px; min-height: 30px; padding: 3px 7px; }
+
   footer { margin-top: 32px; color: var(--dim); font-size: 12px; text-align: center; }
   a { color: var(--blue); }
   :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline-color: var(--ui-accent); }
@@ -494,14 +552,15 @@
     .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 12px 12px; }
     .controls > .btn { width: 100%; }
     .spd { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); }
-    #follow, #scrub { grid-column: 1 / -1; }
+    #follow, #auto, #scrub { grid-column: 1 / -1; }
     .tclock { grid-column: 1 / -1; text-align: right; }
     .incident-title .tag { width: 100%; margin-left: 17px; }
     .ev.prop { grid-template-columns: 1fr; }
     .ev.prop .hd,
     .stamp,
     .ev.prop .code,
-    .ev.prop .sub { grid-column: 1; }
+    .ev.prop .sub,
+    .ev.prop .gate-shell { grid-column: 1; }
     .stamp { grid-row: auto; justify-self: start; margin-bottom: 8px; }
   }
   @media (max-width: 390px) {
@@ -533,6 +592,13 @@
     <div class="incident-title pwin-title" id="ititle" role="status" aria-live="polite">—</div>
     <div class="stagewrap pwin-body">
       <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+      <section class="pod-inspector pwin" id="pod-inspector" role="dialog" aria-modal="false" aria-labelledby="pod-inspector-title" hidden>
+        <div class="pwin-title">
+          <span id="pod-inspector-title">pod inspector</span>
+          <button class="btn ghost pbtn close" id="pod-inspector-close" type="button" aria-label="Close pod inspector">×</button>
+        </div>
+        <div class="pwin-body" id="pod-inspector-body" role="status" aria-live="polite"></div>
+      </section>
       <div class="bridge">
         <div class="agent" id="ag-helm">
           <span class="klaxon" id="klaxon" aria-hidden="true"></span>
@@ -565,6 +631,7 @@
       <button class="btn ghost pbtn" id="restart"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg><span>restart</span></button>
       <div class="spd" id="spd" role="group" aria-label="Playback speed"></div>
       <button class="btn ghost pbtn" id="follow" type="button" aria-pressed="false"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"/></svg><span>Follow replay</span></button>
+      <button class="btn ghost pbtn" id="auto" type="button" aria-pressed="false"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg><span>Auto replay: off</span></button>
       <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline">
       <span class="tclock" id="clock">0:00</span>
     </div>
@@ -590,13 +657,15 @@
     ["oom-crashloop.json"],
     ["image-pull.json"],
     ["readiness-probe.json"],
+    ["rbac-denied.json"],
   ];
   const CPS = 60;             // terminal typing speed at 1×
 
   let S = null, steps = [], idx = 0, playing = false, speed = 1, gen = 0;
-  let followReplay = false;
+  let followReplay = false, autoReplay = false;
   let elapsed = 0, cmdCount = 0, authorization = null, blocked = false, seeking = false;
   let timers = [], commandTask = null, pendingStep = null, fetchController = null, boardModel = null;
+  let activeGate = null, heldGate = null, inspectorRequest = 0, inspectorTrigger = null;
 
   function forgetTimer(id) {
     timers = timers.filter((timerId) => timerId !== id);
@@ -706,7 +775,7 @@
     </svg>`;
   }
 
-  /* ---------- board ---------- */
+  /* ---------- cluster-state reducer ---------- */
   function compactWorkload(name) {
     if (name.length <= 9) return name;
     const parts = name.split("-").filter(Boolean);
@@ -714,57 +783,264 @@
     return name.slice(0, 8) + "…";
   }
 
-  function renderBoard() {
-    if (!S || !boardModel) return;
-    $("board-ns").textContent = S.namespace;
-    const b = $("board");
-    b.replaceChildren();
-    for (const node of boardModel.nodes) {
-      const nd = document.createElement("div");
-      nd.className = "node";
-      nd.innerHTML = `<div class="nl">${icon("signal")}<span>${esc(node.name)}</span></div>`;
-      const pods = document.createElement("div");
-      pods.className = "pods";
-      for (const p of node.pods) {
-        const el = document.createElement("details");
-        el.className = "pod" + (p.victim ? " victim" : "");
-        el.dataset.victim = p.victim ? "1" : "";
-        el.innerHTML = `<summary><span class="led" aria-hidden="true"></span><span class="pod-label">${esc(compactWorkload(p.app))}</span>${icon("eye")}</summary><span class="pod-detail">${esc(p.app)}<br>${esc(p.name)}</span>`;
-        el.querySelector("summary").setAttribute("aria-label", `Workload ${p.app}, pod ${p.name}. Activate for details.`);
-        pods.appendChild(el);
-      }
-      nd.appendChild(pods);
-      b.appendChild(nd);
-    }
+  function replicaSetName(podName) {
+    const match = String(podName || "").match(/^(.+)-([a-f0-9]{9,10})-[a-z0-9]{5}$/);
+    return match ? `${match[1]}-${match[2]}` : "";
   }
-  function boardState(state) {   // "bad" | "fixing" | "ok2" | ""
-    for (const el of document.querySelectorAll(".pod[data-victim='1']")) {
-      el.classList.remove("bad", "fixing", "ok2");
-      if (state) el.classList.add(state);
+
+  function deriveReplicaSets(nodes) {
+    const sets = new Map();
+    for (const node of nodes) {
+      for (const pod of node.pods) {
+        const name = replicaSetName(pod.name);
+        if (!name) continue;
+        if (!sets.has(name)) sets.set(name, { name, app: pod.app, pods: 0 });
+        sets.get(name).pods++;
+      }
+    }
+    return [...sets.values()];
+  }
+
+  function makeClusterModel(board) {
+    const model = JSON.parse(JSON.stringify(board));
+    model.phase = "";
+    model.lastError = "";
+    for (const node of model.nodes) {
+      for (const pod of node.pods) {
+        pod.node = node.name;
+        pod.restarts = pod.restarts ?? null;
+        pod.lastProbe = pod.last_probe || "not observed yet";
+        pod.health = "";
+      }
+    }
+    model.replicaSets = deriveReplicaSets(model.nodes);
+    return model;
+  }
+
+  function appFromCommand(cmd) {
+    const selector = String(cmd || "").match(/(?:-l|--selector)\s+app=([\w.-]+)/);
+    if (selector) return selector[1];
+    const workload = String(cmd || "").match(/(?:deploy(?:ment)?(?:\.apps)?[\s/]+)([\w.-]+)/);
+    return workload ? workload[1] : String(S && S.selector || "").split("=").pop();
+  }
+
+  function podRows(out) {
+    const lines = String(out || "").split("\n");
+    if (!/^NAME\s+READY\s+STATUS\s+RESTARTS/.test(lines[0] || "")) return [];
+    return lines.slice(1).map((line) => {
+      const columns = line.trim().split(/\s+/);
+      if (columns.length < 4) return null;
+      return {
+        name: columns[0], ready: columns[1], status: columns[2],
+        restarts: Number.isFinite(Number.parseInt(columns[3], 10)) ? Number.parseInt(columns[3], 10) : null,
+      };
+    }).filter(Boolean);
+  }
+
+  function replaceObservedPods(model, app, rows) {
+    if (!app || !rows.length || !model.nodes.length) return;
+    const previous = model.nodes.flatMap((node) => node.pods
+      .filter((pod) => pod.app === app)
+      .map((pod) => ({ node: node.name, pod })));
+    const previousByName = new Map(previous.map((entry) => [entry.pod.name, entry]));
+    for (const node of model.nodes) node.pods = node.pods.filter((pod) => pod.app !== app);
+    rows.forEach((row, index) => {
+      const exact = previousByName.get(row.name);
+      const placement = exact || previous[index];
+      const nodeName = placement ? placement.node : model.nodes[index % model.nodes.length].name;
+      const node = model.nodes.find((candidate) => candidate.name === nodeName) || model.nodes[index % model.nodes.length];
+      const readyParts = row.ready.split("/").map(Number);
+      const healthy = row.status === "Running" && readyParts.length === 2 && readyParts[0] === readyParts[1];
+      node.pods.push({
+        ...(exact ? exact.pod : {}), name: row.name, app, node: node.name, victim: true,
+        ready: row.ready, status: row.status, restarts: row.restarts,
+        health: healthy ? (model.phase === "ok2" ? "ok2" : "") : "bad",
+        lastProbe: exact ? exact.pod.lastProbe : healthy ? `Ready ${row.ready} in latest observation` : "not observed yet",
+      });
+    });
+  }
+
+  function observeDescribe(model, ev) {
+    const name = (String(ev.out || "").match(/^Name:\s+(.+)$/m) || [])[1];
+    if (!name) return;
+    const entry = model.nodes.flatMap((node) => node.pods.map((pod) => ({ node, pod })))
+      .find((candidate) => candidate.pod.name === name.trim());
+    if (!entry) return;
+    const nodeName = (String(ev.out).match(/^Node:\s+([^/\s]+)/m) || [])[1];
+    const restarts = (String(ev.out).match(/^\s*Restart Count:\s+(\d+)/m) || [])[1];
+    const ready = (String(ev.out).match(/^\s*Ready\s+([A-Za-z]+)$/m) || [])[1];
+    if (restarts !== undefined) entry.pod.restarts = Number(restarts);
+    if (ready) entry.pod.lastProbe = `Ready ${ready}`;
+    if (nodeName && nodeName !== entry.node.name) {
+      const nextNode = model.nodes.find((node) => node.name === nodeName);
+      if (nextNode) {
+        entry.node.pods = entry.node.pods.filter((pod) => pod !== entry.pod);
+        entry.pod.node = nextNode.name;
+        nextNode.pods.push(entry.pod);
+      }
     }
   }
 
-  function updateBoardFromRollout(out) {
-    if (!boardModel) return;
-    const names = out.split("\n").slice(1).map((line) => line.trim().split(/\s+/)[0]).filter(Boolean);
-    const app = (S.selector || "").split("=").pop();
-    const slots = boardModel.nodes.flatMap((node) =>
-      node.pods.filter((pod) => pod.app === app).map((pod) => ({ node, pod })));
-    if (!names.length || !slots.length) return;
-    names.forEach((name, i) => {
-      if (slots[i]) {
-        slots[i].pod.name = name;
-        slots[i].pod.victim = true;
-      } else {
-        boardModel.nodes[i % boardModel.nodes.length].pods.push({ name, app, victim: true });
-      }
-    });
-    for (const slot of slots.slice(names.length)) {
-      slot.node.pods = slot.node.pods.filter((pod) => pod !== slot.pod);
-    }
-    renderBoard();
-    boardState("fixing");
+  function observeEvents(model, ev) {
+    const name = (String(ev.cmd || "").match(/involvedObject\.name=([^\s]+)/) || [])[1];
+    if (!name) return;
+    const pod = model.nodes.flatMap((node) => node.pods).find((candidate) => candidate.name === name);
+    if (!pod) return;
+    const probeLines = String(ev.out || "").split("\n").filter((line) => /probe (?:failed|succeeded)/i.test(line));
+    pod.lastProbe = probeLines.length ? probeLines[probeLines.length - 1].trim() : "no probe event recorded";
   }
+
+  function clusterReducer(state, action) {
+    if (!state) return state;
+    const next = JSON.parse(JSON.stringify(state));
+    if (action.type === "PHASE") {
+      next.phase = action.phase;
+      for (const node of next.nodes) for (const pod of node.pods) {
+        if (pod.victim) pod.health = action.phase === "denied" ? "bad" : action.phase;
+      }
+    }
+    if (action.type === "COMMAND_RESULT") {
+      const ev = action.ev;
+      const rows = podRows(ev.out);
+      if (rows.length) replaceObservedPods(next, appFromCommand(ev.cmd), rows);
+      if (/kubectl describe pod/.test(ev.cmd || "")) observeDescribe(next, ev);
+      if (/kubectl get events/.test(ev.cmd || "")) observeEvents(next, ev);
+    }
+    if (action.type === "APPLY_RESULT") {
+      const denied = /forbidden|denied/i.test(action.ev.out || "") || action.ev.result === "denied";
+      next.phase = denied ? "denied" : "fixing";
+      next.lastError = denied ? String(action.ev.out || "mutation denied") : "";
+      for (const node of next.nodes) for (const pod of node.pods) {
+        if (pod.app === appFromCommand(action.ev.cmd)) pod.health = denied ? "bad" : "fixing";
+      }
+    }
+    next.replicaSets = deriveReplicaSets(next.nodes);
+    return next;
+  }
+
+  function dispatchCluster(action) {
+    boardModel = clusterReducer(boardModel, action);
+    renderBoard();
+  }
+
+  function renderBoardError(error) {
+    const b = $("board");
+    const state = document.createElement("div");
+    state.className = "surface-state error";
+    state.textContent = "Cluster state could not be rendered. ";
+    const retry = document.createElement("button");
+    retry.type = "button"; retry.className = "btn ghost pbtn"; retry.textContent = "retry";
+    retry.addEventListener("click", renderBoard);
+    state.appendChild(retry);
+    b.replaceChildren(state);
+    console.error(error);
+  }
+
+  function renderBoard() {
+    if (!S || !boardModel) return;
+    try {
+      $("board-ns").textContent = S.namespace;
+      const b = $("board");
+      b.replaceChildren();
+      if (!boardModel.nodes.length || !boardModel.nodes.some((node) => node.pods.length)) {
+        const empty = document.createElement("div");
+        empty.className = "surface-state empty";
+        empty.textContent = "No pods recorded for this cluster snapshot.";
+        b.appendChild(empty);
+        return;
+      }
+      const strip = document.createElement("div");
+      strip.className = "rs-strip pstrip";
+      strip.appendChild(document.createTextNode("REPLICASETS"));
+      if (boardModel.replicaSets.length) {
+        for (const rs of boardModel.replicaSets) {
+          const chip = document.createElement("span");
+          chip.className = "pchip";
+          chip.textContent = `${rs.name} · ${rs.pods}`;
+          strip.appendChild(chip);
+        }
+      } else {
+        strip.appendChild(document.createTextNode(" · none observed"));
+      }
+      b.appendChild(strip);
+      for (const node of boardModel.nodes) {
+        const nd = document.createElement("div");
+        nd.className = "node";
+        nd.innerHTML = `<div class="nl">${icon("signal")}<span>${esc(node.name)}</span></div>`;
+        const pods = document.createElement("div");
+        pods.className = "pods";
+        for (const p of node.pods) {
+          const el = document.createElement("button");
+          el.type = "button";
+          el.className = `pod pchip${p.health ? ` ${p.health}` : ""}`;
+          const identity = `${compactWorkload(p.app)}·${String(p.name).split("-").pop()}`;
+          el.innerHTML = `<span class="led" aria-hidden="true"></span><span class="pod-label">${esc(identity)}</span>${icon("eye")}`;
+          el.setAttribute("aria-label", `Inspect workload ${p.app}, pod ${p.name}`);
+          el.addEventListener("click", () => openPodInspector(node.name, p.name, el));
+          pods.appendChild(el);
+        }
+        nd.appendChild(pods);
+        b.appendChild(nd);
+      }
+    } catch (error) {
+      renderBoardError(error);
+    }
+  }
+
+  function boardState(state) {
+    dispatchCluster({ type: "PHASE", phase: state });
+  }
+
+  function renderInspector(nodeName, podName, requestId) {
+    if (requestId !== inspectorRequest || $("pod-inspector").hidden) return;
+    try {
+      const entry = boardModel && boardModel.nodes.flatMap((node) =>
+        node.pods.map((pod) => ({ node: node.name, pod })))
+        .find((candidate) => candidate.node === nodeName && candidate.pod.name === podName);
+      if (!entry) {
+        $("pod-inspector-body").innerHTML = '<div class="surface-state empty">Pod is no longer present in the recorded cluster state.</div>';
+        return;
+      }
+      const pod = entry.pod;
+      $("pod-inspector-title").textContent = pod.name;
+      $("pod-inspector-body").innerHTML = `<dl>
+        <dt>workload</dt><dd>${esc(pod.app || "not recorded")}</dd>
+        <dt>node</dt><dd>${esc(entry.node || "not recorded")}</dd>
+        <dt>restarts</dt><dd>${pod.restarts === null ? "not recorded" : esc(String(pod.restarts))}</dd>
+        <dt>last probe</dt><dd>${esc(pod.lastProbe || "not recorded")}</dd>
+      </dl>`;
+    } catch (error) {
+      const body = $("pod-inspector-body");
+      body.innerHTML = '<div class="surface-state error">Pod details could not be computed.</div>';
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.className = "btn ghost pbtn"; retry.textContent = "retry";
+      retry.addEventListener("click", () => openPodInspector(nodeName, podName));
+      body.firstElementChild.appendChild(retry);
+      console.error(error);
+    }
+  }
+
+  function openPodInspector(nodeName, podName, trigger) {
+    const requestId = ++inspectorRequest;
+    if (trigger) inspectorTrigger = trigger;
+    $("pod-inspector").hidden = false;
+    $("pod-inspector-title").textContent = "pod inspector";
+    $("pod-inspector-body").innerHTML = '<div class="surface-state">Loading recorded pod details…</div>';
+    $("pod-inspector-close").focus();
+    scheduleTimeout(() => renderInspector(nodeName, podName, requestId), 80);
+  }
+
+  function closePodInspector() {
+    inspectorRequest++;
+    $("pod-inspector").hidden = true;
+    if (inspectorTrigger && inspectorTrigger.isConnected) inspectorTrigger.focus();
+    inspectorTrigger = null;
+  }
+
+  $("pod-inspector-close").addEventListener("click", closePodInspector);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("pod-inspector").hidden) closePodInspector();
+  });
 
   /* ---------- terminal ---------- */
   function termLine(html, cls) {
@@ -777,10 +1053,10 @@
     if (follow) term.scrollTop = term.scrollHeight;
     return d;
   }
-  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   function colorOut(s) {
     return esc(s).split("\n").map((l) => {
-      if (/CrashLoopBackOff|ImagePullBackOff|ErrImagePull|OOMKilled|Warning|Failed|refused|Error/.test(l))
+      if (/CrashLoopBackOff|ImagePullBackOff|ErrImagePull|OOMKilled|Warning|Failed|refused|Error|forbidden|denied/i.test(l))
         return `<span class="err">${l}</span>`;
       if (/WARN|Back-off|0\/1/.test(l)) return `<span class="warn">${l}</span>`;
       return l;
@@ -810,9 +1086,17 @@
   /* ---------- steps ---------- */
   function buildSteps() {
     steps = [];
-    for (const ev of S.timeline) {
-      if (ev.t === "proposal") { steps.push({ t: "proposal", ev }); steps.push({ t: "gate" }); }
-      else steps.push({ t: ev.t, ev });
+    for (let i = 0; i < S.timeline.length; i++) {
+      const ev = S.timeline[i];
+      if (ev.t === "proposal") {
+        const recorded = S.timeline[i + 1] && S.timeline[i + 1].t === "approval"
+          ? S.timeline[++i]
+          : { t: "approval", decision: "held", by: "recording" };
+        steps.push({ t: "proposal", ev });
+        steps.push({ t: "gate", ev: { proposal: ev, recorded } });
+      } else if (ev.t !== "approval") {
+        steps.push({ t: ev.t, ev });
+      }
     }
     $("scrub").max = steps.length;
   }
@@ -868,8 +1152,66 @@
       <div class="code">$ ${esc(ev.command)}</div>
       <div class="sub">${esc(ev.explain)}</div>
       <div class="sub"><b>rollback, staged:</b> ${esc(ev.rollback)}</div>
-      ${ev.followup ? `<div class="sub"><b>after the fire:</b> ${esc(ev.followup)}</div>` : ""}`, instant);
+      ${ev.followup ? `<div class="sub"><b>after the fire:</b> ${esc(ev.followup)}</div>` : ""}
+      <div class="gate-shell pstrip" data-state="loading">
+        <div class="surface-state">Loading authorization context…</div>
+      </div>`, instant);
     return d;
+  }
+
+  function renderGateSurface(gate, instant) {
+    const shell = document.querySelector(".ev.prop:last-of-type .gate-shell");
+    if (!shell) return false;
+    try {
+      const proposal = gate.proposal || {};
+      const recorded = gate.recorded || {};
+      if (!proposal.command || !proposal.diff) {
+        shell.dataset.state = "empty";
+        shell.innerHTML = '<div class="surface-state empty">No executable command diff was recorded. Approval is unavailable.</div>';
+        const hold = document.createElement("button");
+        hold.type = "button"; hold.className = "btn pbtn hold"; hold.textContent = "Hold incident";
+        hold.addEventListener("click", () => settleGate("held", "operator@bridge", true));
+        shell.appendChild(hold);
+        return false;
+      }
+      shell.dataset.state = "ready";
+      shell.innerHTML = `
+        <div class="gate-meta">
+          <span class="pchip">operator: ${esc(autoReplay ? recorded.by || "recording" : "operator@bridge")}</span>
+          <span class="pchip">scope: ${esc(proposal.rbac_scope || "not recorded")}</span>
+          ${riskBadge(proposal.risk || "unknown")}
+        </div>
+        <div class="gate-actions" role="group" aria-label="Human approval gate">
+          <button class="btn ghost pbtn inspect" type="button" aria-expanded="false">${icon("eye")}<span>Inspect diff</span></button>
+          <button class="btn pbtn hold" type="button">${icon("hold")}<span>Hold</span></button>
+          <button class="btn pbtn approve" type="button">${icon("check")}<span>Approve</span></button>
+        </div>
+        <div class="gate-diff" hidden>
+          <div class="code">${esc(proposal.diff)}</div>
+          <div class="sub"><b>blast radius:</b> ${esc(proposal.blast_radius || "not recorded")}</div>
+          <div class="sub"><b>exact command:</b> ${esc(proposal.command)}</div>
+        </div>
+        <div class="gate-status" role="status">${instant ? "recorded decision" : autoReplay ? "auto replay armed — manual override available" : "manual decision required"}</div>`;
+      const inspect = shell.querySelector(".inspect");
+      const diff = shell.querySelector(".gate-diff");
+      inspect.addEventListener("click", () => {
+        const expanded = inspect.getAttribute("aria-expanded") === "true";
+        inspect.setAttribute("aria-expanded", expanded ? "false" : "true");
+        diff.hidden = expanded;
+      });
+      shell.querySelector(".hold").addEventListener("click", () => settleGate("held", "operator@bridge", true));
+      shell.querySelector(".approve").addEventListener("click", () => settleGate("approved", "operator@bridge"));
+      return true;
+    } catch (error) {
+      shell.dataset.state = "error";
+      shell.innerHTML = '<div class="surface-state error">Authorization context could not be computed.</div>';
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.className = "btn ghost pbtn"; retry.textContent = "retry";
+      retry.addEventListener("click", () => renderGateSurface(gate, instant));
+      shell.firstElementChild.appendChild(retry);
+      console.error(error);
+      return false;
+    }
   }
 
   function applyStamp(decision, instant) {
@@ -879,14 +1221,79 @@
     st.innerHTML = decision === "approved"
       ? `${icon("check")}<span>approved</span>`
       : `${icon("hold")}<span>held</span>`;
-    if (decision !== "approved") st.classList.add("held");
-    if (pc && decision === "approved") pc.classList.add("approved");
+    st.classList.toggle("held", decision !== "approved");
+    if (pc) pc.classList.toggle("approved", decision === "approved");
     st.classList.add("show");
     if (instant) {
       st.style.animation = "none";
       st.style.transform = "scale(1)";
       st.style.opacity = "1";
     }
+  }
+
+  function applyGateDecision(decision, by, instant, resumable = false) {
+    const ok = decision === "approved";
+    authorization = ok;
+    applyStamp(decision, instant);
+    $("sc-capt").textContent = ok ? "STAMPS 1" : "HOLDS 1";
+    setStatus("capt", ok ? "agent cheer" : "agent", ok ? "stamped it" : "holding the line");
+    setStatus("helm", "agent", ok ? "cleared to apply" : "standing down — read-only");
+    const shell = document.querySelector(".ev.prop:last-of-type .gate-shell");
+    if (shell) {
+      for (const button of shell.querySelectorAll("button")) button.disabled = !resumable;
+      const hold = shell.querySelector(".hold");
+      const approve = shell.querySelector(".approve");
+      if (resumable && hold) hold.disabled = true;
+      if (resumable && approve) approve.querySelector("span").textContent = "Resume with approval";
+      const status = shell.querySelector(".gate-status") || shell.querySelector(".surface-state");
+      if (status) status.textContent = `${ok ? "approved" : "held"} by ${by}`;
+    }
+  }
+
+  function scheduleRecordedGate() {
+    if (!activeGate || activeGate.settled || activeGate.held || activeGate.timer !== null) return;
+    const status = document.querySelector(".ev.prop:last-of-type .gate-status");
+    if (status) status.textContent = "auto replay armed — recorded decision pending";
+    activeGate.timer = scheduleTimeout(() => {
+      if (!activeGate) return;
+      const recorded = activeGate.step.ev.recorded || {};
+      settleGate(recorded.decision || "held", recorded.by || "recording");
+    }, 900 / speed, activeGate.generation);
+  }
+
+  function settleGate(decision, by, resumableHold = false) {
+    if (!activeGate || activeGate.settled) return;
+    const gate = activeGate;
+    if (gate.timer !== null) cancelTimer(gate.timer);
+    gate.timer = null;
+    if (decision !== "approved" && resumableHold) {
+      gate.held = true;
+      heldGate = { step: gate.step, index: idx };
+      blocked = false;
+      playing = false;
+      $("play").disabled = false;
+      applyGateDecision(decision, by, false, true);
+      boardState("bad");
+      setPlayLabel("review gate", "play");
+      toast("incident held — approval required to resume");
+      return;
+    }
+    gate.settled = true;
+    activeGate = null;
+    heldGate = null;
+    $("play").disabled = false;
+    applyGateDecision(decision, by, false);
+    if (decision !== "approved") {
+      blocked = true;
+      boardState("bad");
+      card("verify held", `
+        <div class="hd">${icon("hold")}<span>incident parked</span></div>
+        No mutation ran. Resume requires a new operator decision.`, false);
+      toast("incident held");
+    }
+    playing = decision === "approved";
+    if (playing) setPlayLabel("pause", "pause");
+    completeStep(gate.step, gate.generation, 0);
   }
 
   function toast(text) {
@@ -926,12 +1333,12 @@
           if (ev.note) termLine(`<span class="note"># ${esc(ev.note)}</span>`);
           termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
           termLine(`<span class="out">${colorOut(ev.out)}</span>`);
-          if (/^verify:/.test(ev.note || "")) updateBoardFromRollout(ev.out);
+          dispatchCluster({ type: "COMMAND_RESULT", ev });
           return fin();
         }
         setStatus("helm", "agent working", "running kubectl…");
         return typeCmd(s, () => {
-          if (/^verify:/.test(ev.note || "")) updateBoardFromRollout(ev.out);
+          dispatchCluster({ type: "COMMAND_RESULT", ev });
           setStatus("helm", "agent", "reading the output");
           fin();
         });
@@ -954,8 +1361,13 @@
         setStatus("capt", "agent thinking", "reading the proposal");
         return fin();
       case "gate":
+        s.gateReady = renderGateSurface(ev, instant);
         setStatus("capt", instant ? "agent" : "agent thinking", 'weighing the risk' + (instant ? "" : '<span class="dots"></span>'));
         if (!instant) toast("awaiting the captain's stamp");
+        if (instant) {
+          const recorded = ev.recorded || {};
+          applyGateDecision(s.gateReady ? recorded.decision || "held" : "held", recorded.by || "recording", true);
+        }
         return fin();
       case "approval": {
         const ok = ev.decision === "approved";
@@ -978,31 +1390,64 @@
           return fin();
         }
         bumpCmds();
-        boardState("fixing");
         if (instant) {
           termLine(`<span class="p">helmsman@bridge:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
           termLine(`<span class="out">${colorOut(ev.out)}</span>`);
+          dispatchCluster({ type: "APPLY_RESULT", ev });
+          if (/forbidden|denied/i.test(ev.out || "") || ev.result === "denied") {
+            card("verify denied", `
+              <div class="hd">${icon("x")}<span>apply denied by RBAC</span></div>
+              The approved command reached the API server; authorization rejected the mutation.`, true);
+          }
           return fin();
         }
         setStatus("helm", "agent working", "applying the fix…");
         return typeCmd({ ev: { cmd: ev.cmd, out: ev.out, note: "approved — hands on the wheel" } },
-                       () => { fin(); });
+                       () => {
+                         dispatchCluster({ type: "APPLY_RESULT", ev });
+                         if (/forbidden|denied/i.test(ev.out || "") || ev.result === "denied") {
+                           card("verify denied", `
+                             <div class="hd">${icon("x")}<span>apply denied by RBAC</span></div>
+                             The approved command reached the API server; authorization rejected the mutation.`, false);
+                           setStatus("helm", "agent", "mutation denied — drafting escalation");
+                           setStatus("capt", "agent", "retaining the wheel");
+                           toast("RBAC denied");
+                         }
+                         fin();
+                       });
+      case "escalation":
+        card("escalation", `
+          <div class="hd">${icon("doc")}<span>manual RBAC escalation</span></div>
+          ${esc(ev.text || "A cluster administrator must review and apply this narrow grant.")}
+          <div class="sub"><b>human command:</b></div>
+          <div class="code">$ ${esc(ev.command)}</div>
+          <div class="sub"><b>Role</b></div>
+          <div class="code">${esc(ev.role_manifest)}</div>
+          <div class="sub"><b>RoleBinding</b></div>
+          <div class="code">${esc(ev.binding_manifest)}</div>`, instant);
+        setStatus("helm", "agent", "escalation bundle drafted — read-only");
+        setStatus("capt", "agent thinking", "reviewing the RBAC delta");
+        return fin();
       case "verify": {
         const green = ev.result === "green";
-        $("klaxon").classList.remove("on");
-        boardState(green ? "ok2" : ev.result === "held" ? "bad" : "bad");
-        const cmds = S.timeline.filter((x) => x.t === "cmd" || x.t === "apply").length;
-        card("verify " + (green ? "green" : "held"), `
-          <div class="hd">${green ? icon("check") : icon("x")}<span>${green ? "verified — all clear" : ev.result === "held" ? "held at the gate" : "not recovered"}</span></div>
+        const denied = ev.result === "denied";
+        $("klaxon").classList.toggle("on", !green);
+        boardState(green ? "ok2" : denied ? "denied" : "bad");
+        const heading = green ? "verified — all clear" : denied ? "RBAC denied — escalated" : ev.result === "held" ? "held at the gate" : "not recovered";
+        const postmortem = ev.postmortem || (green
+          ? "diagnosis receipts above · rollback stayed staged the whole time"
+          : "no recovery recorded · human retains the wheel");
+        card("verify " + (green ? "green" : denied ? "denied" : "held"), `
+          <div class="hd">${green ? icon("check") : icon("x")}<span>${heading}</span></div>
           ${esc(ev.text)}
-          <div class="postm">postmortem: <b>${cmds} commands</b> · <b>1 human decision</b> · diagnosis receipts above · rollback stayed staged the whole time</div>`, instant);
+          <div class="postm">postmortem: <b>${cmdCount} commands</b> · <b>1 human decision</b> · ${esc(postmortem)}</div>`, instant);
         if (green) {
           setStatus("helm", "agent cheer", "steady as she goes");
           setStatus("capt", "agent", "back to the coffee");
           if (!instant) toast("all clear");
         } else {
           setStatus("helm", "agent", "read-only — human has the wheel");
-          setStatus("capt", "agent", "reviewing the bundle");
+          setStatus("capt", "agent", denied ? "manual escalation queued" : "reviewing the bundle");
         }
         return fin();
       }
@@ -1050,6 +1495,15 @@
     if (idx >= steps.length) { finishPlayback(); return; }
     const scheduledGen = gen;
     const s = steps[idx];
+    if (s.t === "gate") {
+      applyStep(s, false);
+      playing = false;
+      $("play").disabled = true;
+      setPlayLabel("awaiting decision", "hold");
+      activeGate = { step: s, generation: scheduledGen, settled: false, timer: null };
+      if (autoReplay && s.gateReady) scheduleRecordedGate();
+      return;
+    }
     if (s.t === "cmd" || s.t === "apply") {
       applyStep(s, false, () => completeStep(s, scheduledGen, 250));
     } else {
@@ -1067,7 +1521,37 @@
     }
   }
 
-  function resetStage() {
+  function restoreHeldGate(instant) {
+    if (!heldGate) return;
+    const gate = { step: heldGate.step, generation: gen, settled: false, held: true, timer: null };
+    activeGate = gate;
+    gate.step.gateReady = renderGateSurface(gate.step.ev, instant);
+    applyGateDecision("held", "operator@bridge", instant, true);
+    blocked = false;
+    boardState("bad");
+    $("play").disabled = false;
+    setPlayLabel("review gate", "play");
+  }
+
+  function presentHeldGate() {
+    if (!heldGate) return false;
+    const shell = document.querySelector(".ev.prop:last-of-type .gate-shell");
+    if (idx !== heldGate.index || !shell) seek(heldGate.index);
+    else if (!activeGate) restoreHeldGate(true);
+    const visibleShell = document.querySelector(".ev.prop:last-of-type .gate-shell");
+    if (visibleShell) {
+      visibleShell.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
+      const approve = visibleShell.querySelector(".approve:not([disabled])");
+      if (approve) approve.focus({ preventScroll: true });
+    }
+    toast("approval required to resume");
+    return true;
+  }
+
+  function resetStage(preserveHold = false) {
+    activeGate = null;
+    if (!preserveHold) heldGate = null;
+    closePodInspector();
     $("av-helm").innerHTML = pixelChar("helm");
     $("av-capt").innerHTML = pixelChar("capt");
     $("ag-helm").style.setProperty("--ac", "#2547c9");
@@ -1079,9 +1563,12 @@
     $("klaxon").classList.remove("on");
     $("term").innerHTML = terminalBar();
     $("feed").replaceChildren();
-    boardModel = S ? JSON.parse(JSON.stringify(S.board)) : null;
+    boardModel = S ? makeClusterModel(S.board) : null;
     if (S) renderBoard();
-    else { $("board-ns").textContent = "—"; $("board").replaceChildren(); }
+    else {
+      $("board-ns").textContent = "—";
+      $("board").innerHTML = '<div class="surface-state">Loading cluster snapshot…</div>';
+    }
     idx = 0; elapsed = 0; cmdCount = 0;
     authorization = null; blocked = false;
     $("scrub").value = 0;
@@ -1091,12 +1578,14 @@
 
   function seek(to) {
     if (!S) return;
+    const heldAt = heldGate ? heldGate.index : null;
+    const target = heldAt === null ? to : Math.min(to, heldAt);
     pause();
-    resetStage();
+    resetStage(heldAt !== null);
     let restored = 0;
     seeking = true;
     try {
-      for (let i = 0; i < to && i < steps.length; i++) {
+      for (let i = 0; i < target && i < steps.length; i++) {
         const s = steps[i];
         elapsed += stepDur(s);
         applyStep(s, true);
@@ -1109,10 +1598,13 @@
     idx = restored;
     tickClock(elapsed);
     $("scrub").value = restored;
+    if (heldGate && restored === heldGate.index) restoreHeldGate(true);
   }
 
   function play() {
     if (!S) return;
+    if (presentHeldGate()) return;
+    if (activeGate) return;
     if (idx >= steps.length || blocked) { restartPlayback(); return; }
     playing = true;
     setPlayLabel("pause", "pause");
@@ -1123,6 +1615,8 @@
     playing = false;
     if (commandTask) commandTask.cancel(completeCommand);
     if (pendingStep) pendingStep.cancel(completeCommand);
+    activeGate = null;
+    $("play").disabled = !S;
     clearTimers();
     setPlayLabel(idx >= steps.length || blocked ? "replay" : "play", "play");
   }
@@ -1144,6 +1638,18 @@
   $("follow").addEventListener("click", () => {
     followReplay = !followReplay;
     $("follow").setAttribute("aria-pressed", followReplay ? "true" : "false");
+  });
+  $("auto").addEventListener("click", () => {
+    autoReplay = !autoReplay;
+    $("auto").setAttribute("aria-pressed", autoReplay ? "true" : "false");
+    $("auto").querySelector("span").textContent = `Auto replay: ${autoReplay ? "on" : "off"}`;
+    if (autoReplay && activeGate) scheduleRecordedGate();
+    if (!autoReplay && activeGate && activeGate.timer !== null) {
+      cancelTimer(activeGate.timer);
+      activeGate.timer = null;
+      const status = document.querySelector(".ev.prop:last-of-type .gate-status");
+      if (status) status.textContent = "manual decision required";
+    }
   });
   $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
   const spd = $("spd");
@@ -1175,7 +1681,7 @@
   }
 
   function setControlsEnabled(enabled) {
-    for (const el of [$("play"), $("restart"), $("follow"), $("scrub"), ...spd.children]) el.disabled = !enabled;
+    for (const el of [$("play"), $("restart"), $("follow"), $("auto"), $("scrub"), ...spd.children]) el.disabled = !enabled;
   }
 
   function selectSession(file) {

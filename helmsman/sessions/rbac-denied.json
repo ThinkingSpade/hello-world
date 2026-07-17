@@ -1,0 +1,130 @@
+{
+ "namespace": "prod",
+ "selector": "app=ledger-api",
+ "victim": "ledger-api-6c8f7d9b5-m4qkx",
+ "resolved": false,
+ "duration_s": 31.8,
+ "timeline": [
+  {
+   "t": "page",
+   "text": "PagerDuty P2 — prod/ledger-api: 0/3 pods available after config rollout, settlement writes paused",
+   "sev": "P2"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get pods -n prod -l app=ledger-api",
+   "out": "NAME                           READY   STATUS                       RESTARTS   AGE\nledger-api-6c8f7d9b5-m4qkx   0/1     CreateContainerConfigError   0          7m12s\nledger-api-6c8f7d9b5-p9vtr   0/1     CreateContainerConfigError   0          7m09s\nledger-api-6c8f7d9b5-w2hns   0/1     CreateContainerConfigError   0          7m04s",
+   "note": "triage: how wide is the blast radius?"
+  },
+  {
+   "t": "think",
+   "ms": 1400,
+   "status": "reading the failed pod state"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl describe pod ledger-api-6c8f7d9b5-m4qkx -n prod",
+   "out": "Name:             ledger-api-6c8f7d9b5-m4qkx\nNamespace:        prod\nNode:             node-a/10.0.1.42\nLabels:           app=ledger-api\n                  pod-template-hash=6c8f7d9b5\nStatus:           Pending\nControlled By:    ReplicaSet/ledger-api-6c8f7d9b5\nContainers:\n  ledger-api:\n    Image:          registry.internal/ledger-api:v3.8.2\n    State:          Waiting\n      Reason:       CreateContainerConfigError\n    Ready:          False\n    Restart Count:  0\n    Environment:\n      DATABASE_URL:  <set to the key 'DATABASE_URL' of config map 'ledger-runtime'>  Optional: false\n    Readiness:      http-get http://:8080/ready delay=5s timeout=1s period=10s\nConditions:\n  Type              Status\n  Initialized       True\n  Ready             False\n  ContainersReady   False",
+   "note": "inspect the blocked container contract"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get events -n prod --field-selector involvedObject.name=ledger-api-6c8f7d9b5-m4qkx --sort-by=.lastTimestamp",
+   "out": "LAST SEEN   TYPE      REASON        OBJECT                             MESSAGE\n7m12s       Normal    Scheduled     pod/ledger-api-6c8f7d9b5-m4qkx    Successfully assigned prod/ledger-api-6c8f7d9b5-m4qkx to node-a\n18s         Warning   Failed        pod/ledger-api-6c8f7d9b5-m4qkx    Error: couldn't find key DATABASE_URL in ConfigMap prod/ledger-runtime",
+   "note": "read the admission failure"
+  },
+  {
+   "t": "cmd",
+   "cmd": "kubectl get configmap ledger-runtime -n prod -o yaml",
+   "out": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: ledger-runtime\n  namespace: prod\ndata:\n  DB_URL: postgresql://ledger-primary.prod.svc:5432/ledger\n  LOG_LEVEL: info",
+   "note": "compare the deployed key with the available config"
+  },
+  {
+   "t": "think",
+   "ms": 2100,
+   "status": "matching config reference signatures"
+  },
+  {
+   "t": "diagnosis",
+   "signature": "config-key-drift",
+   "cause": "The Deployment asks ConfigMap ledger-runtime for DATABASE_URL, but the recorded ConfigMap only contains DB_URL. Kubelet refuses to create every container before process start; the application image and probes have not run.",
+   "receipts": [
+    "Reason:       CreateContainerConfigError",
+    "DATABASE_URL:  <set to the key 'DATABASE_URL' of config map 'ledger-runtime'>  Optional: false",
+    "Error: couldn't find key DATABASE_URL in ConfigMap prod/ledger-runtime",
+    "DB_URL: postgresql://ledger-primary.prod.svc:5432/ledger"
+   ],
+   "confidence": 97
+  },
+  {
+   "t": "proposal",
+   "command": "kubectl -n prod patch deployment/ledger-api --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/env/0/valueFrom/configMapKeyRef/key\",\"value\":\"DB_URL\"}]'",
+   "explain": "Point the existing DATABASE_URL environment variable at the ConfigMap key that is actually present. This changes one pod-template reference and rolls the three blocked pods.",
+   "risk": "medium",
+   "diff": "Deployment/prod/ledger-api\n  spec.template.spec.containers[0].env[name=DATABASE_URL].valueFrom.configMapKeyRef\n-   key: DATABASE_URL\n+   key: DB_URL",
+   "blast_radius": "1 Deployment · 3 blocked pods replaced · prod namespace · ledger-api only",
+   "rbac_scope": "deployments.apps/patch · prod/ledger-api",
+   "rollback": "kubectl -n prod patch deployment/ledger-api --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/env/0/valueFrom/configMapKeyRef/key\",\"value\":\"DATABASE_URL\"}]'",
+   "followup": "Pin the ConfigMap key contract in the chart schema and admission tests."
+  },
+  {
+   "t": "approval",
+   "decision": "approved",
+   "by": "operator@bridge"
+  },
+  {
+   "t": "apply",
+   "cmd": "kubectl -n prod patch deployment/ledger-api --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/env/0/valueFrom/configMapKeyRef/key\",\"value\":\"DB_URL\"}]'",
+   "out": "Error from server (Forbidden): deployments.apps \"ledger-api\" is forbidden: User \"system:serviceaccount:helmsman:helmsman-agent\" cannot patch resource \"deployments\" in API group \"apps\" in the namespace \"prod\"",
+   "result": "denied"
+  },
+  {
+   "t": "escalation",
+   "text": "The diagnosis stands. Helmsman remains read-only and drafts the smallest resource-scoped grant for cluster-admin review.",
+   "command": "kubectl auth reconcile -f helmsman-ledger-patch-rbac.yaml",
+   "role_manifest": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: helmsman-ledger-patcher\n  namespace: prod\nrules:\n- apiGroups: [\"apps\"]\n  resources: [\"deployments\"]\n  resourceNames: [\"ledger-api\"]\n  verbs: [\"get\", \"patch\"]",
+   "binding_manifest": "apiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: helmsman-ledger-patcher\n  namespace: prod\nsubjects:\n- kind: ServiceAccount\n  name: helmsman-agent\n  namespace: helmsman\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: helmsman-ledger-patcher"
+  },
+  {
+   "t": "verify",
+   "result": "denied",
+   "text": "No mutation landed. All three ledger-api pods remain blocked; settlement writes stay paused pending cluster-admin review.",
+   "postmortem": "API server denied deployments.apps/patch · no retry or privilege expansion · exact Role/RoleBinding staged for manual escalation"
+  }
+ ],
+ "id": "rbac-denied",
+ "title": "ledger-api config fix approved — API server denies the patch",
+ "tag": "RBAC denied",
+ "recorded": "fixture-replay",
+ "board": {
+  "nodes": [
+   {
+    "name": "node-a",
+    "pods": [
+     { "name": "ledger-api-6c8f7d9b5-m4qkx", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "cart-api-6d8f7c9b4-lm2xp", "app": "cart-api" },
+     { "name": "web-frontend-5b7d9f6c8-qk4tz", "app": "web" },
+     { "name": "redis-0", "app": "redis" }
+    ]
+   },
+   {
+    "name": "node-b",
+    "pods": [
+     { "name": "ledger-api-6c8f7d9b5-p9vtr", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "payments-5f6d8b7c9-tt8vk", "app": "payments" },
+     { "name": "checkout-api-5d8e7f9a6-fh3km", "app": "checkout-api" },
+     { "name": "kafka-1", "app": "kafka" }
+    ]
+   },
+   {
+    "name": "node-c",
+    "pods": [
+     { "name": "ledger-api-6c8f7d9b5-w2hns", "app": "ledger-api", "victim": true, "restarts": 0, "last_probe": "not started — config admission failed" },
+     { "name": "search-7c8d9e6f5-p2n8w", "app": "search" },
+     { "name": "web-frontend-5b7d9f6c8-8xj2m", "app": "web" },
+     { "name": "kafka-2", "app": "kafka" }
+    ]
+   }
+  ]
+ }
+}

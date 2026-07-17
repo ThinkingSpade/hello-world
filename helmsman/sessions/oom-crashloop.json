@@ -61,13 +61,16 @@
    "command": "kubectl -n prod set resources deploy/checkout-api --limits=memory=512Mi --requests=memory=256Mi",
    "explain": "Double the memory limit (256Mi → 512Mi) so the service stops getting killed mid-request. This buys stability now; it does not fix why memory grew.",
    "risk": "medium",
+   "diff": "Deployment/prod/checkout-api\n  spec.template.spec.containers[name=checkout-api].resources\n-   limits.memory: 256Mi\n+   limits.memory: 512Mi\n    requests.memory: 256Mi",
+   "blast_radius": "1 Deployment · 3 pods restart · prod namespace · checkout-api only",
+   "rbac_scope": "deployments.apps/get,patch · prod",
    "rollback": "kubectl -n prod set resources deploy/checkout-api --limits=memory=256Mi",
    "followup": "Open a ticket on the memory growth itself — if it's a leak, the new limit only reschedules this page."
   },
   {
    "t": "approval",
    "decision": "approved",
-   "by": "operator"
+   "by": "operator@bridge"
   },
   {
    "t": "apply",

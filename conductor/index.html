@@ -166,8 +166,22 @@
   .ev.verify.green .hd { color: var(--green); background: var(--green-bg); border-color: var(--green); }
   .ev.verify.held { border-color: var(--coral); background: var(--coral-bg); }
   .ev.verify.held .hd { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .ev.verify.rollback { border-color: var(--gold); background: var(--pi-warn-soft); }
+  .ev.verify.rollback .hd { color: var(--gold); background: var(--pi-warn-soft); border-color: var(--gold); }
   .postm { font-size: 12px; color: var(--dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
   .postm b { color: var(--text); }
+  .gate-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .gate-actions .pbtn { flex: 1 1 150px; }
+  .gate-state { margin-top: 8px; }
+  .gate-evidence { margin-top: 10px; padding: 10px; border: 2px dashed var(--pi-line); background: var(--panel-2); }
+  .gate-evidence h4 { margin-bottom: 6px; font-family: var(--pi-font-title); font-size: 10px; line-height: 1.5; }
+  .gate-evidence .query { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .gate-evidence code { display: block; margin-top: 3px; font-family: var(--pi-font-code); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ev.audit .hd { color: var(--navy); background: #e5eaf0; }
+  .ev.audit.hold { border-color: var(--coral); }
+  .ev.audit.hold .hd { color: var(--coral); background: var(--coral-bg); border-color: var(--coral); }
+  .ev.audit.evidence { border-color: var(--gold); }
+  .ev.audit.evidence .hd { color: var(--gold); background: var(--pi-warn-soft); border-color: var(--gold); }
   .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 0; padding: 16px; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   .btn.ghost { background: var(--panel); color: var(--dim); }
@@ -178,6 +192,23 @@
   .spd button.on { background: var(--pi-accent-soft); color: var(--text); border-color: var(--gold); }
   #scrub { flex: 1; min-width: 160px; min-height: 44px; accent-color: var(--gold); cursor: pointer; }
   .tclock { min-width: 4.5rem; text-align: right; color: var(--dim); font-family: var(--pi-font-code); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #auto { margin-left: auto; white-space: nowrap; }
+  .boardcard { position: relative; }
+  .stn[role="button"], .rail-stn[role="button"] { cursor: pointer; }
+  .stn[role="button"]:focus .box, .stn[role="button"]:hover .box { stroke: var(--gold); stroke-width: 2.5; }
+  .rail-stn[role="button"]:focus, .rail-stn[role="button"]:hover { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .node-inspector { position: absolute; z-index: 8; top: 42px; right: 10px; width: min(350px, calc(100% - 20px)); box-shadow: var(--pi-shadow); }
+  .node-inspector[hidden] { display: none; }
+  .node-inspector .pwin-title { justify-content: space-between; }
+  .node-inspector .pwin-title span { min-width: 0; overflow-wrap: anywhere; }
+  .node-inspector-close { min-width: 32px; min-height: 32px; padding: 5px 8px; box-shadow: none; }
+  .node-inspector-body { padding: 12px; }
+  .node-inspector dl { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 10px; }
+  .node-inspector dt { color: var(--dim); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+  .node-inspector dd { min-width: 0; overflow-wrap: anywhere; }
+  .node-inspector code { font-family: var(--pi-font-code); font-size: 12px; }
+  .node-inspector .schema-list { list-style: none; padding: 0; }
+  .node-inspector .schema-list li + li { margin-top: 2px; }
   #toast { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); max-width: calc(100% - 32px); background: var(--text); color: #fff; border: 2px solid var(--pi-ink); border-radius: 0; padding: 10px 16px; font-family: var(--pi-font-ui); font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-align: center; opacity: 0; pointer-events: none; z-index: 10; box-shadow: var(--pi-shadow); }
   #toast.show { animation: toast 1.4s steps(4, end) 1; }
   @keyframes toast { 0% { opacity: 0; } 18% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -197,6 +228,7 @@
     .rail-list { display: block; }
     .controls { align-items: stretch; }
     .controls > .btn { flex: 1 1 130px; }
+    #auto { margin-left: 0; flex: 1 1 100%; }
     .spd { flex: 1 1 auto; }
     .spd button { flex: 1; }
     #scrub { flex-basis: 100%; order: 4; }
@@ -263,6 +295,10 @@
           <h3>the yard — nightly-revenue</h3>
           <svg id="railmap" viewBox="0 0 470 190" role="img" aria-label="nightly-revenue rail map"></svg>
           <ol class="rail-list" id="rail-list" aria-label="nightly-revenue rail map stations"></ol>
+          <aside class="node-inspector pwin" id="node-inspector" aria-live="polite" hidden>
+            <div class="pwin-title"><span id="node-inspector-title">node evidence</span><button class="node-inspector-close pbtn" id="node-inspector-close" type="button" aria-label="Close node evidence">&times;</button></div>
+            <div class="node-inspector-body" id="node-inspector-body"></div>
+          </aside>
         </div>
       </div>
       <div class="term pterm" id="term" role="log" aria-live="polite" aria-relevant="additions"><div class="bar"><i></i><i></i><i></i></div></div>
@@ -271,6 +307,7 @@
       <button class="btn pbtn primary" id="play" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-play"/></svg> play</button>
       <button class="btn ghost pbtn" id="restart" disabled><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg> restart</button>
       <div class="spd" id="spd" role="group" aria-label="Playback speed; changes apply from the next replay step" title="Speed changes apply from the next replay step"></div>
+      <button class="btn pbtn" id="auto" type="button" aria-pressed="true">auto-replay: on</button>
       <input type="range" id="scrub" min="0" max="1" value="0" step="1" aria-label="scrub timeline" disabled>
       <span class="tclock" id="clock">0:00</span>
     </div>
@@ -298,12 +335,14 @@
     $("play").innerHTML = `${icon(label === "pause" ? "i-pause" : "i-play")} ${label}`;
   }
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const SESSIONS = ["schema-drift.json", "null-join.json", "dup-load.json"];
+  const SESSIONS = ["schema-drift.json", "null-join.json", "dup-load.json", "rollback-drill.json"];
   const CPS = 60;
 
   let S = null, steps = [], idx = 0, playing = false, speed = 1, timer = null, activeCommand = null;
   let elapsed = 0, qCount = 0, runsSeen = 0, gateApproved = null, gateBlocked = false;
   let gen = 0, pendingTimers = [], reconstructing = false, userPickedSession = false;
+  let autoReplay = true, gateOpen = false, gateCard = null, gateTimer = null, inspectorToken = 0;
+  let decisionLedger = [], manualHoldAt = null;
 
   function untrackTimer(id) {
     pendingTimers = pendingTimers.filter((pending) => pending !== id);
@@ -344,6 +383,8 @@
   function invalidatePlayback() {
     gen++;
     playing = false;
+    gateOpen = false;
+    gateTimer = null;
     if (activeCommand) activeCommand.cancel();
     activeCommand = null;
     clearPendingTimers();
@@ -445,16 +486,16 @@
     }
     for (const n of S.board.nodes) {
       const p = POS[n.id];
-      parts.push(`<g class="stn" id="stn-${n.id}" transform="translate(${p.x},${p.y})">
+      parts.push(`<g class="stn" id="stn-${n.id}" data-node="${esc(n.id)}" role="button" tabindex="0" aria-label="Inspect ${esc(n.label)}" transform="translate(${p.x},${p.y})">
         <rect class="box" width="114" height="44" rx="0"/>
         <circle class="led" cx="102" cy="11" r="4.5"/>
-        <text x="9" y="19">${n.label}</text>
+        <text x="9" y="19">${esc(n.label)}</text>
         <text class="rows" x="9" y="34" id="rows-${n.id}">${n.kind === "source" ? "raw feed" : "—"}</text>
       </g>`);
     }
     svg.innerHTML = parts.join("");
     list.innerHTML = S.board.nodes.map((n) => `
-      <li class="rail-stn" id="rail-stn-${n.id}">
+      <li class="rail-stn" id="rail-stn-${n.id}" data-node="${esc(n.id)}" role="button" tabindex="0" aria-label="Inspect ${esc(n.label)}">
         ${icon("i-signal")}
         <div>
           <span class="rail-node-head"><span>${esc(n.label)}</span><span class="rail-state" id="rail-state-${n.id}">waiting</span></span>
@@ -476,6 +517,83 @@
     const mobile = $("rail-rows-" + id);
     if (mobile) mobile.textContent = text;
   }
+
+  function visibleFixtureEvents() {
+    return steps.slice(0, idx).map((step) => step.ev).filter(Boolean);
+  }
+  function nodeSnapshot(node) {
+    const visible = visibleFixtureEvents();
+    const runs = visible.filter((event) => event.t === "run" && event.task === node.id);
+    const checks = visible.filter((event) => event.t === "checks" && (event.task === node.id || event.results.some((result) => result.table === node.id)));
+    const lastRun = runs[runs.length - 1];
+    const lastChecks = checks[checks.length - 1];
+    const resultSet = lastChecks ? lastChecks.results.filter((result) => result.table === node.id || lastChecks.task === node.id) : [];
+    const status = resultSet.length ? (resultSet.some((result) => result.status === "fail") ? "fail" : "pass") : null;
+    const detailRows = lastRun ? rowsFromDetail(lastRun.detail) : null;
+    const upstream = S.board.edges.filter((edge) => edge[1] === node.id).map((edge) => edge[0]);
+    const downstream = S.board.edges.filter((edge) => edge[0] === node.id).map((edge) => edge[1]);
+    return {
+      schema: Array.isArray(node.schema) ? node.schema : [],
+      rows: detailRows !== null ? detailRows : Number.isFinite(node.rows) ? node.rows : null,
+      rowSource: detailRows !== null ? "last run" : Number.isFinite(node.rows) ? "fixture baseline" : null,
+      status,
+      checkText: resultSet.length ? resultSet.map((result) => `${result.name}: ${result.status} (${result.detail})`).join("; ") : null,
+      upstream,
+      downstream
+    };
+  }
+  function inspectorError(nodeId, message) {
+    $("node-inspector-body").innerHTML = `<div class="pstrip">inspector error: ${esc(message)}</div><button class="pbtn" id="node-inspector-retry" type="button">retry</button>`;
+    $("node-inspector-retry").addEventListener("click", () => openNodeInspector(nodeId));
+  }
+  function openNodeInspector(nodeId) {
+    const token = ++inspectorToken;
+    const panel = $("node-inspector");
+    panel.hidden = false;
+    $("node-inspector-title").textContent = "node evidence";
+    $("node-inspector-body").innerHTML = `<div class="pstrip">loading node evidence...</div>`;
+    later(() => {
+      if (token !== inspectorToken || !S) return;
+      try {
+        const node = S.board.nodes.find((candidate) => candidate.id === nodeId);
+        if (!node) throw new Error("node is not present in this fixture");
+        const snapshot = nodeSnapshot(node);
+        $("node-inspector-title").textContent = node.label;
+        if (!snapshot.schema.length && snapshot.rows === null && !snapshot.checkText) {
+          $("node-inspector-body").innerHTML = `<div class="pstrip">empty: no node evidence recorded</div>`;
+          return;
+        }
+        const schema = snapshot.schema.length
+          ? `<ul class="schema-list">${snapshot.schema.map((column) => `<li><code>${esc(column)}</code></li>`).join("")}</ul>`
+          : `<span class="pstrip">not recorded</span>`;
+        const checkClass = snapshot.status === "pass" ? "ok" : snapshot.status === "fail" ? "err" : "";
+        $("node-inspector-body").innerHTML = `<dl>
+          <dt>schema</dt><dd>${schema}</dd>
+          <dt>row count</dt><dd>${snapshot.rows === null ? "not recorded" : `${snapshot.rows.toLocaleString()} (${snapshot.rowSource})`}</dd>
+          <dt>last check</dt><dd>${snapshot.status ? `<span class="pchip ${checkClass}">${snapshot.status}</span> ${esc(snapshot.checkText)}` : "not run yet"}</dd>
+          <dt>upstream</dt><dd>${snapshot.upstream.length ? snapshot.upstream.map(esc).join(", ") : "none"}</dd>
+          <dt>downstream</dt><dd>${snapshot.downstream.length ? snapshot.downstream.map(esc).join(", ") : "none"}</dd>
+        </dl>`;
+      } catch (error) {
+        inspectorError(nodeId, error.message);
+      }
+    }, REDUCED ? 0 : 120);
+  }
+  function inspectFromEvent(event) {
+    if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+    const target = event.target.closest("[data-node]");
+    if (!target) return;
+    event.preventDefault();
+    openNodeInspector(target.dataset.node);
+  }
+  $("railmap").addEventListener("click", inspectFromEvent);
+  $("railmap").addEventListener("keydown", inspectFromEvent);
+  $("rail-list").addEventListener("click", inspectFromEvent);
+  $("rail-list").addEventListener("keydown", inspectFromEvent);
+  $("node-inspector-close").addEventListener("click", () => {
+    inspectorToken++;
+    $("node-inspector").hidden = true;
+  });
 
   /* ---------- terminal ---------- */
   function termLine(html, cls) {
@@ -572,8 +690,8 @@
     const pc = document.querySelector(".ev.prop:last-of-type");
     if (!st) return;
     st.innerHTML = decision === "approved" ? `${icon("i-check")} cleared` : `${icon("i-hold")} held`;
-    if (decision !== "approved") st.classList.add("held");
-    if (pc && decision === "approved") pc.classList.add("approved");
+    st.classList.toggle("held", decision !== "approved");
+    if (pc) pc.classList.toggle("approved", decision === "approved");
     st.classList.add("show");
     if (instant) {
       st.style.animation = "none";
@@ -581,6 +699,171 @@
       st.style.opacity = "1";
       st.style.visibility = "visible";
     }
+  }
+
+  function gatePart(selector) {
+    return gateCard ? gateCard.querySelector(selector) : null;
+  }
+  function setGateState(message, kind) {
+    const state = gatePart(".gate-state");
+    if (!state) return;
+    state.className = "gate-state pstrip" + (kind ? " " + kind : "");
+    state.textContent = message;
+  }
+  function recordDecision(action, source) {
+    decisionLedger.push({ action, source, at_ms: elapsed });
+    const labels = {
+      approved: ["i-check", "approval recorded", "repair cleared"],
+      held: ["i-hold", "hold recorded", "incident parked; no repair applied"],
+      evidence: ["i-doc", "evidence requested", "decision deferred pending receipts"]
+    };
+    const detail = labels[action] || ["i-doc", "decision recorded", action];
+    card(`audit ${action === "held" ? "hold" : action}`, `<div class="hd pwin-title">${icon(detail[0])} ${detail[1]}</div>${detail[2]} <span class="pchip">${esc(source)}</span>`);
+  }
+  function bindGateActions() {
+    if (!gateCard) return;
+    gateCard.querySelectorAll("[data-gate-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const action = button.dataset.gateAction;
+        if (action === "approve") approveGate("dispatcher");
+        else if (action === "hold") holdGate();
+        else if (action === "evidence") requestGateEvidence();
+        else if (action === "retry-evidence") requestGateEvidence();
+        else if (action === "retry-gate") renderGateReady();
+      });
+    });
+  }
+  function renderGateActions(held) {
+    const actions = gatePart(".gate-actions");
+    if (!actions) return;
+    actions.innerHTML = `
+      <button class="pbtn primary" type="button" data-gate-action="approve">${icon("i-check")} ${held ? "resume with approval" : "approve"}</button>
+      ${held ? "" : `<button class="pbtn" type="button" data-gate-action="hold">${icon("i-hold")} hold</button>`}
+      <button class="pbtn" type="button" data-gate-action="evidence">${icon("i-doc")} request evidence</button>`;
+    bindGateActions();
+  }
+  function scheduleAutoApproval() {
+    cancelTimer(gateTimer);
+    gateTimer = null;
+    if (!gateOpen || !autoReplay || gateBlocked) return;
+    setGateState("auto-replay armed; approval pending", "loading");
+    gateTimer = later(() => approveGate("auto-replay"), REDUCED ? 0 : 900 / speed);
+  }
+  function renderGateReady() {
+    if (!gateOpen || !gateCard) return;
+    try {
+      const proposal = [...S.timeline].reverse().find((event) => event.t === "proposal");
+      if (!proposal) {
+        setGateState("empty: no repair proposal available", "empty");
+        const actions = gatePart(".gate-actions");
+        actions.innerHTML = `<button class="pbtn" type="button" data-gate-action="hold">${icon("i-hold")} park incident</button>`;
+        bindGateActions();
+        return;
+      }
+      const summary = gatePart(".gate-summary");
+      summary.innerHTML = `<b>${esc(proposal.risk)} risk</b> &middot; rollback staged &middot; dispatcher decision required`;
+      renderGateActions(gateBlocked);
+      if (gateBlocked) setGateState("held; incident parked", "held");
+      else if (autoReplay) scheduleAutoApproval();
+      else setGateState("waiting for dispatcher", "ready");
+    } catch (error) {
+      setGateState(`gate error: ${error.message}`, "error");
+      const actions = gatePart(".gate-actions");
+      actions.innerHTML = `<button class="pbtn" type="button" data-gate-action="retry-gate">retry gate</button><button class="pbtn" type="button" data-gate-action="hold">${icon("i-hold")} park incident</button>`;
+      bindGateActions();
+    }
+  }
+  function enterGate() {
+    playing = false;
+    gateOpen = true;
+    gateBlocked = !autoReplay && manualHoldAt === idx;
+    $("play").disabled = true;
+    setPlayLabel("play");
+    setStatus("disp", gateBlocked ? "agent" : "agent thinking", gateBlocked ? `${icon("i-hold")} holding the signal` : 'weighing the risk<span class="dots"></span>');
+    if (gateBlocked) {
+      applyStamp("held", true);
+      setStatus("cond", "agent", "standing down — incident parked");
+    }
+    toast("held at the signal");
+    gateCard = card("gate", `
+      <div class="hd pwin-title">${icon("i-signal")} human gate</div>
+      <div class="gate-summary">preparing decision bundle</div>
+      <div class="gate-state pstrip">loading gate...</div>
+      <div class="gate-evidence" hidden></div>
+      <div class="gate-actions"></div>`);
+    later(renderGateReady, REDUCED ? 0 : 120);
+  }
+  function approveGate(source) {
+    if (!gateOpen) return;
+    cancelTimer(gateTimer);
+    gateTimer = null;
+    manualHoldAt = null;
+    recordDecision("approved", source);
+    gateBlocked = false;
+    gateOpen = false;
+    applyStamp("approved", false);
+    setGateState("approved; replay resuming", "ok");
+    gateCard && gateCard.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+    setStatus("disp", "agent cheer", `${icon("i-check")} signal cleared`);
+    $("play").disabled = false;
+    playing = true;
+    setPlayLabel("pause");
+    completeStep({ t: "gate" }, 180);
+  }
+  function holdGate() {
+    if (!gateOpen) return;
+    cancelTimer(gateTimer);
+    gateTimer = null;
+    if (!gateBlocked) {
+      recordDecision("held", "dispatcher");
+      $("feed").appendChild(gateCard);
+      $("feed").scrollTop = $("feed").scrollHeight;
+    }
+    manualHoldAt = idx;
+    gateBlocked = true;
+    playing = false;
+    applyStamp("held", false);
+    setStatus("disp", "agent", `${icon("i-hold")} holding the signal`);
+    setStatus("cond", "agent", "standing down — incident parked");
+    setGateState("held; incident parked", "held");
+    renderGateActions(true);
+  }
+  function requestGateEvidence() {
+    if (!gateOpen) return;
+    cancelTimer(gateTimer);
+    gateTimer = null;
+    recordDecision("evidence", "dispatcher");
+    $("feed").appendChild(gateCard);
+    $("feed").scrollTop = $("feed").scrollHeight;
+    setGateState("loading receipts and probe ledger...", "loading");
+    const evidence = gatePart(".gate-evidence");
+    evidence.hidden = false;
+    evidence.innerHTML = `<div class="pstrip">loading evidence...</div>`;
+    gateCard.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+    later(() => {
+      if (!gateOpen || !evidence) return;
+      try {
+        const proposalAt = S.timeline.findIndex((event) => event.t === "proposal");
+        const prior = S.timeline.slice(0, proposalAt < 0 ? S.timeline.length : proposalAt);
+        const diagnosis = [...prior].reverse().find((event) => event.t === "diagnosis");
+        const receipts = diagnosis && Array.isArray(diagnosis.receipts) ? diagnosis.receipts : [];
+        const probes = prior.filter((event) => event.t === "cmd");
+        if (!receipts.length && !probes.length) {
+          evidence.innerHTML = `<div class="pstrip">empty: no receipts or probes recorded</div>`;
+        } else {
+          evidence.innerHTML = `<h4>evidence bundle</h4>
+            ${receipts.map((receipt) => `<div>${icon("i-doc")} ${esc(receipt)}</div>`).join("")}
+            ${probes.map((probe) => `<div class="query"><b>${esc(probe.note || "probe")}</b><code>${esc(probe.cmd)}\n${esc(probe.out)}</code></div>`).join("")}`;
+        }
+        setGateState(gateBlocked ? "evidence loaded; incident remains held" : "evidence loaded; decision required", "ready");
+        renderGateActions(gateBlocked);
+      } catch (error) {
+        evidence.innerHTML = `<div class="pstrip">evidence error: ${esc(error.message)}</div>`;
+        const actions = gatePart(".gate-actions");
+        actions.innerHTML = `<button class="pbtn" type="button" data-gate-action="retry-evidence">retry evidence</button>`;
+        bindGateActions();
+      }
+    }, REDUCED ? 0 : 180);
   }
   function sparkle() {}
   function toast(text) {
@@ -594,6 +877,93 @@
   function tickClock(ms) {
     const sec = Math.round(ms / 1000);
     $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  }
+  function evidenceAccounting(diagnosis) {
+    const receipts = diagnosis && Array.isArray(diagnosis.receipts) ? diagnosis.receipts : [];
+    const alternatives = receipts.filter((receipt) => /^alternative untested:/i.test(receipt)).length;
+    return { observations: receipts.length - alternatives, alternatives };
+  }
+  function extractMutationRows(output) {
+    const lines = String(output || "").split("\n").map((line) => line.replace(/^\s*--\s?/, "").trim());
+    for (let i = 0; i < lines.length; i++) {
+      if (!/(?:affected|changed|deleted|inserted|updated|quarantined)_rows/i.test(lines[i])) continue;
+      for (let j = i + 1; j < Math.min(lines.length, i + 4); j++) {
+        if (/^[\d,]+$/.test(lines[j])) return Number(lines[j].replace(/,/g, ""));
+      }
+    }
+    return null;
+  }
+  function rowsFromDetail(detail) {
+    const match = String(detail || "").match(/([\d,]+)\s+rows\b/i);
+    return match ? Number(match[1].replace(/,/g, "")) : null;
+  }
+  function ledgerMetrics() {
+    const timeline = S && Array.isArray(S.timeline) ? S.timeline : [];
+    const queryCount = timeline.filter((event) => event.t === "cmd").length;
+    const recordedDecisions = timeline.filter((event) => event.t === "approval").length;
+    const humanDecisions = decisionLedger.length || recordedDecisions;
+    const firstApplyAt = timeline.findIndex((event) => event.t === "apply");
+    const rollbackAt = timeline.findIndex((event, at) => at > firstApplyAt && event.t === "apply" && /rollback|restore/i.test(`${event.cmd} ${event.out}`));
+    let rowsAffected = firstApplyAt >= 0 ? extractMutationRows(timeline[firstApplyAt].out) : null;
+    let rowBasis = "mutation";
+    if (rowsAffected === null && firstApplyAt >= 0) {
+      const stopAt = rollbackAt >= 0 ? rollbackAt : timeline.length;
+      rowsAffected = timeline.slice(firstApplyAt + 1, stopAt)
+        .filter((event) => event.t === "run" && event.status === "ok")
+        .reduce((sum, event) => sum + (rowsFromDetail(event.detail) || 0), 0);
+      rowBasis = "rebuild";
+    }
+    const failureStop = rollbackAt >= 0 ? rollbackAt : timeline.length;
+    const repairFailed = firstApplyAt >= 0 && timeline.slice(firstApplyAt + 1, failureStop)
+      .some((event) => (event.t === "run" && event.status === "fail") || (event.t === "checks" && event.results.some((result) => result.status === "fail")));
+    const rollbackChecks = rollbackAt >= 0 ? timeline.slice(rollbackAt + 1).filter((event) => event.t === "checks") : [];
+    const rollbackVerified = rollbackAt >= 0 && rollbackChecks.length > 0 && rollbackChecks.every((event) => event.results.every((result) => result.status === "pass"));
+    const diagnosis = timeline.find((event) => event.t === "diagnosis");
+    return {
+      queryCount,
+      humanDecisions,
+      durationMs: elapsed,
+      rowsAffected: rowsAffected || 0,
+      rowBasis,
+      repairFailed,
+      rollbackVerified,
+      evidence: evidenceAccounting(diagnosis)
+    };
+  }
+  function durationLabel(ms) {
+    const seconds = Math.round(ms / 1000);
+    return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  }
+  function postmortemHtml() {
+    const metrics = ledgerMetrics();
+    const rows = metrics.rowsAffected.toLocaleString();
+    const outcome = metrics.repairFailed
+      ? ` &middot; <b>repair failed</b> &middot; <b>${metrics.rollbackVerified ? "rollback verified" : "rollback unverified"}</b>`
+      : "";
+    return `postmortem: <b>${metrics.queryCount} probe ${metrics.queryCount === 1 ? "query" : "queries"}</b> &middot; ` +
+      `<b>${metrics.humanDecisions} human ${metrics.humanDecisions === 1 ? "decision" : "decisions"}</b> &middot; ` +
+      `<b>${durationLabel(metrics.durationMs)}</b> &middot; <b>${rows} rows affected${metrics.rowBasis === "rebuild" ? " (rebuild)" : ""}</b>${outcome}<br>` +
+      `evidence: <b>${metrics.evidence.observations} observations agree</b> / <b>${metrics.evidence.alternatives} ${metrics.evidence.alternatives === 1 ? "alternative" : "alternatives"} untested</b>`;
+  }
+  function renderPostmortem(container) {
+    try {
+      if (!S || !Array.isArray(S.timeline) || !S.timeline.length) {
+        container.className = "postm pstrip";
+        container.textContent = "empty: no ledger entries to summarize";
+        return;
+      }
+      container.className = "postm";
+      container.innerHTML = postmortemHtml();
+    } catch (error) {
+      container.className = "postm pstrip";
+      container.replaceChildren(document.createTextNode(`postmortem error: ${error.message} `));
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "pbtn";
+      retry.textContent = "retry metrics";
+      retry.addEventListener("click", () => renderPostmortem(container));
+      container.appendChild(retry);
+    }
   }
 
   /* ---------- player ---------- */
@@ -641,8 +1011,9 @@
         setStatus("cond", "agent working", "probing the warehouse…");
         return typeCmd(ev.cmd, ev.out, ev.note, () => { setStatus("cond", "agent", "reading the result"); fin(); });
       case "diagnosis":
+        const accounting = evidenceAccounting(ev);
         card("diag", `
-          <div class="hd pwin-title">${icon("i-search")} diagnosis — ${esc(ev.signature)}${ev.signature !== "unknown" ? `<span class="confbadge">${ev.confidence}% CONFIDENT</span>` : ""}</div>
+          <div class="hd pwin-title">${icon("i-search")} diagnosis — ${esc(ev.signature)}${ev.signature !== "unknown" ? `<span class="confbadge">${accounting.observations} OBSERVED / ${accounting.alternatives} UNTESTED</span>` : ""}</div>
           ${esc(ev.cause)}
           ${ev.receipts && ev.receipts.length ? `<div class="receipts">${ev.receipts.map((r) => `<span class="pchip">${icon("i-doc")} ${esc(r)}</span>`).join("")}</div>` : ""}`);
         setStatus("cond", "agent", "diagnosis on the table");
@@ -674,28 +1045,32 @@
       }
       case "apply":
         if (gateApproved !== true) return fin();
+        const isRollback = /rollback/i.test(ev.cmd || "");
         if (instant) {
           termLine(`<span class="p">conductor@yard:~$</span> <span class="cmdtxt">${esc(ev.cmd)}</span>`);
           termLine(`<span class="out">${colorOut(ev.out)}</span>`);
           return fin();
         }
-        setStatus("cond", "agent working", "applying the repair…");
-        return typeCmd(ev.cmd, ev.out, "cleared by the dispatcher — repairing", fin);
+        setStatus("cond", "agent working", isRollback ? "executing the staged rollback…" : "applying the repair…");
+        return typeCmd(ev.cmd, ev.out, isRollback ? "post-check failed — rolling back" : "cleared by the dispatcher — repairing", fin);
       case "verify": {
         const green = ev.result === "green";
+        const rolledBack = ev.result === "rolled_back";
         $("signal").className = "signal " + (green ? "green" : "red");
-        const nq = S.timeline.filter((x) => x.t === "cmd").length;
-        card("verify " + (green ? "green" : "held"), `
-          <div class="hd pwin-title">${green ? `${icon("i-check")} back on the rails` : ev.result === "held" ? `${icon("i-hold")} held at the signal` : `${icon("i-x")} still derailed`}</div>
+        const verificationCard = card("verify " + (green ? "green" : rolledBack ? "rollback" : "held"), `
+          <div class="hd pwin-title">${green ? `${icon("i-check")} back on the rails` : rolledBack ? `${icon("i-restart")} repair rolled back` : ev.result === "held" ? `${icon("i-hold")} held at the signal` : `${icon("i-x")} still derailed`}</div>
           ${esc(ev.text)}
-          <div class="postm">postmortem: <b>${nq} probe queries</b> · <b>1 human decision</b> · evidence receipts above · rollback stayed staged the whole time</div>`);
+          <div class="postm pstrip">computing postmortem...</div>`);
+        const postmortem = verificationCard.querySelector(".postm");
+        if (instant) renderPostmortem(postmortem);
+        else later(() => renderPostmortem(postmortem), REDUCED ? 0 : 120);
         if (green) {
           setStatus("cond", "agent cheer", `${icon("i-check")} right on schedule`);
           setStatus("disp", "agent", "back to the coffee");
           if (!instant) { toast("back on the rails"); sparkle(); }
         } else {
-          setStatus("cond", "agent", "read-only — human has the ledger");
-          setStatus("disp", "agent", "reviewing the bundle");
+          setStatus("cond", "agent", rolledBack ? "rollback verified — repair failed" : "read-only — human has the ledger");
+          setStatus("disp", "agent", rolledBack ? "incident parked after rollback" : "reviewing the bundle");
         }
         return fin();
       }
@@ -724,7 +1099,7 @@
       : s.t === "checks" ? `Data-quality checks completed for ${ev.task}.`
       : s.t === "think" ? ev.status
       : s.t === "cmd" ? "Probe query completed."
-      : s.t === "diagnosis" ? `Diagnosis: ${ev.signature}, ${ev.confidence} percent confident.`
+      : s.t === "diagnosis" ? `Diagnosis: ${ev.signature}. ${evidenceAccounting(ev).observations} observations agree; ${evidenceAccounting(ev).alternatives} alternatives untested.`
       : s.t === "proposal" ? `Repair proposed with ${ev.risk} risk.`
       : s.t === "gate" ? "Repair is waiting for a human decision."
       : s.t === "approval" ? `Repair ${ev.decision}.`
@@ -755,7 +1130,8 @@
       return;
     }
     if (idx >= steps.length) {
-      finishPlayback();
+      if (playing && delay > 0) timer = later(finishPlayback, delay / speed);
+      else finishPlayback();
       return;
     }
     if (playing) timer = later(runStep, delay / speed);
@@ -766,6 +1142,11 @@
     if (idx >= steps.length) { finishPlayback(); return; }
     const s = steps[idx];
     elapsed += stepDur(s);
+    if (s.t === "gate") {
+      tickClock(elapsed);
+      enterGate();
+      return;
+    }
     if (s.t === "cmd" || s.t === "apply") {
       applyStep(s, false, () => completeStep(s, 250));
     } else {
@@ -787,13 +1168,19 @@
     $("term").innerHTML = '<div class="bar"><i></i><i></i><i></i></div>';
     $("feed").replaceChildren();
     $("a11y-status").textContent = "";
+    $("node-inspector").hidden = true;
+    inspectorToken++;
     renderMap();
     idx = 0; elapsed = 0; qCount = 0; runsSeen = 0; gateApproved = null; gateBlocked = false;
+    gateOpen = false; gateCard = null; gateTimer = null; decisionLedger = [];
     $("scrub").value = 0;
+    $("play").disabled = !S;
     tickClock(0);
   }
 
   function seek(to) {
+    const heldAt = !autoReplay ? manualHoldAt : null;
+    const target = heldAt === null ? to : Math.min(to, heldAt);
     pause();
     resetStage();
     let rebuiltTo = 0;
@@ -801,7 +1188,7 @@
     $("feed").setAttribute("aria-live", "off");
     $("term").setAttribute("aria-live", "off");
     try {
-      for (let i = 0; i < to && i < steps.length; i++) {
+      for (let i = 0; i < target && i < steps.length; i++) {
         const s = steps[i];
         elapsed += stepDur(s);
         rebuiltTo = i + 1;
@@ -816,6 +1203,7 @@
     idx = rebuiltTo;
     tickClock(elapsed);
     $("scrub").value = rebuiltTo;
+    if (heldAt !== null && idx === heldAt) enterGate();
   }
 
   function play() {
@@ -837,6 +1225,7 @@
   function restartPlayback() {
     if (!S) return;
     invalidatePlayback();
+    manualHoldAt = null;
     resetStage();
     play();
   }
@@ -844,12 +1233,26 @@
     $("play").disabled = disabled;
     $("restart").disabled = disabled;
     $("scrub").disabled = disabled;
+    $("auto").disabled = disabled;
     [...$("spd").children].forEach((button) => { button.disabled = disabled; });
   }
 
   $("play").addEventListener("click", () => (playing ? pause() : play()));
   $("restart").addEventListener("click", restartPlayback);
   $("scrub").addEventListener("input", (e) => seek(Number(e.target.value)));
+  $("auto").addEventListener("click", () => {
+    autoReplay = !autoReplay;
+    $("auto").setAttribute("aria-pressed", String(autoReplay));
+    $("auto").textContent = `auto-replay: ${autoReplay ? "on" : "off"}`;
+    if (!gateOpen) return;
+    cancelTimer(gateTimer);
+    gateTimer = null;
+    if (autoReplay && !gateBlocked) scheduleAutoApproval();
+    else {
+      setGateState(gateBlocked ? "held; incident parked" : "waiting for dispatcher", gateBlocked ? "held" : "ready");
+      renderGateActions(gateBlocked);
+    }
+  });
   const spd = $("spd");
   for (const s of [1, 2, 4]) {
     const b = document.createElement("button");
@@ -897,6 +1300,7 @@
   }
   async function loadSession(file) {
     const loadGen = invalidatePlayback();
+    manualHoldAt = null;
     S = null;
     setControlsDisabled(true);
     updateSessionSelection(file);

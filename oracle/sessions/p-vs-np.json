@@ -2,6 +2,10 @@
  "question": "Will P vs NP be resolved this century?",
  "recorded": "scripted-sample",
  "topic_tag": "computer science",
+ "vote_enum": {
+  "yes, barely": "yes",
+  "leaning no": "no"
+ },
  "agents": [
   {
    "id": "gpt",
@@ -132,6 +136,7 @@
      "agent": "grok",
      "target": "gpt",
      "think": 2100,
+     "concession": true,
      "text": "Hot take: your hope is aimed at the wrong door. Say the machines deliver — a 100-terabyte certificate lands in the shared drive. That's not a resolution anyone reads; that's Appel–Haken 1976 again but worse, and the community argued about that one for a decade. 'Is this a proof or a very confident printout' becomes the longest Slack thread in mathematical history. The resolution problem is social, not just mathematical. I'll concede the fix exists: Flyspeck showed formalization can settle the arguing — Hales's Kepler proof got there in 2014. Eventually. After years. Which eats your runway.",
      "sources": [
       "Appel–Haken four color theorem (1976)",
@@ -142,6 +147,7 @@
      "agent": "gpt",
      "target": "claude",
      "think": 2400,
+     "concession": true,
      "text": "Fair, and I'll concede it on the record: today's provers are verifiers and tactical assistants, not discoverers. Nothing yet demonstrates machine discovery of genuinely new proof techniques. Where I hold my ground is the horizon — you're extrapolating 2026 capabilities across seventy-four more years. In 1950 nobody would have credited computer-checked proofs of the four color theorem or the Kepler conjecture, and both happened within decades of looking impossible. I'm lowering a notch to 50, not folding. Still upbeat, still caffeinated.",
      "sources": [
       "Appel–Haken four color theorem (1976)",
@@ -152,6 +158,7 @@
      "agent": "gemini",
      "target": "grok",
      "think": 2300,
+     "concession": true,
      "text": "Independence from ZFC is the skeptic's comfort blanket, and I'm the skeptic, so trust me on blankets. Aaronson's own survey — the one you cited — treats independence as unlikely; most complexity theorists expect a plain, brutal P-not-equal-to-NP proof someday, just not soon. Your exotic exits are epsilon-weight. Strip them out and the base case is 'open for another century,' which is, per my last email, my case. Partial concession, though: the machine-referee point is real. After Flyspeck, 'who checks the checker' has an actual answer, and I'll grant it.",
      "sources": [
       "Aaronson 'P ?= NP' survey (2016)",
@@ -227,7 +234,6 @@
  },
  "result": {
   "answer": "Probably not, but nobody can rule it out. The known barrier theorems make a proof with anything resembling current techniques impossible, the one dedicated program has stumbled, and yet seventy-four remaining years is long enough that history counsels humility. If resolution does come, it may arrive in a form the question didn't anticipate — a machine-scale proof that only counts once it's formally verified.",
-  "confidence": 40,
   "consensus": "1 of 4 leaning yes",
   "votes": {
    "gpt": "yes, barely",
@@ -257,7 +263,6 @@
     30
    ]
   },
-  "dissent": "Whether the barrier theorems are principled walls or merely maps of exhausted terrain, plus the wildcard's unresolved rider on what would even count as a resolution.",
-  "how_scored": "consensus 50% · mean self-confidence 30% · convergence -5% → 40%"
+  "dissent": "Whether the barrier theorems are principled walls or merely maps of exhausted terrain, plus the wildcard's unresolved rider on what would even count as a resolution."
  }
 }

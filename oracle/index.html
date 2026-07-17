@@ -278,12 +278,12 @@
   @keyframes caret { 50% { opacity: 0; } }
   /* citation chips — the receipts, stapled to the message */
   .bub .srcs { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; animation: pop .3s ease-out; }
-  .bub .srcs span {
+  .bub .srcs .evidence-chip {
     font-size: .6rem; font-weight: 700; color: var(--dim);
     background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 0; padding: .06rem .5rem;
   }
-  .bub .srcs span:before { content: "DOC "; }
+  .bub .srcs .evidence-chip:before { content: "DOC "; }
   .bub.mod { align-self: center; max-width: 94%; background: var(--green-bg); }
   .bub.scout { align-self: center; max-width: 94%; background: var(--panel-2); border-style: dashed; }
   /* controls */
@@ -388,6 +388,13 @@
     gap: 8px;
     margin-bottom: 16px;
   }
+  .session-tools { margin-bottom: 16px; }
+  .session-tools .pwin-body { padding: 12px; }
+  .session-tool-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .session-tool-row .pbtn { min-height: 40px; }
+  .session-ref { margin-left: auto; }
+  #session-import { position: fixed; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+  #session-input-state { margin-top: 10px; }
   .sess {
     width: 100%;
     max-width: none;
@@ -692,7 +699,7 @@
   }
   .bub .tx { overflow-wrap: anywhere; }
   .bub .srcs { gap: 4px; margin-top: 8px; animation: none; }
-  .bub .srcs span {
+  .bub .srcs .evidence-chip {
     padding: 2px 6px;
     border: 1px solid var(--pi-ink);
     border-radius: 0;
@@ -700,7 +707,10 @@
     color: var(--pi-muted);
     font: 12px/1.35 var(--pi-font-ui);
   }
-  .bub .srcs span::before { content: "DOC "; color: var(--pi-accent); }
+  .bub .srcs .evidence-chip::before { content: "DOC "; color: var(--pi-accent); }
+  .bub .srcs .evidence-chip:hover,
+  .bub .srcs .evidence-chip:focus-visible { background: var(--pi-accent-soft); color: var(--pi-accent); }
+  .bub .srcs .evidence-chip.unsourced { border-style: dashed; }
   .load-state {
     display: grid;
     place-items: center;
@@ -744,6 +754,30 @@
     color: var(--pi-term-dim);
     font: 12px/1.45 var(--pi-font-code);
   }
+  #v-score-state { margin-bottom: 12px; }
+  .evidence-popover {
+    width: min(680px, calc(100vw - 24px));
+    max-height: min(760px, calc(100vh - 24px));
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    color: var(--pi-ink);
+    background: var(--pi-panel);
+  }
+  .evidence-popover::backdrop { background: rgba(30, 26, 20, .58); }
+  .evidence-popover .pwin-title { position: sticky; top: 0; z-index: 1; }
+  .evidence-popover .pwin-body { max-height: calc(100vh - 96px); padding: 16px; overflow-y: auto; }
+  .evidence-close { width: auto; min-width: 36px; min-height: 32px; margin-left: auto; }
+  .evidence-record {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 8px 12px;
+    margin-top: 12px;
+  }
+  .evidence-record dt { color: var(--pi-muted); font: 12px/1.5 var(--pi-font-code); }
+  .evidence-record dd { min-width: 0; overflow-wrap: anywhere; font: 14px/1.55 var(--pi-font-body); }
+  .evidence-record .evidence-quote { white-space: pre-wrap; }
+  .evidence-source-link { display: inline-flex; margin-top: 16px; }
   .score-ledger b { color: var(--pi-term-fg); font-weight: 600; }
   .v-answer { color: var(--pi-term-fg); font: 600 15px/1.6 var(--pi-font-body); }
   .v-meta { margin-top: 8px; color: var(--pi-term-dim); font: 13px/1.5 var(--pi-font-code); }
@@ -802,6 +836,9 @@
     .tagline { font-size: 14px; }
     .honesty { font-size: 17px; }
     .picker { grid-template-columns: 1fr; }
+    .session-tool-row { align-items: stretch; }
+    .session-tool-row .pbtn { flex: 1 1 160px; }
+    .session-ref { flex-basis: 100%; margin-left: 0; }
     .sess { min-height: 56px; }
     .debate-layout { grid-template-columns: minmax(0, 1fr); }
     .stage-card {
@@ -866,6 +903,8 @@
     .bub .who { grid-template-columns: minmax(0, 1fr); }
     .bub .who .ts { grid-column: 1; grid-row: 2; justify-self: start; }
     .bub .who .vt { grid-row: 3; }
+    .evidence-record { grid-template-columns: 1fr; gap: 2px; }
+    .evidence-record dd { margin-bottom: 8px; }
   }
 </style>
 </head>
@@ -876,6 +915,22 @@
     <p class="tagline">a skeptic, an optimist, a fact-checker and a wildcard walk into a debate — confidence is scored from where they disagree</p>
     <span class="honesty pnote"><b>replay of a scripted sample session</b> — the engine is real, but no API keys were burned for your entertainment. Bring keys and <code>oracle record</code> makes these real.</span>
   </header>
+
+  <section class="pwin session-tools" aria-labelledby="session-tools-title">
+    <div class="pwin-title">
+      <span class="pwin-lamp warn" id="session-input-lamp" aria-hidden="true"></span>
+      <span id="session-tools-title">session input</span>
+    </div>
+    <div class="pwin-body">
+      <div class="session-tool-row">
+        <button class="pbtn" id="import-open" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg> import JSON</button>
+        <button class="pbtn" id="share-link" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"/></svg> copy session link</button>
+        <span class="pchip warn session-ref" id="session-ref">session: loading</span>
+        <input id="session-import" type="file" accept="application/json,.json" aria-label="Import Oracle session JSON">
+      </div>
+      <div class="pstrip warn" id="session-input-state" role="status" aria-live="polite">empty · no imported file selected</div>
+    </div>
+  </section>
 
   <div class="picker" id="picker"></div>
 
@@ -923,9 +978,10 @@
                     stroke-linecap="square" stroke-dasharray="540.35" stroke-dashoffset="540.35"
                     style="transition: stroke-dashoffset .5s steps(8, end)"/>
           </svg>
-          <div class="num"><b id="v-conf">—</b><span>oracle confidence</span></div>
+          <div class="num"><b id="v-conf">—</b><span>computed P(yes)</span></div>
         </div>
         <div>
+          <div class="pstrip warn" id="v-score-state" role="status" aria-live="polite">waiting for final vote</div>
           <div class="score-ledger" id="v-ledger"></div>
           <div class="v-answer" id="v-answer"></div>
           <div class="v-meta" id="v-consensus"></div>
@@ -944,19 +1000,51 @@
     <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/oracle" target="_blank" rel="noopener">engine source ↗</a></footer>
 </div>
 
+<dialog class="pwin evidence-popover" id="evidence-popover" aria-labelledby="evidence-title">
+  <div class="pwin-title">
+    <span class="pwin-lamp" id="evidence-lamp" aria-hidden="true"></span>
+    <span id="evidence-title">evidence record</span>
+    <button class="pbtn evidence-close" id="evidence-close" type="button" aria-label="Close evidence record"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-x"/></svg></button>
+  </div>
+  <div class="pwin-body">
+    <div class="pstrip warn" id="evidence-state" role="status" aria-live="polite">no record selected</div>
+    <dl class="evidence-record" id="evidence-record"></dl>
+    <a class="pbtn evidence-source-link" id="evidence-source-link" target="_blank" rel="noopener" hidden><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"/></svg> open source</a>
+  </div>
+</dialog>
+
 <script>
   const $ = (id) => document.getElementById(id);
+  const escapeHTML = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[char]);
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const COLORS = { blue: "#2547c9", gold: "#8a6200", violet: "#5c3b8f", green: "#246b45", coral: "#b3372c", navy: "#20416b" };
+  const COLOR_PALETTE = Object.freeze(Object.values(COLORS));
+  const HEX_COLOR_RE = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i;
+  const NAMED_COLOR_RE = /^[a-z]+$/i;
+  function agentColor(value, index = 0) {
+    const color = typeof value === "string" ? value.trim() : "";
+    const named = COLORS[color.toLowerCase()];
+    if (named) return named;
+    if (HEX_COLOR_RE.test(color)) return color;
+    if (NAMED_COLOR_RE.test(color) && !/^(?:transparent|currentcolor)$/i.test(color)
+        && typeof CSS !== "undefined" && CSS.supports("color", color)) return color;
+    return COLOR_PALETTE[index % COLOR_PALETTE.length];
+  }
   const SESSIONS = [
     ["microservices.json", "Should we rewrite our monolith as microservices?", "engineering"],
     ["p-vs-np.json", "Will P vs NP be resolved this century?", "computer science"],
     ["renewables-2035.json", "Renewables > 50% of electricity by 2035?", "energy"],
   ];
+  const SESSION_BY_KEY = new Map(SESSIONS.map(([file]) => [file.replace(/\.json$/i, ""), file]));
   const CPS = 110;                 // typing speed at 1×
   const THINK_MIN = 800, THINK_MAX = 2600;
 
   let S = null;                    // session
+  let SCORE = null;                // verdict computed from the loaded session
+  let currentSession = null;       // { kind: "fixture" | "import", key, file? }
+  let importedSession = null, importedFileName = "";
   let steps = [], idx = 0, playing = false, speed = 1, active = null;
   let elapsedBase = 0;
   let gen = 0, timers = [], loadController = null, reconstructing = false, fidgetTimer = null;
@@ -1246,20 +1334,20 @@
     });
     const council = $("council");
     council.replaceChildren();
-    for (const a of S.agents) {
-      const c = COLORS[a.color] || COLORS.blue;
+    for (const [agentIndex, a] of S.agents.entries()) {
+      const c = agentColor(a.color, agentIndex);
       const div = document.createElement("div");
       div.className = "agent"; div.id = "ag-" + a.id;
       div.style.setProperty("--ac", c);
       div.innerHTML = `
         <div class="ava">${pixelChar(a.id, c)}</div>
-        <div class="nm">${a.name}</div>
-        <div class="rl">${a.role}</div>
+        <div class="nm">${escapeHTML(a.name)}</div>
+        <div class="rl">${escapeHTML(a.role)}</div>
         <div class="tg">${(PERSONA[a.id] || {}).tagline || ""}</div>
         <span class="chipstat pchip" id="sc-${a.id}">—</span>
         <div class="st" id="st-${a.id}">waiting for the gavel</div>
         <div class="conf"><i id="cf-${a.id}"></i></div>
-        <div class="conf-n" id="cn-${a.id}">self-confidence —</div>`;
+        <div class="conf-n" id="cn-${a.id}">P(yes) —</div>`;
       council.appendChild(div);
     }
     const modrow = $("modrow");
@@ -1411,23 +1499,26 @@
     set("gemini", STATS.gemini.obj + " OBJECTIONS" + (STATS.gemini.conceded ? " · " + STATS.gemini.conceded + " CONCEDED" : ""));
     set("grok", STATS.grok.takes + " HOT TAKES" + (STATS.grok.conceded ? " · " + STATS.grok.conceded + " WALKED BACK" : ""));
     set("scout", STATS.scout.pulled ? STATS.scout.pulled + " SOURCES PULLED" : "DOSSIER PENDING");
-    set("mod", STATS.mod.done ? "SCORE: " + S.result.confidence + "%" : "SCORE PENDING");
+    set("mod", STATS.mod.done && SCORE ? "P(YES): " + SCORE.score + "%" : "SCORE PENDING");
   }
 
   function applyVerdictReactions(animate) {
-    const leaningYes = S.result.confidence >= 50;
-    for (const [aid, vote] of Object.entries(S.result.votes)) {
-      const won = /yes/i.test(vote) === leaningYes;
+    if (!SCORE) return;
+    const leaningYes = SCORE.majoritySide === "yes";
+    for (const agent of S.agents) {
+      const aid = agent.id;
+      const vote = S.result.votes[aid];
+      const won = !SCORE.tie && voteSide(vote) === (leaningYes ? "yes" : "no");
       const el = $("ag-" + aid);
-      if (animate && !REDUCED) {
+      if (animate && !REDUCED && !SCORE.tie) {
         el.classList.add(won ? "cheer" : "slump");
         // winners go back to fidgeting; losers stay slumped
         if (won) later(() => el.classList.remove("cheer"), 1800);
       }
-      $("st-" + aid).textContent = won ? "called it" : "demands a rematch";
+      $("st-" + aid).textContent = SCORE.tie ? "split ballot" : won ? "called it" : "demands a rematch";
     }
     setStatus("steno", "", "transcript sealed");
-    setStatus("book", "", "paying out at " + S.result.confidence + "%");
+    setStatus("book", "", SCORE.tie ? "market held at a split" : "closing P(yes): " + SCORE.score + "%");
     setStatus("intern", "", "victory espresso round");
     setStatus("scout", "", "sources archived");
   }
@@ -1443,7 +1534,7 @@
   function setConf(id, v) {
     if (id === "mod") return;
     $("cf-" + id).style.width = v + "%";
-    $("cn-" + id).innerHTML = `self-confidence <b>${v}%</b>`;
+    $("cn-" + id).innerHTML = `P(yes) <b>${v}%</b>`;
   }
 
   function feedNearEnd() {
@@ -1461,7 +1552,7 @@
     };
     const isMod = ev.agent === "mod";
     const a = FIXED[ev.agent] || agentById(ev.agent);
-    const c = COLORS[a.color] || COLORS.green;
+    const c = agentColor(a.color, Math.max(0, S.agents.indexOf(a)));
     const div = document.createElement("div");
     div.className = "bub" + (isMod ? " mod" : ev.agent === "scout" ? " scout"
       : (S.agents.indexOf(a) % 2 ? " right" : ""));
@@ -1500,17 +1591,86 @@
     return tx;
   }
 
+  function appendEvidenceRow(list, label, value, className = "") {
+    const term = document.createElement("dt");
+    const detail = document.createElement("dd");
+    term.textContent = label;
+    detail.textContent = value || "—";
+    if (className) detail.className = className;
+    list.append(term, detail);
+  }
+
+  function renderEvidenceRecord(record) {
+    const state = $("evidence-state");
+    const list = $("evidence-record");
+    const link = $("evidence-source-link");
+    const lamp = $("evidence-lamp");
+    list.replaceChildren();
+    link.hidden = true;
+    link.removeAttribute("href");
+    if (!record) {
+      state.className = "pstrip warn";
+      state.textContent = "empty · no evidence record selected";
+      lamp.className = "pwin-lamp warn";
+      return;
+    }
+    if (!record.source || !record.claim) {
+      state.className = "pstrip err";
+      state.textContent = "invalid evidence record · claim and source are required";
+      lamp.className = "pwin-lamp err";
+      return;
+    }
+    const unsourced = !record.url && !record.excerpt;
+    state.className = "pstrip " + (unsourced ? "warn" : "ok");
+    state.textContent = unsourced
+      ? "unsourced · no URL or excerpt in the loaded session"
+      : record.retrieval + " · claim linked to source";
+    lamp.className = "pwin-lamp " + (unsourced ? "warn" : "on");
+    appendEvidenceRow(list, "CLAIM", record.claim);
+    appendEvidenceRow(list, "SOURCE", record.source);
+    appendEvidenceRow(list, "DATE", record.date || "not recorded");
+    appendEvidenceRow(list, "FACT CHECK", record.outcome || "not checked");
+    appendEvidenceRow(list, "RETRIEVAL", record.retrieval || "unsourced");
+    appendEvidenceRow(list, "EXCERPT", record.excerpt || "not supplied", "evidence-quote");
+    if (record.url) {
+      link.href = record.url;
+      link.hidden = false;
+    }
+  }
+
+  function openEvidenceRecord(record) {
+    const dialog = $("evidence-popover");
+    const state = $("evidence-state");
+    $("evidence-record").replaceChildren();
+    $("evidence-source-link").hidden = true;
+    state.className = "pstrip warn";
+    state.textContent = "loading evidence record…";
+    $("evidence-lamp").className = "pwin-lamp warn";
+    if (!dialog.open) dialog.showModal();
+    queueMicrotask(() => renderEvidenceRecord(record));
+  }
+
   function addSources(tx, ev) {
     if (!ev.sources || !ev.sources.length) return;
     const d = document.createElement("div");
     d.className = "srcs";
-    for (const s of ev.sources) {
-      const c = document.createElement("span");
-      c.textContent = s;
+    for (const source of ev.sources) {
+      const record = evidenceRecord(source, ev);
+      const c = document.createElement("button");
+      c.type = "button";
+      c.className = "pchip pbtn evidence-chip" + (!record.url && !record.excerpt ? " unsourced" : "");
+      c.textContent = record.source || "invalid record";
+      c.setAttribute("aria-label", "Open evidence record for " + (record.source || "invalid source"));
+      c.addEventListener("click", () => openEvidenceRecord(record));
       d.appendChild(c);
     }
     tx.parentElement.appendChild(d);
   }
+
+  $("evidence-close").addEventListener("click", () => $("evidence-popover").close());
+  $("evidence-popover").addEventListener("click", (event) => {
+    if (event.target === $("evidence-popover")) $("evidence-popover").close();
+  });
 
   function markPhase(ri) {
     for (let i = 0; i <= S.rounds.length; i++) {
@@ -1520,14 +1680,243 @@
     }
   }
 
+  const SOURCE_CATALOG = Object.freeze({
+    "DORA State of DevOps": {
+      url: "https://dora.dev/research/2022/dora-report/2022-dora-accelerate-state-of-devops-report.pdf",
+      date: "2022",
+      excerpt: "Components in a loosely-coupled architecture can be deployed independently.",
+    },
+    "Segment eng blog (2018)": {
+      url: "https://www.twilio.com/en-us/blog/developers/best-practices/goodbye-microservices",
+      date: "2018-07-10",
+      excerpt: "As our velocity plummeted, our defect rate exploded.",
+    },
+    "Amazon Prime Video eng blog (2023)": {
+      url: "https://web.archive.org/web/20230504060528/https://www.primevideotech.com/video-streaming/scaling-up-the-prime-video-audio-video-monitoring-service-and-reducing-costs-by-90",
+      date: "2023-05-04",
+      excerpt: "Scaling up the Prime Video audio/video monitoring service and reducing costs by 90%.",
+      retrieval: "archived",
+    },
+    "Fowler, MonolithFirst (2015)": {
+      url: "https://martinfowler.com/bliki/MonolithFirst.html",
+      date: "2015-06-03",
+      excerpt: "Almost all the successful microservice stories have started with a monolith that got too big and was broken up.",
+    },
+    "Shopify eng blog (2019)": {
+      url: "https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity",
+      date: "2019-02-21",
+      excerpt: "Learn how Shopify took its code base from monolith to modular monolith.",
+    },
+    "IEA Renewables 2024": {
+      url: "https://www.iea.org/reports/renewables-2024/global-overview",
+      date: "2024-10-09",
+      excerpt: "The renewable energy share is forecast to expand from 30% in 2023 to 46% in 2030.",
+    },
+    "Ember Global Electricity Review 2024": {
+      url: "https://ember-energy.org/app/uploads/2024/05/Report-Global-Electricity-Review-2024.pdf",
+      date: "2024-05",
+      excerpt: "Renewables provided 30% of global electricity for the first time.",
+    },
+    "Ember Global Electricity Review (2024)": {
+      url: "https://ember-energy.org/app/uploads/2024/05/Report-Global-Electricity-Review-2024.pdf",
+      date: "2024-05",
+      excerpt: "Renewables provided 30% of global electricity for the first time.",
+    },
+    "LBNL Queued Up": {
+      url: "https://emp.lbl.gov/publications/queued-2024-edition-characteristics",
+      date: "2024-04",
+      excerpt: "Interconnection wait times are also on the rise.",
+    },
+    "IEA Electricity 2024": {
+      url: "https://www.iea.org/reports/electricity-2024",
+      date: "2024-01-24",
+      excerpt: "This year's report features in-depth analysis on the data centre sector's impact on electricity consumption.",
+    },
+    "Clay Millennium Prize (2000)": {
+      url: "https://www.claymath.org/millennium-problems/",
+      date: "2000-05-24",
+      excerpt: "$1 million allocated to the solution of each problem.",
+    },
+    "Cook (1971)": {
+      url: "https://direct.mit.edu/books/edited-volume/5003/chapter/2657057/The-Complexity-of-Theorem-Proving-Procedures-1971",
+      date: "1971",
+      excerpt: "Any recognition problem solved by a polynomial time-bounded nondeterministic Turing machine can be reduced to propositional tautology.",
+    },
+    "Aaronson 'P ?= NP' survey (2016)": {
+      url: "https://www.scottaaronson.com/papers/pvsnp.pdf",
+      date: "2016",
+      excerpt: "It is reasonable to conjecture that P ≠ NP is both true and provable.",
+    },
+    "Ryan Williams NEXP ⊄ ACC⁰ (2011)": {
+      url: "https://doi.org/10.1109/CCC.2011.36",
+      date: "2011",
+      excerpt: "NEXP does not have nonuniform ACC circuits of polynomial size.",
+    },
+    "Williams (2011)": {
+      url: "https://doi.org/10.1109/CCC.2011.36",
+      date: "2011",
+      excerpt: "NEXP does not have nonuniform ACC circuits of polynomial size.",
+    },
+  });
+
+  function safeEvidenceUrl(value) {
+    if (!value) return "";
+    try {
+      const url = new URL(value, window.location.href);
+      return /^(https?):$/.test(url.protocol) ? url.href : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function evidenceRecord(source, event) {
+    const supplied = typeof source === "string" ? { source } : { ...(source || {}) };
+    const label = typeof supplied.source === "string" ? supplied.source.trim() : "";
+    const known = SOURCE_CATALOG[label] || {};
+    const combined = { ...known, ...supplied, source: label };
+    const url = safeEvidenceUrl(combined.url);
+    const excerpt = typeof combined.excerpt === "string" ? combined.excerpt.trim() : "";
+    const date = typeof combined.date === "string" ? combined.date.trim() : "";
+    const claim = typeof combined.claim === "string" && combined.claim.trim()
+      ? combined.claim.trim()
+      : typeof event.claim === "string" && event.claim.trim() ? event.claim.trim() : event.text;
+    const retrieval = combined.retrieval || (url ? excerpt ? "retrieved" : "linked" : excerpt ? "excerpt only" : "unsourced");
+    const outcome = combined.outcome || combined.fact_check
+      || (event.agent === "claude" ? event.target ? "correction" : "checked" : event.agent === "scout" ? "briefing" : "cited");
+    return { claim, source: label, url, excerpt, date, retrieval, outcome };
+  }
+
+  function normalizeSessionEvidence(session) {
+    for (const round of session.rounds) {
+      for (const event of round.events) {
+        event.sources = Array.isArray(event.sources)
+          ? event.sources.map((source) => evidenceRecord(source, event))
+          : [];
+      }
+    }
+    return session;
+  }
+
+  const SCORE_WEIGHTS = Object.freeze({
+    ballots: 0.50, forecasts: 0.35, concessions: 0.15,
+    agreement: 0.50, convergence: 0.30, evidence: 0.20,
+  });
+  const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+  const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const pct = (value) => (value * 100).toFixed(1) + "%";
+  const signed = (value) => (value >= 0 ? "+" : "") + value.toFixed(1);
+
+  const CANONICAL_VOTES = new Set(["yes", "no", "abstain"]);
+  const normalizedVote = (vote) => typeof vote === "string" ? vote.trim().toLowerCase() : "";
+  function voteSide(vote, session = S) {
+    const value = normalizedVote(vote);
+    if (CANONICAL_VOTES.has(value)) return value;
+    const declared = session && session.vote_enum;
+    return declared && hasOwn(declared, value) ? declared[value] : null;
+  }
+
+  function evidenceQuality(session) {
+    const records = session.rounds.flatMap((round) => round.events)
+      .flatMap((event) => Array.isArray(event.sources) ? event.sources : []);
+    if (!records.length) return { score: 0, records: 0, linked: 0, excerpted: 0 };
+    let linked = 0, excerpted = 0;
+    const scores = records.map((record) => {
+      const item = typeof record === "string" ? { source: record } : record;
+      let quality = item && item.source ? 0.25 : 0;
+      if (item && item.url) { linked++; quality += 0.35; }
+      if (item && item.excerpt) { excerpted++; quality += 0.30; }
+      if (item && item.date) quality += 0.10;
+      return clamp(quality);
+    });
+    return { score: mean(scores), records: records.length, linked, excerpted };
+  }
+
+  function computeVerdict(session) {
+    const result = session.result;
+    const ballots = session.agents.map((agent) => ({
+      agent,
+      vote: result.votes[agent.id],
+      side: voteSide(result.votes[agent.id], session),
+    })).filter((ballot) => ballot.side === "yes" || ballot.side === "no");
+    if (!ballots.length) throw new Error("Verdict needs at least one yes/no vote.");
+
+    const yes = ballots.filter((ballot) => ballot.side === "yes").length;
+    const no = ballots.filter((ballot) => ballot.side === "no").length;
+    const voteShare = yes / ballots.length;
+    const series = Object.fromEntries(session.agents.map((agent) => [
+      agent.id,
+      result.confidence_by_round[agent.id],
+    ]));
+    const opening = session.agents.map((agent) => series[agent.id][0]);
+    const final = session.agents.map((agent) => series[agent.id].at(-1));
+    const meanForecast = mean(final) / 100;
+
+    const concedingIds = new Set(session.rounds.flatMap((round) => round.events)
+      .filter((event) => event.concession === true)
+      .map((event) => event.agent)
+      .filter((id) => series[id]));
+    const concessionShifts = [...concedingIds].map((id) => series[id].at(-1) - series[id][0]);
+    const meanConcessionShift = concessionShifts.length ? mean(concessionShifts) : 0;
+    const concessionSignal = concessionShifts.length ? clamp(0.5 + meanConcessionShift / 100) : 0.5;
+
+    const openingSpread = Math.max(...opening) - Math.min(...opening);
+    const finalSpread = Math.max(...final) - Math.min(...final);
+    const convergenceDelta = openingSpread - finalSpread;
+    const convergenceSignal = clamp(0.5 + convergenceDelta / 200);
+    const agreementSignal = clamp(Math.abs(voteShare - 0.5) * 2);
+    const evidence = evidenceQuality(session);
+
+    const rawYes = SCORE_WEIGHTS.ballots * voteShare
+      + SCORE_WEIGHTS.forecasts * meanForecast
+      + SCORE_WEIGHTS.concessions * concessionSignal;
+    const reliability = SCORE_WEIGHTS.agreement * agreementSignal
+      + SCORE_WEIGHTS.convergence * convergenceSignal
+      + SCORE_WEIGHTS.evidence * evidence.score;
+    const calibration = 0.65 + 0.35 * reliability;
+    const yesProbability = clamp(0.5 + (rawYes - 0.5) * calibration);
+    const score = Math.round(yesProbability * 100);
+    const tie = yes === no;
+    const majoritySide = tie ? null : yes > no ? "yes" : "no";
+    const consensus = tie
+      ? `split decision · ${yes} yes / ${no} no`
+      : `${yes === ballots.length || no === ballots.length ? "unanimous" : "majority"} ${majoritySide} · ${Math.max(yes, no)} of ${ballots.length}`;
+    const hinge = ballots.map((ballot) => ({
+      ...ballot,
+      forecast: series[ballot.agent.id].at(-1),
+    })).sort((a, b) => Math.abs(a.forecast - 50) - Math.abs(b.forecast - 50))[0];
+
+    return {
+      score, yesProbability, yes, no, tie, majoritySide, consensus, hinge,
+      voteShare, meanForecast, meanConcessionShift, concessionSignal,
+      concessionCount: concedingIds.size, openingSpread, finalSpread,
+      convergenceDelta, convergenceSignal, agreementSignal, evidence,
+      rawYes, reliability, calibration,
+    };
+  }
+
   function showVerdict(animate) {
     const r = S.result;
     const v = $("verdict");
     v.style.display = "block";
     v.open = true;
     if (animate) v.classList.add("show");
-    $("v-conf").textContent = r.confidence + "%";
-    const off = 540.35 * (1 - r.confidence / 100);
+    const state = $("v-score-state");
+    state.className = "pstrip warn";
+    state.textContent = "computing verdict…";
+    let score;
+    try {
+      score = SCORE || computeVerdict(S);
+      SCORE = score;
+    } catch (error) {
+      state.className = "pstrip err";
+      state.textContent = "score error · " + error.message;
+      $("v-conf").textContent = "—";
+      return;
+    }
+    state.className = "pstrip ok";
+    state.textContent = score.tie ? "computed · split ballot preserved" : "computed from loaded session";
+    $("v-conf").textContent = score.score + "%";
+    const off = 540.35 * (1 - score.score / 100);
     if (animate && !REDUCED) {
       const scheduledGen = gen;
       requestAnimationFrame(() => {
@@ -1540,19 +1929,19 @@
       $("dial-arc").style.transition = "none";
       $("dial-arc").style.strokeDashoffset = off;
     }
-    $("v-answer").textContent = r.answer;
-    $("v-consensus").textContent = "consensus: " + r.consensus;
+    $("v-answer").textContent = (score.tie ? "Split decision. " : "") + r.answer;
+    $("v-consensus").textContent = score.consensus;
     const ledger = $("v-ledger");
     ledger.replaceChildren();
-    const opening = S.agents.map((a) => r.confidence_by_round[a.id][0]);
-    const final = S.agents.map((a) => r.confidence_by_round[a.id][2]);
-    const openingSpread = Math.max(...opening) - Math.min(...opening);
-    const finalSpread = Math.max(...final) - Math.min(...final);
-    const convergence = openingSpread - finalSpread;
     const ledgerRows = [
-      ["VOTE DISTRIBUTION", r.consensus],
-      ["PROBABILITY RANGE", `${Math.min(...final)}–${Math.max(...final)}%`],
-      ["CONVERGENCE Δ", `${convergence >= 0 ? "+" : ""}${convergence} pts (${openingSpread} → ${finalSpread})`],
+      ["BALLOTS · 50%", `${score.yes}/${score.yes + score.no} yes = ${pct(score.voteShare)}`],
+      ["MEAN P(YES) · 35%", pct(score.meanForecast)],
+      ["CONCESSIONS · 15%", `${score.concessionCount} tagged · ${signed(score.meanConcessionShift)} pts = ${pct(score.concessionSignal)}`],
+      ["RAW P(YES)", pct(score.rawYes)],
+      ["AGREEMENT · 50% CAL.", pct(score.agreementSignal)],
+      ["CONVERGENCE · 30% CAL.", `${signed(score.convergenceDelta)} pts (${score.openingSpread} → ${score.finalSpread}) = ${pct(score.convergenceSignal)}`],
+      ["EVIDENCE · 20% CAL.", `${score.evidence.records} records · ${score.evidence.linked} linked = ${pct(score.evidence.score)}`],
+      ["CALIBRATION", `×${score.calibration.toFixed(3)} from 50% → ${score.score}%`],
     ];
     for (const [label, value] of ledgerRows) {
       const key = document.createElement("span");
@@ -1563,22 +1952,28 @@
     }
     const votes = $("v-votes");
     votes.replaceChildren();
-    for (const [id, vote] of Object.entries(r.votes)) {
-      const a = agentById(id);
+    for (const a of S.agents) {
+      const vote = r.votes[a.id];
+      const side = voteSide(vote);
       const chip = document.createElement("span");
-      chip.className = "v-vote pchip " + (/yes/i.test(vote) ? "ok" : /no/i.test(vote) ? "err" : "warn");
+      chip.className = "v-vote pchip " + (side === "yes" ? "ok" : side === "no" ? "err" : "warn");
       chip.textContent = `${a.name}: ${vote}`;
       votes.appendChild(chip);
     }
-    $("v-formula").textContent = "how it's scored → " + r.how_scored;
-    $("v-dissent").textContent = "unresolved: " + r.dissent;
+    $("v-formula").textContent = "Raw P(yes) = 50% ballots + 35% mean forecasts + 15% concession movement; reliability = 50% agreement + 30% convergence + 20% evidence quality; calibration = 0.65 + 0.35 × reliability; final P(yes) = 50% + (raw P(yes) − 50%) × calibration.";
+    const tieBreak = score.tie
+      ? `tie-break: ${score.hinge.agent.name}'s “${score.hinge.vote}” ballot is nearest the threshold at ${score.hinge.forecast}% P(yes); a changed ballot or a fifth vote breaks the tie. `
+      : "";
+    $("v-dissent").textContent = tieBreak + "unresolved: " + (r.dissent || "none recorded");
     drawArcChart(r.confidence_by_round, animate);
   }
 
   function drawArcChart(cbr, animate) {
     const svg = $("arc-chart");
     const W = 720, H = 190, L = 50, R = 150, T = 22, B = 34;
-    const xs = [0, 1, 2].map((i) => L + (i * (W - L - R)) / 2);
+    const pointCount = cbr[S.agents[0].id].length;
+    const xs = Array.from({ length: pointCount }, (_, i) =>
+      L + (i * (W - L - R)) / Math.max(1, pointCount - 1));
     const Y = (v) => T + (1 - v / 100) * (H - T - B);
     let out = "";
     for (let g = 0; g <= 4; g++) {
@@ -1586,25 +1981,25 @@
       out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#cfc6b2" stroke-width="1"/>
               <text x="${L - 8}" y="${y + 4}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353" text-anchor="end">${g * 25}</text>`;
     }
-    ["openings", "after cross-exam", "final"].forEach((lb, i) => {
+    Array.from({ length: pointCount }, (_, i) => i === 0 ? "opening" : i === pointCount - 1 ? "final" : `round ${i + 1}`).forEach((lb, i) => {
       out += `<text x="${xs[i]}" y="${H - 8}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353" text-anchor="middle">${lb}</text>`;
     });
     // nudge end labels apart when final confidences are close
-    const ends = S.agents.map((a) => ({ a, y: Y(cbr[a.id][2]) }))
+    const ends = S.agents.map((a) => ({ a, y: Y(cbr[a.id].at(-1)) }))
       .sort((p, q) => p.y - q.y);
     for (let i = 1; i < ends.length; i++)
       if (ends[i].y - ends[i - 1].y < 17) ends[i].y = ends[i - 1].y + 17;
     const labelY = Object.fromEntries(ends.map((e) => [e.a.id, e.y]));
-    for (const a of S.agents) {
-      const c = COLORS[a.color];
+    for (const [agentIndex, a] of S.agents.entries()) {
+      const c = agentColor(a.color, agentIndex);
       const pts = cbr[a.id].map((v, i) => `${xs[i]},${Y(v)}`).join(" ");
       out += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.4"/>`;
       cbr[a.id].forEach((v, i) => {
         out += `<circle cx="${xs[i]}" cy="${Y(v)}" r="3.6" fill="${c}"/>`;
       });
-      out += `<text x="${W - R + 8}" y="${labelY[a.id] + 4}" font-size="12" font-family="Pixelify Sans, sans-serif" font-weight="bold" fill="${c}">${a.role.replace("The ", "")} · ${cbr[a.id][2]}%</text>`;
+      out += `<text x="${W - R + 8}" y="${labelY[a.id] + 4}" font-size="12" font-family="Pixelify Sans, sans-serif" font-weight="bold" fill="${c}">${escapeHTML(a.role.replace("The ", ""))} · ${cbr[a.id].at(-1)}%</text>`;
     }
-    out += `<text x="${L}" y="${14}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353">self-confidence per round — converging lines mean a trustworthy verdict</text>`;
+    out += `<text x="${L}" y="${14}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353">P(yes) per round — spread change calibrates certainty, not direction</text>`;
     svg.innerHTML = out;
   }
 
@@ -1902,6 +2297,231 @@
   }
 
   /* ---------------- sessions ---------------- */
+  const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  const isText = (value) => typeof value === "string" && value.trim().length > 0;
+  const isProbability = (value) => Number.isFinite(value) && value >= 0 && value <= 100;
+  const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  const RESERVED_AGENT_IDS = new Set(["mod", "scout", "steno", "book", "intern"]);
+  const SESSION_CAPS = Object.freeze({ rounds: 12, events: 400, sources: 100, text: 4000, voteEnum: 32, confidencePoints: 13 });
+
+  function enforceSessionCaps(session) {
+    if (!Array.isArray(session.rounds)) return;
+    if (session.rounds.length > SESSION_CAPS.rounds)
+      throw new Error(`rounds exceeds cap of ${SESSION_CAPS.rounds}`);
+    let eventCount = 0;
+    for (const round of session.rounds) {
+      if (!isObject(round) || !Array.isArray(round.events)) continue;
+      eventCount += round.events.length;
+      if (eventCount > SESSION_CAPS.events)
+        throw new Error(`events exceeds cap of ${SESSION_CAPS.events}`);
+    }
+    let sourceCount = 0;
+    for (const round of session.rounds) {
+      if (!isObject(round) || !Array.isArray(round.events)) continue;
+      for (const event of round.events) {
+        if (!isObject(event) || !Array.isArray(event.sources)) continue;
+        sourceCount += event.sources.length;
+        if (sourceCount > SESSION_CAPS.sources)
+          throw new Error(`sources exceeds cap of ${SESSION_CAPS.sources}`);
+      }
+    }
+  }
+
+  function validateSession(session, options = {}) {
+    const errors = [];
+    const issue = (path, message) => errors.push(path + " " + message);
+    if (!isObject(session)) throw new Error("root must be a JSON object");
+    enforceSessionCaps(session);
+    const checkTextCap = (path, value) => {
+      if (typeof value === "string" && value.length > SESSION_CAPS.text)
+        issue(path, `exceeds text field cap of ${SESSION_CAPS.text} characters`);
+    };
+    const invalidVote = (path, value) => {
+      if (options.fixture) {
+        console.warn(`[oracle] ${path} is not an exact vote value; using abstain.`);
+        return "abstain";
+      }
+      issue(path, "must exactly match yes, no, abstain, or a declared vote_enum value");
+      return value;
+    };
+    if (!isText(session.question)) issue("question", "must be a non-empty string");
+    checkTextCap("question", session.question);
+    checkTextCap("recorded", session.recorded);
+    checkTextCap("topic_tag", session.topic_tag);
+
+    const ids = new Set();
+    if (!Array.isArray(session.agents) || session.agents.length < 2 || session.agents.length > 8) {
+      issue("agents", "must contain 2–8 agents");
+    } else {
+      session.agents.forEach((agent, index) => {
+        const path = `agents[${index}]`;
+        if (!isObject(agent)) { issue(path, "must be an object"); return; }
+        if (!isText(agent.id) || !/^[a-z][a-z0-9_-]{0,31}$/.test(agent.id)) issue(path + ".id", "must use lowercase letters, numbers, _ or -");
+        else if (RESERVED_AGENT_IDS.has(agent.id)) issue(path + ".id", "is reserved by the playback UI");
+        else if (ids.has(agent.id)) issue(path + ".id", "must be unique");
+        else ids.add(agent.id);
+        if (!isText(agent.name)) issue(path + ".name", "must be a non-empty string");
+        if (!isText(agent.role)) issue(path + ".role", "must be a non-empty string");
+        checkTextCap(path + ".name", agent.name);
+        checkTextCap(path + ".role", agent.role);
+        checkTextCap(path + ".color", agent.color);
+        agent.color = agentColor(agent.color, index);
+      });
+    }
+
+    const voteEnum = Object.create(null);
+    if (session.vote_enum !== undefined) {
+      if (!isObject(session.vote_enum)) issue("vote_enum", "must be an object");
+      else {
+        const entries = Object.entries(session.vote_enum);
+        if (entries.length > SESSION_CAPS.voteEnum)
+          issue("vote_enum", `exceeds cap of ${SESSION_CAPS.voteEnum} values`);
+        else for (const [label, sideValue] of entries) {
+          const normalizedLabel = normalizedVote(label);
+          const side = normalizedVote(sideValue);
+          checkTextCap(`vote_enum.${label}`, label);
+          checkTextCap(`vote_enum.${label}`, sideValue);
+          if (!normalizedLabel) issue("vote_enum", "labels must not be empty");
+          else if (hasOwn(voteEnum, normalizedLabel)) issue(`vote_enum.${label}`, "duplicates another normalized value");
+          else if (!CANONICAL_VOTES.has(side)) issue(`vote_enum.${label}`, "must map to yes, no, or abstain");
+          else voteEnum[normalizedLabel] = side;
+        }
+      }
+    }
+    session.vote_enum = voteEnum;
+
+    if (!Array.isArray(session.rounds) || !session.rounds.length) {
+      issue("rounds", "must contain at least one round");
+    } else {
+      session.rounds.forEach((round, roundIndex) => {
+        const path = `rounds[${roundIndex}]`;
+        if (!isObject(round)) { issue(path, "must be an object"); return; }
+        if (!isText(round.phase)) issue(path + ".phase", "must be a non-empty string");
+        checkTextCap(path + ".phase", round.phase);
+        if (!Array.isArray(round.events) || !round.events.length) {
+          issue(path + ".events", "must contain at least one event");
+          return;
+        }
+        round.events.forEach((event, eventIndex) => {
+          const eventPath = `${path}.events[${eventIndex}]`;
+          if (!isObject(event)) { issue(eventPath, "must be an object"); return; }
+          if (!isText(event.agent) || (!ids.has(event.agent) && !["scout", "mod"].includes(event.agent))) issue(eventPath + ".agent", "must reference an agent, scout, or mod");
+          if (!isText(event.text)) issue(eventPath + ".text", "must be a non-empty string");
+          checkTextCap(eventPath + ".text", event.text);
+          checkTextCap(eventPath + ".claim", event.claim);
+          if (event.claim !== undefined && typeof event.claim !== "string") issue(eventPath + ".claim", "must be a string");
+          if (event.target !== undefined && !ids.has(event.target)) issue(eventPath + ".target", "must reference an agent id");
+          if (event.think !== undefined && (!Number.isFinite(event.think) || event.think < 0)) issue(eventPath + ".think", "must be a non-negative number");
+          if (event.confidence !== undefined && !isProbability(event.confidence)) issue(eventPath + ".confidence", "must be between 0 and 100");
+          if (event.vote !== undefined) {
+            checkTextCap(eventPath + ".vote", event.vote);
+            if (!isText(event.vote) || !voteSide(event.vote, session)) event.vote = invalidVote(eventPath + ".vote", event.vote);
+          }
+          if (event.concession !== undefined && typeof event.concession !== "boolean") issue(eventPath + ".concession", "must be true or false");
+          if (event.sources !== undefined && !Array.isArray(event.sources)) {
+            issue(eventPath + ".sources", "must be an array");
+          } else if (Array.isArray(event.sources)) {
+            event.sources.forEach((source, sourceIndex) => {
+              const sourcePath = `${eventPath}.sources[${sourceIndex}]`;
+              if (typeof source === "string") {
+                if (!source.trim()) issue(sourcePath, "must not be empty");
+                checkTextCap(sourcePath, source);
+              } else if (isObject(source)) {
+                if (!isText(source.source)) issue(sourcePath + ".source", "must be a non-empty string");
+                checkTextCap(sourcePath + ".source", source.source);
+                for (const key of ["claim", "url", "excerpt", "date", "retrieval", "outcome", "fact_check"]) {
+                  if (source[key] !== undefined && typeof source[key] !== "string") issue(sourcePath + "." + key, "must be a string");
+                  checkTextCap(sourcePath + "." + key, source[key]);
+                }
+              } else issue(sourcePath, "must be a source string or record");
+            });
+          }
+        });
+      });
+    }
+
+    if (!isObject(session.moderator)) issue("moderator", "must be an object");
+    else {
+      if (!isText(session.moderator.text)) issue("moderator.text", "must be a non-empty string");
+      if (session.moderator.name !== undefined && !isText(session.moderator.name)) issue("moderator.name", "must be a string");
+      checkTextCap("moderator.text", session.moderator.text);
+      checkTextCap("moderator.name", session.moderator.name);
+      if (session.moderator.think !== undefined && (!Number.isFinite(session.moderator.think) || session.moderator.think < 0)) issue("moderator.think", "must be a non-negative number");
+    }
+
+    if (!isObject(session.result)) issue("result", "must be an object");
+    else {
+      if (!isText(session.result.answer)) issue("result.answer", "must be a non-empty string");
+      if (session.result.dissent !== undefined && typeof session.result.dissent !== "string") issue("result.dissent", "must be a string");
+      checkTextCap("result.answer", session.result.answer);
+      checkTextCap("result.dissent", session.result.dissent);
+      checkTextCap("result.consensus", session.result.consensus);
+      const rosterMap = (value, path) => {
+        const clean = Object.create(null);
+        if (!isObject(value)) { issue(path, "must be an object"); return clean; }
+        for (const key of Object.keys(value))
+          if (!ids.has(key)) issue(`${path}.${key}`, "is not in the declared agent roster");
+        for (const id of ids) {
+          if (!hasOwn(value, id)) issue(`${path}.${id}`, "is required for every declared agent");
+          else clean[id] = value[id];
+        }
+        return clean;
+      };
+      session.result.votes = rosterMap(session.result.votes, "result.votes");
+      session.result.confidence_by_round = rosterMap(session.result.confidence_by_round, "result.confidence_by_round");
+      let pointCount = null;
+      for (const id of ids) {
+        const votePath = `result.votes.${id}`;
+        const vote = session.result.votes[id];
+        checkTextCap(votePath, vote);
+        if (!isText(vote) || !voteSide(vote, session)) session.result.votes[id] = invalidVote(votePath, vote);
+        const values = session.result.confidence_by_round[id];
+        if (!Array.isArray(values) || values.length < 2) issue(`result.confidence_by_round.${id}`, "must contain at least two probabilities");
+        else if (values.length > SESSION_CAPS.confidencePoints) issue(`result.confidence_by_round.${id}`, `exceeds cap of ${SESSION_CAPS.confidencePoints} points`);
+        else {
+          if (pointCount === null) pointCount = values.length;
+          else if (values.length !== pointCount) issue(`result.confidence_by_round.${id}`, "must match the other series lengths");
+          values.forEach((value, index) => {
+            if (!isProbability(value)) issue(`result.confidence_by_round.${id}[${index}]`, "must be between 0 and 100");
+          });
+        }
+      }
+    }
+
+    if (errors.length) {
+      const shown = errors.slice(0, 5).join(" · ");
+      const remainder = errors.length > 5 ? ` · +${errors.length - 5} more` : "";
+      throw new Error(shown + remainder);
+    }
+    return session;
+  }
+
+  function setSessionInputState(message, tone = "warn") {
+    const state = $("session-input-state");
+    state.className = "pstrip " + tone;
+    state.textContent = message;
+    $("session-input-lamp").className = "pwin-lamp" + (tone === "ok" ? " on" : tone === "err" ? " err" : " warn");
+  }
+
+  function sessionKeyFromHash() {
+    return new URLSearchParams(window.location.hash.slice(1)).get("session") || "";
+  }
+
+  function writeSessionHash(key, replace = false) {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    params.set("session", key);
+    const next = "#" + params.toString();
+    if (next === window.location.hash) return;
+    history[replace ? "replaceState" : "pushState"](null, "", next);
+  }
+
+  function updateSessionRef(ref) {
+    currentSession = ref;
+    const chip = $("session-ref");
+    chip.className = "pchip session-ref " + (ref.kind === "import" ? "warn" : "acc");
+    chip.textContent = "session: #" + ref.key;
+  }
+
   function setControlsEnabled(enabled) {
     $("play").disabled = !enabled;
     $("restart").disabled = !enabled;
@@ -1917,6 +2537,121 @@
     });
   }
 
+  function ensureImportedPicker(session, fileName) {
+    let button = $("picker").querySelector('[data-f="imported"]');
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "sess pbtn";
+      button.dataset.f = "imported";
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => {
+        if (importedSession) activateImportedSession(importedSession, importedFileName);
+        else setSessionInputState("empty · imported session is no longer in memory; choose the JSON file again", "warn");
+      });
+      $("picker").appendChild(button);
+    }
+    const meta = document.createElement("small");
+    meta.textContent = (fileName || "local JSON") + " · imported session";
+    button.replaceChildren(document.createTextNode(session.question), meta);
+  }
+
+  async function activateImportedSession(session, fileName, options = {}) {
+    const loadGen = ++gen;
+    if (loadController) loadController.abort();
+    loadController = null;
+    teardownPlayback();
+    S = null;
+    SCORE = null;
+    steps = [];
+    setControlsEnabled(false);
+    selectSession("imported");
+    updateSessionRef({ kind: "import", key: "imported" });
+    if (options.writeHash !== false) writeSessionHash("imported");
+    renderLoadState("Loading imported session…");
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    if (loadGen !== gen) return;
+    try {
+      S = session;
+      SCORE = computeVerdict(S);
+      renderShell();
+      buildSteps();
+      setControlsEnabled(true);
+      setSessionInputState("loaded · " + fileName + " · local session", "ok");
+      play();
+    } catch (error) {
+      S = null;
+      SCORE = null;
+      steps = [];
+      setControlsEnabled(false);
+      renderLoadState("Imported session unavailable", null, "error");
+      setSessionInputState("error · imported session could not start · " + error.message, "err");
+    }
+  }
+
+  async function readImportedFile(file) {
+    if (!file) {
+      setSessionInputState("empty · no imported file selected", "warn");
+      return;
+    }
+    if (file.size === 0) {
+      setSessionInputState("empty · " + file.name + " contains no data", "warn");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setSessionInputState("error · JSON file exceeds the 2 MB limit", "err");
+      return;
+    }
+    setSessionInputState("loading · reading " + file.name, "warn");
+    try {
+      const text = await file.text();
+      let parsed;
+      try { parsed = JSON.parse(text); }
+      catch (error) { throw new Error("invalid JSON · " + error.message); }
+      const session = normalizeSessionEvidence(validateSession(parsed));
+      computeVerdict(session);
+      importedSession = session;
+      importedFileName = file.name;
+      ensureImportedPicker(session, file.name);
+      await activateImportedSession(session, file.name);
+    } catch (error) {
+      setSessionInputState("error · " + error.message, "err");
+    } finally {
+      $("session-import").value = "";
+    }
+  }
+
+  async function copySessionLink() {
+    if (!currentSession) {
+      setSessionInputState("empty · no session is loaded", "warn");
+      return;
+    }
+    if (currentSession.kind === "import") {
+      setSessionInputState("error · imported JSON is local; share the JSON file, not the #imported hash", "err");
+      return;
+    }
+    setSessionInputState("loading · copying session link", "warn");
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(window.location.href);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = window.location.href;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.left = "-10000px";
+        document.body.appendChild(field);
+        field.select();
+        const copied = document.execCommand("copy");
+        field.remove();
+        if (!copied) throw new Error("clipboard permission denied");
+      }
+      setSessionInputState("copied · " + window.location.hash, "ok");
+    } catch (error) {
+      setSessionInputState("error · could not copy link · " + error.message, "err");
+    }
+  }
+
   function makeLoadingAgent() {
     const agent = document.createElement("div");
     agent.className = "agent loading-agent";
@@ -1928,15 +2663,19 @@
     return agent;
   }
 
-  function renderLoadState(message, retryFile) {
+  function renderLoadState(message, retryFile, kind = retryFile ? "error" : "loading") {
+    const isError = kind === "error";
     const windowEl = document.querySelector(".debate-window");
-    if (windowEl) { windowEl.classList.add("is-loading"); windowEl.setAttribute("aria-busy", "true"); }
+    if (windowEl) {
+      windowEl.classList.toggle("is-loading", !isError);
+      windowEl.setAttribute("aria-busy", String(!isError));
+    }
     setPlayButton("play");
-    setPlaybackState(retryFile ? "unavailable" : "loading", retryFile ? "err" : "warn");
+    setPlaybackState(isError ? "unavailable" : "loading", isError ? "err" : "warn");
     $("q").textContent = message;
     $("rail").replaceChildren();
-    $("council").replaceChildren(...Array.from({ length: 4 }, makeLoadingAgent));
-    $("modrow").replaceChildren(...Array.from({ length: 2 }, makeLoadingAgent));
+    $("council").replaceChildren(...(isError ? [] : Array.from({ length: 4 }, makeLoadingAgent)));
+    $("modrow").replaceChildren(...(isError ? [] : Array.from({ length: 2 }, makeLoadingAgent)));
     $("backoffice").replaceChildren();
     $("intern-sprite").replaceChildren();
     $("verdict").classList.remove("show");
@@ -1944,9 +2683,9 @@
     $("verdict").style.display = "none";
     $("feed").replaceChildren();
     const state = document.createElement("div");
-    state.className = "load-state";
-    state.setAttribute("role", retryFile ? "alert" : "status");
-    state.textContent = retryFile ? "That replay could not be loaded." : "Loading replay…";
+    state.className = "load-state pstrip " + (isError ? "err" : "warn");
+    state.setAttribute("role", isError ? "alert" : "status");
+    state.textContent = retryFile ? "That replay could not be loaded." : message;
     if (retryFile) {
       const retry = document.createElement("button");
       retry.type = "button";
@@ -1960,12 +2699,21 @@
     tickClock(0);
   }
 
-  async function loadSession(file) {
+  async function loadSession(file, options = {}) {
+    const key = file.replace(/\.json$/i, "");
+    if (SESSION_BY_KEY.get(key) !== file) {
+      setSessionInputState("error · unknown fixture #" + key, "err");
+      return;
+    }
+    updateSessionRef({ kind: "fixture", key, file });
+    if (options.writeHash !== false) writeSessionHash(key, options.replaceHash === true);
+    if (options.announce !== false) setSessionInputState("loading · fixture #" + key, "warn");
     const loadGen = ++gen;
     if (loadController) loadController.abort();
     loadController = new AbortController();
     teardownPlayback();
     S = null;
+    SCORE = null;
     steps = [];
     setControlsEnabled(false);
     selectSession(file);
@@ -1973,21 +2721,25 @@
     try {
       const response = await fetch("sessions/" + file, { signal: loadController.signal });
       if (!response.ok) throw new Error("Session request failed with " + response.status);
-      const session = await response.json();
+      const session = normalizeSessionEvidence(validateSession(await response.json(), { fixture: true }));
       if (loadGen !== gen) return;
       loadController = null;
       S = session;
+      SCORE = computeVerdict(S);
       renderShell();
       buildSteps();
       setControlsEnabled(true);
+      if (options.announce !== false) setSessionInputState("ready · fixture #" + key + " · shareable hash", "ok");
       play();
     } catch (error) {
       if (loadGen !== gen || error.name === "AbortError") return;
       loadController = null;
       S = null;
+      SCORE = null;
       steps = [];
       setControlsEnabled(false);
       renderLoadState("Replay unavailable", file);
+      setSessionInputState("error · fixture #" + key + " could not load · " + error.message, "err");
     }
   }
 
@@ -1999,8 +2751,45 @@
     b.addEventListener("click", () => loadSession(file));
     $("picker").appendChild(b);
   }
+
+  $("import-open").addEventListener("click", () => {
+    $("session-import").value = "";
+    $("session-import").click();
+  });
+  $("session-import").addEventListener("change", (event) => readImportedFile(event.target.files[0]));
+  $("share-link").addEventListener("click", copySessionLink);
+
+  function handleSessionNavigation() {
+    const key = sessionKeyFromHash();
+    if (!key || key === currentSession?.key) return;
+    if (SESSION_BY_KEY.has(key)) {
+      loadSession(SESSION_BY_KEY.get(key), { writeHash: false });
+    } else if (key === "imported" && importedSession) {
+      activateImportedSession(importedSession, importedFileName, { writeHash: false });
+    } else {
+      const chip = $("session-ref");
+      chip.className = "pchip err session-ref";
+      chip.textContent = "session: invalid #" + key;
+      setSessionInputState(key === "imported"
+        ? "empty · #imported contains no session data; choose the JSON file again"
+        : "error · unknown session hash #" + key, key === "imported" ? "warn" : "err");
+    }
+  }
+
+  window.addEventListener("hashchange", handleSessionNavigation);
+  window.addEventListener("popstate", handleSessionNavigation);
   setControlsEnabled(false);
-  loadSession(SESSIONS[0][0]);
+  const initialKey = sessionKeyFromHash();
+  if (SESSION_BY_KEY.has(initialKey)) {
+    loadSession(SESSION_BY_KEY.get(initialKey), { writeHash: false, announce: false });
+  } else {
+    if (initialKey) setSessionInputState(initialKey === "imported"
+      ? "empty · #imported contains no session data; choose the JSON file again"
+      : "error · unknown session hash #" + initialKey + " · loaded default", initialKey === "imported" ? "warn" : "err");
+    const fallbackKey = SESSIONS[0][0].replace(/\.json$/i, "");
+    writeSessionHash(fallbackKey, true);
+    loadSession(SESSIONS[0][0], { writeHash: false, announce: false });
+  }
 </script>
 </body>
 </html>

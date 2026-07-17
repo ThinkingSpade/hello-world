@@ -55,6 +55,75 @@
   }
   .honesty b { color: var(--pi-ink); }
 
+  .control-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 10px;
+    border: 2px solid var(--pi-ink);
+    background: var(--pi-panel);
+    box-shadow: var(--pi-shadow-s);
+  }
+  .control-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .control-actions .pbtn,
+  .wire-refresh,
+  .watch-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+  }
+  .control-actions .pbtn[aria-busy="true"] .pi-ic,
+  .wire.wait .wire-refresh .pi-ic { animation: wire-handshake .8s steps(2, end) infinite; }
+  .watchlist { flex: 1 1 460px; min-width: 0; border: 0; }
+  .watchlist > summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 7px 10px;
+    border: 1.5px solid var(--pi-ink);
+    background: var(--pi-paper);
+    color: var(--pi-ink);
+    font: 700 13px/1.4 var(--pi-font-ui);
+    cursor: pointer;
+  }
+  .watchlist[open] > summary { background: var(--pi-accent-soft); }
+  .watch-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border: 1.5px solid var(--pi-ink);
+    border-top: 0;
+    background: var(--pi-paper);
+  }
+  .watch-body fieldset { min-width: 0; padding: 8px; border: 1px solid var(--pi-line); }
+  .watch-body legend { padding: 0 4px; color: var(--pi-muted); font: 700 11px/1.4 var(--pi-font-code); text-transform: uppercase; }
+  .watch-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .watch-toggle { position: relative; display: inline-flex; }
+  .watch-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .watch-toggle span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 5px 8px;
+    border: 1.5px solid var(--pi-ink);
+    background: var(--pi-panel);
+    color: var(--pi-muted);
+    font: 700 12px/1.2 var(--pi-font-ui);
+    cursor: pointer;
+  }
+  .watch-toggle input:checked + span { background: var(--pi-accent); color: #fff; }
+  .watch-toggle input:focus-visible + span { outline: 2px solid var(--pi-accent); outline-offset: 2px; }
+  .watch-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .watch-state { color: var(--pi-muted); font: 12px/1.45 var(--pi-font-code); }
+  .watch-state.error { color: var(--pi-err); }
+
   .desk-top {
     display: grid;
     grid-template-columns: 224px minmax(0, 1fr);
@@ -76,7 +145,7 @@
   }
   .wire {
     display: grid;
-    grid-template-columns: 16px 1fr;
+    grid-template-columns: 16px minmax(0, 1fr) 38px;
     align-content: center;
     gap: 2px 8px;
     min-height: 52px;
@@ -89,9 +158,14 @@
   }
   .wire b { color: var(--pi-ink); font: 13px/1.25 var(--pi-font-ui); }
   .wire .wire-ic { grid-row: 1 / span 2; align-self: center; color: var(--pi-muted); }
+  .wire > span { min-width: 0; overflow-wrap: anywhere; }
+  .wire-refresh { grid-column: 3; grid-row: 1 / span 2; min-width: 36px; min-height: 36px; padding: 6px; align-self: center; }
   .wire.up .wire-ic { color: var(--pi-ok); }
   .wire.down .wire-ic { color: var(--pi-err); }
-  .wire.wait .wire-ic { color: var(--pi-warn); animation: wire-handshake .8s steps(2, end) infinite; }
+  .wire.wait .wire-ic,
+  .wire.stale .wire-ic,
+  .wire.partial .wire-ic { color: var(--pi-warn); }
+  .wire.wait > .wire-ic { animation: wire-handshake .8s steps(2, end) infinite; }
   @keyframes wire-handshake { 50% { transform: translateX(3px); } }
 
   .card {
@@ -306,9 +380,27 @@
   @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   @keyframes caret { 50% { opacity: 0; } }
   #brief { color: var(--pi-ink); font: 14px/1.65 var(--pi-font-body); }
-  #brief .bline { margin-bottom: 10px; padding-left: 18px; text-indent: -18px; }
-  #brief .bline:before { content: "▸ "; color: var(--pi-accent); }
+  #brief .bline { margin-bottom: 12px; }
+  #brief .bline-text { padding-left: 18px; text-indent: -18px; }
+  #brief .bline-text:before { content: "▸ "; color: var(--pi-accent); }
   #brief .caret2 { display: inline-block; width: .5em; height: .95em; vertical-align: -2px; background: var(--pi-accent); animation: caret .8s steps(2, end) infinite; }
+  .brief-receipt { margin: 6px 0 0 18px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+  .brief-receipt > summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 5px 8px;
+    color: var(--pi-accent);
+    font: 700 11px/1.4 var(--pi-font-code);
+    cursor: pointer;
+  }
+  .receipt-body { display: grid; gap: 8px; padding: 0 8px 8px; }
+  .receipt-entry { padding-top: 8px; border-top: 1px solid var(--pi-line); }
+  .receipt-entry dl { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 4px 8px; }
+  .receipt-entry dt { color: var(--pi-muted); font: 11px/1.45 var(--pi-font-code); text-transform: uppercase; }
+  .receipt-entry dd { min-width: 0; color: var(--pi-ink); font: 12px/1.5 var(--pi-font-code); overflow-wrap: anywhere; }
+  .receipt-entry a { color: var(--pi-accent); }
   .receipts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .receipts a,
   .receipts time {
@@ -341,6 +433,22 @@
   }
   .feed-err b { color: var(--pi-err); }
   .feed-err button { margin-top: 8px; color: var(--pi-err); border-color: var(--pi-err); }
+  .feed-note,
+  .empty-state,
+  .stale-banner {
+    padding: 8px 10px;
+    border: 1.5px solid var(--pi-line);
+    background: var(--pi-paper);
+    color: var(--pi-muted);
+    font: 12px/1.5 var(--pi-font-code);
+  }
+  .stale-banner { border-color: var(--pi-warn); background: var(--pi-warn-soft); color: var(--pi-ink); }
+  .stale-banner .pbtn { margin-top: 6px; }
+  .stale-badge { display: inline-flex; margin-right: 6px; border-color: var(--pi-warn); background: var(--pi-warn-soft); color: var(--pi-ink); }
+  .fxgrid > .stale-banner,
+  .wbgrid > .stale-banner,
+  .wbgrid > .feed-note,
+  .wbgrid > .empty-state { grid-column: 1 / -1; }
   .skel { color: var(--pi-muted); font: 13px/1.5 var(--pi-font-code); }
   footer { margin-top: 28px; color: var(--pi-muted); font: 12px/1.6 var(--pi-font-body); text-align: center; }
   a { color: var(--pi-accent); }
@@ -357,7 +465,7 @@
   .cursor svg { display: block; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.28)); }
   .cursor.down svg { transform: scale(.82); }
   body.cursor-on { cursor: none; }
-  body.cursor-on :is(a, button, summary, svg[tabindex]) { cursor: none; }
+  body.cursor-on :is(a, button, summary, label, input, svg[tabindex]) { cursor: none; }
 
   @media (max-width: 760px) {
     body { padding: 16px 10px 36px; }
@@ -375,10 +483,14 @@
     .agent .ava { grid-row: 1 / span 4; width: 72px; height: 64px; margin: 0; }
     .fxtile,
     .fxtile:nth-child(-n+2) { grid-column: span 6; }
+    .watch-body { grid-template-columns: 1fr; }
   }
   @media (max-width: 520px) {
     .honesty { font-size: 12px; }
     .wires { grid-template-columns: 1fr; }
+    .control-bar { padding: 8px; }
+    .control-actions { width: 100%; }
+    .control-actions .pbtn { flex: 1; }
     .evidence { padding: 8px; gap: 12px; }
     .card { padding: 0 10px 12px; }
     .card h2,
@@ -404,15 +516,27 @@
   <header>
     <h1>PULSE<span class="dot">_</span></h1>
     <p class="tagline">the morning brief that writes itself — live numbers, narrated on the spot</p>
-    <span class="honesty pstrip"><b>everything on this page is fetched by your browser, right now,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between, no key, no cached copy: if a wire is down you'll see it down, and the numbers are whatever the world says they are at <b id="opened-at">—</b>.</span>
+    <span class="honesty pstrip"><b>live first, source by source,</b> straight from free public feeds — ECB reference rates via Frankfurter, the US Treasury's Debt to the Penny ledger, World Bank Open Data. No server in between and no key. A failed wire falls back only to its last good browser snapshot, marked stale. Opened <b id="opened-at">—</b>.</span>
   </header>
 
+  <div class="control-bar pwin" aria-label="Pulse controls">
+    <div class="control-actions">
+      <button class="pbtn" id="refresh-all" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg><span>refresh all wires</span></button>
+      <span class="pchip" id="refresh-state" role="status" aria-live="polite">initial load</span>
+      <span class="pchip"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>auto · FX 15m · debt 60m · WB 6h</span>
+    </div>
+    <details class="watchlist" id="watchlist">
+      <summary class="pstrip"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-eye"/></svg><span id="watch-summary">watchlist</span></summary>
+      <div class="watch-body" id="watch-body"><p class="skel">loading watchlist…</p></div>
+    </details>
+  </div>
+
   <div class="desk-top">
-    <div class="wires pwin" id="wires" role="status" aria-label="Source status" aria-live="polite" aria-atomic="true" aria-busy="true"></div>
+    <div class="wires pwin" id="wires" role="group" aria-label="Source status and refresh controls" aria-live="polite" aria-atomic="true" aria-busy="true"></div>
 
     <div class="card brief-card pwin">
       <h2><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>The brief</h2>
-      <div class="src">composed in your browser from the numbers above — templates plus arithmetic, no model, no tokens, every claim traceable to a wire</div>
+      <div class="src">ranked in your browser from observation deltas and materiality thresholds — no model, no tokens, every sentence carries its own receipt</div>
       <div class="briefrow">
         <div class="agent" id="ag-an">
           <div class="ava" id="av-an"></div>
@@ -535,13 +659,28 @@
   if (FINE_POINTER && !REDUCED) initPixelCursor();
 
   // One interface hue; labels and dash patterns identify currency series.
-  const FXC = { EUR: "#2547c9", GBP: "#2547c9", JPY: "#2547c9", MXN: "#2547c9", CNY: "#2547c9", CAD: "#2547c9" };
-  const FXD = { EUR: "", GBP: "8 4", JPY: "2 3", MXN: "10 3 2 3", CNY: "5 3", CAD: "1 3" };
-  const CHART_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY"];       // 5 series max on one chart
-  const ALL_SYMS = ["EUR", "GBP", "JPY", "MXN", "CNY", "CAD"];
-  const PER = { EUR: "€ per $", GBP: "£ per $", JPY: "¥ per $", MXN: "MX$ per $", CNY: "¥ per $", CAD: "C$ per $" };
+  const FX_OPTIONS = ["EUR", "GBP", "JPY", "MXN", "CNY", "CAD", "CHF", "AUD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "INR", "BRL", "ZAR", "KRW", "SGD"];
+  const WB_OPTIONS = [
+    ["USA", "United States"], ["CHN", "China"], ["DEU", "Germany"], ["WLD", "World"],
+    ["GBR", "United Kingdom"], ["JPN", "Japan"], ["IND", "India"], ["BRA", "Brazil"],
+    ["CAN", "Canada"], ["MEX", "Mexico"], ["FRA", "France"], ["ITA", "Italy"],
+  ];
+  const DEFAULT_FX = ["EUR", "GBP", "JPY", "MXN", "CNY", "CAD"];
+  const DEFAULT_WB = ["USA", "CHN", "DEU", "WLD"];
+  const WB_NAMES = Object.fromEntries(WB_OPTIONS);
+  const DASHES = ["", "8 4", "2 3", "10 3 2 3", "5 3", "1 3"];
+  const FXC = Object.fromEntries(FX_OPTIONS.map(s => [s, "#2547c9"]));
+  const FXD = Object.fromEntries(FX_OPTIONS.map((s, i) => [s, DASHES[i % DASHES.length]]));
+  const PER = { EUR: "€ per $", GBP: "£ per $", JPY: "¥ per $", MXN: "MX$ per $", CNY: "¥ per $", CAD: "C$ per $", CHF: "CHF per $", AUD: "A$ per $", NZD: "NZ$ per $" };
+  const SNAPSHOT_KEY = "pulse.observations.v2";
+  const CACHE_KEY = "pulse.last-good.v2";
+  const ALLOWED_RANGES = [30, 90, 365];
 
-  const state = { fx: null, debt: null, gdp: null, cpi: null, pop: null, fxDays: 90 };
+  const state = {
+    fx: null, debt: null, gdp: null, cpi: null, pop: null, fxDays: 90,
+    watch: { fx: [...DEFAULT_FX], wb: [...DEFAULT_WB] }, meta: {},
+    configError: "", storageError: "",
+  };
   const WIRES = [
     ["fx", "Frankfurter · ECB rates"],
     ["debt", "US Treasury · Fiscal Data"],
@@ -551,30 +690,191 @@
   $("opened-at").textContent = new Date().toLocaleString(undefined,
     { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[ch]);
+
+  function readStore(key, fallback) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key));
+      return value && typeof value === "object" ? value : fallback;
+    } catch (error) {
+      state.storageError = `browser storage unavailable: ${error.message}`;
+      return fallback;
+    }
+  }
+  function writeStore(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      state.storageError = `browser storage unavailable: ${error.message}`;
+      renderWatchlist();
+      return false;
+    }
+  }
+
+  const previousSnapshot = readStore(SNAPSHOT_KEY, null);
+  const visitSnapshot = { version: 2, checkedAt: new Date().toISOString(), observations: {} };
+  const lastGood = readStore(CACHE_KEY, { version: 2, wb: {} });
+  if (!lastGood.wb) lastGood.wb = {};
+
+  function saveObservation(key, observation) {
+    saveObservations({ [key]: observation });
+  }
+  function saveObservations(observations) {
+    visitSnapshot.checkedAt = new Date().toISOString();
+    Object.assign(visitSnapshot.observations, observations);
+    const prior = previousSnapshot?.version === 2 ? previousSnapshot.observations || {} : {};
+    writeStore(SNAPSHOT_KEY, {
+      version: 2,
+      checkedAt: visitSnapshot.checkedAt,
+      observations: { ...prior, ...visitSnapshot.observations },
+    });
+  }
+  function saveLastGood(key, record) {
+    if (key.startsWith("wb.")) lastGood.wb[key.slice(3)] = record;
+    else lastGood[key] = record;
+    lastGood.version = 2;
+    writeStore(CACHE_KEY, lastGood);
+  }
+
+  function ageLabel(timestamp) {
+    const ms = Math.max(0, Date.now() - new Date(timestamp).getTime());
+    if (!Number.isFinite(ms)) return "age unknown";
+    if (ms < 60000) return "under 1 min";
+    if (ms < 3600000) return `${Math.floor(ms / 60000)} min`;
+    if (ms < 86400000) return `${Math.floor(ms / 3600000)} hr`;
+    return `${Math.floor(ms / 86400000)} d`;
+  }
+  function staleBadge(meta) {
+    return `<span class="pchip stale-badge">STALE - ${esc(ageLabel(meta?.fetchedAt || meta?.savedAt))}</span>`;
+  }
+  function staleBanner(meta, note = "last good browser snapshot") {
+    return `<div class="stale-banner">${staleBadge(meta)} ${esc(note)} · fetched ${esc(new Date(meta?.fetchedAt || meta?.savedAt).toLocaleString())}</div>`;
+  }
+
+  function parseHashConfig() {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const invalid = [];
+    const parseList = (name, available, defaults) => {
+      if (!params.has(name)) return [...defaults];
+      const requested = params.get(name).split(",").filter(Boolean).map(x => x.toUpperCase());
+      const valid = requested.filter((x, i) => available.includes(x) && requested.indexOf(x) === i);
+      invalid.push(...requested.filter(x => !available.includes(x)));
+      return valid;
+    };
+    const days = +(params.get("days") || 90);
+    if (!ALLOWED_RANGES.includes(days)) invalid.push(`days=${params.get("days")}`);
+    return {
+      fx: parseList("fx", FX_OPTIONS, DEFAULT_FX),
+      wb: parseList("wb", WB_OPTIONS.map(([code]) => code), DEFAULT_WB),
+      days: ALLOWED_RANGES.includes(days) ? days : 90,
+      error: invalid.length ? `ignored unsupported selection: ${invalid.join(", ")}` : "",
+    };
+  }
+  function configHash(config = state) {
+    const params = new URLSearchParams();
+    params.set("fx", config.watch.fx.join(","));
+    params.set("wb", config.watch.wb.join(","));
+    params.set("days", String(config.fxDays));
+    return params.toString();
+  }
+  function setConfigHash(fx, wb, days = state.fxDays) {
+    const next = configHash({ watch: { fx, wb }, fxDays: days });
+    if (location.hash.slice(1) === next) applyHashConfig();
+    else location.hash = next;
+  }
+  function renderWatchlist() {
+    const body = $("watch-body");
+    if (!body) return;
+    const option = (group, code, label, checked) => `<label class="watch-toggle"><input type="checkbox" data-watch="${group}" value="${code}" ${checked ? "checked" : ""}><span class="pchip">${esc(label)}</span></label>`;
+    const busy = WIRES.some(([key]) => state["wire_" + key] === "wait");
+    const empty = !state.watch.fx.length || !state.watch.wb.length;
+    const error = state.configError || state.storageError;
+    $("watchlist").setAttribute("aria-busy", String(busy));
+    $("watch-summary").textContent = `watchlist · ${state.watch.fx.length} FX · ${state.watch.wb.length} economies`;
+    body.innerHTML = `<fieldset><legend>currencies per 1 USD</legend><div class="watch-options">${FX_OPTIONS.map(code => option("fx", code, code, state.watch.fx.includes(code))).join("")}</div></fieldset>
+      <fieldset><legend>World Bank economies</legend><div class="watch-options">${WB_OPTIONS.map(([code, name]) => option("wb", code, `${code} · ${name}`, state.watch.wb.includes(code))).join("")}</div></fieldset>
+      <div class="watch-foot"><span class="watch-state ${error ? "error" : ""}">${esc(error || (busy ? "loading selected feeds…" : empty ? "empty selections stay empty" : "selection is stored in the URL"))}</span>
+        <button class="pbtn watch-reset" type="button"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-rollback"/></svg>reset defaults</button></div>`;
+    body.querySelectorAll("[data-watch]").forEach(input => input.addEventListener("change", () => {
+      const fx = [...body.querySelectorAll('[data-watch="fx"]:checked')].map(x => x.value);
+      const wb = [...body.querySelectorAll('[data-watch="wb"]:checked')].map(x => x.value);
+      $("watch-summary").textContent = "watchlist · applying…";
+      setConfigHash(fx, wb);
+    }));
+    body.querySelector(".watch-reset").addEventListener("click", () => setConfigHash([...DEFAULT_FX], [...DEFAULT_WB], 90));
+  }
+
+  function applyHashConfig(initial = false) {
+    const next = parseHashConfig();
+    const fxChanged = next.days !== state.fxDays || next.fx.join(",") !== state.watch.fx.join(",");
+    const wbChanged = next.wb.join(",") !== state.watch.wb.join(",");
+    state.fxDays = next.days;
+    state.watch.fx = next.fx;
+    state.watch.wb = next.wb;
+    state.configError = next.error;
+    renderWatchlist();
+    renderRangeButtons();
+    if (!initial && fxChanged) loadFX();
+    if (!initial && wbChanged) loadWB();
+  }
+
+  const initialConfig = parseHashConfig();
+  state.fxDays = initialConfig.days;
+  state.watch.fx = initialConfig.fx;
+  state.watch.wb = initialConfig.wb;
+  state.configError = initialConfig.error;
+  if (!location.hash) history.replaceState(null, "", `${location.pathname}${location.search}#${configHash()}`);
+
   function wireStrip() {
     const wires = $("wires");
-    wires.setAttribute("aria-busy", "true");
+    const busy = WIRES.some(([k]) => state["wire_" + k] === "wait");
+    wires.setAttribute("aria-busy", String(busy));
     wires.innerHTML = WIRES.map(([k, label]) => {
       const st = state["wire_" + k] || "wait";
       const note = state["wirenote_" + k] || "dialing";
-      const icon = st === "up" ? "i-check" : st === "down" ? "i-x" : "i-hold";
-      return `<span class="wire pstrip ${st}" id="wire-${k}"><svg class="pi-ic wire-ic" aria-hidden="true"><use href="/shared/icons.svg#${icon}"/></svg><b>${label}</b><span>— ${note}</span></span>`;
+      const icon = st === "up" ? "i-check" : st === "down" ? "i-x" : st === "partial" || st === "stale" ? "i-alert" : "i-hold";
+      return `<span class="wire pstrip ${st}" id="wire-${k}"><svg class="pi-ic wire-ic" aria-hidden="true"><use href="/shared/icons.svg#${icon}"/></svg><b>${label}</b><span>— ${esc(note)}</span><button class="pbtn wire-refresh" type="button" data-refresh-wire="${k}" aria-label="Refresh ${esc(label)}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-restart"/></svg></button></span>`;
     }).join("");
-    wires.setAttribute("aria-busy", "false");
+    const settled = WIRES.filter(([k]) => ["up", "down", "stale", "partial", "empty"].includes(state["wire_" + k])).length;
+    $("refresh-all").setAttribute("aria-busy", String(busy));
+    $("refresh-state").textContent = busy ? `refreshing · ${settled}/3 settled` : `${settled}/3 settled`;
+    renderWatchlist();
   }
   function setWire(k, st, note) { state["wire_" + k] = st; state["wirenote_" + k] = note; wireStrip(); }
   wireStrip();
 
-  async function fetchJSON(url, timeoutMs = 12000) {
+  $("wires").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-refresh-wire]");
+    if (!button) return;
+    const loaders = { fx: loadFX, debt: loadDebt, wb: loadWB };
+    loaders[button.dataset.refreshWire]();
+  });
+
+  const requestControllers = new Map();
+  function beginRequest(key) {
+    requestControllers.get(key)?.abort();
+    const controller = new AbortController();
+    requestControllers.set(key, controller);
+    return controller;
+  }
+  async function fetchJSON(url, { timeoutMs = 12000, signal } = {}) {
     const ctl = new AbortController();
     const t0 = performance.now();
     const to = setTimeout(() => ctl.abort(), timeoutMs);
+    const cancel = () => ctl.abort();
+    signal?.addEventListener("abort", cancel, { once: true });
     try {
       const r = await fetch(url, { signal: ctl.signal });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const j = await r.json();
-      return { j, ms: Math.round(performance.now() - t0) };
-    } finally { clearTimeout(to); }
+      return { j, ms: Math.round(performance.now() - t0), fetchedAt: new Date().toISOString() };
+    } finally {
+      clearTimeout(to);
+      signal?.removeEventListener("abort", cancel);
+    }
   }
   const iso = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
   const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
@@ -596,46 +896,90 @@
     return new Date(target + target - easternAtTarget);
   };
 
-  function errBox(zone, host, retryFn) {
-    zone.innerHTML = `<div class="feed-err"><b>wire unreachable</b> — your browser
-      couldn't reach <b>${host}</b> just now (this page talks to the source directly;
-      there is no server in between to blame). <br>
+  function errBox(zone, host, retryFn, detail = "request failed") {
+    zone.innerHTML = `<div class="feed-err"><b>wire unreachable</b> — ${esc(host)} · ${esc(detail)}.<br>
       <button class="pbtn" type="button">try the wire again</button></div>`;
     zone.querySelector("button").addEventListener("click", retryFn);
   }
 
   /* ================= FX ================= */
-  let fxRequestId = 0;
   async function loadFX() {
-    const requestId = ++fxRequestId;
-    setWire("fx", "wait", "dialing");
+    const controller = beginRequest("fx");
+    const symbols = [...state.watch.fx];
     const zone = $("fx-chart-zone");
+    if (!symbols.length) {
+      state.fx = null;
+      state.meta.fx = { status: "empty", fetchedAt: new Date().toISOString(), url: "watchlist://fx" };
+      setWire("fx", "empty", "watchlist empty");
+      zone.innerHTML = '<div class="empty-state">no currencies selected · open the watchlist to add a series</div>';
+      $("fx-board").innerHTML = '<div class="empty-state">no currencies selected</div>';
+      $("fx-when").textContent = "not requested · watchlist empty";
+      renderBrief();
+      return;
+    }
+    setWire("fx", "wait", state.fx ? "refreshing" : "dialing");
+    if (!state.fx) {
+      zone.innerHTML = '<p class="skel">calling the FX wire…</p>';
+      $("fx-board").innerHTML = '<p class="skel">loading selected rates…</p>';
+    }
+    const url = `https://api.frankfurter.dev/v1/${iso(daysAgo(state.fxDays))}..?base=USD&symbols=${symbols.join(",")}`;
+    const attemptedAt = new Date().toISOString();
+    state.meta.fx = state.fx && state.meta.fx
+      ? { ...state.meta.fx, status: "loading", attemptedUrl: url, attemptedAt }
+      : { status: "loading", url, attemptedAt };
     try {
-      const url = `https://api.frankfurter.dev/v1/${iso(daysAgo(state.fxDays))}..?base=USD&symbols=${ALL_SYMS.join(",")}`;
-      const { j, ms } = await fetchJSON(url);
-      if (requestId !== fxRequestId) return;
+      const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
+      if (controller.signal.aborted) return;
       const dates = Object.keys(j.rates || {}).sort();
       if (dates.length < 2) throw new Error("empty series");
-      const entries = ALL_SYMS.map(s => [s, dates.map(d => j.rates[d]?.[s])])
+      const entries = symbols.map(s => [s, dates.map(d => j.rates[d]?.[s])])
         .filter(([, values]) => values.every(Number.isFinite));
       if (!entries.length) throw new Error("no complete series");
       state.fx = { dates, series: Object.fromEntries(entries), syms: entries.map(([s]) => s) };
-      setWire("fx", "up", `answered in ${ms} ms`);
-      $("fx-when").textContent = `fetched ${new Date().toLocaleTimeString()} · latest rate day ${dates[dates.length - 1]}`;
+      state.meta.fx = { status: "fresh", url, attemptedAt, fetchedAt, observationDate: dates[dates.length - 1], ms, stale: false };
+      const missing = symbols.filter(s => !state.fx.syms.includes(s));
+      setWire("fx", missing.length ? "partial" : "up", `${state.fx.syms.length}/${symbols.length} series · ${ms} ms${missing.length ? ` · missing ${missing.join(",")}` : ""}`);
+      $("fx-when").textContent = `fetched ${new Date(fetchedAt).toLocaleTimeString()} · latest rate day ${dates[dates.length - 1]}`;
+      saveLastGood("fx", { savedAt: fetchedAt, fetchedAt, url, data: state.fx, days: state.fxDays, symbols });
+      saveObservations(Object.fromEntries(state.fx.syms.map(symbol => {
+        const values = state.fx.series[symbol];
+        const value = values[values.length - 1];
+        return [`fx.${symbol}`, {
+          kind: "fx", label: symbol, value, observationDate: dates[dates.length - 1],
+          fetchedAt, url, raw: { symbol, units: `${symbol} per USD`, rate: value },
+          threshold: 0.15, importance: ["EUR", "JPY", "GBP"].includes(symbol) ? 1.35 : 1,
+        }];
+      })));
       renderFXChart(); renderFXBoard(); renderBrief();
     } catch (e) {
-      if (requestId !== fxRequestId) return;
-      setWire("fx", "down", "unreachable");
-      state.fx = null;
-      errBox(zone, "api.frankfurter.dev", loadFX);
-      $("fx-board").innerHTML = `<div class="feed-err"><b>FX wire down</b> — no rates to show, and none will be invented.</div>`;
+      if (controller.signal.aborted) return;
+      const cached = lastGood.fx;
+      const cachedSyms = cached?.data?.syms?.filter(s => symbols.includes(s)) || [];
+      if (cached && cachedSyms.length) {
+        state.fx = {
+          dates: cached.data.dates,
+          series: Object.fromEntries(cachedSyms.map(s => [s, cached.data.series[s]])),
+          syms: cachedSyms,
+        };
+        state.meta.fx = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message, cachedCount: cachedSyms.length, requestedCount: symbols.length };
+        setWire("fx", cachedSyms.length === symbols.length ? "stale" : "partial", `STALE - ${ageLabel(state.meta.fx.fetchedAt)} · ${cachedSyms.length}/${symbols.length} cached`);
+        $("fx-when").textContent = `STALE - ${ageLabel(state.meta.fx.fetchedAt)} · refresh failed ${new Date(attemptedAt).toLocaleTimeString()}`;
+        renderFXChart(); renderFXBoard();
+      } else {
+        state.fx = null;
+        state.meta.fx = { status: "error", stale: false, url, attemptedAt, error: e.message };
+        setWire("fx", "down", `unreachable · ${e.message}`);
+        errBox(zone, "api.frankfurter.dev", loadFX, e.message);
+        $("fx-board").innerHTML = `<div class="feed-err"><b>FX wire down</b> — no last-good rates match this watchlist.</div>`;
+        $("fx-when").textContent = `failed ${new Date(attemptedAt).toLocaleTimeString()} · ${e.message}`;
+      }
       renderBrief();
     }
   }
 
   function renderFXChart() {
     const { dates, series, syms } = state.fx;
-    const chartSyms = CHART_SYMS.filter(s => syms.includes(s));
+    const chartSyms = state.watch.fx.filter(s => syms.includes(s)).slice(0, 5);
     if (!chartSyms.length) chartSyms.push(...syms.slice(0, 5));
     const W = 940, H = 320, L = 46, R = 96, T = 16, B = 34;
     const idx = {};
@@ -691,9 +1035,9 @@
 
     const zone = $("fx-chart-zone");
     const tableStart = Math.max(0, dates.length - 10);
-    zone.innerHTML = `
+    zone.innerHTML = `${state.meta.fx?.stale ? staleBanner(state.meta.fx, `refresh failed · ${state.meta.fx.cachedCount}/${state.meta.fx.requestedCount} selected series cached · ${state.meta.fx.error}`) : ""}
       <div class="legend">${chartSyms.map(s => `<span><i style="border-top-style:${FXD[s] ? "dashed" : "solid"}"></i>${s}</span>`).join("")}
-        ${syms.includes("CAD") && !chartSyms.includes("CAD") ? '<span style="margin-left:auto">CAD on the board below</span>' : ""}</div>
+        ${syms.length > chartSyms.length ? `<span style="margin-left:auto">${syms.length - chartSyms.length} more on the board below</span>` : ""}</div>
       <div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect dollar strength by rate day" aria-valuemin="0" aria-valuemax="${dates.length - 1}" aria-valuenow="${dates.length - 1}">${g}</svg>
         <div class="tip" id="fx-tip"></div></div>
       <details class="tbl"><summary>view as table (last 10 rate days)</summary><div class="ptable-wrap"><table class="ptable">
@@ -744,7 +1088,7 @@
 
   function renderFXBoard() {
     const { dates, series, syms } = state.fx;
-    $("fx-board").innerHTML = syms.map(s => {
+    $("fx-board").innerHTML = (state.meta.fx?.stale ? staleBanner(state.meta.fx, `refresh failed · ${state.meta.fx.cachedCount}/${state.meta.fx.requestedCount} selected series cached · ${state.meta.fx.error}`) : "") + syms.map(s => {
       const vals = series[s].filter(v => v != null);
       const last = vals[vals.length - 1], first = vals[0];
       const chg = 100 * (last - first) / first;
@@ -754,7 +1098,7 @@
       return `<div class="fxtile" title="${s}: ${first} → ${last} over ${dates.length} rate days">
         <div class="sym"><i style="background:${FXC[s]}"></i>${s}</div>
         <div class="rate">${last}</div>
-        <div class="per">${PER[s]}</div>
+        <div class="per">${PER[s] || `${s} per $`}</div>
         <svg viewBox="0 0 140 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${FXC[s]}" stroke-width="2" stroke-dasharray="${FXD[s]}"/></svg>
         <div class="chg ${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "▲" : "▼"} ${chg.toFixed(1)}% vs ${dates[0]}</div>
       </div>`;
@@ -763,27 +1107,56 @@
 
   /* ================= DEBT ================= */
   async function loadDebt() {
-    setWire("debt", "wait", "dialing");
+    const controller = beginRequest("debt");
+    setWire("debt", "wait", state.debt ? "refreshing" : "dialing");
     const zone = $("debt-chart-zone");
+    if (!state.debt) zone.innerHTML = '<p class="skel">calling the Treasury wire…</p>';
+    const url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service" +
+      "/v2/accounting/od/debt_to_penny?fields=record_date,tot_pub_debt_out_amt" +
+      `&filter=record_date:gte:${iso(daysAgo(370))}&sort=record_date&page[size]=500`;
+    const attemptedAt = new Date().toISOString();
+    state.meta.debt = state.debt && state.meta.debt
+      ? { ...state.meta.debt, status: "loading", attemptedUrl: url, attemptedAt }
+      : { status: "loading", url, attemptedAt };
     try {
-      const url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service" +
-        "/v2/accounting/od/debt_to_penny?fields=record_date,tot_pub_debt_out_amt" +
-        `&filter=record_date:gte:${iso(daysAgo(370))}&sort=record_date&page[size]=500`;
-      const { j, ms } = await fetchJSON(url);
-      const rows = (j.data || []).map(r => ({ date: r.record_date, total: +r.tot_pub_debt_out_amt }))
+      const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
+      if (controller.signal.aborted) return;
+      const rows = (j.data || []).map(r => ({ date: r.record_date, rawTotal: r.tot_pub_debt_out_amt, total: +r.tot_pub_debt_out_amt }))
         .filter(r => r.total > 0);
       if (rows.length < 2) throw new Error("not enough rows");
       state.debt = rows;
+      state.meta.debt = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, observationDate: rows[rows.length - 1].date, ms };
       setWire("debt", "up", `answered in ${ms} ms`);
-      $("debt-when").textContent = `fetched ${new Date().toLocaleTimeString()} · latest posting ${rows[rows.length - 1].date}`;
+      $("debt-when").textContent = `fetched ${new Date(fetchedAt).toLocaleTimeString()} · latest posting ${rows[rows.length - 1].date}`;
+      saveLastGood("debt", { savedAt: fetchedAt, fetchedAt, url, data: rows });
+      const last = rows[rows.length - 1];
+      saveObservation("debt.total", {
+        kind: "debt", label: "US federal debt", value: last.total, observationDate: last.date,
+        fetchedAt, url, raw: { record_date: last.date, tot_pub_debt_out_amt: last.rawTotal, numericValue: last.total },
+        threshold: 0.01, importance: 1.5,
+      });
       renderDebt(); renderBrief();
     } catch (e) {
-      setWire("debt", "down", "unreachable");
-      state.debt = null;
-      delete $("debt-big").dataset.compact;
-      $("debt-big").textContent = "Treasury wire unreachable";
-      $("debt-sub").textContent = "no number will be invented in its place";
-      errBox(zone, "api.fiscaldata.treasury.gov", loadDebt);
+      if (controller.signal.aborted) return;
+      const cached = lastGood.debt;
+      if (cached?.data?.length) {
+        state.debt = cached.data;
+        state.meta.debt = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: e.message };
+        setWire("debt", "stale", `STALE - ${ageLabel(state.meta.debt.fetchedAt)} · refresh failed`);
+        $("debt-when").textContent = `STALE - ${ageLabel(state.meta.debt.fetchedAt)} · refresh failed ${new Date(attemptedAt).toLocaleTimeString()}`;
+        renderDebt();
+      } else {
+        setWire("debt", "down", `unreachable · ${e.message}`);
+        state.debt = null;
+        state.meta.debt = { status: "error", stale: false, url, attemptedAt, error: e.message };
+        clearInterval(paceTimer);
+        delete $("debt-big").dataset.compact;
+        $("debt-big").textContent = "Treasury wire unreachable";
+        $("debt-sub").textContent = "no last-good ledger is stored in this browser";
+        $("debt-pace").style.display = "none";
+        $("debt-when").textContent = `failed ${new Date(attemptedAt).toLocaleTimeString()} · ${e.message}`;
+        errBox(zone, "api.fiscaldata.treasury.gov", loadDebt, e.message);
+      }
       renderBrief();
     }
   }
@@ -800,7 +1173,7 @@
     const postedAt = easternPostingTime(last.date);
     $("debt-big").textContent = "$" + last.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     $("debt-big").dataset.compact = "$" + (last.total / 1e12).toFixed(1) + "T";
-    $("debt-sub").innerHTML = `official posting <b>${last.date}</b> · ${direction} <b>${fmtMoney(Math.abs(delta))}</b> in ${Math.round(days)} days`;
+    $("debt-sub").innerHTML = `${state.meta.debt?.stale ? staleBadge(state.meta.debt) : ""}official posting <b>${last.date}</b> · ${direction} <b>${fmtMoney(Math.abs(delta))}</b> in ${Math.round(days)} days`;
     $("debt-pace").className = "pace " + (delta > 0 ? "dn" : delta < 0 ? "up" : "");
     $("debt-pace").style.display = "inline-block";
     clearInterval(paceTimer);
@@ -832,7 +1205,7 @@
           <rect id="dt-hover" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
           <line id="dt-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" stroke-width="1" opacity="0"/>`;
     const zone = $("debt-chart-zone");
-    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect US total public debt by posting date" aria-valuemin="0" aria-valuemax="${rows.length - 1}" aria-valuenow="${rows.length - 1}">${g}</svg>
+    zone.innerHTML = `${state.meta.debt?.stale ? staleBanner(state.meta.debt, `refresh failed · ${state.meta.debt.error}`) : ""}<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" tabindex="0" role="slider" aria-label="Inspect US total public debt by posting date" aria-valuemin="0" aria-valuemax="${rows.length - 1}" aria-valuenow="${rows.length - 1}">${g}</svg>
         <div class="tip" id="dt-tip"></div></div>
       <details class="tbl"><summary>view as table (monthly samples)</summary><div class="ptable-wrap"><table class="ptable">
         <tr><th>date</th><th>total public debt</th></tr>
@@ -884,78 +1257,121 @@
   // served reliably, so we fetch a window and pick the newest non-null per country.
   const WB_YEARS = (() => { const y = new Date().getFullYear(); return `${y - 7}:${y}`; })();
   const WB_INDICATORS = {
-    gdp: { label: "growth", url: `${WB_BASE}/USA;CHN;DEU;WLD/indicator/NY.GDP.MKTP.KD.ZG?format=json&date=${WB_YEARS}&per_page=60` },
-    cpi: { label: "inflation", url: `${WB_BASE}/USA;CHN;DEU;WLD/indicator/FP.CPI.TOTL.ZG?format=json&date=${WB_YEARS}&per_page=60` },
-    pop: { label: "population", url: `${WB_BASE}/USA/indicator/SP.POP.TOTL?format=json&date=${WB_YEARS}&per_page=10` },
+    gdp: { label: "growth", indicator: "NY.GDP.MKTP.KD.ZG", unit: "percent" },
+    cpi: { label: "inflation", indicator: "FP.CPI.TOTL.ZG", unit: "percent" },
+    pop: { label: "population", indicator: "SP.POP.TOTL", unit: "people" },
   };
+  const WB_CODES_BY_NAME = Object.fromEntries(WB_OPTIONS.map(([code, name]) => [name, code]));
+  const wbURL = (key) => `${WB_BASE}/${state.watch.wb.join(";")}/indicator/${WB_INDICATORS[key].indicator}?format=json&date=${WB_YEARS}&per_page=${Math.max(10, state.watch.wb.length * 10)}`;
   // rows arrive newest-first per country; reverse so the newest year wins the key
   const parseWB = (j) => Object.fromEntries((j[1] || []).filter(r => r.value != null).reverse()
-    .map(r => [r.country.value, { year: r.date, value: Math.round(r.value * 100) / 100 }]));
+    .map(r => {
+      const code = r.countryiso3code || WB_CODES_BY_NAME[r.country.value] || r.country.id;
+      return [code, { code, name: WB_NAMES[code] || r.country.value, year: r.date, rawValue: +r.value, value: Math.round(r.value * 100) / 100 }];
+    }));
 
-  async function fetchWBIndicator(key) {
-    const { j, ms } = await fetchJSON(WB_INDICATORS[key].url);
+  async function fetchWBIndicator(key, controller, url) {
+    const { j, ms, fetchedAt } = await fetchJSON(url, { signal: controller.signal });
     const data = parseWB(j);
     if (!Object.keys(data).length) throw new Error("empty indicator");
-    return { data, ms };
+    return { data, ms, fetchedAt };
   }
 
   function updateWBWire() {
     const keys = Object.keys(WB_INDICATORS);
-    const up = keys.filter(k => state["wb_" + k] === "up").length;
+    if (!state.watch.wb.length) {
+      setWire("wb", "empty", "watchlist empty");
+      return;
+    }
+    const fresh = keys.filter(k => state["wb_" + k] === "up").length;
+    const stale = keys.filter(k => state["wb_" + k] === "stale").length;
+    const down = keys.filter(k => state["wb_" + k] === "down").length;
     const pending = keys.some(k => state["wb_" + k] === "wait");
-    setWire("wb", pending ? "wait" : up ? "up" : "down", `${up}/${keys.length} indicators${pending ? " · dialing" : ""}`);
+    const status = pending ? "wait" : fresh === keys.length ? "up" : fresh ? "partial" : stale ? "stale" : "down";
+    const note = `${fresh}/${keys.length} fresh${stale ? ` · ${stale} stale` : ""}${down ? ` · ${down} down` : ""}${pending ? " · dialing" : ""}`;
+    setWire("wb", status, note);
+    $("wb-when").textContent = note;
   }
 
-  function applyWBResults(keys, results) {
-    results.forEach((result, i) => {
-      const key = keys[i];
-      if (result.status === "fulfilled") {
-        state[key] = result.value.data;
-        state["wb_" + key] = "up";
+  async function settleWBIndicator(key) {
+    const controller = beginRequest(`wb.${key}`);
+    const url = wbURL(key);
+    const attemptedAt = new Date().toISOString();
+    state["wb_" + key] = "wait";
+    state.meta[key] = state[key] && state.meta[key]
+      ? { ...state.meta[key], status: "loading", attemptedUrl: url, attemptedAt }
+      : { status: "loading", url, attemptedAt };
+    updateWBWire(); renderWB();
+    try {
+      const { data, ms, fetchedAt } = await fetchWBIndicator(key, controller, url);
+      if (controller.signal.aborted) return;
+      const selected = Object.fromEntries(Object.entries(data).filter(([code]) => state.watch.wb.includes(code)));
+      if (!Object.keys(selected).length) throw new Error("no selected economies returned");
+      state[key] = selected;
+      state["wb_" + key] = "up";
+      state.meta[key] = { status: "fresh", stale: false, url, attemptedAt, fetchedAt, ms };
+      saveLastGood(`wb.${key}`, { savedAt: fetchedAt, fetchedAt, url, data: selected, countries: [...state.watch.wb] });
+      saveObservations(Object.fromEntries(Object.entries(selected).map(([code, row]) => [`wb.${key}.${code}`, {
+        kind: `wb-${key}`, label: `${row.name} ${WB_INDICATORS[key].label}`, value: row.rawValue,
+        observationDate: row.year, fetchedAt, url,
+        raw: { country: code, indicator: WB_INDICATORS[key].indicator, year: row.year, value: row.rawValue },
+        threshold: key === "pop" ? 0.05 : 0.1, importance: key === "pop" ? 0.45 : code === "USA" ? 1.2 : code === "WLD" ? 1.1 : 1,
+      }])));
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      const cached = lastGood.wb[key];
+      const selected = Object.fromEntries(Object.entries(cached?.data || {}).filter(([code]) => state.watch.wb.includes(code)));
+      if (Object.keys(selected).length) {
+        state[key] = selected;
+        state["wb_" + key] = "stale";
+        state.meta[key] = { status: "stale", stale: true, url: cached.url, attemptedUrl: url, attemptedAt, fetchedAt: cached.fetchedAt || cached.savedAt, error: error.message, cachedCount: Object.keys(selected).length, requestedCount: state.watch.wb.length };
       } else {
         state[key] = null;
         state["wb_" + key] = "down";
+        state.meta[key] = { status: "error", stale: false, url, attemptedAt, error: error.message };
       }
-    });
-    updateWBWire();
-    const up = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "up").length;
-    $("wb-when").textContent = up ? `fetched ${new Date().toLocaleTimeString()} · ${up}/3 indicators` : "all indicators unavailable";
-    renderWB(); renderBrief();
-  }
-
-  function settleWBIndicator(key) {
-    fetchWBIndicator(key).then(
-      (value) => applyWBResults([key], [{ status: "fulfilled", value }]),
-      (reason) => applyWBResults([key], [{ status: "rejected", reason }]),
-    );
+    }
+    updateWBWire(); renderWB(); renderBrief();
   }
 
   function loadWB() {
     const keys = Object.keys(WB_INDICATORS);
-    keys.forEach(k => { state[k] = null; state["wb_" + k] = "wait"; });
+    keys.forEach(k => requestControllers.get(`wb.${k}`)?.abort());
+    if (!state.watch.wb.length) {
+      keys.forEach(k => { state[k] = null; state["wb_" + k] = "empty"; state.meta[k] = { status: "empty", url: "watchlist://wb", fetchedAt: new Date().toISOString() }; });
+      updateWBWire(); renderWB(); renderBrief();
+      return;
+    }
+    keys.forEach(k => { if (!state[k]) state[k] = null; state["wb_" + k] = "wait"; });
     updateWBWire(); renderWB();
     keys.forEach(settleWBIndicator);
   }
 
   function retryWB(key) {
-    state["wb_" + key] = "wait";
-    updateWBWire(); renderWB();
     settleWBIndicator(key);
   }
 
   function renderWB() {
-    const order = ["United States", "China", "Germany", "World"];
-    const tiles = order.filter(c => (state.gdp || {})[c] || (state.cpi || {})[c]).map(c => {
-      const g = (state.gdp || {})[c], i = (state.cpi || {})[c];
-      return `<div class="wbtile"><div class="c">${c}</div>
+    if (!state.watch.wb.length) {
+      $("wb-grid").innerHTML = '<div class="empty-state">no World Bank economies selected · open the watchlist to add one</div>';
+      $("wb-when").textContent = "not requested · watchlist empty";
+      return;
+    }
+    const tiles = state.watch.wb.filter(code => (state.gdp || {})[code] || (state.cpi || {})[code]).map(code => {
+      const g = (state.gdp || {})[code], i = (state.cpi || {})[code];
+      return `<div class="wbtile"><div class="c">${esc(WB_NAMES[code] || code)}</div>
         ${g ? `<div class="v">growth <b class="${g.value >= 0 ? "up" : "dn"}">${g.value >= 0 ? "+" : ""}${g.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${g.year})</span></div>` : ""}
         ${i ? `<div class="v">inflation <b>${i.value.toFixed(1)}%</b> <span style="color:var(--dim)">(${i.year})</span></div>` : ""}
       </div>`;
     });
+    const stale = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "stale").map(k =>
+      `<div class="stale-banner">${staleBadge(state.meta[k])} ${esc(WB_INDICATORS[k].label)} refresh failed · ${state.meta[k].cachedCount}/${state.meta[k].requestedCount} economies cached · ${esc(state.meta[k].error)}<br><button class="pbtn" type="button" data-wb-retry="${k}">try ${esc(WB_INDICATORS[k].label)} again</button></div>`);
     const errors = Object.keys(WB_INDICATORS).filter(k => state["wb_" + k] === "down").map(k =>
       `<div class="feed-err"><b>${WB_INDICATORS[k].label} unavailable</b> — other World Bank indicators remain usable.<br>
         <button class="pbtn" type="button" data-wb-retry="${k}">try ${WB_INDICATORS[k].label} again</button></div>`);
-    $("wb-grid").innerHTML = [...tiles, ...errors].join("") || '<p class="skel">calling the indicator wires…</p>';
+    const pending = Object.keys(WB_INDICATORS).some(k => state["wb_" + k] === "wait");
+    const loading = pending ? '<div class="feed-note">loading remaining indicators…</div>' : "";
+    $("wb-grid").innerHTML = [...stale, ...tiles, loading, ...errors].join("") || '<p class="skel">calling the indicator wires…</p>';
     $("wb-grid").querySelectorAll("[data-wb-retry]").forEach(b =>
       b.addEventListener("click", () => retryWB(b.dataset.wbRetry)));
   }
@@ -999,74 +1415,211 @@
   }
   $("av-an").innerHTML = pixelAnalyst();
 
+  const signed = (value, digits = 2) => `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
+  function priorCheckLabel(timestamp) {
+    const prior = new Date(timestamp);
+    if (!Number.isFinite(prior.getTime())) return "the previous check";
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const then = new Date(prior.getFullYear(), prior.getMonth(), prior.getDate());
+    const days = Math.round((today - then) / 86400000);
+    if (days === 0) return "today's earlier check";
+    if (days > 0 && days < 7) return `${prior.toLocaleDateString(undefined, { weekday: "long" })}'s check`;
+    return `${prior.toLocaleDateString(undefined, { month: "short", day: "numeric" })} check`;
+  }
+  function activeObservations() {
+    return Object.entries(visitSnapshot.observations).filter(([key]) => {
+      if (key.startsWith("fx.")) return state.watch.fx.includes(key.slice(3));
+      if (key.startsWith("wb.")) return state.watch.wb.includes(key.split(".")[2]);
+      return true;
+    });
+  }
+  function makeReceipt(meta, overrides = {}) {
+    return {
+      label: overrides.label || "source input",
+      url: overrides.url || meta?.url || "not-requested://local",
+      attemptedUrl: overrides.attemptedUrl || meta?.attemptedUrl || "",
+      fetchedAt: overrides.fetchedAt || meta?.fetchedAt || meta?.attemptedAt || "",
+      observationDate: overrides.observationDate || meta?.observationDate || "not applicable",
+      raw: overrides.raw ?? null,
+      formula: overrides.formula || "no arithmetic",
+      status: overrides.status || meta?.status || "recorded",
+      previousUrl: overrides.previousUrl || "",
+      previousFetchedAt: overrides.previousFetchedAt || "",
+      previousObservationDate: overrides.previousObservationDate || "",
+    };
+  }
+  function groupedObservationReceipts(entries, formula) {
+    const groups = new Map();
+    entries.forEach(([, observation]) => {
+      const group = groups.get(observation.url) || { observation, rows: [] };
+      group.rows.push({ label: observation.label, observationDate: observation.observationDate, value: observation.value, raw: observation.raw });
+      groups.set(observation.url, group);
+    });
+    return [...groups.values()].map(({ observation, rows }) => makeReceipt(null, {
+      label: `${rows.length} baseline input${rows.length === 1 ? "" : "s"}`,
+      url: observation.url, fetchedAt: observation.fetchedAt,
+      observationDate: rows.map(row => row.observationDate).filter((x, i, all) => all.indexOf(x) === i).join(", "),
+      raw: rows, formula, status: "fresh · stored locally",
+    }));
+  }
+  function materialChangeItems() {
+    const current = activeObservations();
+    if (!current.length) return [];
+    const previous = previousSnapshot?.version === 2 ? previousSnapshot.observations || {} : {};
+    const comparable = current.filter(([key]) => Number.isFinite(previous[key]?.value));
+    if (!comparable.length) {
+      return [{
+        text: `Baseline recorded for ${current.length} current observation${current.length === 1 ? "" : "s"}; ranked changes begin on the next check.`,
+        receipts: groupedObservationReceipts(current, "current raw value → local baseline; no prior observation to subtract"),
+      }];
+    }
+    const changes = comparable.map(([key, now]) => {
+      const prior = previous[key];
+      const delta = now.value - prior.value;
+      const pointMeasure = now.kind === "wb-gdp" || now.kind === "wb-cpi";
+      const relativePct = pointMeasure ? 100 * delta / Math.max(Math.abs(prior.value), 1) : 100 * delta / prior.value;
+      const thresholdMove = pointMeasure ? Math.abs(delta) : Math.abs(relativePct);
+      const materiality = thresholdMove / now.threshold;
+      const score = materiality * (now.importance || 1);
+      const formula = pointMeasure
+        ? `${now.value} - ${prior.value} = ${signed(delta, 4)} percentage points; material if |move| ≥ ${now.threshold} point`
+        : `(${now.value} - ${prior.value}) / ${prior.value} × 100 = ${signed(relativePct, 4)}%; material if |move| ≥ ${now.threshold}%`;
+      let text;
+      if (now.kind === "fx") text = `${now.label} moved ${signed(relativePct, 2)}% since ${priorCheckLabel(prior.fetchedAt)}.`;
+      else if (now.kind === "debt") text = `${now.label} moved ${delta >= 0 ? "+" : "-"}${fmtMoney(Math.abs(delta))} (${signed(relativePct, 3)}%) since ${priorCheckLabel(prior.fetchedAt)}.`;
+      else if (pointMeasure) text = `${now.label} moved ${signed(delta, 2)} percentage points to ${now.value.toFixed(2)}% since ${priorCheckLabel(prior.fetchedAt)}.`;
+      else text = `${now.label} moved ${signed(relativePct, 2)}% since ${priorCheckLabel(prior.fetchedAt)}.`;
+      return {
+        text, score, material: materiality >= 1,
+        receipt: makeReceipt(null, {
+          label: `${now.label} · current vs prior`, url: now.url, fetchedAt: now.fetchedAt,
+          observationDate: now.observationDate, raw: { current: now.raw, previous: prior.raw }, formula,
+          status: `fresh · materiality score ${score.toFixed(3)}`,
+          previousUrl: prior.url, previousFetchedAt: prior.fetchedAt, previousObservationDate: prior.observationDate,
+        }),
+      };
+    });
+    const ranked = changes.filter(change => change.material).sort((a, b) => b.score - a.score).slice(0, 3);
+    if (ranked.length) return ranked.map(change => ({ text: change.text, receipts: [change.receipt] }));
+    return [{
+      text: `No tracked observation cleared its materiality threshold since ${priorCheckLabel(previousSnapshot.checkedAt)}.`,
+      receipts: changes.map(change => change.receipt),
+    }];
+  }
+  function statusItem(label, key, emptyText) {
+    const isIndicator = key.startsWith("wb_");
+    const status = isIndicator ? state[key] : state["wire_" + key];
+    const meta = state.meta[isIndicator ? key.slice(3) : key];
+    const text = status === "empty" ? emptyText : status === "down" ? `${label} is unavailable and no matching last-good snapshot is stored.` : `${label} is still answering.`;
+    return { text, receipts: [makeReceipt(meta, { label, raw: { wireStatus: status }, formula: "request status only" })] };
+  }
+
   function composeBrief() {
-    const lines = [];
+    const items = [...materialChangeItems()];
     if (state.fx) {
       const { dates, series, syms } = state.fx;
       const mv = {};
-      for (const s of syms) {
-        const v = series[s].filter(x => x != null);
-        if (v.length > 1) mv[s] = 100 * (v[v.length - 1] - v[0]) / v[0];
+      for (const symbol of syms) {
+        const values = series[symbol].filter(Number.isFinite);
+        if (values.length > 1) mv[symbol] = 100 * (values[values.length - 1] - values[0]) / values[0];
       }
-      const strongest = Object.keys(mv).reduce((a, b) => mv[a] > mv[b] ? a : b);
-      const weakest = Object.keys(mv).reduce((a, b) => mv[a] < mv[b] ? a : b);
-      const move = (s) => `${mv[s] >= 0 ? "gained" : "weakened"} against ${s} (${mv[s] >= 0 ? "+" : ""}${mv[s].toFixed(1)}%)`;
-      let line = `FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar ${move(strongest)}.`;
-      if (strongest !== weakest)
-        line = `FX, ${dates[0]} → ${dates[dates.length - 1]} (ECB reference): the dollar ${move(strongest)}; against ${weakest}, it ${mv[weakest] >= 0 ? "gained" : "weakened"} (${mv[weakest] >= 0 ? "+" : ""}${mv[weakest].toFixed(1)}%).`;
-      lines.push(line);
-    } else if (state.wire_fx === "down") lines.push("FX wire is down — no exchange-rate read this visit, and none will be made up.");
-    else lines.push("FX wire is still answering.");
+      const symbols = Object.keys(mv);
+      if (symbols.length) {
+        const strongest = symbols.reduce((a, b) => mv[a] > mv[b] ? a : b);
+        const weakest = symbols.reduce((a, b) => mv[a] < mv[b] ? a : b);
+        const move = (symbol) => `${mv[symbol] >= 0 ? "gained" : "weakened"} against ${symbol} (${signed(mv[symbol], 1)}%)`;
+        let text = `FX${state.meta.fx?.stale ? ` [STALE - ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}.`;
+        if (strongest !== weakest) text = `FX${state.meta.fx?.stale ? ` [STALE - ${ageLabel(state.meta.fx.fetchedAt)}]` : ""}, ${dates[0]} → ${dates[dates.length - 1]}: the dollar ${move(strongest)}; against ${weakest}, it ${mv[weakest] >= 0 ? "gained" : "weakened"} (${signed(mv[weakest], 1)}%).`;
+        items.push({ text, receipts: [makeReceipt(state.meta.fx, {
+          label: "FX window endpoints", observationDate: dates[dates.length - 1],
+          raw: Object.fromEntries([strongest, weakest].filter((x, i, all) => all.indexOf(x) === i).map(symbol => [symbol, { first: series[symbol][0], last: series[symbol][series[symbol].length - 1] }])),
+          formula: [strongest, weakest].filter((x, i, all) => all.indexOf(x) === i).map(symbol => `(${series[symbol][series[symbol].length - 1]} - ${series[symbol][0]}) / ${series[symbol][0]} × 100 = ${signed(mv[symbol], 4)}%`).join("; "),
+        })] });
+      }
+    } else items.push(statusItem("FX wire", "fx", "FX watchlist is empty; no rate request was sent."));
+
     if (state.debt) {
       const rows = state.debt, first = rows[0], last = rows[rows.length - 1];
       const days = Math.max(1, (new Date(last.date) - new Date(first.date)) / 86400000);
       const delta = last.total - first.total;
       const direction = delta > 0 ? "up" : delta < 0 ? "down" : "unchanged by";
       const perDay = Math.abs(delta / days);
-      let line = `US federal debt: ${fmtMoney(last.total)} as of ${last.date} — ${direction} ${fmtMoney(Math.abs(delta))} over the window, about ${fmtMoney(perDay)} a day over that span.`;
-      if (state.pop) {
-        const p = Object.values(state.pop)[0];
-        line += ` That's $${Math.round(last.total / p.value).toLocaleString()} per US resident (World Bank population, ${p.year}).`;
-      }
-      lines.push(line);
-    } else if (state.wire_debt === "down") lines.push("Treasury wire is down — no debt read this visit.");
-    else lines.push("Treasury wire is still answering.");
-    const wb = [];
-    if (state.gdp) {
-      const gl = ["United States", "China", "Germany", "World"].filter(c => state.gdp[c])
-        .map(c => `${c} ${state.gdp[c].value >= 0 ? "+" : ""}${state.gdp[c].value.toFixed(1)}% (${state.gdp[c].year})`).join(", ");
-      wb.push(`Growth (World Bank annuals): ${gl}.`);
-    } else if (state.wb_gdp === "down") wb.push("World Bank growth is unavailable.");
-    else wb.push("World Bank growth is still answering.");
-    if (state.cpi) {
-      const cl = ["United States", "China", "Germany", "World"].filter(c => state.cpi[c])
-        .map(c => `${c} ${state.cpi[c].value.toFixed(1)}% (${state.cpi[c].year})`).join(", ");
-      wb.push(`Inflation: ${cl}.`);
-    } else if (state.wb_cpi === "down") wb.push("World Bank inflation is unavailable.");
-    else wb.push("World Bank inflation is still answering.");
-    lines.push(wb.join(" "));
-    const answered = WIRES.filter(([k]) => state["wire_" + k] === "up").length;
-    const pending = WIRES.filter(([k]) => !["up", "down"].includes(state["wire_" + k])).length;
-    lines.push(`Wire check: ${answered} of 3 sources answered your browser directly.${pending ? ` ${pending} ${pending === 1 ? "source is" : "sources are"} still answering.` : ""} Nothing on this page was cached, proxied, or typed in by a human.`);
-    return lines;
+      items.push({
+        text: `US federal debt${state.meta.debt?.stale ? ` [STALE - ${ageLabel(state.meta.debt.fetchedAt)}]` : ""}: ${fmtMoney(last.total)} as of ${last.date}, ${direction} ${fmtMoney(Math.abs(delta))} over the window, about ${fmtMoney(perDay)} a day.`,
+        receipts: [makeReceipt(state.meta.debt, {
+          label: "Debt window endpoints", observationDate: last.date,
+          raw: { first: { date: first.date, tot_pub_debt_out_amt: first.rawTotal ?? first.total }, last: { date: last.date, tot_pub_debt_out_amt: last.rawTotal ?? last.total }, elapsedDays: days },
+          formula: `${last.total} - ${first.total} = ${delta}; ${delta} / ${days} days = ${delta / days} per day`,
+        })],
+      });
+      const population = state.pop?.USA;
+      if (population) items.push({
+        text: `Debt per US resident is $${Math.round(last.total / population.rawValue).toLocaleString()} using World Bank population for ${population.year}.`,
+        receipts: [
+          makeReceipt(state.meta.debt, { label: "Debt numerator", observationDate: last.date, raw: { total: last.total }, formula: `${last.total} / ${population.rawValue} = ${last.total / population.rawValue}` }),
+          makeReceipt(state.meta.pop, { label: "Population denominator", observationDate: population.year, raw: { country: "USA", population: population.rawValue }, formula: `${last.total} / ${population.rawValue} = ${last.total / population.rawValue}` }),
+        ],
+      });
+    } else items.push(statusItem("Treasury wire", "debt", "Treasury has no watchlist setting."));
+
+    for (const key of ["gdp", "cpi"]) {
+      const label = WB_INDICATORS[key].label;
+      if (state[key]) {
+        const rows = state.watch.wb.map(code => state[key][code]).filter(Boolean);
+        if (rows.length) items.push({
+          text: `${label[0].toUpperCase() + label.slice(1)}${state.meta[key]?.stale ? ` [STALE - ${ageLabel(state.meta[key].fetchedAt)}]` : ""} (World Bank annuals): ${rows.map(row => `${row.name} ${row.value >= 0 && key === "gdp" ? "+" : ""}${row.value.toFixed(1)}% (${row.year})`).join(", ")}.`,
+          receipts: [makeReceipt(state.meta[key], {
+            label: `World Bank ${label}`, observationDate: rows.map(row => row.year).filter((x, i, all) => all.indexOf(x) === i).join(", "),
+            raw: rows.map(row => ({ country: row.code, year: row.year, value: row.rawValue })),
+            formula: "API raw annual percent value → rounded to 1 decimal for display",
+          })],
+        });
+      } else items.push(statusItem(`World Bank ${label}`, "wb_" + key, state.watch.wb.length ? `${label} has no returned observations for the selected economies.` : `World Bank ${label} watchlist is empty.`));
+    }
+    const counts = Object.fromEntries(["up", "partial", "stale", "down", "wait", "empty"].map(status => [status, WIRES.filter(([key]) => state["wire_" + key] === status).length]));
+    const parts = [["up", "fresh"], ["partial", "partial"], ["stale", "stale"], ["down", "down"], ["wait", "loading"], ["empty", "empty"]].filter(([status]) => counts[status]).map(([status, label]) => `${counts[status]} ${label}`);
+    items.push({
+      text: `Wire check: ${parts.join(", ")}; stale values remain labeled and are excluded from the ranked change lead.`,
+      receipts: [
+        makeReceipt(state.meta.fx, { label: WIRES[0][1], raw: { status: state.wire_fx, note: state.wirenote_fx }, formula: "wire outcome count only" }),
+        makeReceipt(state.meta.debt, { label: WIRES[1][1], raw: { status: state.wire_debt, note: state.wirenote_debt }, formula: "wire outcome count only" }),
+        ...Object.keys(WB_INDICATORS).map(key => makeReceipt(state.meta[key], { label: `World Bank ${WB_INDICATORS[key].label}`, raw: { status: state["wb_" + key] }, formula: "indicator outcome → World Bank wire state" })),
+      ],
+    });
+    return items;
   }
+
+  function receiptHTML(receipts) {
+    const endpoint = (url) => /^https:\/\//.test(url)
+      ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`
+      : `<code>${esc(url)}</code>`;
+    return `<details class="brief-receipt pstrip"><summary><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>receipt · ${receipts.length} ${receipts.length === 1 ? "source" : "sources"}</summary><div class="receipt-body">${receipts.map(receipt => `<div class="receipt-entry"><dl>
+      <dt>input</dt><dd>${esc(receipt.label)}</dd>
+      <dt>API URL</dt><dd>${endpoint(receipt.url)}</dd>
+      ${receipt.attemptedUrl ? `<dt>latest attempt</dt><dd>${endpoint(receipt.attemptedUrl)}</dd>` : ""}
+      <dt>fetched</dt><dd>${receipt.fetchedAt ? `<time datetime="${esc(receipt.fetchedAt)}">${esc(new Date(receipt.fetchedAt).toLocaleString())}</time>` : "not fetched"}</dd>
+      <dt>observation</dt><dd>${esc(receipt.observationDate)}</dd>
+      ${receipt.previousUrl ? `<dt>prior API URL</dt><dd>${endpoint(receipt.previousUrl)}</dd><dt>prior fetched</dt><dd><time datetime="${esc(receipt.previousFetchedAt)}">${esc(new Date(receipt.previousFetchedAt).toLocaleString())}</time></dd><dt>prior observation</dt><dd>${esc(receipt.previousObservationDate)}</dd>` : ""}
+      <dt>raw input</dt><dd>${esc(JSON.stringify(receipt.raw))}</dd>
+      <dt>arithmetic</dt><dd>${esc(receipt.formula)}</dd>
+      <dt>state</dt><dd>${esc(receipt.status)}</dd>
+    </dl></div>`).join("")}</div></details>`;
+  }
+  const briefItemHTML = (item) => `<div class="bline"><div class="bline-text">${esc(item.text)}</div>${receiptHTML(item.receipts)}</div>`;
 
   let briefTyped = false, briefTimer = null;
   function renderBrief() {
     clearInterval(briefTimer); briefTimer = null;
-    const firstSettled = WIRES.some(([k]) => ["up", "down"].includes(state["wire_" + k]));
+    const firstSettled = WIRES.some(([key]) => ["up", "down", "stale", "partial", "empty"].includes(state["wire_" + key]));
     if (!firstSettled) return;
-    const lines = composeBrief();
+    const items = composeBrief();
     const el = $("brief");
-    const fetched = new Date();
-    $("receipts").innerHTML = [
-      ["Frankfurter — ECB reference rates", "https://frankfurter.dev"],
-      ["US Treasury — Debt to the Penny", "https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny"],
-      ["World Bank Open Data", "https://data.worldbank.org"],
-    ].map(([t, h]) => `<a class="pchip" href="${h}" target="_blank" rel="noopener"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"/></svg>${t}</a>`).join("") +
-      `<time class="pchip" datetime="${fetched.toISOString()}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>fetched ${fetched.toLocaleTimeString()}</time>`;
+    const prior = previousSnapshot?.checkedAt;
+    $("receipts").innerHTML = `<span class="pchip"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-chart"/></svg>thresholds · FX 0.15% · debt 0.01% · WB 0.1 pt</span>` +
+      `<time class="pchip" datetime="${esc(prior || visitSnapshot.checkedAt)}"><svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"/></svg>${prior ? `prior check ${esc(new Date(prior).toLocaleString())}` : "baseline visit"}</time>`;
     if (briefTyped || REDUCED) {
-      el.innerHTML = lines.map(l => `<div class="bline">${l}</div>`).join("");
+      el.innerHTML = items.map(briefItemHTML).join("");
       $("ag-an").className = "agent";
       $("st-an").textContent = "brief filed";
       return;
@@ -1075,41 +1628,61 @@
     $("ag-an").className = "agent working";
     $("st-an").innerHTML = 'typing it up<span class="dots"></span>';
     el.innerHTML = "";
-    let li = 0, ci = 0;
-    let cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
+    let index = 0, character = 0;
+    let line = document.createElement("div"); line.className = "bline";
+    let text = document.createElement("div"); text.className = "bline-text"; line.appendChild(text); el.appendChild(line);
     briefTimer = setInterval(() => {
-      ci += 3;
-      cur.textContent = lines[li].slice(0, ci);
-      if (ci >= lines[li].length) {
-        li++; ci = 0;
-        if (li >= lines.length) {
+      character += 3;
+      text.textContent = items[index].text.slice(0, character);
+      if (character >= items[index].text.length) {
+        line.insertAdjacentHTML("beforeend", receiptHTML(items[index].receipts));
+        index++; character = 0;
+        if (index >= items.length) {
           clearInterval(briefTimer);
           $("ag-an").className = "agent";
           $("st-an").textContent = "brief filed";
           return;
         }
-        cur = document.createElement("div"); cur.className = "bline"; el.appendChild(cur);
+        line = document.createElement("div"); line.className = "bline";
+        text = document.createElement("div"); text.className = "bline-text"; line.appendChild(text); el.appendChild(line);
       }
     }, 24);
   }
 
   /* ranges */
   const rangesEl = $("fx-ranges");
-  for (const d of [30, 90, 365]) {
-    const b = document.createElement("button");
-    b.className = "pbtn pstep";
-    b.textContent = d + "d";
-    if (d === 90) b.classList.add("on");
-    b.addEventListener("click", () => {
-      state.fxDays = d; briefTyped = true;    // don't re-type the brief on range flips
-      [...rangesEl.children].forEach(x => x.classList.remove("on"));
-      b.classList.add("on");
-      loadFX();
-    });
-    rangesEl.appendChild(b);
+  function renderRangeButtons() {
+    if (!rangesEl.children.length) {
+      for (const days of ALLOWED_RANGES) {
+        const button = document.createElement("button");
+        button.className = "pbtn pstep";
+        button.type = "button";
+        button.textContent = days + "d";
+        button.dataset.days = days;
+        button.addEventListener("click", () => {
+          briefTyped = true;
+          setConfigHash([...state.watch.fx], [...state.watch.wb], days);
+        });
+        rangesEl.appendChild(button);
+      }
+    }
+    [...rangesEl.children].forEach(button => button.classList.toggle("on", +button.dataset.days === state.fxDays));
   }
+  renderRangeButtons();
+  renderWatchlist();
+  addEventListener("hashchange", () => applyHashConfig());
 
-  loadFX(); loadDebt(); loadWB();
+  function refreshAll() {
+    loadFX(); loadDebt(); loadWB();
+  }
+  $("refresh-all").addEventListener("click", refreshAll);
+
+  // Freshness policy while the tab remains open: market rates 15m, debt 60m, annuals 6h.
+  setInterval(loadFX, 15 * 60 * 1000);
+  setInterval(loadDebt, 60 * 60 * 1000);
+  setInterval(loadWB, 6 * 60 * 60 * 1000);
+
+  refreshAll();
 </script>
 </body>
 </html>
