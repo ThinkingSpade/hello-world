@@ -1,0 +1,37 @@
+{
+ "id": "readiness-probe",
+ "title": "notifications healthy but invisible — probe knocking on the wrong port",
+ "tag": "prod · P3 · probe drift",
+ "page": "Grafana — prod/notifications: 0/3 pods Ready for 8m after config rollout, delivery queue backing up",
+ "namespace": "prod",
+ "selector": "app=notifications",
+ "board": {
+  "nodes": [
+   {"name": "node-a", "pods": [
+    {"name": "notifications-8d7c6b5f4-km3wz", "app": "notifications", "victim": true},
+    {"name": "cart-api-6d8f7c9b4-lm2xp", "app": "cart-api"},
+    {"name": "web-frontend-5b7d9f6c8-qk4tz", "app": "web"},
+    {"name": "redis-0", "app": "redis"}]},
+   {"name": "node-b", "pods": [
+    {"name": "notifications-8d7c6b5f4-pp8dj", "app": "notifications", "victim": true},
+    {"name": "payments-5f6d8b7c9-tt8vk", "app": "payments"},
+    {"name": "checkout-api-5d8e7f9a6-fh3km", "app": "checkout-api"},
+    {"name": "kafka-1", "app": "kafka"}]},
+   {"name": "node-c", "pods": [
+    {"name": "notifications-8d7c6b5f4-vt5qc", "app": "notifications", "victim": true},
+    {"name": "search-7c8d9e6f5-p2n8w", "app": "search"},
+    {"name": "web-frontend-5b7d9f6c8-8xj2m", "app": "web"},
+    {"name": "kafka-2", "app": "kafka"}]}
+  ]
+ },
+ "commands": {
+  "get pods -n prod -l app=notifications": "NAME                             READY   STATUS    RESTARTS   AGE\nnotifications-8d7c6b5f4-km3wz   0/1     Running   0          8m41s\nnotifications-8d7c6b5f4-pp8dj   0/1     Running   0          8m39s\nnotifications-8d7c6b5f4-vt5qc   0/1     Running   0          8m36s",
+  "describe pod notifications-8d7c6b5f4-km3wz -n prod": "Name:             notifications-8d7c6b5f4-km3wz\nNamespace:        prod\nNode:             node-a/10.0.1.42\nStart Time:       Tue, 07 Jul 2026 16:12:05 -0500\nLabels:           app=notifications\n                  pod-template-hash=8d7c6b5f4\nStatus:           Running\nControlled By:    ReplicaSet/notifications-8d7c6b5f4\nContainers:\n  notifications:\n    Image:          registry.internal/notifications:v1.19.0\n    State:          Running\n      Started:      Tue, 07 Jul 2026 16:12:09 -0500\n    Ready:          False\n    Restart Count:  0\n    Limits:\n      cpu:     300m\n      memory:  192Mi\n    Requests:\n      cpu:     150m\n      memory:  192Mi\n    Readiness:      http-get http://:8081/healthz delay=5s timeout=1s period=10s #success=1 #failure=3\n    Environment:\n      PORT:  8080\nConditions:\n  Type              Status\n  Initialized       True\n  Ready             False\n  ContainersReady   False\nQoS Class:          Guaranteed",
+  "logs notifications-8d7c6b5f4-km3wz -n prod --previous --tail=40": "Error from server (BadRequest): previous terminated container \"notifications\" in pod \"notifications-8d7c6b5f4-km3wz\" not found — falling back to current container:\n16:12:09 INFO  notifications v1.19.0 starting (commit 4e9d1bb)\n16:12:09 INFO  config: PORT=8080 (from prod-notifications-config, updated 16:11)\n16:12:10 INFO  listening on 0.0.0.0:8080\n16:12:10 INFO  connected to kafka-1:9092, consumer group notifications-prod\n16:12:14 INFO  queue depth 1,204 and rising — no traffic routed to this pod yet",
+  "get events -n prod --field-selector involvedObject.name=notifications-8d7c6b5f4-km3wz --sort-by=.lastTimestamp": "LAST SEEN   TYPE      REASON       OBJECT                               MESSAGE\n8m41s       Normal    Scheduled    pod/notifications-8d7c6b5f4-km3wz    Successfully assigned prod/notifications-8d7c6b5f4-km3wz to node-a\n8m40s       Normal    Pulled       pod/notifications-8d7c6b5f4-km3wz    Container image \"registry.internal/notifications:v1.19.0\" already present on machine\n8m40s       Normal    Created      pod/notifications-8d7c6b5f4-km3wz    Created container notifications\n8m39s       Normal    Started      pod/notifications-8d7c6b5f4-km3wz    Started container notifications\n12s         Warning   Unhealthy    pod/notifications-8d7c6b5f4-km3wz    Readiness probe failed: Get \"http://10.2.4.18:8081/healthz\": dial tcp 10.2.4.18:8081: connect: connection refused"
+ },
+ "after": {
+  "-n prod patch deploy/notifications --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/readinessProbe/httpGet/port\",\"value\":8080}]'": "deployment.apps/notifications patched",
+  "get pods -n prod -l app=notifications": "NAME                             READY   STATUS    RESTARTS   AGE\nnotifications-7b6a5c4d3-dd2mk   1/1     Running   0          2m44s\nnotifications-7b6a5c4d3-hh9xs   1/1     Running   0          2m21s\nnotifications-7b6a5c4d3-ww4fp   1/1     Running   0          1m58s"
+ }
+}

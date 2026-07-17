@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helmsman-copilot"
+version = "0.1.0"
+description = "Helmsman — agentic DevOps copilot: watches the cluster, reads the logs, explains the cause, drafts the kubectl fix, and applies nothing without a human yes."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Huy Nguyen" }]
+# stdlib only — kubectl does the talking, signatures do the thinking
+dependencies = []
+
+[project.optional-dependencies]
+# with a key, a model writes the cause narrative (fixes stay templated)
+llm = ["anthropic>=0.40", "openai>=1.40"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+helmsman = "helmsman.cli:main"
+
+[tool.setuptools]
+packages = ["helmsman"]
+
+[tool.setuptools.package-data]
+helmsman = ["fixtures/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

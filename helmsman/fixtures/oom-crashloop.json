@@ -1,0 +1,37 @@
+{
+ "id": "oom-crashloop",
+ "title": "checkout-api crash-looping after the 14:02 deploy",
+ "tag": "prod · P2 · OOMKill",
+ "page": "PagerDuty P2 — prod/checkout-api: CrashLoopBackOff on 3/3 replicas, checkout error rate 41% and climbing",
+ "namespace": "prod",
+ "selector": "app=checkout-api",
+ "board": {
+  "nodes": [
+   {"name": "node-a", "pods": [
+    {"name": "checkout-api-7f9c6b4d8-2xkfj", "app": "checkout-api", "victim": true},
+    {"name": "cart-api-6d8f7c9b4-lm2xp", "app": "cart-api"},
+    {"name": "web-frontend-5b7d9f6c8-qk4tz", "app": "web"},
+    {"name": "redis-0", "app": "redis"}]},
+   {"name": "node-b", "pods": [
+    {"name": "checkout-api-7f9c6b4d8-9qwt4", "app": "checkout-api", "victim": true},
+    {"name": "payments-5f6d8b7c9-tt8vk", "app": "payments"},
+    {"name": "web-frontend-5b7d9f6c8-8xj2m", "app": "web"},
+    {"name": "kafka-1", "app": "kafka"}]},
+   {"name": "node-c", "pods": [
+    {"name": "checkout-api-7f9c6b4d8-c44sn", "app": "checkout-api", "victim": true},
+    {"name": "cart-api-6d8f7c9b4-zz9rd", "app": "cart-api"},
+    {"name": "search-7c8d9e6f5-p2n8w", "app": "search"},
+    {"name": "kafka-2", "app": "kafka"}]}
+  ]
+ },
+ "commands": {
+  "get pods -n prod -l app=checkout-api": "NAME                            READY   STATUS             RESTARTS      AGE\ncheckout-api-7f9c6b4d8-2xkfj   0/1     CrashLoopBackOff   7 (42s ago)   19m\ncheckout-api-7f9c6b4d8-9qwt4   0/1     CrashLoopBackOff   7 (68s ago)   19m\ncheckout-api-7f9c6b4d8-c44sn   0/1     CrashLoopBackOff   6 (12s ago)   19m",
+  "describe pod checkout-api-7f9c6b4d8-2xkfj -n prod": "Name:             checkout-api-7f9c6b4d8-2xkfj\nNamespace:        prod\nNode:             node-a/10.0.1.42\nStart Time:       Tue, 07 Jul 2026 14:02:11 -0500\nLabels:           app=checkout-api\n                  pod-template-hash=7f9c6b4d8\nStatus:           Running\nControlled By:    ReplicaSet/checkout-api-7f9c6b4d8\nContainers:\n  checkout-api:\n    Image:          registry.internal/checkout-api:2026.07.07-1402\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n      Started:      Tue, 07 Jul 2026 14:19:03 -0500\n      Finished:     Tue, 07 Jul 2026 14:20:41 -0500\n    Restart Count:  7\n    Limits:\n      cpu:     500m\n      memory:  256Mi\n    Requests:\n      cpu:     250m\n      memory:  256Mi\n    Readiness:      http-get http://:8080/healthz delay=5s timeout=1s period=10s\nConditions:\n  Type              Status\n  Initialized       True\n  Ready             False\n  ContainersReady   False\nQoS Class:          Guaranteed",
+  "logs checkout-api-7f9c6b4d8-2xkfj -n prod --previous --tail=40": "14:19:04 INFO  checkout-api 2026.07.07-1402 starting (commit 8c1f2aa)\n14:19:04 INFO  feature flag promo_bundle_cache=on (new in this release)\n14:19:05 INFO  listening on 0.0.0.0:8080\n14:19:11 INFO  warming promo bundle cache: 1/24 shards\n14:19:26 INFO  warming promo bundle cache: 8/24 shards, rss=141MiB\n14:19:48 INFO  warming promo bundle cache: 15/24 shards, rss=198MiB\n14:20:12 INFO  warming promo bundle cache: 21/24 shards, rss=239MiB\n14:20:33 WARN  gc pressure high, heap 247MiB of 256MiB budget\n14:20:41 INFO  warming promo bundle cache: 24/24 shards, rss=252MiB",
+  "get events -n prod --field-selector involvedObject.name=checkout-api-7f9c6b4d8-2xkfj --sort-by=.lastTimestamp": "LAST SEEN   TYPE      REASON      OBJECT                              MESSAGE\n19m         Normal    Scheduled   pod/checkout-api-7f9c6b4d8-2xkfj    Successfully assigned prod/checkout-api-7f9c6b4d8-2xkfj to node-a\n19m         Normal    Pulled      pod/checkout-api-7f9c6b4d8-2xkfj    Container image \"registry.internal/checkout-api:2026.07.07-1402\" already present on machine\n2m14s       Normal    Created     pod/checkout-api-7f9c6b4d8-2xkfj    Created container checkout-api\n2m14s       Normal    Started     pod/checkout-api-7f9c6b4d8-2xkfj    Started container checkout-api\n42s         Warning   BackOff     pod/checkout-api-7f9c6b4d8-2xkfj    Back-off restarting failed container checkout-api in pod checkout-api-7f9c6b4d8-2xkfj"
+ },
+ "after": {
+  "-n prod set resources deploy/checkout-api --limits=memory=512Mi --requests=memory=256Mi": "deployment.apps/checkout-api resource requirements updated",
+  "get pods -n prod -l app=checkout-api": "NAME                            READY   STATUS    RESTARTS   AGE\ncheckout-api-5d8e7f9a6-fh3km   1/1     Running   0          4m12s\ncheckout-api-5d8e7f9a6-jw8pn   1/1     Running   0          3m41s\ncheckout-api-5d8e7f9a6-r6v2q   1/1     Running   0          3m02s"
+ }
+}
