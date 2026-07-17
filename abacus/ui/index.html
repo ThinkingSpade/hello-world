@@ -1,0 +1,1562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abacus — a data analyst you can interrogate</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<script src="vendor/sql-wasm.js"></script>
+<style>
+  :root {
+    --bg: #F7F7F8; --panel: #FFFFFF; --panel-2: #F1F1F3; --line: #E6E6E9;
+    --text: #16161A; --dim: #6B6B73; --grid: #ECECEF;
+    --blue: #3f5aa0; --gold: #8f6f1d; --green: #2f8a58; --violet: #6a47a0;
+    --coral: #b8463a; --green-bg: #e9f2ec; --coral-bg: #f7e9e7;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Courier New", ui-monospace, monospace; line-height: 1.55; padding: 1.2rem .9rem 3rem; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  /* workbench: build on the left, results on the right */
+  .workbench { display: grid; grid-template-columns: 1.04fr .96fr; gap: 1rem; align-items: start; }
+  .wb-build { min-width: 0; }
+  .wb-results { position: sticky; top: .7rem; align-self: start; max-height: calc(100vh - 1.2rem); overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 2px 5px 6px 3px; }
+  .reslab { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 800; margin: 0 0 .55rem .1rem; position: sticky; top: 0; background: var(--bg); padding: .3rem 0; z-index: 3; }
+  .reslab .live { color: var(--coral); }
+  .feedempty { border: 1.5px dashed var(--line); border-radius: 12px; padding: 1.5rem 1rem; text-align: center; color: var(--dim); font-size: .72rem; background: #fbfbfc; }
+  @media (max-width: 940px) { .workbench { grid-template-columns: 1fr; } .wb-results { position: static; max-height: none; overflow: visible; } }
+  header { text-align: center; margin-bottom: 1rem; }
+  h1 { font-size: 1.7rem; letter-spacing: .06em; }
+  h1 .dot { color: var(--blue); animation: caret .9s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .tagline { color: var(--dim); font-size: .8rem; margin-top: .15rem; }
+  .honesty { display: inline-block; margin-top: .6rem; font-size: .68rem; color: var(--dim); border: 1.5px dashed var(--line); border-radius: 10px; padding: .35rem .8rem; background: var(--panel); max-width: 780px; }
+  .honesty b { color: var(--green); }
+  .card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 4px 4px 0 rgba(20,20,26,.05); }
+  .card h2 { font-size: .92rem; letter-spacing: .04em; margin-bottom: .55rem; }
+  /* crew */
+  .crew { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: 1rem; }
+  @media (max-width: 1000px) { .crew { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .crew { grid-template-columns: 1fr; } }
+  .agent { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: .7rem; text-align: center; position: relative; box-shadow: 3px 3px 0 rgba(20,20,26,.05); transition: transform .32s cubic-bezier(.34,1.2,.64,1), box-shadow .32s, border-color .3s; }
+  .agent.working, .agent.speaking { border-color: var(--ac); }
+  .agent.working { transform: translateY(-4px); box-shadow: 7px 10px 0 rgba(20,20,26,.08); }
+  .agent .ava { width: 132px; height: 116px; margin: 0 auto .25rem; position: relative; }
+  .agent .ava svg { width: 100%; height: 100%; image-rendering: pixelated; overflow: visible; }
+  .agent .person { transform-origin: 66px 84px; animation: breathe 4.2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } 50% { transform: translateY(-1.6px) scale(1.008); filter: drop-shadow(0 6px 5px rgba(20,20,26,.08)); } }
+  .agent .nm { font-weight: 800; font-size: .82rem; }
+  .agent .rl { font-size: .64rem; color: var(--ac); font-weight: 700; }
+  .agent .tg { font-size: .6rem; color: var(--dim); font-style: italic; }
+  .agent .chipstat { display: inline-block; margin-top: .3rem; font-size: .6rem; font-weight: 700; letter-spacing: .04em; color: var(--ac); border: 1.5px solid var(--ac); border-radius: 999px; padding: .08rem .5rem; background: #fff; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .agent .st { font-size: .62rem; color: var(--dim); min-height: 2.2em; margin-top: .18rem; }
+  .agent .st b { color: var(--text); }
+  .agent .st .dots:after { content: ""; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  .agent.thinking .person { animation: ponder 1.6s ease-in-out infinite; }
+  .agent.working .person { animation: leanin .62s ease-in-out infinite alternate; }
+  @keyframes ponder { 0%,100% { transform: translateY(0); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } 50% { transform: translateY(-3px); filter: drop-shadow(0 6px 5px rgba(20,20,26,.1)); } }
+  @keyframes leanin { from { transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px rgba(20,20,26,.12)); } to { transform: translateY(-3px) scale(1.055); filter: drop-shadow(0 10px 9px rgba(20,20,26,.16)); } }
+  .agent.working .hands rect:nth-child(1) { animation: tap .18s steps(1) infinite; }
+  .agent.working .hands rect:nth-child(2) { animation: tap .18s steps(1) infinite .09s; }
+  @keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .agent.cheer .person { animation: cheer .7s cubic-bezier(.34,1.56,.64,1) 2; }
+  @keyframes cheer { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-9px); } }
+  .agent.sip .person { animation: sipping 1s ease-in-out 1; }
+  @keyframes sipping { 0%,100% { transform: rotate(0); } 35%,65% { transform: rotate(-3.5deg) translateY(-2px); } }
+  .agent.sip .sipsteam { opacity: 1; }
+  .sipsteam { opacity: 0; transition: opacity .3s; }
+  .steam rect { animation: steam 2.6s ease-in-out infinite; opacity: 0; }
+  .steam rect:nth-child(2) { animation-delay: 1.3s; }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .7; } 100% { opacity: 0; transform: translateY(-7px); } }
+  .eye { animation: blink 4.6s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96%, 98% { transform: scaleY(.1); } }
+  .mchart { stroke-dasharray: 60; animation: mflow 5s linear infinite; }
+  @keyframes mflow { to { stroke-dashoffset: -120; } }
+  .scr { animation: flick 7.3s steps(1) infinite; }
+  @keyframes flick { 0%, 93%, 100% { opacity: 1; } 94%, 96% { opacity: .72; } }
+  .workbub { position: absolute; bottom: calc(100% + 6px); top: auto; left: 50%; transform: translateX(-50%); display: none; z-index: 8; background: #fff; border: 1.5px solid var(--ac); border-radius: 8px; padding: .12rem .5rem; font-size: .62rem; font-weight: 700; color: var(--ac); white-space: normal; text-align: center; line-height: 1.3; max-width: 160px; width: max-content; box-shadow: 2px 2px 0 rgba(20,20,26,.12); }
+  .workbub:after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 7px; height: 7px; background: #fff; border-right: 1.5px solid var(--ac); border-bottom: 1.5px solid var(--ac); transform: translateX(-50%) rotate(45deg); }
+  @keyframes bubbob { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-3px); } }
+  .agent.working .workbub { display: block; animation: bubbob 1.4s ease-in-out infinite; }
+  .wire-badge { position: absolute; top: .45rem; right: .55rem; font-size: .56rem; font-weight: 800; letter-spacing: .06em; color: #fff; background: var(--coral); border-radius: 999px; padding: .1rem .45rem; display: none; }
+  .agent.live .wire-badge { display: inline-block; }
+  /* ask box */
+  .askrow { display: flex; gap: .5rem; }
+  #q { flex: 1; font: inherit; font-size: .9rem; padding: .55rem .8rem; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); }
+  #q:focus { outline: none; border-color: var(--blue); }
+  #ask { font: inherit; font-weight: 700; font-size: .85rem; background: var(--blue); color: #fff; border: 0; border-radius: 10px; padding: .55rem 1.2rem; cursor: pointer; }
+  #ask:disabled { opacity: .5; cursor: wait; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+  .chips button { font: inherit; font-size: .66rem; background: var(--panel-2); color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: .18rem .6rem; cursor: pointer; }
+  .chips button:hover { color: var(--blue); border-color: var(--blue); }
+  details.help { margin-top: .6rem; font-size: .7rem; color: var(--dim); }
+  details.help summary { cursor: pointer; }
+  details.help .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; margin-top: .5rem; }
+  details.help b { color: var(--text); }
+  /* llm panel */
+  details.llm { margin-top: .7rem; border: 1.5px dashed var(--line); border-radius: 10px; padding: .5rem .7rem; font-size: .7rem; color: var(--dim); }
+  details.llm summary { cursor: pointer; font-weight: 700; color: var(--text); }
+  details.llm summary .live { color: var(--coral); }
+  .llmrow { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; align-items: center; }
+  .llmrow select, .llmrow input { font: inherit; font-size: .7rem; padding: .3rem .5rem; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); }
+  .llmrow input[type=password] { width: 250px; }
+  .llmrow label { display: flex; align-items: center; gap: .3rem; }
+  .switch { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; color: var(--text); cursor: pointer; }
+  /* answers */
+  /* the docket — each answer printed like the ticket the crew files */
+  .ans { position: relative; background: #fff; border: 1.5px solid #dcdce2; border-radius: 3px; padding: .8rem 1rem .95rem; margin-bottom: 1.15rem; animation: pop .28s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 2px 0 #ececef, 0 3px 0 #dcdce2, 0 10px 18px -11px rgba(20,20,26,.22); }
+  .ans:after { content: ""; position: absolute; left: -1px; right: -1px; bottom: -7px; height: 8px;
+    background: linear-gradient(-45deg, transparent 4px, #fff 0) 0 0/9px 8px repeat-x, linear-gradient(45deg, transparent 4px, #dcdce2 0) 0 0/9px 8px repeat-x; }
+  .ans .dk-head { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; padding-right: 62px; font-size: .55rem; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 800; border-bottom: 1.5px dashed #d7d7de; padding-bottom: .38rem; margin-bottom: .5rem; }
+  .ans .dk-head .dk-no b { color: var(--kc, var(--blue)); }
+  .ans .dk-head .dk-mode { color: var(--kc, var(--blue)); }
+  .ans .dk-head .dk-meta { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ans .dk-stamp { position: absolute; right: 14px; top: 11px; font-size: .56rem; font-weight: 900; color: var(--coral); border: 2px solid var(--coral); border-radius: 5px; padding: .03rem .3rem; transform: rotate(-9deg); opacity: .82; letter-spacing: .06em; pointer-events: none; }
+  @keyframes pop { 0% { transform: scale(.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .ans .qline { font-size: .8rem; font-weight: 700; }
+  .ans .qline .mode { float: right; font-size: .6rem; font-weight: 800; letter-spacing: .05em; border-radius: 999px; padding: .08rem .5rem; color: #fff; background: var(--dim); }
+  .ans .qline .mode.live { background: var(--coral); }
+  .planchips { display: flex; flex-wrap: wrap; gap: .3rem; margin: .4rem 0; }
+  .planchips span { font-size: .6rem; font-weight: 700; color: var(--dim); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; }
+  .planchips span b { color: var(--blue); }
+  .ans .story { font-size: .8rem; margin: .45rem 0; }
+  .ans .meta { font-size: .64rem; color: var(--dim); margin-top: .4rem; }
+  .ans details { font-size: .68rem; color: var(--dim); margin-top: .3rem; }
+  .ans details summary { cursor: pointer; }
+  .ans pre { background: #161a20; color: #c9d4e4; border-radius: 8px; padding: .5rem .7rem; font-size: .66rem; overflow-x: auto; margin-top: .3rem; white-space: pre-wrap; }
+  .ans table { border-collapse: collapse; margin-top: .4rem; font-size: .68rem; width: 100%; font-variant-numeric: tabular-nums; }
+  .ans th, .ans td { border: 1px solid var(--line); padding: .15rem .45rem; text-align: right; }
+  .ans th:first-child, .ans td:first-child { text-align: left; }
+  .chartwrap { position: relative; margin-top: .4rem; }
+  .chartwrap svg { width: 100%; height: auto; display: block; }
+  .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: .66rem; border-radius: 8px; padding: .35rem .55rem; opacity: 0; transition: opacity .12s; z-index: 5; white-space: nowrap; box-shadow: 3px 3px 0 rgba(20,20,26,.18); }
+  .stat { text-align: center; padding: .7rem 0 .3rem; }
+  .stat .big { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat .delta { display: inline-block; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: .1rem .6rem; margin-top: .3rem; }
+  .stat .delta.up { color: var(--green); border: 1.5px solid var(--green); }
+  .stat .delta.dn { color: var(--coral); border: 1.5px solid var(--coral); }
+  .err { border: 1.5px solid var(--coral); background: var(--coral-bg); border-radius: 10px; padding: .5rem .7rem; font-size: .74rem; margin-bottom: .8rem; }
+  .err b { color: var(--coral); }
+  /* eval */
+  #evalbtn { font: inherit; font-size: .74rem; font-weight: 700; background: var(--green); color: #fff; border: 0; border-radius: 8px; padding: .4rem .9rem; cursor: pointer; }
+  #evalout { font-size: .72rem; margin-top: .5rem; }
+  #evalout .big { font-weight: 800; color: var(--green); }
+  #evalout details { margin-top: .3rem; color: var(--dim); }
+  #evalout li.bad { color: var(--coral); font-weight: 700; }
+  #evalout ul { columns: 2; font-size: .64rem; list-style: none; padding: 0; margin-top: .3rem; }
+  @media (max-width: 700px) { #evalout ul { columns: 1; } }
+  .spark { position: fixed; font-size: 1rem; pointer-events: none; animation: spark 1.3s ease-out forwards; z-index: 50; }
+  @keyframes spark { 0% { transform: translateY(0) scale(.6); opacity: 1; } 100% { transform: translateY(-70px) scale(1.25); opacity: 0; } }
+  footer { text-align: center; color: var(--dim); font-size: .7rem; margin-top: 2rem; }
+  a { color: var(--blue); }
+  /* ================= craft pass ================= */
+  /* the desk rail + the traveling query ticket */
+  .crew { position: relative; }
+  #ticket { position: absolute; width: 40px; height: 32px; z-index: 7; display: none;
+    transition: left .55s cubic-bezier(.34,1.25,.64,1), top .55s cubic-bezier(.34,1.25,.64,1);
+    pointer-events: none; filter: drop-shadow(2px 3px 0 rgba(20,20,26,.22)); }
+  #ticket.show { display: block; }
+  #ticket .flap { animation: tick-bob .55s ease-in-out infinite alternate; }
+  @keyframes tick-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+  #ticket.filed { animation: tick-file .5s ease-in forwards; }
+  @keyframes tick-file { to { transform: translateY(46px) scale(.5); opacity: 0; } }
+  /* eyes track the active desk */
+  .agent.look-left .eye rect { transform: translateX(-1.6px); }
+  .agent.look-right .eye rect { transform: translateX(1.6px); }
+  .agent .eye rect { transition: transform .25s; }
+  /* office life: fidgets + mutter bubbles */
+  .agent.stretch .person { animation: stretching 1.3s ease-in-out 1; }
+  .agent.stretch .arm-l, .agent.stretch .arm-r { animation: armsup 1.3s ease-in-out 1; }
+  @keyframes stretching { 0%,100% { transform: translateY(0); } 30%,70% { transform: translateY(-4px); } }
+  @keyframes armsup { 0%,100% { transform: translateY(0); } 30%,70% { transform: translateY(-7px); } }
+  .agent.wiggle .person { animation: swivel 1.5s ease-in-out 1; }
+  @keyframes swivel { 0%,100% { transform: rotate(0); } 28% { transform: rotate(-4deg); } 68% { transform: rotate(4deg); } }
+  .agent.yawn .eye { animation: none; transform: scaleY(.18); }
+  .agent.yawn .person { animation: yawnlean 1.1s ease-in-out 1; }
+  @keyframes yawnlean { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2px) rotate(-1.5deg); } }
+  .agent.mumble .workbub { display: block; animation: bubbob 1.4s ease-in-out infinite; }
+  /* answer cards: kind accents + the insight pull-quote */
+  .ans { --kc: var(--blue); }
+  .ans.k-investigate { --kc: var(--coral); }
+  .ans.k-retention { --kc: var(--green); }
+  .ans.k-anomalies { --kc: var(--gold); }
+  .ans .qline .mode { background: var(--kc, var(--dim)); }
+  .ans .qline .mode.live { background: var(--coral); }
+  .ans .story { font-size: .92rem; line-height: 1.65; background: var(--panel-2);
+    border-radius: 10px; padding: .65rem .9rem .65rem 2.1rem; margin: .5rem 0; position: relative; min-height: 2.2em; }
+  .ans .story:before { content: "❝"; position: absolute; left: .7rem; top: .45rem;
+    color: var(--kc, var(--blue)); font-size: 1.25rem; font-weight: 800; }
+  .stat .big { font-size: 2.7rem; letter-spacing: -.01em; }
+  .stat .lbl { font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: .15rem; }
+  .zone rect.bar { transition: opacity .15s; }
+  .zone rect.bar:hover { opacity: .78; }
+  /* heatmap cells */
+  .zone table.heat { border-collapse: separate; border-spacing: 3px; }
+  .zone table.heat td, .zone table.heat th { border: 0; border-radius: 6px; padding: .3rem .35rem;
+    min-width: 2.4rem; text-align: center; font-weight: 700; font-size: .64rem; }
+  .zone table.heat th { background: transparent; color: var(--dim); font-weight: 400; }
+  .zone table.heat td.lab { background: transparent; text-align: left; }
+  .ramp { display: inline-flex; align-items: center; gap: .35rem; font-size: .6rem; color: var(--dim); margin-top: .3rem; }
+  .ramp i { width: 60px; height: 8px; border-radius: 4px; display: inline-block;
+    background: linear-gradient(90deg, #F1F1F3, #3f5aa0); }
+  /* loading */
+  #loadwrap { max-width: 460px; margin: .2rem auto 0; display: none; }
+  #loadwrap.show { display: block; }
+  #loadbar { height: 9px; background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+  #loadbar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .15s; }
+  #loadtxt { font-size: .62rem; color: var(--dim); text-align: center; margin-top: .2rem; }
+  /* ================= the plan board ================= */
+  .boardgrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .boardgrid { grid-template-columns: 1fr; } }
+  /* the command console — same query, another skin */
+  .console { border: 1.5px solid var(--line); border-radius: 12px; background: #fbfbfc; overflow: hidden;
+    box-shadow: 3px 3px 0 rgba(20,20,26,.05); margin-bottom: .85rem; transition: border-color .25s, box-shadow .25s; }
+  .console.armed { border-color: var(--blue); box-shadow: 3px 3px 0 rgba(63,90,160,.12); }
+  .console .chead { display: flex; align-items: center; gap: .5rem; padding: .32rem .7rem; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .console .ctag { font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .console .csub { font-size: .6rem; color: var(--dim); margin-left: auto; }
+  .console .cline { display: flex; align-items: center; gap: .5rem; padding: .55rem .7rem; }
+  .cprompt { color: var(--green); font-weight: 800; white-space: nowrap; user-select: none; }
+  .cprompt b { color: var(--blue); font-weight: 800; }
+  #cmd { flex: 1; min-width: 60px; font: inherit; font-size: .84rem; border: 0; background: transparent; color: var(--text); caret-color: var(--blue); padding: .1rem 0; }
+  #cmd:focus { outline: none; }
+  #cmd::placeholder { color: #9a99a3; font-style: italic; }
+  .cline:not(:focus-within):after { content: "▊"; color: var(--blue); animation: cblink 1.1s steps(2) infinite; margin-right: .1rem; order: 3; }
+  @keyframes cblink { 50% { opacity: 0; } }
+  .crun { order: 4; font: inherit; font-weight: 800; font-size: .74rem; color: #fff; background: var(--blue); border: 1.5px solid var(--blue); border-radius: 8px; padding: .22rem .7rem; cursor: pointer; box-shadow: 2px 2px 0 rgba(20,20,26,.12); transition: filter .15s, transform .05s; white-space: nowrap; }
+  .crun:hover { filter: brightness(1.08); } .crun:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 rgba(20,20,26,.12); }
+  #cmd { order: 2; } .cprompt { order: 1; }
+  .cerr { display: none; color: var(--coral); font-size: .68rem; font-weight: 700; padding: 0 .7rem .5rem 3.1rem; }
+  .cerr.show { display: block; }
+  .board { background: repeating-linear-gradient(-45deg, #F4F4F6, #F4F4F6 12px, #ECECEF 12px, #ECECEF 24px);
+    border: 2px solid #cfced6; border-radius: 12px; padding: .8rem; position: relative;
+    box-shadow: inset 0 0 0 4px #ffffff, inset 0 0 14px rgba(20,20,26,.06); }
+  .board:before { content: "PLAN BOARD"; position: absolute; top: -9px; left: 14px; background: var(--panel);
+    font-size: .58rem; letter-spacing: .18em; color: var(--dim); padding: 0 .4rem; font-weight: 700; }
+  .slotrow { display: flex; align-items: stretch; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+  .slotlab { font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-weight: 700;
+    align-self: center; min-width: 62px; }
+  .slot { min-height: 42px; min-width: 116px; border: 2px dashed #cfced6; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; gap: .4rem; padding: .2rem .35rem;
+    background: rgba(255,255,255,.6); flex: 1; transition: border-color .2s, background .2s, box-shadow .2s; }
+  .slot.filled { border-style: solid; }
+  .slot.metricslot.filled { border-color: var(--blue); background: #eef1f8; }
+  .slot.dimslot.filled { border-color: var(--gold); background: #f7f2e6; }
+  .slot .empty { font-size: .64rem; color: #9a99a3; font-style: italic; }
+  /* drag & drop */
+  .tok.metric[draggable], .tok.dim[draggable] { cursor: grab; }
+  .tok.dragging { opacity: .45; cursor: grabbing; }
+  .slot.can-drop { border-style: dashed; border-color: var(--ac2, var(--blue)); background: color-mix(in srgb, var(--ac2, var(--blue)) 6%, #fff); }
+  .slot.dragover { border-style: solid; border-color: var(--ac2, var(--blue)); background: color-mix(in srgb, var(--ac2, var(--blue)) 13%, #fff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac2, var(--blue)) 18%, transparent); }
+  /* the physical tokens */
+  .tok { font: inherit; cursor: pointer; border: 1.5px solid var(--tc, var(--line)); background: #ffffff;
+    border-radius: 8px; padding: .28rem .6rem; font-size: .72rem; font-weight: 700; color: var(--text);
+    box-shadow: 2px 2px 0 rgba(20,20,26,.12); display: inline-flex; align-items: center; gap: .35rem;
+    transition: transform .12s, box-shadow .12s; position: relative; user-select: none; }
+  .tok:hover { transform: translateY(-1px); box-shadow: 3px 4px 0 rgba(20,20,26,.16); }
+  .tok:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(20,20,26,.12); }
+  .tok.metric { --tc: var(--blue); }
+  .tok.dim { --tc: var(--gold); }
+  .tok.on { background: var(--tc); color: #fff; }
+  .tok .ic { font-size: .68rem; opacity: .8; }
+  .tok.placed { animation: snap .3s cubic-bezier(.34,1.7,.64,1); }
+  @keyframes snap { 0% { transform: scale(1.5) translateY(-14px); opacity: .3; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+  .tok .x { font-size: .8rem; color: rgba(255,255,255,.75); margin-left: .1rem; line-height: 1; }
+  /* time dial */
+  .dial { display: inline-flex; align-items: stretch; border: 2px solid var(--violet); border-radius: 9px; overflow: hidden; background: #ffffff; }
+  .dial button { font: inherit; border: 0; background: #f0ebf6; color: var(--violet); cursor: pointer; padding: 0 .55rem; font-weight: 800; font-size: .9rem; }
+  .dial button:hover { background: var(--violet); color: #fff; }
+  .dial .win { padding: .28rem .7rem; font-size: .72rem; font-weight: 700; align-self: center; min-width: 130px; text-align: center; }
+  /* stamps (filters) */
+  .stamp { font: inherit; cursor: pointer; border: 2px solid var(--coral); color: var(--coral); background: transparent;
+    border-radius: 6px; padding: .16rem .5rem; font-size: .64rem; font-weight: 800; letter-spacing: .03em;
+    text-transform: uppercase; opacity: .72; transition: all .12s; }
+  .stamp:hover { opacity: 1; }
+  .stamp.on { background: var(--coral); color: #fff; opacity: 1; transform: rotate(-2deg); box-shadow: 2px 2px 0 rgba(20,20,26,.18); }
+  .toggle { font: inherit; cursor: pointer; border: 2px solid var(--line); background: #ffffff; color: var(--dim);
+    border-radius: 8px; padding: .24rem .6rem; font-size: .66rem; font-weight: 700; }
+  .toggle.on { border-color: var(--green); color: #fff; background: var(--green); }
+  .toggle.dis { opacity: .4; cursor: not-allowed; }
+  .stepper { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; color: var(--dim); }
+  .stepper button { font: inherit; border: 1.5px solid var(--line); background: #ffffff; cursor: pointer; border-radius: 6px; width: 22px; height: 22px; font-weight: 800; }
+  .stepper.dis { opacity: .4; }
+  /* the run lever */
+  .runwrap { display: flex; align-items: center; gap: .8rem; margin-top: .3rem; }
+  #lever { position: relative; width: 62px; height: 58px; cursor: pointer; border: 0; background: none; padding: 0; flex: none; }
+  #lever:disabled { cursor: not-allowed; opacity: .5; }
+  #lever .base { position: absolute; bottom: 0; left: 11px; width: 40px; height: 20px; background: #3a3f4d; border-radius: 4px; }
+  #lever .stick { position: absolute; bottom: 14px; left: 28px; width: 6px; height: 34px; background: #6b4a2f; border-radius: 3px;
+    transform-origin: bottom center; transition: transform .18s cubic-bezier(.34,1.6,.64,1); }
+  #lever .knob { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--coral); border: 2px solid #1c1a17; }
+  #lever:not(:disabled):hover .stick { transform: rotate(8deg); }
+  #lever.pulled .stick { transform: rotate(32deg); }
+  #lever .lbl { position: absolute; bottom: -14px; left: 0; width: 100%; text-align: center; font-size: .54rem; font-weight: 800; letter-spacing: .1em; color: var(--coral); }
+  .runwrap .hint { font-size: .68rem; color: var(--dim); }
+  /* SQL preview panel */
+  .sqlprev { background: var(--term); color: var(--term-text); border-radius: 12px; border: 1.5px solid #0d1014; padding: .7rem .85rem; font-size: .72rem; min-height: 100%; position: relative; }
+  .sqlprev .bar { display: flex; gap: .3rem; margin-bottom: .5rem; align-items: center; }
+  .sqlprev .bar i { width: 9px; height: 9px; border-radius: 50%; }
+  .sqlprev .bar i:nth-child(1) { background: #b8463a; } .sqlprev .bar i:nth-child(2) { background: #8f6f1d; } .sqlprev .bar i:nth-child(3) { background: #2f8a58; }
+  .sqlprev .bar span { margin-left: auto; font-size: .58rem; color: #5a6478; letter-spacing: .06em; }
+  .sqlprev pre { white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; }
+  .sqlprev .kw { color: #7fbf6a; } .sqlprev .lit { color: #e0c36a; } .sqlprev .idn { color: #c9d4e4; }
+  .sqlprev.stale { opacity: .55; }
+  .sqlprev .ph { color: #5a6478; font-style: italic; }
+  .sqlprev .flash { animation: sqlflash .4s ease-out; }
+  @keyframes sqlflash { from { background: rgba(63,90,160,.35); } to { background: transparent; } }
+  /* reports shelf */
+  .shelf { display: flex; gap: .6rem; flex-wrap: wrap; align-items: stretch; }
+  .report { flex: 1; min-width: 190px; text-align: left; cursor: pointer; border: 2px solid var(--rc); background: #ffffff;
+    border-radius: 11px; padding: .55rem .75rem; box-shadow: 3px 3px 0 rgba(20,20,26,.06); transition: transform .12s; }
+  .report:hover { transform: translateY(-2px); }
+  .report:disabled { opacity: .5; cursor: wait; }
+  .report .rt { font-weight: 800; font-size: .78rem; }
+  .report .rd { font-size: .62rem; color: var(--dim); margin-top: .15rem; }
+  .report .rt .ic { margin-right: .3rem; }
+  .board-help { font-size: .62rem; color: var(--dim); margin-top: .5rem; }
+  /* the WHY button on result cards */
+  .whybtn { font: inherit; cursor: pointer; margin-top: .5rem; border: 2px solid var(--coral); color: #fff; background: var(--coral);
+    border-radius: 8px; padding: .3rem .8rem; font-size: .72rem; font-weight: 800; letter-spacing: .02em; box-shadow: 2px 2px 0 rgba(20,20,26,.18); }
+  .whybtn:hover { transform: translateY(-1px); }
+  .whybtn:disabled { opacity: .5; }
+  .racklab { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 700; margin: .1rem 0 .35rem; }
+  .rack { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+  /* ================= calm pass: hierarchy + progressive disclosure ================= */
+  .how { margin-top: .5rem; font-size: .66rem; color: var(--dim); }
+  .how summary { cursor: pointer; color: var(--blue); }
+  .how span { display: block; max-width: 720px; margin: .35rem auto 0; line-height: 1.5;
+    border: 1.5px dashed var(--line); border-radius: 10px; padding: .5rem .75rem; background: var(--panel); }
+  .how b { color: var(--green); }
+  /* slim the crew — beloved, but ambient, not a hero band */
+  .crew { gap: .6rem; }
+  .crew .agent { padding: .5rem .45rem .55rem; }
+  .crew .ava { width: 96px; height: 84px; }
+  .crew .nm { font-size: .74rem; }
+  .crew .rl { font-size: .58rem; }
+  .crew .tg { display: none; }
+  .crew .chipstat { font-size: .55rem; padding: .06rem .42rem; margin-top: .22rem; }
+  .crew .st { font-size: .58rem; min-height: 2em; }
+  .crew .workbub { font-size: .58rem; }
+  .card h2 { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+  .stepnote { font-size: .66rem; font-weight: 400; color: var(--dim); letter-spacing: 0; text-transform: none; }
+  /* the board reads as a sentence; refine controls wake up once a measure lands */
+  .refine, #refineracks { transition: opacity .3s, filter .3s; }
+  #boardcard.needs-metric .refine, #boardcard.needs-metric #refineracks {
+    opacity: .32; pointer-events: none; filter: grayscale(.5); }
+  #boardcard.needs-metric .slotrow.primary .slot { border-color: var(--blue); animation: pulseslot 2s ease-in-out infinite; }
+  @keyframes pulseslot { 0%,100% { box-shadow: 0 0 0 0 rgba(63,90,160,0); } 50% { box-shadow: 0 0 0 4px rgba(63,90,160,.14); } }
+  .toprow { display: none; }
+  .toprow.show { display: flex; }
+  /* filters tucked behind a small disclosure — 16 stamps was the loudest noise */
+  .filterbox { align-self: center; }
+  .filterbox > summary { cursor: pointer; list-style: none; font-size: .64rem; font-weight: 800; color: var(--coral);
+    border: 2px solid var(--coral); border-radius: 8px; padding: .22rem .6rem; opacity: .8; }
+  .filterbox[open] > summary { opacity: 1; background: var(--coral-bg); }
+  .filterbox > summary::-webkit-details-marker { display: none; }
+  .filterbox #filtercount { color: #fff; background: var(--coral); border-radius: 999px; padding: 0 .35rem; margin-left: .25rem; }
+  .filterbox #filtercount:empty { display: none; }
+  .stamps { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+  /* SQL demoted from a full column to a calm strip below the board */
+  .sqlbox { margin-top: .5rem; }
+  .sqlbox > summary { cursor: pointer; font-size: .62rem; letter-spacing: .04em; color: var(--dim); }
+  .sqlbox .sqlprev { margin-top: .4rem; max-height: 168px; overflow: auto; }
+  /* quieter racks: lighter, smaller tokens so 19 cards don't shout */
+  .rack .tok { font-size: .68rem; padding: .24rem .55rem; box-shadow: 1px 2px 0 rgba(20,20,26,.1); }
+  .rack .tok.dim { font-weight: 400; }
+  .racklab { margin-top: .55rem; }
+  /* compact reports shelf */
+  .report { padding: .5rem .7rem; }
+  .report .rd { margin-top: .1rem; }
+  .evalcard > summary { cursor: pointer; font-size: .82rem; }
+  .evalcard > summary b { color: var(--green); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ABACUS<span class="dot">_</span></h1>
+    <p class="tagline">type a question in the console, or build it from real building blocks — either way a <b>deterministic compiler</b> writes the SQL (never a chatbot) on a <b id="hdr-rows">125k</b>-row warehouse in your browser</p>
+    <details class="how"><summary>how it's real</summary>
+      <span>A 125k-row e-commerce warehouse (openly synthetic, seeded, clock pinned to 2026-06-30) runs on SQLite-in-WebAssembly on this page. A semantic layer defines every metric once; the board hands a plan to a deterministic compiler — <b>the only thing allowed to write SQL</b>. Bring your own API key and a live LLM arranges the board instead — your key stays in this tab, and the model only ever picks from the semantic layer.</span></details>
+    <div id="loadwrap" class="show"><div id="loadbar"><i id="loadfill"></i></div>
+      <div id="loadtxt">fetching the warehouse…</div></div>
+  </header>
+
+  <div class="crew" id="crew"></div>
+
+  <div class="workbench">
+   <div class="wb-build">
+    <div class="card" id="boardcard">
+    <h2>Build a question <span class="stepnote" id="stepnote">— drop in a measure to begin</span></h2>
+    <div class="console" id="console">
+      <div class="chead"><span class="ctag">console</span><span class="csub">type a question — or build it on the board below ↓</span></div>
+      <div class="cline" id="cline">
+        <span class="cprompt">abacus&nbsp;<b>❯</b></span>
+        <input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+          aria-label="type a question" placeholder="e.g. revenue by region last quarter">
+        <button class="crun" id="cmd-run" title="run ⏎">run ⏎</button>
+      </div>
+      <div class="cerr" id="cerr"></div>
+    </div>
+    <div class="board" id="board">
+      <div class="slotrow primary"><span class="slotlab">measure</span>
+        <div class="slot metricslot" id="slot-metric"><span class="empty">drop a metric card from below…</span></div></div>
+      <div class="refine" id="refine">
+        <div class="slotrow"><span class="slotlab">group by</span>
+          <div class="slot dimslot" id="slot-dim0"><span class="empty">optional</span></div>
+          <div class="slot dimslot" id="slot-dim1"><span class="empty">optional</span></div></div>
+        <div class="slotrow"><span class="slotlab">window</span>
+          <div class="dial"><button id="dial-prev" aria-label="earlier window">◀</button>
+            <span class="win" id="dial-win">—</span>
+            <button id="dial-next" aria-label="later window">▶</button></div>
+          <button class="toggle" id="cmp-prev">vs prev</button>
+          <button class="toggle" id="cmp-yoy">vs last yr</button>
+          <details class="filterbox" id="filterbox"><summary>＋ filter <span id="filtercount"></span></summary>
+            <div id="stamps" class="stamps"></div></details></div>
+        <div class="slotrow toprow" id="toprow"><span class="slotlab">top N</span>
+          <span class="stepper" id="topstep"><button id="top-dec">−</button><b id="top-val">10</b><button id="top-inc">+</button> products</span></div>
+      </div>
+      <div class="runwrap">
+        <button id="lever" disabled aria-label="run the query">
+          <span class="base"></span><span class="stick"><span class="knob"></span></span><span class="lbl">RUN</span></button>
+        <span class="hint" id="runhint">pick a measure to arm the lever</span>
+      </div>
+    </div>
+    <details class="sqlbox" id="sqlbox" open>
+      <summary>compiled live — the only SQL author in the system</summary>
+      <div class="sqlprev" id="sqlprev"><pre id="sqlpre"><span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span></pre></div>
+    </details>
+
+    <div class="racklab">① pick a measure</div>
+    <div class="rack" id="rack-metrics"></div>
+    <div class="refine-racks" id="refineracks">
+      <div class="racklab">② slice it (optional) — or just pull RUN</div>
+      <div class="rack" id="rack-dims"></div>
+    </div>
+
+    <details class="llm" id="llmpanel" style="margin-top:.6rem">
+      <summary>⚡ or let a live LLM arrange the board for you <span class="live" id="llmstate"></span></summary>
+      <div class="llmrow">
+        <input id="llm-q" type="text" placeholder="e.g. how did mobile revenue trend this year?" style="flex:1;min-width:220px" aria-label="describe the question">
+        <select id="llm-provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select>
+        <input id="llm-model" type="text" value="claude-haiku-4-5" size="18" aria-label="model">
+        <input id="llm-key" type="password" placeholder="sk-ant-… (stays in this tab)" aria-label="api key">
+        <button id="llm-go" class="toggle">arrange →</button>
+      </div>
+      <div style="margin-top:.4rem">The model never touches SQL — it only <b>arranges the cards on the board</b>, and you watch which tokens it picks before the same guarded compiler runs. Your key stays in this tab. A metric that isn't on a card is a rejected plan, not an improvised query.</div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Or run an investigation <span class="stepnote">— things a lookup tool can't do</span></h2>
+    <div class="shelf" id="shelf">
+      <button class="report" id="rep-why" style="--rc:var(--coral)" disabled>
+        <div class="rt"><span class="ic">🔎</span>Why did it move?</div>
+        <div class="rd">decompose the change into a waterfall</div></button>
+      <button class="report" id="rep-cohort" style="--rc:var(--green)">
+        <div class="rt"><span class="ic">🧭</span>Retention triangle</div>
+        <div class="rd">cohorts by first-purchase quarter</div></button>
+      <button class="report" id="rep-anom" style="--rc:var(--gold)">
+        <div class="rt"><span class="ic">📡</span>Anomaly scan</div>
+        <div class="rd">z-scores over the window on the dial</div></button>
+    </div>
+  </div>
+   </div><!-- /wb-build -->
+
+   <div class="wb-results">
+     <div class="reslab">▟ results — newest on top</div>
+     <div id="feed"><div class="feedempty">pull the lever or type in the console — answers get printed &amp; filed here</div></div>
+   </div>
+  </div><!-- /workbench -->
+
+  <details class="card evalcard">
+    <summary><b>Proof it's real</b> — replay the 35-question parity eval yourself</summary>
+    <div style="font-size:.72rem;color:var(--dim);margin:.5rem 0">
+      35 golden questions were frozen by the Python engine (plans, SQL, and results committed to the repo). This replays all 35 through the browser engine against the same warehouse — plans must match exactly, values to the cent.
+    </div>
+    <button id="evalbtn" disabled>▶ run the 35-question eval</button>
+    <div id="evalout"></div>
+  </details>
+
+  <footer>
+    ABACUS · plan board → semantic layer → compiled SQL → chart, entirely client-side ·
+    Python twin + goldens on <a href="https://github.com/ThinkingSpade/hello-world/tree/claude/abacus" target="_blank" rel="noopener">the branch</a> ·
+    part of <a href="/">hnguyen.dev</a>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, REDUCED ? 0 : ms));
+
+  /* ---------------- the crew ---------------- */
+  const CREW = [
+    { id: "analyst", name: "The Analyst", role: "Reads the question", ac: "#3f5aa0",
+      tg: "hears 'vibes', writes 'metrics'", style: "pony", chip: "0 QUESTIONS",
+      bubs: ["hm, 'margin'…", "define 'good'?", "that's a metric", "since when?"],
+      idles: ["sharpening pencils", "re-reading old tickets", "aligning the headset"] },
+    { id: "librarian", name: "The Librarian", role: "Keeps the semantic layer", ac: "#8f6f1d",
+      tg: "every metric has a card in the catalog", style: "bun", chip: "… METRICS ON FILE",
+      bubs: ["one metric, one card", "no synonym clashes", "joins are earned", "shh."],
+      idles: ["dusting the catalog", "re-filing 'revenue'", "stamping new cards"] },
+    { id: "machinist", name: "The Machinist", role: "Runs the warehouse", ac: "#2f8a58",
+      tg: "keeps the flywheel spinning", style: "cap", chip: "0 QUERIES",
+      bubs: ["tk tk tk", "125k rows, no sweat", "full scan? fine.", "wasm hums tonight"],
+      idles: ["oiling the flywheel", "listening to the fans", "topping off the cache"] },
+    { id: "illustrator", name: "The Illustrator", role: "Inks the answer", ac: "#6a47a0",
+      tg: "won't ship a chart with two y-axes", style: "beret", chip: "0 CHARTS",
+      bubs: ["one axis. ONE.", "labels, not legends", "ink the peak", "gridlines whisper"],
+      idles: ["cleaning brushes", "mixing the blues", "squaring the easel"] },
+  ];
+
+  function pixelChar(c) {
+    const ink = "#1c1a17", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
+    const hairC = { pony: "#6b4a2f", bun: "#3a2f28", cap: "#5a4632", beret: "#2a2622" }[c.style];
+    let hair = "";
+    if (c.style === "pony") hair = `<rect x="50" y="13" width="32" height="9" fill="${hairC}"/><rect x="80" y="18" width="8" height="18" fill="${hairC}"/><rect x="50" y="19" width="5" height="9" fill="${hairC}"/>
+      <rect x="46" y="27" width="5" height="10" fill="${ink}"/><rect x="47" y="37" width="3" height="6" fill="${ink}"/><rect x="47" y="43" width="8" height="3" fill="${ink}"/>`;
+    else if (c.style === "bun") hair = `<rect x="50" y="14" width="32" height="8" fill="${hairC}"/><rect x="82" y="18" width="9" height="9" fill="${hairC}"/><rect x="50" y="20" width="5" height="12" fill="${hairC}"/>`;
+    else if (c.style === "cap") hair = `<rect x="50" y="12" width="32" height="9" fill="${c.ac}"/><rect x="76" y="19" width="14" height="4" fill="${c.ac}"/><rect x="62" y="8" width="8" height="6" fill="${c.ac}"/>`;
+    else hair = `<rect x="48" y="12" width="30" height="9" fill="${c.ac}"/><rect x="74" y="10" width="12" height="7" fill="${c.ac}"/><rect x="50" y="19" width="32" height="3" fill="${hairC}"/>`;
+    const glasses = c.style === "bun" || c.style === "beret" ? `
+      <rect x="54" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="68" y="30" width="10" height="8" fill="none" stroke="${ink}" stroke-width="2"/>
+      <rect x="64" y="33" width="4" height="2" fill="${ink}"/>` : "";
+    const charts = {
+      pony: `<g class="mchart"><rect x="16" y="50" width="18" height="2" fill="#cfd6e4"/><rect x="16" y="55" width="22" height="2" fill="#cfd6e4"/><rect x="16" y="60" width="14" height="2" fill="#cfd6e4"/></g>`,
+      bun: `<g class="mchart"><rect x="16" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="27" y="50" width="8" height="12" fill="#cfd6e4"/><rect x="18" y="53" width="4" height="1.5" fill="#5a6478"/><rect x="29" y="53" width="4" height="1.5" fill="#5a6478"/></g>`,
+      cap: `<g class="mchart"><rect x="16" y="58" width="4" height="8" fill="#8fa7d9"/><rect x="23" y="54" width="4" height="12" fill="#8fa7d9"/><rect x="30" y="50" width="4" height="16" fill="#8fa7d9"/></g>`,
+      beret: `<polyline class="mchart" points="14,64 20,58 25,60 31,52 38,48" fill="none" stroke="#7fbf6a" stroke-width="2"/>`,
+    };
+    const extra = {
+      pony: "",
+      bun: `<g><rect x="96" y="58" width="22" height="18" fill="#8a7d64"/><rect x="98" y="60" width="18" height="6" fill="#6b5d47"/><rect x="98" y="68" width="18" height="6" fill="#6b5d47"/><rect x="105" y="62" width="4" height="2" fill="#e0c36a"/><rect x="105" y="70" width="4" height="2" fill="#e0c36a"/></g>`,
+      cap: `<g><rect x="98" y="46" width="22" height="30" fill="#23272f"/><rect x="101" y="50" width="4" height="3" fill="#2f8a58"/><rect x="107" y="50" width="4" height="3" fill="#e0c36a"/><rect x="101" y="57" width="4" height="3" fill="#2f8a58"/><rect x="107" y="57" width="4" height="3" fill="#2f8a58"/><rect x="101" y="64" width="4" height="3" fill="#b8463a"/><rect x="107" y="64" width="4" height="3" fill="#2f8a58"/></g>`,
+      beret: `<g><rect x="98" y="60" width="16" height="12" fill="#efe9da"/><rect x="100" y="62" width="5" height="3" fill="#3f5aa0"/><rect x="106" y="62" width="5" height="3" fill="#b8463a"/><rect x="100" y="67" width="5" height="3" fill="#8f6f1d"/><rect x="106" y="67" width="5" height="3" fill="#2f8a58"/></g>`,
+    };
+    return `
+    <span class="workbub">${c.bubs[0]}</span>
+    <svg viewBox="0 0 132 116" shape-rendering="crispEdges">
+      <g class="person">
+        ${hair}
+        <rect x="50" y="20" width="32" height="30" fill="${skin}"/>
+        <g class="eye"><rect x="57" y="32" width="4" height="4" fill="${ink}"/></g>
+        <g class="eye"><rect x="71" y="32" width="4" height="4" fill="${ink}"/></g>
+        ${glasses}
+        <rect x="59" y="43" width="14" height="3" fill="${ink}"/>
+        <rect x="44" y="50" width="44" height="24" fill="${suit}"/>
+        <rect x="58" y="50" width="16" height="10" fill="#fff"/>
+        <rect x="62" y="52" width="8" height="16" fill="${c.ac}"/>
+        <rect class="arm-l" x="34" y="64" width="14" height="9" fill="${suit}"/>
+        <rect class="arm-r" x="84" y="64" width="14" height="9" fill="${suit}"/>
+        <g class="sipsteam"><rect x="70" y="34" width="2" height="4" fill="#c9c2b4"/><rect x="75" y="31" width="2" height="4" fill="#c9c2b4"/></g>
+      </g>
+      <g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
+      <rect x="48" y="75" width="26" height="4" fill="#23272f"/>
+      <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#161a20"/>
+      ${charts[c.style]}
+      <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
+      ${extra[c.style]}
+      <rect x="4" y="76" width="124" height="9" fill="${c.ac}"/>
+      <rect x="4" y="85" width="124" height="14" fill="#3a3f4d"/>
+      <rect x="12" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <rect x="110" y="99" width="10" height="12" fill="#3a3f4d"/>
+      <g class="deskstuff">
+        <rect x="86" y="66" width="9" height="10" fill="#fff"/>
+        <rect x="95" y="68" width="3" height="5" fill="#fff"/>
+        <rect x="87" y="64" width="7" height="2" fill="${c.ac}"/>
+        <g class="steam"><rect x="88" y="56" width="2" height="5" fill="#b8b2a4"/><rect x="92" y="54" width="2" height="5" fill="#b8b2a4"/></g>
+      </g>
+    </svg>`;
+  }
+
+  for (const c of CREW) {
+    const div = document.createElement("div");
+    div.className = "agent"; div.id = "ag-" + c.id;
+    div.style.setProperty("--ac", c.ac);
+    div.innerHTML = `
+      <span class="wire-badge">LIVE WIRE</span>
+      <div class="ava">${pixelChar(c)}</div>
+      <div class="nm">${c.name}</div>
+      <div class="rl">${c.role}</div>
+      <div class="tg">${c.tg}</div>
+      <span class="chipstat" id="chip-${c.id}">${c.chip}</span>
+      <div class="st" id="st-${c.id}">warming up the warehouse<span class="dots"></span></div>`;
+    $("crew").appendChild(div);
+  }
+  const setDesk = (id, cls, text) => {
+    const el = $("ag-" + id);
+    el.className = "agent " + cls + (el.classList.contains("live") ? " live" : "");
+    $("st-" + id).innerHTML = text;
+  };
+  const chip = (id, text) => { $("chip-" + id).textContent = text; };
+  const bubble = (id, text) => { const el = $("ag-" + id); const wb = el && el.querySelector(".workbub"); if (wb && text) wb.textContent = text; };
+  // let an agent visibly work through a short train of thought before it settles
+  async function think(id, lines, per = 620) {
+    for (let li = 0; li < lines.length; li++) {
+      setDesk(id, "agent working", lines[li] + '<span class="dots"></span>');
+      bubble(id, lines[li].replace(/<[^>]*>/g, ""));
+      await sleep(per);
+    }
+  }
+
+  /* -------- the traveling query ticket -------- */
+  const ticketEl = document.createElement("div");
+  ticketEl.id = "ticket";
+  ticketEl.innerHTML = `<svg viewBox="0 0 40 32" shape-rendering="crispEdges" class="flap">
+    <rect x="1" y="3" width="38" height="26" fill="#ffffff" stroke="#16161a" stroke-width="2"/>
+    <rect x="6" y="9" width="22" height="2.5" fill="#6b6b73"/>
+    <rect x="6" y="14" width="28" height="2.5" fill="#d6d6db"/>
+    <rect x="6" y="19" width="16" height="2.5" fill="#d6d6db"/>
+    <rect x="30" y="7" width="6" height="6" fill="#b8463a"/></svg>`;
+  $("crew").appendChild(ticketEl);
+  function moveTicket(i) {
+    const desk = $("ag-" + CREW[i].id);
+    if (!desk) return;
+    ticketEl.classList.remove("filed");
+    ticketEl.classList.add("show");
+    ticketEl.style.left = (desk.offsetLeft + desk.offsetWidth / 2 - 20) + "px";
+    ticketEl.style.top = (desk.offsetTop - 10) + "px";
+  }
+  function fileTicket() {
+    ticketEl.classList.add("filed");
+    setTimeout(() => ticketEl.classList.remove("show", "filed"), 550);
+  }
+  function eyes(activeIdx) {
+    CREW.forEach((c, j) => {
+      const el = $("ag-" + c.id);
+      el.classList.remove("look-left", "look-right");
+      if (activeIdx >= 0 && j !== activeIdx)
+        el.classList.add(j < activeIdx ? "look-right" : "look-left");
+    });
+  }
+  function stageClear() { fileTicket(); eyes(-1); }
+
+  /* -------- office life: nobody just sits there -------- */
+  const FIDGETS = ["sip", "stretch", "wiggle", "yawn", "mumble", "glance"];
+  const FIDGET_MS = { sip: 1100, stretch: 1300, wiggle: 1500, yawn: 1100, mumble: 1700, glance: 1400 };
+  setInterval(() => {
+    if (REDUCED || busy) return;
+    const n = 1 + (Math.random() < 0.35 ? 1 : 0);
+    for (let k = 0; k < n; k++) {
+      const ci = Math.floor(Math.random() * CREW.length);
+      const c = CREW[ci];
+      const el = $("ag-" + c.id);
+      if (!el || /working|thinking|mumble|sip|stretch|wiggle|yawn/.test(el.className)) continue;
+      const f = FIDGETS[Math.floor(Math.random() * FIDGETS.length)];
+      if (f === "glance") {
+        const dir = Math.random() < 0.5 ? "look-left" : "look-right";
+        el.classList.add(dir);
+        setTimeout(() => el.classList.remove(dir), FIDGET_MS.glance);
+      } else {
+        if (f === "mumble") {
+          const wb = el.querySelector(".workbub");
+          if (wb) wb.textContent = c.bubs[Math.floor(Math.random() * c.bubs.length)];
+        }
+        el.classList.add(f);
+        setTimeout(() => el.classList.remove(f), FIDGET_MS[f]);
+      }
+    }
+  }, 3400);
+  setInterval(() => {           // idle status drift
+    if (REDUCED || busy) return;
+    const c = CREW[Math.floor(Math.random() * CREW.length)];
+    const el = $("ag-" + c.id);
+    if (el && el.className === "agent")
+      $("st-" + c.id).textContent = c.idles[Math.floor(Math.random() * c.idles.length)];
+  }, 7000);
+
+  /* ---------------- formatting helpers ---------------- */
+  const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const F = (v, kind) => Abacus.fmt(v, kind);
+
+  /* ---------------- charts ---------------- */
+  function barChart(zone, rows, kind) {
+    const n = rows.length, W = 860, rowH = 30, L = 210, R = 96;
+    const H = n * rowH + 12;
+    const vmax = Math.max(...rows.map((r) => r[r.length - 1] || 0));
+    let g = "";
+    rows.forEach((r, i) => {
+      const v = r[r.length - 1] || 0;
+      const w = Math.max(2, (W - L - R) * v / (vmax || 1));
+      const y = 6 + i * rowH;
+      const label = r.slice(0, -1).join(" · ");
+      g += `<text x="${L - 8}" y="${y + 18}" font-size="11" fill="var(--text)" text-anchor="end">${escH(label.length > 28 ? label.slice(0, 27) + "…" : label)}</text>
+            <rect class="bar" x="${L}" y="${y + 5}" width="${w.toFixed(1)}" height="${rowH - 12}" rx="4" fill="#3f5aa0"><title>${escH(label)}: ${F(v, kind)}</title></rect>
+            <text x="${L + w + 7}" y="${y + 18}" font-size="10.5" font-weight="bold" fill="var(--dim)">${F(v, kind)}</text>`;
+    });
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+  }
+
+  function lineChart(zone, rows, kind) {
+    const W = 860, H = 250, L = 64, R = 20, T = 14, B = 30;
+    const vals = rows.map((r) => r[r.length - 1] || 0);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const padv = Math.max((hi - lo) * 0.1, Math.abs(hi) * 0.02 + 1e-9);
+    lo = Math.min(lo, lo - padv); hi += padv;
+    const X = (i) => L + i * (W - L - R) / Math.max(1, rows.length - 1);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+    let g = "";
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + k * (hi - lo) / 4, y = Y(v);
+      g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--grid)"/>
+            <text x="${L - 6}" y="${y + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${F(v, kind)}</text>`;
+    }
+    const nx = Math.min(6, rows.length);
+    for (let k = 0; k < nx; k++) {
+      const i = Math.round(k * (rows.length - 1) / Math.max(1, nx - 1));
+      g += `<text x="${X(i)}" y="${H - 12}" font-size="9" fill="var(--dim)" text-anchor="middle">${escH(rows[i][0])}</text>`;
+    }
+    const line = rows.map((r, i) => `${X(i).toFixed(1)},${Y(r[r.length - 1] || 0).toFixed(1)}`).join(" ");
+    const peakI = vals.indexOf(Math.max(...vals));
+    g += `<polygon points="${L},${H - B} ${line} ${W - R},${H - B}" fill="#3f5aa0" opacity=".1"/>
+          <polyline points="${line}" fill="none" stroke="#3f5aa0" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="${X(peakI)}" cy="${Y(vals[peakI])}" r="4" fill="#3f5aa0"/>
+          <text x="${X(peakI)}" y="${Y(vals[peakI]) - 8}" font-size="9.5" font-weight="bold" fill="#3f5aa0" text-anchor="middle">${F(vals[peakI], kind)}</text>
+          <rect class="hov" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
+          <line class="crs" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--dim)" opacity="0"/>`;
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="tip"></div></div>`;
+    const wrap = zone.querySelector(".chartwrap"), svg = wrap.querySelector("svg"),
+          hov = svg.querySelector(".hov"), crs = svg.querySelector(".crs"), tip = wrap.querySelector(".tip");
+    hov.addEventListener("mousemove", (ev) => {
+      const r = svg.getBoundingClientRect();
+      const fx = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(rows.length - 1, Math.round((fx - L) / ((W - L - R) / Math.max(1, rows.length - 1)))));
+      crs.setAttribute("x1", X(i)); crs.setAttribute("x2", X(i)); crs.setAttribute("opacity", ".5");
+      tip.innerHTML = `${escH(rows[i][0])} — <b>${F(rows[i][rows[i].length - 1], kind)}</b>`;
+      tip.style.opacity = 1;
+      tip.style.left = Math.min(r.width - 160, Math.max(0, (X(i) / W) * r.width + 10)) + "px";
+      tip.style.top = "8px";
+    });
+    hov.addEventListener("mouseleave", () => { tip.style.opacity = 0; crs.setAttribute("opacity", "0"); });
+  }
+
+  function statTile(zone, plan, result, kind) {
+    const v = result.rows.length ? result.rows[0][result.rows[0].length - 1] : null;
+    let delta = "";
+    if (result.prior && result.prior.value) {
+      const d = 100 * (v - result.prior.value) / Math.abs(result.prior.value);
+      delta = `<div class="delta ${d >= 0 ? "up" : "dn"}">${d >= 0 ? "▲" : "▼"} ${Math.abs(d).toFixed(1)}% vs ${escH(plan.compare.label)} (${F(result.prior.value, kind)})</div>`;
+    }
+    const lbl = Abacus.manifest.metrics[plan.metric].label + " · " + plan.time.label;
+    zone.innerHTML = `<div class="stat"><div class="lbl">${escH(lbl)}</div><div class="big">${F(v, kind)}</div>${delta}</div>`;
+  }
+
+  /* ---------------- the ask flow ---------------- */
+  let busy = false, nQ = 0, nSql = 0, nCharts = 0, nDocket = 0;
+
+  function planChips(plan, extra) {
+    const bits = [];
+    const kind = plan.kind || "aggregate";
+    if (kind !== "aggregate") bits.push(`<b>${kind.toUpperCase()}</b>`);
+    if (plan.metric) bits.push(`metric <b>${plan.metric}</b>`);
+    if (plan.dims && plan.dims.length) bits.push(`by <b>${plan.dims.join(", ")}</b>`);
+    bits.push(`window <b>${plan.time.label}</b>`);
+    for (const f of plan.filters || []) bits.push(`${f.dim} = <b>${f.value}</b>`);
+    if (plan.top) bits.push(`top <b>${plan.top}</b>`);
+    if (plan.compare) bits.push(`vs <b>${plan.compare.label}</b>`);
+    if (extra) bits.push(extra);
+    return `<div class="planchips">${bits.map((b) => `<span>${b}</span>`).join("")}</div>`;
+  }
+
+  /* ---------- analyst renderers ---------- */
+  function waterfallChart(zone, w, kind) {
+    const items = [{ label: "prior", v: w.start, type: "total" },
+                   ...w.steps.map((s) => ({ label: s.label, v: s.delta, type: s.delta >= 0 ? "up" : "dn" })),
+                   { label: "current", v: w.end, type: "total" }];
+    const W = 860, H = 280, L = 70, R = 16, T = 18, B = 56;
+    let run = 0;
+    const levels = items.map((it) => {
+      if (it.type === "total") { const a = [0, it.v]; run = it.v; return a; }
+      const a = [run, run + it.v]; run += it.v; return a;
+    });
+    const all = levels.flat();
+    const lo = Math.min(0, ...all) * 1.02, hi = Math.max(...all) * 1.08;
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+    const bw = Math.min(84, (W - L - R) / items.length - 14);
+    const X = (i) => L + i * (W - L - R) / items.length + 7;
+    let g = "";
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + k * (hi - lo) / 4;
+      g += `<line x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}" stroke="var(--grid)"/>
+            <text x="${L - 6}" y="${Y(v) + 3}" font-size="9" fill="var(--dim)" text-anchor="end">${F(v, kind)}</text>`;
+    }
+    items.forEach((it, i) => {
+      const [a, b] = levels[i];
+      const y0 = Y(Math.max(a, b)), h = Math.max(2, Math.abs(Y(a) - Y(b)));
+      const fill = it.type === "total" ? "#5f5a51" : it.type === "up" ? "#2f8a58" : "#b8463a";
+      g += `<rect x="${X(i)}" y="${y0}" width="${bw}" height="${h}" rx="3" fill="${fill}" opacity="${it.type === "total" ? ".55" : "1"}"><title>${escH(it.label)}: ${F(it.v, kind)}</title></rect>`;
+      const vtxt = it.type === "total" ? F(it.v, kind) : (it.v >= 0 ? "+" : "−") + F(Math.abs(it.v), kind);
+      g += `<text x="${X(i) + bw / 2}" y="${y0 - 5}" font-size="9.5" font-weight="bold" fill="var(--dim)" text-anchor="middle">${vtxt}</text>`;
+      const lbl = String(it.label).length > 12 ? String(it.label).slice(0, 11) + "…" : it.label;
+      g += `<text x="${X(i) + bw / 2}" y="${H - B + (i % 2 ? 27 : 15)}" font-size="9" fill="var(--text)" text-anchor="middle">${escH(lbl)}</text>`;
+      if (i < items.length - 1)
+        g += `<line x1="${X(i) + bw}" y1="${Y(levels[i][1])}" x2="${X(i + 1)}" y2="${Y(levels[i][1])}" stroke="var(--dim)" stroke-dasharray="3 3" opacity=".5"/>`;
+    });
+    g += `<text x="${L}" y="${H - 6}" font-size="9" fill="var(--dim)">bridge by ${escH(w.dim)} — steps reconcile exactly to the total change</text>`;
+    zone.innerHTML = `<div class="chartwrap"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>`;
+  }
+
+  function heatmap(zone, matrix) {
+    const maxCols = Math.max(...matrix.map((r) => r.cells.length));
+    const mix = (t) => {
+      const a = [243, 240, 233], b = [63, 90, 160];
+      const c = a.map((x, i) => Math.round(x + (b[i] - x) * t));
+      return `rgb(${c[0]},${c[1]},${c[2]})`;
+    };
+    let head = `<tr><th style="text-align:left">cohort</th><th>size</th>`;
+    for (let k = 0; k < maxCols; k++) head += `<th>+Q${k}</th>`;
+    head += "</tr>";
+    const body = matrix.map((r) => {
+      let tds = `<td class="lab" style="font-weight:700">${escH(r.cohort)}</td><td class="lab">${r.size.toLocaleString("en-US")}</td>`;
+      r.cells.forEach((c) => {
+        const t = Math.min(1, c / 100);
+        tds += `<td style="background:${mix(t)};color:${t > 0.55 ? "#fff" : "var(--text)"}" title="${c}% still active">${Math.round(c)}%</td>`;
+      });
+      if (maxCols > r.cells.length) tds += `<td class="lab" colspan="${maxCols - r.cells.length}"></td>`;
+      return `<tr>${tds}</tr>`;
+    }).join("");
+    zone.innerHTML = `<div style="overflow-x:auto"><table class="heat">${head}${body}</table></div>
+      <div class="ramp">0% <i></i> 100% still ordering &nbsp;·&nbsp; cohort = quarter of first purchase · +Q0 is 100% by construction</div>`;
+  }
+
+  function sparkline(points, idx, up) {
+    const lo = Math.min(...points), hi = Math.max(...points), rng = hi - lo || 1;
+    const P = (v, i) => [(i * 110 / Math.max(1, points.length - 1)), (22 - 18 * (v - lo) / rng)];
+    const pts = points.map((v, i) => P(v, i).map((x) => x.toFixed(1)).join(",")).join(" ");
+    let mark = "";
+    if (idx !== undefined && points[idx] !== undefined) {
+      const [mx, my] = P(points[idx], idx);
+      mark = `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.2" fill="${up ? "#2f8a58" : "#b8463a"}"/>`;
+    }
+    return `<svg viewBox="-4 -3 120 32" width="120" height="30"><polyline points="${pts}" fill="none" stroke="#8b857a" stroke-width="1.6"/>${mark}</svg>`;
+  }
+
+  function anomalyList(zone, an) {
+    if (!an.flags.length) {
+      zone.innerHTML = `<div style="font-size:.76rem;color:var(--dim);padding:.4rem 0">no series moved more than 2σ in ${escH(an.window)} — steady as she goes.</div>`;
+      return;
+    }
+    zone.innerHTML = `<table><tr><th style="text-align:left">series</th><th>month</th><th>MoM</th><th>z</th><th style="text-align:left">shape</th></tr>` +
+      an.flags.map((f) => `<tr>
+        <td style="text-align:left">${escH(f.series)}</td>
+        <td>${escH(f.month)}</td>
+        <td style="font-weight:700;color:${f.mom_pct >= 0 ? "var(--green)" : "var(--coral)"}">${f.mom_pct >= 0 ? "+" : ""}${f.mom_pct}%</td>
+        <td style="font-weight:700">${f.z >= 0 ? "+" : ""}${f.z}σ</td>
+        <td style="text-align:left">${sparkline(f.points, f.idx, f.mom_pct >= 0)}</td></tr>`).join("") +
+      `</table><div style="font-size:.62rem;color:var(--dim);margin-top:.3rem">${escH(an.method)} · ${an.queries} series scanned</div>`;
+  }
+
+  function driverDrilldown(inv, kind) {
+    return `<details><summary>every dimension's contribution (each partitions the exact delta)</summary>` +
+      Object.entries(inv.by_dim).map(([dim, rows]) => `
+        <table style="margin-top:.4rem"><tr><th style="text-align:left">${escH(dim)}</th><th>prior</th><th>current</th><th>Δ</th></tr>
+        ${rows.map((r) => `<tr><td style="text-align:left">${escH(r.value)}</td><td>${F(r.prior, kind)}</td><td>${F(r.cur, kind)}</td>
+          <td style="font-weight:700;color:${r.delta >= 0 ? "var(--green)" : "var(--coral)"}">${r.delta >= 0 ? "+" : "−"}${F(Math.abs(r.delta), kind)}</td></tr>`).join("")}
+        </table>`).join("") + `</details>`;
+  }
+
+  function resultTable(result, kind) {
+    const head = result.columns.map((c) => `<th>${escH(c)}</th>`).join("");
+    const body = result.rows.slice(0, 40).map((r) =>
+      `<tr>${r.map((v, i) => `<td>${i === r.length - 1 ? F(v, kind) : escH(v)}</td>`).join("")}</tr>`).join("");
+    return `<details><summary>result table (${result.rows.length} rows)</summary><table><tr>${head}</tr>${body}</table></details>`;
+  }
+
+  async function runPlanFlow(plan, label, mode, opts = {}) {
+    if (busy) return;
+    busy = true;
+    setBoardEnabled(false);
+    const modeCls = opts.modeCls || "";
+    const llmMeta = opts.llmMeta || "";
+    const llmRaw = opts.llmRaw || null;
+    const t0 = performance.now();
+    const analystKind = plan.kind && plan.kind !== "aggregate";
+    const man = Abacus.manifest;
+
+    // Desk 1 — the Analyst reads the board and thinks it through
+    moveTicket(0); eyes(0);
+    await think("analyst", opts.fromLLM
+      ? ['transcribing the model’s picks', 'is every pick in the semantic layer?', 'the guardrail holds — routing it']
+      : (analystKind
+        ? ['reading the board', `this isn’t a lookup — it’s an <b>${plan.kind}</b>`, `scope: ${plan.metric ? plan.metric + " · " : ""}${escH(plan.time.label)}`]
+        : ['reading the board', `measure: <b>${plan.metric}</b>`, `window: ${escH(plan.time.label)}${plan.dims.length ? " · sliced by " + plan.dims.join(", ") : ""}`]));
+    setDesk("analyst", "agent", analystKind
+      ? `taking the <b>${plan.kind}</b> ticket${plan.metric ? ` on ${plan.metric}` : ""} · ${escH(plan.time.label)}`
+      : `plan in hand ✓ <b>${plan.metric}</b>${plan.dims.length ? " by " + plan.dims.join(", ") : ""} · ${escH(plan.time.label)}`);
+    nQ++; chip("analyst", `${nQ} QUESTION${nQ > 1 ? "S" : ""}`);
+
+    // Desk 2 — the Librarian resolves it against the manifest
+    moveTicket(1); eyes(1);
+    let libFinal;
+    if (plan.metric) {
+      const msql = man.metrics[plan.metric].sql.split("\n")[0];
+      const joins = ["p", "c"].filter((a) =>
+        (msql + plan.dims.map((d) => man.dimensions[d].sql).join(" ") +
+         (plan.filters || []).map((f) => man.dimensions[f.dim].sql).join(" ")).includes(a + "."));
+      const joinTxt = joins.length ? joins.map((j) => j === "p" ? "products" : "customers").join(", ") : "none";
+      await think("librarian", [
+        'flipping the catalog',
+        `<b>${plan.metric}</b> → one card, one definition`,
+        `joins earned: ${joinTxt}`,
+        'synonyms checked — no clashes']);
+      libFinal = `<b>${plan.metric}</b> → ${escH(msql.length > 34 ? msql.slice(0, 33) + "…" : msql)} ✓ joins: ${joinTxt}`;
+    } else {
+      await think("librarian", plan.kind === "retention"
+        ? ['pulling the cohort recipe', 'first purchase defines the cohort', 'no metric card needed here']
+        : ['pulling the watchlist', '7 series · month-over-month', 'flag anything past |z| ≥ 2']);
+      libFinal = plan.kind === "retention"
+        ? "cohort recipe: first purchase defines the cohort ✓"
+        : `watchlist out: 7 metric series ✓`;
+    }
+    setDesk("librarian", "agent", libFinal);
+
+    // Desk 3 — the Machinist runs it
+    moveTicket(2); eyes(2);
+    const mLabel = { investigate: "running the decomposition",
+                     retention: "walking every customer through the quarters",
+                     anomalies: "sweeping the watchlist month by month" }[plan.kind] || "spinning the flywheel";
+    await think("machinist", [mLabel, 'planning the scan over 125k rows', 'wasm engine warm — executing']);
+    let result, story2;
+    const tdb0 = performance.now();
+    try {
+      const out = Abacus.runAny(plan);
+      result = out.result; story2 = out.story;
+    } catch (e) {
+      setDesk("machinist", "agent", "query refused ✗");
+      stageClear();
+      const d = document.createElement("div");
+      d.className = "err";
+      d.innerHTML = `<b>${escH(label)}</b> — the compiler refused the plan: ${escH(e.message)}${opts.fromLLM ? " (the model asked for something outside the semantic layer — that's the guardrail working)" : ""}`;
+      $("feed").prepend(d);
+      busy = false; setBoardEnabled(true);
+      return;
+    }
+    const dbMs = result.ms !== undefined ? result.ms : performance.now() - tdb0;
+    if (plan.kind === "investigate") {
+      // narrate the fan-out: the queries really ran; the count is real
+      for (let k = 1; k <= result.queries; k += 2) {
+        setDesk("machinist", "agent working", `query ${Math.min(k + 1, result.queries)}/${result.queries} — comparing periods<span class="dots"></span>`);
+        await sleep(230);
+      }
+      nSql += result.queries;
+      setDesk("machinist", "agent", `<b>${result.queries}</b> queries · delta decomposed ✓`);
+    } else if (plan.kind === "retention") {
+      nSql += 2;
+      setDesk("machinist", "agent", `<b>${result.matrix.length}</b> cohorts × ${Math.max(...result.matrix.map((r) => r.cells.length))} quarters ✓`);
+    } else if (plan.kind === "anomalies") {
+      nSql += result.queries;
+      setDesk("machinist", "agent", `<b>${result.flags.length}</b> flags from ${result.queries} series ✓`);
+    } else {
+      nSql += 1 + (result.prior ? 1 : 0);
+      setDesk("machinist", "agent", `<b>${result.rows.length}</b> row${result.rows.length === 1 ? "" : "s"} in <b>${dbMs.toFixed(1)} ms</b> ✓`);
+    }
+    chip("machinist", `${nSql} QUERIES`);
+
+    // Desk 4 — the Illustrator inks it
+    moveTicket(3); eyes(3);
+    const iLabel = { investigate: "drawing the waterfall", retention: "shading the triangle",
+                     anomalies: "circling the outliers" }[plan.kind] || "inking the chart";
+    await think("illustrator", ['picking the right chart', 'one axis — labels, not legends', iLabel]);
+    const kind = plan.metric ? man.metrics[plan.metric].fmt : "int";
+    const metaBits = plan.kind === "investigate"
+      ? `${result.queries} compiled queries`
+      : plan.kind === "retention" ? `${result.matrix.length} cohorts`
+      : plan.kind === "anomalies" ? `${result.queries} series scanned`
+      : `${result.rows.length} rows · db ${dbMs.toFixed(1)} ms`;
+    const KIND_ICON = { aggregate: "▦", investigate: "🔎", retention: "🧭", anomalies: "📡" };
+    nDocket++;
+    const dkNo = String(nDocket).padStart(3, "0");
+    const dkKind = plan.kind === "investigate" ? "why" : plan.kind === "retention" ? "retention"
+      : plan.kind === "anomalies" ? "scan" : (plan.metric || "");
+    const dkStat = plan.kind === "investigate" ? `${result.queries} queries`
+      : plan.kind === "retention" ? `${result.matrix.length} cohorts`
+      : plan.kind === "anomalies" ? `${result.queries} series`
+      : `${dbMs.toFixed(1)} ms`;
+    const emp = document.querySelector(".feedempty"); if (emp) emp.remove();
+    const card = document.createElement("div");
+    card.className = "ans k-" + (plan.kind || "aggregate");
+    card.innerHTML = `
+      <div class="dk-head"><span class="dk-no">DOCKET Nº <b>${dkNo}</b>${mode ? ` · <span class="dk-mode ${modeCls}">${escH(mode)}</span>` : ""}</span><span class="dk-meta">${escH(plan.time.label)} · ${escH(dkKind)} · ${dkStat}</span></div>
+      <div class="dk-stamp">FILED ✓</div>
+      <div class="qline">${KIND_ICON[plan.kind] || "▦"} ${escH(label.replace(/^\s*[🔎🧭📡▦]\s*/, ""))}</div>
+      ${planChips(plan)}
+      <div class="story"></div>
+      <div class="zone"></div>
+      <div class="meta">${metaBits} · end-to-end ${(performance.now() - t0).toFixed(0)} ms (desk pacing added for humans)${llmMeta}</div>
+      ${plan.kind === "aggregate" ? `<details><summary>the SQL</summary><pre>${escH(result.sql)}${result.prior ? "\n\n-- prior period\n" + escH(result.prior.sql) : ""}</pre></details>` : ""}
+      ${plan.kind === "investigate" ? driverDrilldown(result, kind) : ""}
+      ${llmRaw ? `<details><summary>the model's raw plan</summary><pre>${escH(llmRaw)}</pre></details>` : ""}
+      ${plan.kind === "aggregate" ? resultTable(result, kind) : ""}`;
+    $("feed").prepend(card);
+    const zone = card.querySelector(".zone");
+    if (plan.kind === "investigate") {
+      if (result.waterfall) waterfallChart(zone, result.waterfall, kind);
+      else zone.innerHTML = "";
+    } else if (plan.kind === "retention") heatmap(zone, result.matrix);
+    else if (plan.kind === "anomalies") anomalyList(zone, result);
+    else if (!plan.dims.length) statTile(zone, plan, result, kind);
+    else if (man.dimensions[plan.dims[0]].time && plan.dims.length === 1 && result.rows.length > 1)
+      lineChart(zone, result.rows, kind);
+    else barChart(zone, result.rows.slice(0, 14), kind);
+    const story = card.querySelector(".story");
+    const text = story2;
+    if (REDUCED) story.textContent = text;
+    else {
+      let i = 0;
+      const iv = setInterval(() => {
+        i += 4; story.textContent = text.slice(0, i);
+        if (i >= text.length) clearInterval(iv);
+      }, 16);
+    }
+    // a scalar total invites the follow-up a lookup tool can't answer
+    if (plan.kind === "aggregate" && plan.dims.length === 0 && result.rows.length) {
+      const btn = document.createElement("button");
+      btn.className = "whybtn";
+      btn.textContent = "🔎 why did it move? → investigate";
+      btn.addEventListener("click", () => {
+        if (busy) return;
+        const compare = plan.compare || prevPeriodOf(plan.time);
+        const inv = { kind: "investigate", metric: plan.metric, dims: [],
+                      filters: plan.filters, time: plan.time, top: null, compare };
+        const lbl = `🔎 why did ${man.metrics[plan.metric].label.toLowerCase()} move, ${plan.time.label}?`;
+        runPlanFlow(inv, lbl, "INVESTIGATE");
+      });
+      card.appendChild(btn);
+    }
+    nCharts++; chip("illustrator", `${nCharts} CHART${nCharts > 1 ? "S" : ""}`);
+    stageClear();
+    setDesk("illustrator", "agent cheer", "filed ✓");
+    setTimeout(() => setDesk("illustrator", "agent", "cleaning brushes"), 1800);
+    busy = false;
+    setBoardEnabled(true);
+  }
+
+  /* ---------------- eval ---------------- */
+  const close = (a, b) => Math.abs(a - b) <= Math.max(1e-6, 1e-9 * Math.abs(b));
+  function planEq(a, g) {
+    const kindsMatch = (a.kind || "aggregate") === (g.kind || "aggregate");
+    const timeMatch = a.time.start === g.time.start && a.time.end === g.time.end;
+    if ((g.kind || "aggregate") !== "aggregate")
+      return kindsMatch && timeMatch && a.metric === g.metric
+        && !!a.compare === !!g.compare
+        && (!a.compare || (a.compare.start === g.compare.start && a.compare.end === g.compare.end));
+    return kindsMatch && a.metric === g.metric
+      && JSON.stringify(a.dims) === JSON.stringify(g.dims)
+      && JSON.stringify(a.filters || []) === JSON.stringify(g.filters || [])
+      && timeMatch
+      && (a.top || null) === (g.top || null)
+      && !!a.compare === !!g.compare
+      && (!a.compare || (a.compare.start === g.compare.start && a.compare.end === g.compare.end));
+  }
+  async function runEval() {
+    $("evalbtn").disabled = true;
+    setDesk("machinist", "agent working", 'replaying all 30 goldens<span class="dots"></span>');
+    const goldens = await (await fetch("data/goldens.json")).json();
+    let planOk = 0, valOk = 0;
+    const items = [], times = [];
+    for (const g of goldens) {
+      const t0 = performance.now();
+      let pOk = false, vOk = false, note = "";
+      try {
+        const plan = Abacus.parse(g.q);
+        pOk = planEq(plan, g.plan);
+        const check = Abacus.canonicalCheck(plan, Abacus.runAny(plan).result);
+        vOk = check.length === g.rows.length && check.every((row, i) =>
+          row.every((cell, j) => typeof cell === "number" && typeof g.rows[i][j] === "number"
+            ? close(cell, g.rows[i][j]) : String(cell) === String(g.rows[i][j])));
+        if (!pOk) note = "plan differs";
+        else if (!vOk) note = "values differ";
+      } catch (e) { note = e.message; }
+      times.push(performance.now() - t0);
+      planOk += pOk; valOk += vOk;
+      items.push(`<li class="${pOk && vOk ? "" : "bad"}">${pOk && vOk ? "✓" : "✗"} ${escH(g.q)}${note ? " — " + escH(note) : ""}</li>`);
+      await sleep(12);
+    }
+    const med = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
+    $("evalout").innerHTML = `
+      <span class="big">${planOk}/${goldens.length} plans match the Python engine exactly · ${valOk}/${goldens.length} results match to the cent</span>
+      · median ${med.toFixed(1)} ms per question
+      <details><summary>per-question results</summary><ul>${items.join("")}</ul></details>`;
+    setDesk("machinist", "agent cheer", `eval done ✓ ${valOk}/${goldens.length}`);
+    setTimeout(() => setDesk("machinist", "agent", "oiling the flywheel"), 2000);
+    if (planOk === goldens.length && valOk === goldens.length && !REDUCED) {
+      const rect = $("evalout").getBoundingClientRect();
+      for (let i = 0; i < 7; i++) {
+        const s = document.createElement("span");
+        s.className = "spark"; s.textContent = ["✦", "✧", "◆"][i % 3];
+        s.style.color = ["#2f8a58", "#8f6f1d", "#3f5aa0"][i % 3];
+        s.style.left = rect.left + Math.random() * Math.min(500, rect.width) + "px";
+        s.style.top = rect.top + "px";
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 1600);
+      }
+    }
+    $("evalbtn").disabled = false;
+  }
+
+  /* ================= THE PLAN BOARD ================= */
+  const TIME_PRESETS = ["last quarter", "this quarter", "q4 2025", "q3 2025",
+    "q2 2025", "q1 2025", "2025", "2024", "ytd", "last 6 months",
+    "june 2026", "may 2026", "all time"];
+  const METRIC_ICON = { money: "$", money2: "$", pct: "%", int: "#" };
+  const board = { metric: null, dims: [], filters: [], timeIdx: 0,
+                  timeOverride: null, compareOverride: null, compareMode: null, top: null };
+  let boardLocked = false, userTouched = false;
+
+  function markTouched() { userTouched = true; }
+  function prevPeriodOf(time) {
+    const shift = (iso, d) => { const x = new Date(iso + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + d); return x.toISOString().slice(0, 10); };
+    const n = Math.round((Date.parse(time.end) - Date.parse(time.start)) / 86400000) + 1;
+    return { start: shift(time.start, -n), end: shift(time.start, -1), label: "previous period" };
+  }
+  function boardTime() {
+    return board.timeOverride || Abacus.timeFromPhrase(TIME_PRESETS[board.timeIdx]).time;
+  }
+  function compareAllowed() {
+    const man = Abacus.manifest;
+    return board.dims.every((d) => man.dimensions[d].time);   // totals or a time trend only
+  }
+  function currentCompare() {
+    if (!board.compareMode || !compareAllowed()) return null;
+    if (board.timeOverride) return board.compareOverride;
+    const phrase = TIME_PRESETS[board.timeIdx] + (board.compareMode === "yoy" ? " vs last year" : " vs previous period");
+    return Abacus.timeFromPhrase(phrase).compare;
+  }
+  function composePlan() {
+    return { kind: "aggregate", metric: board.metric, dims: [...board.dims],
+             filters: board.filters.filter((f) => !board.dims.includes(f.dim)),
+             time: boardTime(), top: board.top, compare: currentCompare() };
+  }
+  function humanLabel(plan) {
+    const man = Abacus.manifest;
+    let s = man.metrics[plan.metric].label;
+    if (plan.dims.length) s += " by " + plan.dims.join(" & ");
+    for (const f of plan.filters) s += " · " + f.value;
+    if (plan.top) s += " · top " + plan.top;
+    s += " · " + plan.time.label;
+    if (plan.compare) s += " vs " + plan.compare.label;
+    return "“" + s + "”";
+  }
+  function updatePreview() {
+    const pre = $("sqlpre");
+    if (!board.metric) {
+      pre.innerHTML = '<span class="ph">pick a measure and the compiler writes the SQL here, in real time.</span>';
+      $("sqlprev").classList.add("stale"); return;
+    }
+    let sql;
+    try { sql = Abacus.compilePlan(composePlan()); } catch (e) { sql = "-- " + e.message; }
+    pre.innerHTML = sql
+      .split(/'([^']*)'/).map((seg, i) => i % 2 ? `<span class="lit">'${escH(seg)}'</span>` : escH(seg)
+        .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|GROUP BY|ORDER BY|LIMIT|AND|AS|DESC|SUM|COUNT|DISTINCT|CASE|WHEN|THEN|ELSE|END|NULLIF)\b/g, '<span class="kw">$1</span>')).join("");
+    $("sqlprev").classList.remove("stale");
+    if (!REDUCED) { pre.classList.remove("flash"); void pre.offsetWidth; pre.classList.add("flash"); }
+  }
+
+  function renderBoard() {
+    const man = Abacus.manifest;
+    // measure slot
+    const ms = $("slot-metric");
+    if (board.metric) {
+      ms.className = "slot metricslot filled";
+      ms.innerHTML = `<button class="tok metric placed" data-clear="metric"><span class="ic">${METRIC_ICON[man.metrics[board.metric].fmt]}</span>${escH(man.metrics[board.metric].label)}<span class="x">×</span></button>`;
+    } else { ms.className = "slot metricslot"; ms.innerHTML = '<span class="empty">drop a metric card…</span>'; }
+    // dim slots
+    [0, 1].forEach((i) => {
+      const el = $("slot-dim" + i), d = board.dims[i];
+      if (d) {
+        el.className = "slot dimslot filled";
+        el.innerHTML = `<button class="tok dim placed" data-cleardim="${d}">${escH(man.dimensions[d].label)}<span class="x">×</span></button>`;
+      } else { el.className = "slot dimslot"; el.innerHTML = `<span class="empty">${i === 0 ? "optional" : "optional"}</span>`; }
+    });
+    // dial
+    $("dial-win").textContent = boardTime().label;
+    // compare toggles
+    const allow = compareAllowed();
+    for (const [id, mode] of [["cmp-prev", "prev"], ["cmp-yoy", "yoy"]]) {
+      const b = $(id);
+      b.classList.toggle("on", board.compareMode === mode && allow);
+      b.classList.toggle("dis", !allow);
+    }
+    // stamps: grey a stamp whose dim is currently grouped
+    let nFilters = 0;
+    for (const el of document.querySelectorAll(".stamp")) {
+      const grouped = board.dims.includes(el.dataset.dim);
+      const on = board.filters.some((f) => f.dim === el.dataset.dim && f.value === el.dataset.value);
+      el.classList.toggle("on", on && !grouped);
+      el.style.opacity = grouped ? ".25" : "";
+      if (on && !grouped) nFilters++;
+    }
+    $("filtercount").textContent = nFilters ? nFilters : "";
+    // top-N row only exists when products are on the board
+    const canTop = board.dims.includes("product");
+    $("toprow").classList.toggle("show", canTop);
+    $("top-val").textContent = board.top || 10;
+    // rack on-states
+    for (const el of document.querySelectorAll("#rack-metrics .tok"))
+      el.classList.toggle("on", el.dataset.metric === board.metric);
+    for (const el of document.querySelectorAll("#rack-dims .tok"))
+      el.classList.toggle("on", board.dims.includes(el.dataset.dim));
+    // progressive disclosure: the board wakes up once a measure is placed
+    $("boardcard").classList.toggle("needs-metric", !board.metric);
+    $("stepnote").textContent = board.metric
+      ? "— tweak the slice, window or filters, then pull RUN"
+      : "— drop in a measure to begin";
+    // lever + reports
+    const armed = !!board.metric && !boardLocked;
+    $("lever").disabled = !armed;
+    $("runhint").textContent = board.metric ? "pull the lever to compile & run" : "pick a measure to arm the lever";
+    $("rep-why").disabled = !armed;
+    updatePreview();
+    renderConsole();
+  }
+
+  /* -------- the command console: same query, typed instead of built -------- */
+  function boardCommand() {
+    if (!board.metric) return "";
+    const man = Abacus.manifest;
+    let s = man.metrics[board.metric].label.toLowerCase();
+    if (board.dims.length) s += " by " + board.dims.map((d) => man.dimensions[d].label).join(" and ");
+    for (const f of board.filters.filter((f) => !board.dims.includes(f.dim))) s += " for " + f.value;
+    s += " in " + boardTime().label.toLowerCase();
+    if (currentCompare()) s += board.compareMode === "yoy" ? " vs last year" : " vs previous period";
+    return s;
+  }
+  function renderConsole() {
+    const cmd = $("cmd"); if (!cmd) return;
+    const bc = boardCommand();
+    cmd.placeholder = bc || "e.g. revenue by region last quarter  ·  why did margin drop in q1 2026";
+    $("console").classList.toggle("armed", !!board.metric);
+  }
+  let cerrTimer = null;
+  function consoleErr(msg) {
+    const e = $("cerr"); e.textContent = "✗ " + msg; e.classList.add("show");
+    clearTimeout(cerrTimer); cerrTimer = setTimeout(() => e.classList.remove("show"), 4200);
+  }
+  function reflectPlanToBoard(plan) {
+    if (plan.metric) {
+      board.metric = plan.metric;
+      board.dims = (plan.dims || []).slice(0, 2);
+      board.filters = (plan.filters || []).slice();
+      board.top = plan.top || null;
+    }
+    board.timeOverride = plan.time;
+    board.compareOverride = plan.compare || null;
+    board.compareMode = plan.compare ? "prev" : null;
+    renderBoard();
+  }
+  function consoleKindLabel(plan) {
+    const man = Abacus.manifest;
+    if (plan.kind === "investigate") return `why did ${man.metrics[plan.metric].label.toLowerCase()} move, ${plan.time.label}?`;
+    if (plan.kind === "retention") return "retention by signup cohort";
+    if (plan.kind === "anomalies") return `anomaly scan · ${plan.time.label}`;
+    return humanLabel(plan);
+  }
+  function runConsole(text) {
+    if (busy) return;
+    markTouched();
+    let plan;
+    try { plan = Abacus.parse(text); }
+    catch (err) { consoleErr(err.message + " — try a metric like revenue, orders, margin %"); return; }
+    reflectPlanToBoard(plan);
+    const isAnalyst = plan.kind && plan.kind !== "aggregate";
+    $("cmd").value = "";
+    $("cmd").blur();
+    runPlanFlow(plan, isAnalyst ? consoleKindLabel(plan) : humanLabel(plan),
+                isAnalyst ? plan.kind.toUpperCase() : "CONSOLE");
+  }
+  function submitConsole() {
+    const text = $("cmd").value.trim();
+    if (text) { runConsole(text); return; }
+    if (!board.metric) { consoleErr("type a question, or drop a measure on the board first"); $("cmd").focus(); return; }
+    $("lever").click();   // empty line → run whatever's on the board
+  }
+
+  function placeMetric(m) { markTouched(); board.metric = board.metric === m ? null : m; renderBoard(); }
+  function toggleDim(d) {
+    markTouched();
+    const i = board.dims.indexOf(d);
+    if (i >= 0) board.dims.splice(i, 1);
+    else if (board.dims.length < 2) board.dims.push(d);
+    if (!board.dims.includes("product")) board.top = null;
+    renderBoard();
+  }
+  function toggleFilter(dim, value) {
+    markTouched();
+    const i = board.filters.findIndex((f) => f.dim === dim && f.value === value);
+    if (i >= 0) board.filters.splice(i, 1); else board.filters.push({ dim, value });
+    renderBoard();
+  }
+  function setTimeIdx(i) {
+    markTouched(); board.timeOverride = null; board.compareOverride = null;
+    board.timeIdx = (i + TIME_PRESETS.length) % TIME_PRESETS.length; renderBoard();
+  }
+  function setCompare(mode) {
+    markTouched();
+    board.compareMode = board.compareMode === mode ? null : mode; renderBoard();
+  }
+
+  function setBoardEnabled(on) {
+    boardLocked = !on;
+    $("rack-metrics").style.pointerEvents = on ? "" : "none";
+    $("rack-dims").style.pointerEvents = on ? "" : "none";
+    $("board").style.opacity = on ? "1" : ".6";
+    document.querySelectorAll(".report").forEach((b) => {
+      if (b.id === "rep-why") b.disabled = !on || !board.metric;
+      else b.disabled = !on;
+    });
+    renderBoard();
+  }
+
+  function runReport(which) {
+    if (busy) return;
+    markTouched();
+    if (which === "why") {
+      if (!board.metric) return;
+      const time = boardTime(), compare = currentCompare() || prevPeriodOf(time);
+      const plan = { kind: "investigate", metric: board.metric, dims: [],
+                     filters: board.filters, time, top: null, compare };
+      runPlanFlow(plan, `🔎 why did ${Abacus.manifest.metrics[board.metric].label.toLowerCase()} move, ${time.label}?`, "INVESTIGATE");
+    } else if (which === "cohort") {
+      runPlanFlow({ kind: "retention", metric: null, dims: [], filters: [],
+                    time: boardTime(), top: null, compare: null },
+                  "🧭 retention by signup cohort", "RETENTION");
+    } else if (which === "anom") {
+      const time = boardTime();
+      runPlanFlow({ kind: "anomalies", metric: null, dims: [], filters: [],
+                    time, top: null, compare: null },
+                  `📡 anomaly scan · ${time.label}`, "ANOMALIES");
+    }
+  }
+
+  function buildRacks(man) {
+    const mr = $("rack-metrics");
+    mr.innerHTML = "";
+    for (const [k, spec] of Object.entries(man.metrics)) {
+      const b = document.createElement("button");
+      b.className = "tok metric"; b.dataset.metric = k;
+      b.innerHTML = `<span class="ic">${METRIC_ICON[spec.fmt]}</span>${escH(spec.label)}`;
+      b.title = spec.sql.split("\n")[0];
+      b.addEventListener("click", () => placeMetric(k));
+      makeDraggable(b, "metric", k);
+      mr.appendChild(b);
+    }
+    const dr = $("rack-dims");
+    dr.innerHTML = "";
+    for (const [k, spec] of Object.entries(man.dimensions)) {
+      const b = document.createElement("button");
+      b.className = "tok dim"; b.dataset.dim = k;
+      b.textContent = "▸ " + spec.label;
+      b.addEventListener("click", () => toggleDim(k));
+      makeDraggable(b, "dim", k);
+      dr.appendChild(b);
+    }
+    const st = $("stamps");
+    st.innerHTML = "";
+    for (const [dim, vals] of Object.entries(man.values)) {
+      for (const v of vals) {
+        const b = document.createElement("button");
+        b.className = "stamp"; b.dataset.dim = dim; b.dataset.value = v;
+        b.textContent = v;
+        b.addEventListener("click", () => toggleFilter(dim, v));
+        st.appendChild(b);
+      }
+    }
+  }
+
+  /* -------- drag & drop: carry a card from the rack onto the board -------- */
+  const DND = "text/abacus";
+  function makeDraggable(el, type, key) {
+    el.draggable = true;
+    el.addEventListener("dragstart", (e) => {
+      if (boardLocked) { e.preventDefault(); return; }
+      e.dataTransfer.setData(DND, type + ":" + key);
+      e.dataTransfer.setData("text/plain", key);
+      e.dataTransfer.effectAllowed = "copy";
+      el.classList.add("dragging");
+      // light up the slots that accept this card
+      const targets = type === "metric" ? ["slot-metric"] : ["slot-dim0", "slot-dim1"];
+      targets.forEach((id) => $(id).classList.add("can-drop"));
+    });
+    el.addEventListener("dragend", () => {
+      el.classList.remove("dragging");
+      ["slot-metric", "slot-dim0", "slot-dim1"].forEach((id) => $(id).classList.remove("can-drop", "dragover"));
+    });
+  }
+  function dropSet(type, key, slotId) {
+    if (boardLocked) return;
+    markTouched();
+    if (type === "metric" && slotId === "slot-metric") { board.metric = key; }
+    else if (type === "dim" && slotId !== "slot-metric") {
+      if (!board.dims.includes(key) && board.dims.length < 2) board.dims.push(key);
+      if (!board.dims.includes("product")) board.top = null;
+    } else return;
+    renderBoard();
+  }
+  ["slot-metric", "slot-dim0", "slot-dim1"].forEach((id) => {
+    const el = $(id);
+    el.addEventListener("dragover", (e) => {
+      if (boardLocked || !e.dataTransfer.types.includes(DND)) return;
+      e.preventDefault(); e.dataTransfer.dropEffect = "copy"; el.classList.add("dragover");
+    });
+    el.addEventListener("dragleave", (e) => { if (!el.contains(e.relatedTarget)) el.classList.remove("dragover"); });
+    el.addEventListener("drop", (e) => {
+      el.classList.remove("dragover");
+      const data = e.dataTransfer.getData(DND);
+      if (!data) return;
+      e.preventDefault();
+      const [type, key] = data.split(":");
+      dropSet(type, key, id);
+    });
+  });
+
+  // clicking a placed token (the × cards inside slots) clears it
+  $("board").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-clear],[data-cleardim]");
+    if (!c || boardLocked) return;
+    if (c.dataset.clear === "metric") placeMetric(board.metric);
+    else if (c.dataset.cleardim) toggleDim(c.dataset.cleardim);
+  });
+  $("dial-prev").addEventListener("click", () => setTimeIdx(board.timeIdx - 1));
+  $("dial-next").addEventListener("click", () => setTimeIdx(board.timeIdx + 1));
+  $("cmp-prev").addEventListener("click", () => setCompare("prev"));
+  $("cmp-yoy").addEventListener("click", () => setCompare("yoy"));
+  $("top-inc").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.min(20, (board.top || 10) + 5); renderBoard(); });
+  $("top-dec").addEventListener("click", () => { if (!board.dims.includes("product")) return; markTouched(); board.top = Math.max(5, (board.top || 10) - 5); renderBoard(); });
+  $("lever").addEventListener("click", () => {
+    if (boardLocked || !board.metric) return;
+    markTouched();
+    $("lever").classList.add("pulled");
+    setTimeout(() => $("lever").classList.remove("pulled"), 400);
+    const plan = composePlan();
+    runPlanFlow(plan, humanLabel(plan), "BOARD");
+  });
+  $("rep-why").addEventListener("click", () => runReport("why"));
+  $("rep-cohort").addEventListener("click", () => runReport("cohort"));
+  $("rep-anom").addEventListener("click", () => runReport("anom"));
+  $("cmd").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitConsole(); } });
+  $("cmd").addEventListener("input", () => $("cerr").classList.remove("show"));
+  $("cmd-run").addEventListener("click", submitConsole);
+
+  // the LLM only arranges the board; you watch its picks land as cards
+  async function llmArrange() {
+    if (busy) return;
+    markTouched();
+    const q = $("llm-q").value.trim();
+    if (!q) return;
+    const cfg = { provider: $("llm-provider").value, model: $("llm-model").value.trim(), key: $("llm-key").value.trim() };
+    if (!cfg.key) { $("llmstate").textContent = "· paste a key first"; return; }
+    $("llm-go").disabled = true; $("llmstate").textContent = "· on the wire…";
+    setDesk("analyst", "agent working live", `on the wire to ${escH(cfg.provider)}<span class="dots"></span>`);
+    $("ag-analyst").classList.add("live");
+    let out;
+    try { out = await Abacus.llmPlan(q, cfg); }
+    catch (e) {
+      $("llmstate").textContent = "· " + e.message.slice(0, 40);
+      setDesk("analyst", "agent", "the wire dropped ✗");
+      $("ag-analyst").classList.remove("live"); $("llm-go").disabled = false; return;
+    }
+    const plan = out.plan;
+    // clear then place the model's picks, one card at a time
+    board.metric = null; board.dims = []; board.filters = []; board.top = plan.top || null;
+    board.timeOverride = plan.time; board.compareOverride = plan.compare || null;
+    board.compareMode = plan.compare ? (/prior year/.test(plan.compare.label) ? "yoy" : "prev") : null;
+    renderBoard();
+    $("llmstate").textContent = `· ${cfg.model} chose ${out.ms} ms`;
+    await sleep(260); board.metric = plan.metric; renderBoard();
+    for (const d of (plan.dims || [])) { await sleep(260); board.dims.push(d); renderBoard(); }
+    for (const f of (plan.filters || [])) { await sleep(220); board.filters.push(f); renderBoard(); }
+    $("ag-analyst").classList.remove("live");
+    setDesk("analyst", "agent", "board set by the model — pull to run");
+    $("llm-go").disabled = false;
+    await sleep(500);
+    if (!busy) {
+      $("lever").classList.add("pulled"); setTimeout(() => $("lever").classList.remove("pulled"), 400);
+      const p = composePlan();
+      runPlanFlow(p, humanLabel(p), `LIVE LLM · ${cfg.model}`, { modeCls: "live", fromLLM: true, llmRaw: out.raw, llmMeta: ` · model ${out.ms} ms · ${out.usage}` });
+    }
+  }
+  $("llm-go").addEventListener("click", llmArrange);
+  $("llm-q").addEventListener("keydown", (e) => { if (e.key === "Enter") llmArrange(); });
+  $("llm-q").addEventListener("focus", markTouched);
+  $("llm-provider").addEventListener("change", () => {
+    $("llm-model").value = $("llm-provider").value === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
+    $("llm-key").placeholder = $("llm-provider").value === "anthropic" ? "sk-ant-… (stays in this tab)" : "sk-… (stays in this tab)";
+  });
+  $("evalbtn").addEventListener("click", runEval);
+
+  /* ---------------- boot ---------------- */
+  async function fetchWithProgress(url) {
+    const r = await fetch(url);
+    const total = +r.headers.get("content-length") || 0;
+    if (!r.body || !total) return r.arrayBuffer();
+    const reader = r.body.getReader();
+    const chunks = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      $("loadfill").style.width = Math.round(100 * got / total) + "%";
+      $("loadtxt").textContent = `fetching the warehouse… ${(got / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`;
+    }
+    const buf = new Uint8Array(got);
+    let off = 0;
+    for (const c of chunks) { buf.set(c, off); off += c.length; }
+    return buf.buffer;
+  }
+
+  (async () => {
+    try {
+      const t0 = performance.now();
+      const dbData = await fetchWithProgress("data/warehouse.sqlite");
+      const { manifest } = await Abacus.init({
+        vendor: "vendor/", manifest: "data/manifest.json", dbData });
+      const ms = Math.round(performance.now() - t0);
+      $("loadtxt").textContent = `warehouse open — ${ms} ms`;
+      setTimeout(() => $("loadwrap").classList.remove("show"), 900);
+      const st = manifest.stats;
+      $("hdr-rows").textContent = (st.rows_total / 1000).toFixed(0) + "k";
+      chip("librarian", `${Object.keys(manifest.metrics).length} METRICS · ${Object.keys(manifest.dimensions).length} DIMS`);
+      // the crew clocks in one by one
+      const wake = [
+        ["machinist", `warehouse open: <b>${st.rows_total.toLocaleString()}</b> rows in ${ms} ms`],
+        ["librarian", `catalog open: ${Object.keys(manifest.metrics).length} metrics on file`],
+        ["illustrator", "easel up"],
+        ["analyst", "ready — ask me something"],
+      ];
+      wake.forEach(([id, txt], i) => setTimeout(() => {
+        setDesk(id, "agent cheer", txt);
+        setTimeout(() => $("ag-" + id).className = "agent", 900);
+      }, i * 220));
+      setDesk("analyst", "agent", "ready — build a question on the board");
+      buildRacks(manifest);
+      renderBoard();
+      $("evalbtn").disabled = false;
+      // auto-showcase: if untouched, the desk builds a plan and investigates
+      setTimeout(() => {
+        if (userTouched || busy) return;
+        board.metric = "revenue"; renderBoard();
+        setTimeout(() => {
+          if (userTouched || busy) return;
+          board.timeIdx = TIME_PRESETS.indexOf("q4 2025"); renderBoard();
+          setTimeout(() => { if (!userTouched && !busy) { userTouched = false; runReport("why"); } }, 800);
+        }, 700);
+      }, 1500);
+    } catch (e) {
+      setDesk("analyst", "agent", "warehouse failed to load ✗");
+      const d = document.createElement("div");
+      d.className = "err";
+      d.innerHTML = `<b>boot failure</b> — ${escH(e.message)}`;
+      $("feed").prepend(d);
+    }
+  })();
+</script>
+</body>
+</html>
