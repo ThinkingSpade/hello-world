@@ -247,7 +247,7 @@
     background: rgba(255,255,255,.6); flex: 1; transition: border-color .2s, background .2s, box-shadow .2s; }
   .slot.filled { border-style: solid; }
   .slot.metricslot.filled { border-color: var(--blue); background: #eef1f8; }
-  .slot.dimslot.filled { border-color: var(--gold); background: #f7f2e6; }
+  .slot.dimslot.filled { border-color: var(--gold); background: #f7f0d4; }
   .slot .empty { font-size: .64rem; color: #9a99a3; font-style: italic; }
   /* drag & drop */
   .tok.metric[draggable], .tok.dim[draggable] { cursor: grab; }
@@ -293,7 +293,7 @@
   #lever .base { position: absolute; bottom: 0; left: 11px; width: 40px; height: 20px; background: #3a3f4d; border-radius: 4px; }
   #lever .stick { position: absolute; bottom: 14px; left: 28px; width: 6px; height: 34px; background: #6b4a2f; border-radius: 3px;
     transform-origin: bottom center; transition: transform .18s cubic-bezier(.34,1.6,.64,1); }
-  #lever .knob { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--coral); border: 2px solid #1c1a17; }
+  #lever .knob { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--coral); border: 2px solid #17181b; }
   #lever:not(:disabled):hover .stick { transform: rotate(8deg); }
   #lever.pulled .stick { transform: rotate(32deg); }
   #lever .lbl { position: absolute; bottom: -14px; left: 0; width: 100%; text-align: center; font-size: .54rem; font-weight: 800; letter-spacing: .1em; color: var(--coral); }
@@ -601,7 +601,7 @@
   .sqlbox:not([open]) > summary { border-bottom: 0; }
   .sqlbox .sqlprev, .sqlprev {
     max-height: 190px; margin: 0; overflow: auto; min-height: 92px; padding: 12px 14px;
-    border: 0; border-radius: 0; box-shadow: none; background: var(--pi-term-bg, #14110c); color: var(--pi-term-fg, #e8e2d2);
+    border: 0; border-radius: 0; box-shadow: none; background: var(--pi-term-bg, #131417); color: var(--pi-term-fg, #e6e8ea);
     font-family: var(--pi-font-code); font-size: 12px;
   }
   .sqlprev .kw { color: #b8c4ff; } .sqlprev .lit { color: var(--pi-term-fg); } .sqlprev .idn { color: #d6dcf4; }
@@ -1067,7 +1067,7 @@
   ];
 
   function pixelChar(c) {
-    const ink = "#1c1a17", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
+    const ink = "#17181b", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
     const hairC = { pony: "#6b4a2f", bun: "#3a2f28", cap: "#5a4632", beret: "#2a2622" }[c.style];
     let hair = "";
     if (c.style === "pony") hair = `<rect x="50" y="13" width="32" height="9" fill="${hairC}"/><rect x="80" y="18" width="8" height="18" fill="${hairC}"/><rect x="50" y="19" width="5" height="9" fill="${hairC}"/>

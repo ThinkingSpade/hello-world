@@ -91,7 +91,7 @@
     let rects = "";
     const px = (x, y, c) => `<rect x="${x}" y="${y}" width="1.03" height="1.03" fill="${c}"/>`;
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (outGrid[y][x])  rects += px(x, y, "#fff");
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fillGrid[y][x]) rects += px(x, y, "#1c1a17");
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fillGrid[y][x]) rects += px(x, y, "#17181b");
     return `<svg width="${W * S}" height="${H * S}" viewBox="-1 -1 ${W + 1} ${H + 1}" shape-rendering="crispEdges">${rects}</svg>`;
   }
 
@@ -163,7 +163,7 @@
   });
 
   /* ---------- per-highlight hover effects (custom SVG art) ---------- */
-  const INK = "#1c1a17";
+  const INK = "#17181b";
   const fills = ["var(--coral-bg)", "var(--blue-bg)", "var(--gold-bg)", "var(--green-bg)", "var(--violet-bg)", "var(--peach-bg)"];
   const rand = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
@@ -618,7 +618,7 @@
 
     // pixel dust kicked out of the impact point, with gravity
     function burstDust(layer, ex, ey, s) {
-      const colors = ["#1c1a17", "#b8463a", "#c9971c", "#2f6b4f", "#3b5bb5", "#fff"];
+      const colors = ["#17181b", "#b8463a", "#c9971c", "#2f6b4f", "#3b5bb5", "#fff"];
       for (let i = 0; i < 26; i++) {
         const d = document.createElement("div");
         d.className = "win-dust";

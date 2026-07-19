@@ -16,7 +16,7 @@
     --ui-accent-soft: #e9edfb;
     --bg: var(--pi-paper);
     --panel: var(--pi-panel);
-    --panel-2: #eee7d7;
+    --panel-2: #eef0f3;
     --line: var(--pi-line);
     --text: var(--pi-ink);
     --dim: var(--pi-muted);
@@ -302,14 +302,14 @@
     padding: 6px 0;
     color: var(--pi-term-dim);
     background: var(--term);
-    border-bottom: 1px solid #4a4438;
+    border-bottom: 1px solid #43464d;
     font-family: var(--pi-font-ui);
     font-size: 12px;
     letter-spacing: .06em;
   }
   .term .ln { width: max-content; min-width: 100%; white-space: pre; word-break: normal; overflow-wrap: normal; }
   .term .p { color: #a8b8ff; }
-  .term .cmdtxt { color: #e8e4d8; font-weight: 700; }
+  .term .cmdtxt { color: #e6e8ea; font-weight: 700; }
   .term .note { color: var(--pi-term-dim); font-style: italic; white-space: pre-wrap; overflow-wrap: anywhere; }
   .term .out { color: #c8d1df; }
   .term .out .warn { color: #f0d98c; }
@@ -802,7 +802,7 @@
 
   /* ---------- pixel characters ---------- */
   function pixelChar(kind) {
-    const ink = "#1c1a17", suit = "#2e3442", skin = kind === "helm" ? "#dfa77e" : "#e0aa7d";
+    const ink = "#17181b", suit = "#2e3442", skin = kind === "helm" ? "#dfa77e" : "#e0aa7d";
     const ac = kind === "helm" ? "#2547c9" : "#1f3158";
     const cap = kind === "helm"
       ? `<rect x="50" y="12" width="32" height="8" fill="#fff"/>
@@ -814,7 +814,7 @@
          <rect x="62" y="12" width="8" height="4" fill="#f6f1e4"/>`;
     const mustache = kind === "capt" ? `<rect x="58" y="44" width="16" height="3" fill="#9a938a"/>` : "";
     const chart = kind === "helm"
-      ? `<g class="mchart"><rect x="16" y="50" width="4" height="14" fill="#2547c9"/><rect x="23" y="54" width="4" height="10" fill="#1e1a14"/><rect x="30" y="49" width="4" height="15" fill="#2547c9"/></g>`
+      ? `<g class="mchart"><rect x="16" y="50" width="4" height="14" fill="#2547c9"/><rect x="23" y="54" width="4" height="10" fill="#17191c"/><rect x="30" y="49" width="4" height="15" fill="#2547c9"/></g>`
       : `<polyline class="mchart" points="14,57 38,57" fill="none" stroke="#2547c9" stroke-width="2"/>`;
     const wheel = kind === "helm" ? `
       <g>

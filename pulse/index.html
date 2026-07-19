@@ -530,7 +530,7 @@
     color: var(--pi-ink);
     box-shadow: 8px 8px 0 var(--pi-ink);
   }
-  .wire-dialog::backdrop { background: rgba(30, 26, 20, .62); }
+  .wire-dialog::backdrop { background: rgba(23, 25, 28, .62); }
   .wire-dialog .pwin-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; }
   .wire-dialog-close { flex: none; min-width: 44px; min-height: 44px; }
   .wire-dialog-body { padding: 12px; }
@@ -794,7 +794,7 @@
     let rects = "";
     const px = (x, y, color) => `<rect x="${x}" y="${y}" width="1.03" height="1.03" fill="${color}"/>`;
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (outGrid[y][x]) rects += px(x, y, "#fff");
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fillGrid[y][x]) rects += px(x, y, "#1e1a14");
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (fillGrid[y][x]) rects += px(x, y, "#17191c");
     return `<svg width="${W * S}" height="${H * S}" viewBox="-1 -1 ${W + 1} ${H + 1}" shape-rendering="crispEdges">${rects}</svg>`;
   }
   function initPixelCursor() {
@@ -1636,7 +1636,7 @@
 
   /* ================= THE BRIEF ================= */
   function pixelAnalyst() {
-    const ink = "#1e1a14", skin = "#d9a06b", ac = "#2547c9";
+    const ink = "#17191c", skin = "#d9a06b", ac = "#2547c9";
     return `<svg viewBox="0 0 132 116" shape-rendering="crispEdges">
       <g class="person">
         <rect x="50" y="13" width="32" height="9" fill="#4a3520"/>

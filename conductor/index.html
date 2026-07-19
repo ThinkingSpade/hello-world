@@ -14,7 +14,7 @@
   :root {
     --pi-accent: #8a6200;
     --pi-accent-soft: #f5ecd2;
-    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: #eee7d6; --line: var(--pi-line);
+    --bg: var(--pi-paper); --panel: var(--pi-panel); --panel-2: #eef0f3; --line: var(--pi-line);
     --text: var(--pi-ink); --dim: var(--pi-muted);
     --navy: #263b50; --blue: #2547c9; --gold: var(--pi-warn); --green: var(--pi-ok);
     --coral: var(--pi-err); --green-bg: var(--pi-ok-soft); --coral-bg: var(--pi-err-soft);
@@ -23,7 +23,7 @@
   * { box-sizing: border-box; margin: 0; }
   body {
     background-color: var(--bg);
-    background-image: linear-gradient(rgba(30,26,20,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(30,26,20,.035) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(23, 25, 28,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 25, 28,.035) 1px, transparent 1px);
     background-size: 16px 16px;
     color: var(--text);
     font-family: var(--pi-font-body);
@@ -119,12 +119,12 @@
   .rail-stn.fail .rail-state { color: var(--coral); }
   /* terminal */
   .term { border-radius: 0; padding: 0 14px 14px; font-family: var(--pi-font-code); font-size: 13px; max-height: 340px; overflow: auto; line-height: 1.55; box-shadow: none; }
-  .term .bar { display: flex; align-items: center; gap: 4px; min-height: 34px; margin: 0 -14px 12px; padding: 7px 10px; border-bottom: 2px solid var(--pi-ink); background: #252018; }
+  .term .bar { display: flex; align-items: center; gap: 4px; min-height: 34px; margin: 0 -14px 12px; padding: 7px 10px; border-bottom: 2px solid var(--pi-ink); background: #1c1e22; }
   .term .bar::after { content: "conductor terminal"; margin-left: 5px; color: var(--pi-term-fg); font-family: var(--pi-font-title); font-size: 12px; letter-spacing: .04em; }
   .term .bar i { width: 7px; height: 7px; border: 1px solid var(--pi-term-dim); border-radius: 0; background: transparent; }
   .term .ln { white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; }
   .term .p { color: #e7c979; }
-  .term .cmdtxt { color: #e8e4d8; font-weight: 700; }
+  .term .cmdtxt { color: #e6e8ea; font-weight: 700; }
   .term .note { color: var(--pi-term-dim); font-style: italic; }
   .term .out { color: var(--pi-term-fg); }
   .term .out .err { color: var(--pi-term-err); }
@@ -787,7 +787,7 @@
 
   /* ---------- pixel characters ---------- */
   function pixelChar(kind) {
-    const ink = "#1c1a17", suit = "#2e3442", skin = kind === "cond" ? "#dfa77e" : "#d59a72";
+    const ink = "#17181b", suit = "#2e3442", skin = kind === "cond" ? "#dfa77e" : "#d59a72";
     const ac = kind === "cond" ? "#263b50" : "#8a6200";
     const cap = kind === "cond"
       ? `<rect x="48" y="12" width="36" height="8" fill="${ac}"/>
@@ -838,7 +838,7 @@
       ${kind === "cond" ? `<g class="hands"><rect x="52" y="70" width="7" height="5" fill="${skin}"/><rect x="63" y="70" width="7" height="5" fill="${skin}"/></g>
       <rect x="48" y="75" width="26" height="4" fill="#23272f"/>` : ""}
       <rect x="10" y="44" width="34" height="26" fill="#23272f"/>
-      <rect class="scr" x="13" y="47" width="28" height="20" fill="#14110c"/>
+      <rect class="scr" x="13" y="47" width="28" height="20" fill="#131417"/>
       ${chart}
       <rect x="22" y="70" width="10" height="4" fill="#23272f"/>
       ${extra}

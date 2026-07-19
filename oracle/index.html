@@ -11,15 +11,15 @@
 <link rel="stylesheet" href="/shared/pixel.css">
 <style>
   :root {
-    --bg: #f6f1e4; --panel: #fffdf6; --panel-2: #f6f1e4; --line: #cfc6b2;
-    --text: #1e1a14; --dim: #6d6353;
+    --bg: #f4f5f7; --panel: #ffffff; --panel-2: #f4f5f7; --line: #d2d5da;
+    --text: #17191c; --dim: #6d6353;
     --blue: #2547c9; --gold: #8a6200; --violet: #2547c9; --green: #246b45; --coral: #b3372c;
     --blue-bg: #e9edfb; --gold-bg: #f5ecd2; --violet-bg: #e9edfb; --green-bg: #e0efe5;
   }
   * { box-sizing: border-box; margin: 0; }
   body {
     background: var(--bg);
-    background-image: radial-gradient(rgba(28,26,23,.055) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(23, 24, 27,.055) 1px, transparent 1px);
     background-size: 22px 22px;
     color: var(--text);
     font: 14px/1.55 var(--pi-font-body);
@@ -39,7 +39,7 @@
   .card {
     background: var(--panel); border: 2px solid var(--text); border-radius: 0;
     padding: 1rem 1.2rem; margin-bottom: .9rem;
-    box-shadow: 4px 4px 0 rgba(28, 26, 23, .06);
+    box-shadow: 4px 4px 0 rgba(23, 24, 27, .06);
   }
   .card h2 { font-size: .7rem; color: var(--dim); text-transform: uppercase; letter-spacing: .11em; margin-bottom: .6rem; }
   /* session picker */
@@ -48,7 +48,7 @@
     font: inherit; font-size: .74rem; cursor: pointer; text-align: left;
     background: var(--panel); color: var(--text); border: 1px solid var(--line);
     border-radius: 0; padding: .5rem .8rem; max-width: 300px;
-    box-shadow: 3px 3px 0 rgba(28,26,23,.05);
+    box-shadow: 3px 3px 0 rgba(23, 24, 27,.05);
   }
   .sess small { display: block; color: var(--dim); font-size: .64rem; margin-top: .15rem; }
   .sess.active { border-color: var(--violet); outline: 1px solid var(--violet); }
@@ -71,7 +71,7 @@
   .agent {
     background: var(--panel); border: 1.5px solid var(--line); border-radius: 0;
     padding: .8rem; text-align: center; position: relative; transition: border-color .3s;
-    box-shadow: 3px 3px 0 rgba(28,26,23,.05);
+    box-shadow: 3px 3px 0 rgba(23, 24, 27,.05);
   }
   .agent.speaking { border-color: var(--ac); }
   .agent .ava { width: 132px; height: 116px; margin: 0 auto .3rem; position: relative; }
@@ -96,7 +96,7 @@
     position: absolute; top: -14px; right: 0px; display: none;
     background: #fff; border: 1.5px solid var(--ac); border-radius: 0;
     padding: .12rem .45rem; font-size: .78rem; color: var(--ac); font-weight: 700;
-    box-shadow: 2px 2px 0 rgba(28,26,23,.12);
+    box-shadow: 2px 2px 0 rgba(23, 24, 27,.12);
   }
   .thought:after {
     content: ""; position: absolute; left: 8px; bottom: -9px; width: 6px; height: 6px;
@@ -111,7 +111,7 @@
   /* exclaim on being rebutted */
   .exclaim {
     position: absolute; top: -10px; left: 4px; display: none; font-weight: 800;
-    color: var(--coral); font-size: 1.1rem; text-shadow: 1.5px 1.5px 0 rgba(28,26,23,.15);
+    color: var(--coral); font-size: 1.1rem; text-shadow: 1.5px 1.5px 0 rgba(23, 24, 27,.15);
   }
   .agent.poked .exclaim { display: block; animation: exup .6s ease-out 1; }
   @keyframes exup { 0% { transform: translateY(6px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
@@ -128,7 +128,7 @@
     background: var(--text); color: #fff; font-size: .8rem; font-weight: 800;
     letter-spacing: .14em; text-transform: uppercase; padding: .55rem 1.3rem;
     border-radius: 0; opacity: 0; pointer-events: none; z-index: 10;
-    box-shadow: 5px 5px 0 rgba(28,26,23,.2);
+    box-shadow: 5px 5px 0 rgba(23, 24, 27,.2);
   }
   #toast.show { animation: toast 1.4s cubic-bezier(.34,1.3,.64,1) 1; }
   @keyframes toast { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.7); }
@@ -194,7 +194,7 @@
     position: absolute; top: -12px; left: 0; display: none; z-index: 5;
     background: #fff; border: 1.5px solid var(--ac); border-radius: 0;
     padding: .08rem .4rem; font-size: .64rem; font-weight: 700; color: var(--ac);
-    white-space: nowrap; box-shadow: 2px 2px 0 rgba(28,26,23,.12);
+    white-space: nowrap; box-shadow: 2px 2px 0 rgba(23, 24, 27,.12);
   }
   .workbub:after {
     content: ""; position: absolute; right: 12px; bottom: -5px; width: 7px; height: 7px;
@@ -262,7 +262,7 @@
     max-width: 86%; border: 1.5px solid var(--ac); background: var(--panel);
     border-radius: 0; padding: .6rem .85rem; position: relative;
     animation: pop .28s cubic-bezier(.34,1.56,.64,1);
-    box-shadow: 3px 3px 0 rgba(28,26,23,.05); font-size: .8rem;
+    box-shadow: 3px 3px 0 rgba(23, 24, 27,.05); font-size: .8rem;
   }
   @keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .bub .who { font-size: .66rem; font-weight: 800; color: var(--ac); margin-bottom: .25rem; }
@@ -786,7 +786,7 @@
     color: var(--pi-ink);
     background: var(--pi-panel);
   }
-  .evidence-popover::backdrop { background: rgba(30, 26, 20, .58); }
+  .evidence-popover::backdrop { background: rgba(23, 25, 28, .58); }
   .evidence-popover .pwin-title { position: sticky; top: 0; z-index: 1; }
   .evidence-popover .pwin-body { max-height: calc(100vh - 96px); padding: 16px; overflow-y: auto; }
   .evidence-close { width: auto; min-width: 44px; min-height: 44px; margin-left: auto; }
@@ -1250,7 +1250,7 @@
     gemini: { skin: "#c98f66", hair: "#4a3d63", style: "beanie", chart: "down",
               tagline: "has questions. so many questions.", glyph: "?", bub: "objection?",
               think: "sharpening objections", speak: "objecting…", done: "objection noted" },
-    grok:   { skin: "#dfa77e", hair: "#1c1a17", style: "mohawk", phones: true, chart: "zig",
+    grok:   { skin: "#dfa77e", hair: "#17181b", style: "mohawk", phones: true, chart: "zig",
               tagline: "argues with the premise", glyph: "ALT", bub: "hot take:",
               think: "cooking a take", speak: "dropping the take…", done: "take shipped" },
     mod:    { skin: "#e0aa7d", hair: "#9a938a", style: "gray",   chart: "flat", mustache: true,
@@ -1271,7 +1271,7 @@
   };
 
   function pixelSprite() {
-    const p = PERSONA.intern, ink = "#1c1a17";
+    const p = PERSONA.intern, ink = "#17181b";
     return `<svg viewBox="0 0 54 60" shape-rendering="crispEdges">
       <rect x="16" y="2" width="20" height="6" fill="#8f6f1d"/>
       <rect x="32" y="6" width="9" height="3" fill="#8f6f1d"/>
@@ -1291,7 +1291,7 @@
 
   function pixelChar(id, color) {
     const p = PERSONA[id] || PERSONA.mod;
-    const suit = "#2e3442", shirt = "#ffffff", ink = "#1c1a17";
+    const suit = "#2e3442", shirt = "#ffffff", ink = "#17181b";
     const desk = "#3a3f4d", deskTop = color;
     let hair = "";
     if (p.style === "spiky")
@@ -2249,7 +2249,7 @@
     let out = "";
     for (let g = 0; g <= 4; g++) {
       const y = Y(g * 25);
-      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#cfc6b2" stroke-width="1"/>
+      out += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#d2d5da" stroke-width="1"/>
               <text x="${L - 8}" y="${y + 4}" font-size="12" font-family="Poppins, sans-serif" fill="#6d6353" text-anchor="end">${g * 25}</text>`;
     }
     Array.from({ length: pointCount }, (_, i) => i === 0 ? "opening" : i === pointCount - 1 ? "final" : `round ${i + 1}`).forEach((lb, i) => {

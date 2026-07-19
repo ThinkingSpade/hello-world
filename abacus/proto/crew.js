@@ -26,7 +26,7 @@ const Crew = (() => {
   ];
 
   function pixelChar(c) {
-    const ink = "#1c1a17", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
+    const ink = "#17181b", suit = "#2e3442", skin = { pony: "#dfa77e", bun: "#d59a72", cap: "#caa27e", beret: "#e2b088" }[c.style];
     const hairC = { pony: "#6b4a2f", bun: "#3a2f28", cap: "#5a4632", beret: "#2a2622" }[c.style];
     let hair = "";
     if (c.style === "pony") hair = `<rect x="50" y="13" width="32" height="9" fill="${hairC}"/><rect x="80" y="18" width="8" height="18" fill="${hairC}"/><rect x="50" y="19" width="5" height="9" fill="${hairC}"/><rect x="46" y="27" width="5" height="10" fill="${ink}"/><rect x="47" y="37" width="3" height="6" fill="${ink}"/><rect x="47" y="43" width="8" height="3" fill="${ink}"/>`;

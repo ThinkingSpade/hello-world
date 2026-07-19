@@ -5,11 +5,11 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  --bg: #F7F5EF;
-  --ink: #1c1a17;
-  --ink-soft: #5f5a51;
-  --line: #1c1a17;
-  --dot: rgba(28, 26, 23, .07);
+  --bg: #ffffff;
+  --ink: #17181b;
+  --ink-soft: #5d5f66;
+  --line: #17181b;
+  --dot: rgba(23, 24, 27, .07);
 
   --shadow:    5px 5px 0 var(--line);
   --shadow-sm: 3px 3px 0 var(--line);
@@ -56,7 +56,7 @@ mark { color: inherit; background: none; }
   padding: 14px clamp(14px, 4vw, 28px);
   transition: background .25s ease;
 }
-.nav.scrolled { background: rgba(247, 245, 239, .78); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.nav.scrolled { background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 
 .logo { justify-self: start; display: inline-grid; place-items: center; width: 60px; height: 60px;
   border: 3px solid var(--line); border-radius: 13px; background: #fff; box-shadow: var(--shadow-sm);
@@ -71,7 +71,7 @@ mark { color: inherit; background: none; }
 .nav-links a { font-family: var(--px); font-size: .58rem; letter-spacing: .02em; color: var(--ink);
   padding: .95em 1.05em; border-right: 3px solid var(--line); transition: background .15s, color .15s; }
 .nav-links a:last-child { border-right: none; }
-.nav-links a:hover { background: #efece4; }
+.nav-links a:hover { background: #f1f2f4; }
 .nav-links a.active { background: var(--green-bg); color: var(--green-tx); }
 .nav-links a.active.is-work  { background: var(--blue-bg);  color: var(--blue-tx); }
 .nav-links a.active.is-about { background: var(--coral-bg); color: var(--coral-tx); }
@@ -79,7 +79,7 @@ mark { color: inherit; background: none; }
 /* ───────────────────────── window component ───────────────────────── */
 .window { border: 3px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
 .window-bar { display: flex; align-items: center; gap: 10px; padding: 9px 13px;
-  background: var(--accent, #efece4); border-bottom: 3px solid var(--line); border-radius: 7px 7px 0 0; }
+  background: var(--accent, #f1f2f4); border-bottom: 3px solid var(--line); border-radius: 7px 7px 0 0; }
 .dots { display: inline-flex; gap: 6px; }
 .dots i { width: 11px; height: 11px; border: 2px solid var(--line); border-radius: 50%; background: #fff; }
 .window-title { font-family: var(--px); font-size: .56rem; letter-spacing: .02em; color: var(--ink); }
@@ -122,7 +122,7 @@ mark { color: inherit; background: none; }
 .win-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
 .win-dust { position: absolute; left: 0; top: 0; }
 .win-shock { position: absolute; border-radius: 50%; opacity: 0;
-  border: 3px solid rgba(28,26,23,.45);
+  border: 3px solid rgba(23,24,27,.45);
   box-shadow: inset 0 0 0 7px rgba(255,255,255,.4); }
 .win-sliver { position: absolute; left: 0; top: 0; }
 .win-reglint { position: fixed; z-index: 58; pointer-events: none; overflow: hidden; border-radius: 14px; }
@@ -232,7 +232,7 @@ mark { color: inherit; background: none; }
 .btn:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--line); }
 .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--line); }
 .btn.primary { background: var(--blue-bg); color: var(--blue-tx); }
-.btn.locked { background: #f0eee7; color: var(--ink-soft); }
+.btn.locked { background: #f1f2f4; color: var(--ink-soft); }
 .btn.status { cursor: default; }
 .btn.status:hover, .btn.status:active { transform: none; box-shadow: var(--shadow-sm); }
 
@@ -277,7 +277,7 @@ mark { color: inherit; background: none; }
 .win-max { margin-left: auto; display: grid; place-items: center; width: 28px; height: 22px;
   border: 2px solid var(--line); border-radius: 5px; background: #fff; box-shadow: 2px 2px 0 var(--line);
   color: var(--ink); cursor: pointer; transition: transform .1s, box-shadow .1s, background .15s; }
-.win-max:hover { background: #fffef9; }
+.win-max:hover { background: #fafbfc; }
 .win-max:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--line); }
 .win-max svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .win-max .ico-min { display: none; }
@@ -295,7 +295,7 @@ mark { color: inherit; background: none; }
 .exp.open .expand-inner > *:nth-child(2) { transition-delay: .1s; }
 .exp-tie { margin: 1.05rem 0 0; padding: .72rem .9rem; border: 2px solid var(--line);
   border-left-width: 5px; border-left-color: var(--dot, var(--blue-tx)); border-radius: 8px;
-  background: #faf9f5; color: var(--ink-soft); line-height: 1.62; font-size: .92rem; }
+  background: #fafbfc; color: var(--ink-soft); line-height: 1.62; font-size: .92rem; }
 .exp-tie b { display: block; margin-bottom: .4rem; font-family: var(--px); font-size: .5rem; letter-spacing: .05em; color: var(--ink); }
 
 /* ───────────────────────── about ───────────────────────── */
@@ -360,7 +360,7 @@ mark { color: inherit; background: none; }
   margin: 4px 0 18px 34px; transform: rotate(-1.4deg);
   transition: transform .3s var(--pop); }
 .portrait:hover { transform: rotate(0) translateY(-3px); }
-.portrait-body { padding: 0; overflow: hidden; border-radius: 0 0 7px 7px; background: #fbfaf6; }
+.portrait-body { padding: 0; overflow: hidden; border-radius: 0 0 7px 7px; background: #ffffff; }
 .portrait-photo { width: 100%; aspect-ratio: 1 / 1; background: url(huy.png) center / cover no-repeat; }
 
 /* glitch-load: the portrait, education card and certificates "decode" in on first view
@@ -480,7 +480,7 @@ body.cursor-on [data-cursor] { cursor: none; }
   transform: translate(-50%, -50%) translateY(calc(var(--r0, 10px) * -1)) scale(.4);
   animation-name: fxOrbitOut; animation-timing-function: cubic-bezier(.2, .6, .35, 1); animation-fill-mode: forwards; }
 .fx-svg      { display: block; }
-.fx-svg svg  { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(1px 1px 0 rgba(28, 26, 23, .3)); }
+.fx-svg svg  { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(1px 1px 0 rgba(23, 24, 27, .3)); }
 
 /* confetti — fade in off the word, ease up, then gravity-fall with a sway + spin */
 @keyframes fxConfetti {
