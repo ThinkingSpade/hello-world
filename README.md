@@ -10,16 +10,24 @@ The live site is [hello-world-bp7.pages.dev](https://hello-world-bp7.pages.dev).
 
 - **Abacus** (`/abacus/`) — compiles constrained analysis plans to SQL and runs
   them over SQLite-WASM in the browser.
+- **Armada** (`/armada/`) — replays browser-fleet campaign fixtures frame by
+  frame: sessions, proxies, scheduler jitter, and spend.
 - **Atlas** (`/atlas/`) — searches two shipped document corpora with hybrid
   ranking and returns extractive answers with citations.
 - **Churn Radar** (`/churn/`) — scores IBM Telco records client-side with shipped
   logistic-regression coefficients and a held-out model card.
-- **Conductor** (`/conductor/`) — replays recorded data-pipeline failures,
-  diagnoses, repair proposals, approval gates, and verification steps.
+- **Conductor** (`/conductor/`) — replays recorded data-pipeline failures over a
+  real in-browser SQLite warehouse, with approval gates and live checks.
+- **Cue** (`/cue/`) — replays recorded support calls with a timed assist rail
+  beside the live transcript and rep-screen context.
+- **Forge** (`/forge/`) — folds recorded sandbox-cluster events through a pure
+  reducer into queue, cluster board, and terminal views.
 - **Helmsman** (`/helmsman/`) — replays Kubernetes incident fixtures with staged
   rollback and a human gate before repair commands.
-- **Oracle** (`/oracle/`) — plays scripted multi-model debate sessions as an
-  inspectable timeline with confidence changes and a final verdict.
+- **Operator** (`/operator/`) — replays phone-booking fixtures: transcript,
+  understanding table, calendar state, and turn latency.
+- **Oracle** (`/oracle/`) — plays recorded multi-model debate sessions as an
+  inspectable timeline and computes the verdict from the ballots.
 - **Pulse** (`/pulse/`) — fetches public macroeconomic feeds in the browser and
   turns the returned values into charts and a sourced morning brief.
 
