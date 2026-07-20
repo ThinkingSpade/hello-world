@@ -467,6 +467,51 @@
   .postm { font-size: 12px; color: var(--dim); margin-top: 8px; }
   .postm b { color: var(--text); }
 
+  /* signature library */
+  .siglib-note { margin: 0 0 10px; color: var(--dim); font-size: 13px; }
+  .siglib-status {
+    margin-bottom: 12px;
+    color: var(--dim);
+    font-family: var(--pi-font-ui);
+    font-size: 12px;
+  }
+  .siglib { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+  .sig {
+    min-width: 0;
+    padding: 10px;
+    color: var(--dim);
+    background: var(--panel-2);
+    border: 2px solid var(--line);
+    border-radius: 0;
+    transition: border-color 120ms steps(2, end), background 120ms steps(2, end);
+  }
+  .sig-hd { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+  .sig-id { color: var(--navy); font-family: var(--pi-font-code); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+  .sig-state { margin-left: auto; color: var(--dim); background: var(--panel); border-color: var(--line); }
+  .sig-desc { font-size: 12px; line-height: 1.45; }
+  .sig-checks { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; }
+  .sig-checks li { position: relative; padding-left: 17px; font-size: 12px; line-height: 1.45; }
+  .sig-checks li::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 0;
+    width: 9px;
+    height: 9px;
+    background: var(--panel);
+    border: 1px solid var(--dim);
+  }
+  .sig.matched {
+    color: var(--text);
+    background: var(--ui-accent-soft);
+    border-color: var(--ui-accent);
+    box-shadow: 3px 3px 0 var(--ui-accent);
+    animation: pop 180ms steps(2, end);
+  }
+  .sig.matched .sig-id { color: var(--ui-accent); }
+  .sig.matched .sig-state { color: #fff; background: var(--ui-accent); border-color: var(--ui-accent); }
+  .sig.matched .sig-checks li::before { background: var(--ui-accent); border-color: var(--text); }
+
   /* controls */
   .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 16px 16px; }
   .btn,
@@ -637,8 +682,10 @@
     .klaxon.on,
     .term .caret,
     .ev,
+    .sig.matched,
     .stamp.show,
     #toast.show { animation: none !important; }
+    .sig { transition: none; }
     .stamp.show, #toast.show { opacity: 1; transform: translate(-50%, -50%); }
     .stamp.show { transform: scale(1); }
   }
@@ -718,6 +765,15 @@
     </div>
   </div>
 
+  <div class="card pwin siglib-window">
+    <h2 class="pwin-title">signature library</h2>
+    <div class="pwin-body">
+      <p class="siglib-note">The vetted failure signatures the agent matches evidence against. When the replay reaches a diagnosis, the entry the recording landed on lights up — the matching itself happened in the original run.</p>
+      <div class="siglib-status" id="siglib-status">no diagnosis on the table yet · every entry at rest</div>
+      <div class="siglib" id="siglib" role="list" aria-label="Vetted failure signatures"></div>
+    </div>
+  </div>
+
   <div class="card pwin log-window">
     <h2 class="pwin-title">Incident log</h2>
     <div class="pwin-body" id="feed" role="log" aria-live="polite" aria-relevant="additions"></div>
@@ -742,6 +798,70 @@
     ["rbac-denied.json"],
   ];
   const CPS = 60;             // terminal typing speed at 1×
+  // vetted failure signature shelf. The first four ids mirror the fixtures'
+  // recorded diagnoses; the rest exist in the library but match no recording.
+  const SIGNATURES = [
+    {
+      id: "oom-crashloop",
+      desc: "container killed at its memory limit, restarted into the same wall",
+      checks: [
+        "describe shows Last State OOMKilled, exit code 137",
+        "restart count climbing across describes",
+        "logs show rss climbing into the memory limit",
+      ],
+    },
+    {
+      id: "image-pull",
+      desc: "rollout pulling an image tag the registry cannot serve",
+      checks: [
+        "new pods stuck in ImagePullBackOff / ErrImagePull",
+        "describe shows Waiting with reason ImagePullBackOff",
+        "restart count flat at zero: nothing ever started",
+      ],
+    },
+    {
+      id: "readiness-probe",
+      desc: "pods run fine but the probe knocks on the wrong door",
+      checks: [
+        "pods Running yet 0/1 Ready, restarts flat",
+        "events contain \"Readiness probe failed\"",
+        "probe target disagrees with the listening port",
+      ],
+    },
+    {
+      id: "config-key-drift",
+      desc: "pod template references a config key that is not there",
+      checks: [
+        "pods held in CreateContainerConfigError",
+        "events contain \"couldn't find key\"",
+        "referenced key missing from the live ConfigMap",
+      ],
+    },
+    {
+      id: "node-pressure-eviction",
+      desc: "kubelet shedding pods off a node under resource pressure",
+      checks: [
+        "pods Evicted citing \"The node was low on resource\"",
+        "node conditions show MemoryPressure or DiskPressure",
+      ],
+    },
+    {
+      id: "pending-unschedulable",
+      desc: "no node in the cluster can seat the pod's request",
+      checks: [
+        "pods Pending with FailedScheduling events",
+        "scheduler reports \"0/N nodes are available\"",
+      ],
+    },
+    {
+      id: "cert-expiry",
+      desc: "TLS handshakes failing on a certificate past its date",
+      checks: [
+        "logs contain \"x509: certificate has expired\"",
+        "secret's notAfter timestamp is in the past",
+      ],
+    },
+  ];
 
   let S = null, steps = [], idx = 0, playing = false, speed = 1, gen = 0;
   let followReplay = false, autoReplay = false;
@@ -1260,6 +1380,48 @@
     $("st-" + id).innerHTML = text;
   }
 
+  /* ---------- signature library ---------- */
+  function renderSignatureLibrary() {
+    const list = $("siglib");
+    list.replaceChildren();
+    for (const sig of SIGNATURES) {
+      const entry = document.createElement("div");
+      entry.className = "sig";
+      entry.dataset.sig = sig.id;
+      entry.setAttribute("role", "listitem");
+      entry.innerHTML = `
+        <div class="sig-hd"><span class="sig-id">${esc(sig.id)}</span><span class="sig-state pchip">on the shelf</span></div>
+        <div class="sig-desc">${esc(sig.desc)}</div>
+        <ul class="sig-checks">${sig.checks.map((check) => `<li>${esc(check)}</li>`).join("")}</ul>`;
+      list.appendChild(entry);
+    }
+  }
+
+  function resetSignatureLibrary() {
+    $("siglib-status").textContent = "no diagnosis on the table yet · every entry at rest";
+    [...$("siglib").children].forEach((entry) => {
+      entry.classList.remove("matched");
+      entry.style.animation = "";
+      entry.querySelector(".sig-state").textContent = "on the shelf";
+    });
+  }
+
+  function markSignatureMatch(ev, instant) {
+    resetSignatureLibrary();
+    const entry = [...$("siglib").children].find((candidate) => candidate.dataset.sig === ev.signature);
+    if (!entry) {
+      $("siglib-status").textContent = `recorded signature "${ev.signature}" has no vetted entry on this shelf`;
+      return;
+    }
+    entry.classList.add("matched");
+    if (instant || REDUCED) entry.style.animation = "none";
+    entry.querySelector(".sig-state").textContent =
+      ev.confidence === undefined ? "matched in this recording" : `matched · ${ev.confidence}%`;
+    $("siglib-status").textContent = `matched in this recording: ${ev.signature} · receipts in the incident log`;
+  }
+
+  renderSignatureLibrary();
+
   /* ---------- steps ---------- */
   function buildSteps() {
     steps = [];
@@ -1528,6 +1690,7 @@
         return fin();
       case "diagnosis": {
         const known = ev.signature !== "unknown";
+        markSignatureMatch(ev, instant);
         card("diag", `
           <div class="hd">${icon("search")}<span>diagnosis: ${esc(ev.signature)}</span>${known ? `<span class="confbadge">${ev.confidence}% confident</span>` : ""}</div>
           ${esc(ev.cause)}
@@ -1753,6 +1916,7 @@
     $("klaxon").classList.remove("on");
     $("term").innerHTML = terminalBar();
     $("feed").replaceChildren();
+    resetSignatureLibrary();
     if (!S) renderFeedState("loading", "Loading incident events...");
     else if (!S.timeline.length) renderFeedState("empty", "No incident events were recorded in this fixture.");
     boardModel = S ? makeClusterModel(S.board) : null;
@@ -1909,9 +2073,11 @@
 
     lines.push("", "## Diagnosis", "");
     if (diagnosis) {
+      const libraryEntry = SIGNATURES.find((sig) => sig.id === diagnosis.signature);
       lines.push(
         `Signature: \`${diagnosis.signature || "not recorded"}\``,
         `Confidence: ${diagnosis.confidence === undefined ? "not recorded in fixture" : `${diagnosis.confidence}%`}`,
+        `Library match: ${libraryEntry ? `\`${libraryEntry.id}\` — ${libraryEntry.desc}` : diagnosis.signature ? "no vetted library entry for this signature" : "not recorded in fixture"}`,
         "",
         diagnosis.cause || "No diagnosis text was recorded."
       );

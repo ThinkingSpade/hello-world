@@ -66,7 +66,7 @@
 
   .scenario-picker {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     max-width: 760px;
     margin: 0 auto 16px;
@@ -122,6 +122,35 @@
   .screen-copy strong { font-family: var(--pi-font-ui); font-size: 14px; }
   .screen-copy span { margin-left: 5px; color: var(--pi-muted); }
   .screen-phase { color: var(--pi-muted); white-space: nowrap; }
+
+  .screen-trail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 14px 0;
+    padding: 8px 10px;
+    overflow-x: auto;
+    border: 1.5px solid var(--pi-line);
+    background: var(--pi-paper);
+  }
+  .screen-trail[hidden] { display: none; }
+  .trail-label { color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; }
+  .trail-arrow { flex: none; color: var(--pi-muted); }
+  .trail-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border: 1.5px solid var(--pi-line);
+    background: var(--pi-panel);
+    color: var(--pi-muted);
+    font-family: var(--pi-font-ui);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .trail-time { font-family: var(--pi-font-code); font-variant-numeric: tabular-nums; }
+  .trail-step.on { border-color: var(--pi-ink); background: var(--pi-accent-soft); color: var(--pi-ink); font-weight: 700; }
 
   .workbench {
     display: grid;
@@ -229,6 +258,16 @@
   .balance-row.customer .balance-fill { background: var(--pi-ink); }
   .balance-value { font-family: var(--pi-font-code); font-size: 12px; text-align: right; }
 
+  .debrief-note { margin: 0 0 10px; color: var(--pi-muted); font-size: 12px; }
+  .debrief-strip { margin-top: 8px; }
+  .debrief-list { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+  .debrief-item { min-width: 0; padding: 10px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+  .debrief-item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .debrief-item-head strong { font-family: var(--pi-font-ui); font-size: 14px; }
+  .debrief-type { color: var(--pi-muted); font-size: 12px; }
+  .debrief-delta { margin-left: auto; color: var(--pi-muted); font-family: var(--pi-font-code); font-size: 12px; white-space: nowrap; }
+  .debrief-quote { margin: 7px 0 0; color: var(--pi-muted); font-size: 12px; overflow-wrap: anywhere; }
+
   footer { margin-top: 26px; color: var(--pi-muted); font-size: 12px; text-align: center; }
 
   @media (max-width: 860px) {
@@ -301,6 +340,8 @@
       <span class="screen-phase" id="screen-phase"></span>
     </div>
 
+    <div class="screen-trail" id="screen-trail" role="list" aria-label="Screen trail" hidden></div>
+
     <div class="workbench">
       <section class="pane pwin" aria-labelledby="transcript-title">
         <div class="pwin-title" id="transcript-title">
@@ -356,7 +397,8 @@
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const FIXTURES = [
     { file: "pricing-discovery.json", title: "Pricing objection", note: "New hire discovery call" },
-    { file: "renewal-save.json", title: "Renewal save", note: "Upset customer renewal call" }
+    { file: "renewal-save.json", title: "Renewal save", note: "Upset customer renewal call" },
+    { file: "objection-storm.json", title: "Objection storm", note: "Rapid fire objection call" }
   ];
   const TYPE_LABELS = {
     suggested_answer: "suggested answer",
@@ -603,11 +645,43 @@
     }
   }
 
+  function renderScreenTrail(screenEvents) {
+    const trail = $("screen-trail");
+    trail.replaceChildren();
+    trail.hidden = !screenEvents.length;
+    if (!screenEvents.length) return;
+    const label = document.createElement("span");
+    label.className = "trail-label";
+    label.textContent = "trail";
+    label.setAttribute("aria-hidden", "true");
+    trail.appendChild(label);
+    screenEvents.forEach((event, index) => {
+      if (index) {
+        const arrow = svgIcon("i-arrow-r");
+        arrow.classList.add("trail-arrow");
+        trail.appendChild(arrow);
+      }
+      const step = document.createElement("span");
+      step.className = "trail-step";
+      step.setAttribute("role", "listitem");
+      if (index === screenEvents.length - 1) {
+        step.classList.add("on");
+        step.setAttribute("aria-current", "step");
+      }
+      const time = document.createElement("time");
+      time.className = "trail-time";
+      time.textContent = formatTime(event.at);
+      step.append(time, document.createTextNode(`${event.app}: ${event.screen}`));
+      trail.appendChild(step);
+    });
+  }
+
   function renderScreen(screenEvents) {
     const active = screenEvents.length ? screenEvents[screenEvents.length - 1] : null;
     const key = active ? `${active.at}:${active.app}:${active.screen}` : "empty";
     if (key === screenKey) return;
     screenKey = key;
+    renderScreenTrail(screenEvents);
 
     const copy = $("screen-copy");
     copy.replaceChildren();
@@ -756,7 +830,92 @@
     });
     balanceSection.append(balanceHeading, balance);
 
-    body.append(summary, recapGrid, balanceSection);
+    const debriefSection = document.createElement("section");
+    debriefSection.className = "recap-section";
+    const debriefHeading = document.createElement("h3");
+    debriefHeading.textContent = "Coaching debrief";
+    const debriefNote = document.createElement("p");
+    debriefNote.className = "debrief-note";
+    debriefNote.textContent = "Computed from the suggestion times and usage marks recorded in this fixture.";
+
+    const adoptionPct = fixture.suggestions.length
+      ? Math.round((used.length / fixture.suggestions.length) * 100)
+      : 0;
+    const adoptionRow = document.createElement("div");
+    adoptionRow.className = "balance-row adoption";
+    const adoptionLabel = document.createElement("span");
+    adoptionLabel.className = "balance-label";
+    adoptionLabel.textContent = "Adopted";
+    const adoptionTrack = document.createElement("div");
+    adoptionTrack.className = "balance-track";
+    adoptionTrack.setAttribute("role", "meter");
+    adoptionTrack.setAttribute("aria-label", "Suggestion adoption");
+    adoptionTrack.setAttribute("aria-valuemin", "0");
+    adoptionTrack.setAttribute("aria-valuemax", "100");
+    adoptionTrack.setAttribute("aria-valuenow", String(adoptionPct));
+    const adoptionFill = document.createElement("div");
+    adoptionFill.className = "balance-fill";
+    adoptionFill.style.width = `${adoptionPct}%`;
+    adoptionTrack.appendChild(adoptionFill);
+    const adoptionValue = document.createElement("span");
+    adoptionValue.className = "balance-value";
+    adoptionValue.textContent = `${adoptionPct}%`;
+    adoptionRow.append(adoptionLabel, adoptionTrack, adoptionValue);
+
+    const deltas = used.map((suggestion) => suggestion.usedAt - suggestion.at).sort((a, b) => a - b);
+    const middle = Math.floor(deltas.length / 2);
+    const median = !deltas.length
+      ? null
+      : deltas.length % 2 ? deltas[middle] : (deltas[middle - 1] + deltas[middle]) / 2;
+    const stats = document.createElement("div");
+    stats.className = "debrief-strip pstrip";
+    const usedCount = document.createElement("b");
+    usedCount.textContent = `${used.length} of ${fixture.suggestions.length}`;
+    const medianValue = document.createElement("b");
+    medianValue.textContent = median === null ? "n/a" : `${median % 1 ? median.toFixed(1) : median}s`;
+    stats.append(
+      document.createTextNode("suggestions used "),
+      usedCount,
+      document.createTextNode(" | median time from cue to use "),
+      medianValue
+    );
+
+    const outcomeList = document.createElement("ul");
+    outcomeList.className = "debrief-list";
+    fixture.suggestions.forEach((suggestion) => {
+      const isUsed = suggestion.usedAt !== null;
+      const item = document.createElement("li");
+      item.className = "debrief-item";
+      const head = document.createElement("div");
+      head.className = "debrief-item-head";
+      const outcomeChip = document.createElement("span");
+      outcomeChip.className = `pchip ${isUsed ? "ok" : "warn"}`;
+      outcomeChip.textContent = isUsed ? "used" : "unused";
+      const outcomeTitle = document.createElement("strong");
+      outcomeTitle.textContent = suggestion.title;
+      const outcomeType = document.createElement("span");
+      outcomeType.className = "debrief-type";
+      outcomeType.textContent = TYPE_LABELS[suggestion.type] || "suggestion";
+      head.append(outcomeChip, outcomeTitle, outcomeType);
+      if (isUsed) {
+        const delta = document.createElement("span");
+        delta.className = "debrief-delta";
+        delta.textContent = `used in ${suggestion.usedAt - suggestion.at}s`;
+        head.appendChild(delta);
+      }
+      const note = document.createElement("p");
+      note.className = "debrief-quote";
+      note.textContent = isUsed ? suggestion.useEvidence : `On offer: ${suggestion.content}`;
+      item.append(head, note);
+      outcomeList.appendChild(item);
+    });
+    debriefSection.append(debriefHeading, debriefNote, adoptionRow, stats, outcomeList);
+
+    const debriefGrid = document.createElement("div");
+    debriefGrid.className = "recap-grid";
+    debriefGrid.append(debriefSection, balanceSection);
+
+    body.append(summary, recapGrid, debriefGrid);
     recap.hidden = false;
     recapVisible = true;
   }
@@ -880,6 +1039,8 @@
     $("call-lamp").className = "pwin-lamp warn";
     $("screen-copy").textContent = "Loading screen context.";
     $("screen-phase").textContent = "";
+    $("screen-trail").hidden = true;
+    $("screen-trail").replaceChildren();
     $("transcript-feed").replaceChildren(makeEmpty("Loading transcript."));
     $("assist-feed").replaceChildren(makeEmpty("Loading assist rail."));
     $("transcript-count").textContent = "0 turns";

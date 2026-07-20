@@ -280,6 +280,45 @@
       line-height: 1.45;
     }
 
+    .node-meters {
+      display: grid;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .node-meter { min-width: 0; }
+
+    .node-meter-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .node-meter-label,
+    .node-meter-value {
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .node-meter-track {
+      display: block;
+      height: 10px;
+      margin-top: 3px;
+      border: 1.5px solid var(--pi-ink);
+      background: var(--pi-panel);
+    }
+
+    .node-meter-fill {
+      display: block;
+      height: 100%;
+      background: var(--pi-accent);
+    }
+
+    .node-meter-fill.hot { background: var(--pi-warn); }
+
     .slot-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -418,6 +457,116 @@
     .terminal-line.cmd { color: #efcf78; font-weight: 700; }
     .terminal-line.out { color: var(--pi-term-fg); }
     .terminal-line.empty { color: var(--pi-term-dim); font-style: italic; }
+
+    .lane-window { margin-top: 18px; }
+
+    .lane-scroll { overflow-x: auto; }
+
+    .lane-grid {
+      display: grid;
+      grid-template-columns: minmax(146px, 186px) minmax(300px, 1fr);
+      gap: 9px 12px;
+      align-items: center;
+      padding: 14px;
+    }
+
+    .lane-empty {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 14px 8px;
+      color: var(--pi-muted);
+      text-align: center;
+    }
+
+    .lane-label {
+      min-width: 0;
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .lane-task {
+      display: block;
+      color: var(--pi-muted);
+    }
+
+    .lane-axis-label { color: var(--pi-muted); }
+
+    .lane-track {
+      position: relative;
+      height: 22px;
+      border: 1.5px solid var(--pi-line);
+      background: var(--pi-paper);
+    }
+
+    .lane-track.lane-axis {
+      height: 18px;
+      border-color: transparent;
+      background: none;
+    }
+
+    .lane-axis-time {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lane-axis-time.end { left: auto; right: 0; }
+
+    .lane-bar {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      min-width: 3px;
+      background: var(--forge-blue);
+    }
+
+    .lane-bar.warm { background: var(--pi-ok); }
+
+    .lane-fail {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      margin-left: -1px;
+      background: var(--pi-err);
+    }
+
+    .lane-cursor {
+      position: absolute;
+      top: -5px;
+      bottom: -5px;
+      width: 2px;
+      margin-left: -1px;
+      background: var(--pi-ink);
+    }
+
+    .lane-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 14px;
+      margin: 0 14px 14px;
+    }
+
+    .lane-swatch {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      margin-right: 5px;
+      border: 1.5px solid var(--pi-ink);
+      vertical-align: -1px;
+    }
+
+    .lane-swatch.cold { background: var(--forge-blue); }
+    .lane-swatch.warm { background: var(--pi-ok); }
+    .lane-swatch.fail { background: var(--pi-err); }
 
     .postmortem {
       margin-top: 18px;
@@ -620,6 +769,23 @@
           </div>
         </section>
       </div>
+
+      <section class="lane-window pwin" aria-labelledby="lane-title">
+        <h2 class="pwin-title" id="lane-title">
+          <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-hold"></use></svg>
+          sandbox lifetimes
+          <span class="title-spacer pchip" id="lane-count">0 spawned</span>
+        </h2>
+        <div class="lane-scroll">
+          <div class="lane-grid" id="lane-grid"></div>
+        </div>
+        <div class="lane-legend pstrip">
+          <span><span class="lane-swatch cold" aria-hidden="true"></span>cold start</span>
+          <span><span class="lane-swatch warm" aria-hidden="true"></span>warm start</span>
+          <span><span class="lane-swatch fail" aria-hidden="true"></span>fail event</span>
+          <span>bars derive from the replayed events up to the cursor</span>
+        </div>
+      </section>
 
       <div class="postmortem pstrip" id="postmortem" role="status" aria-live="polite" hidden></div>
     </div>
@@ -850,6 +1016,8 @@
             state: event.state,
             startKind: event.startKind,
             startAt: event.atMs,
+            freedAt: null,
+            failedAt: null,
             memoryMiB: event.memoryMiB,
             logs: []
           });
@@ -857,6 +1025,7 @@
 
         const sandbox = event.sandboxId ? state.sandboxes.get(event.sandboxId) : null;
         if (sandbox && event.state) sandbox.state = event.state;
+        if (sandbox && event.state === "failed" && sandbox.failedAt === null) sandbox.failedAt = event.atMs;
         if (sandbox && event.memoryMiB) sandbox.memoryMiB = event.memoryMiB;
         if (sandbox && Array.isArray(event.terminal)) {
           event.terminal.forEach((line) => {
@@ -881,6 +1050,7 @@
           state.completed.add(event.taskId);
         }
         if (event.type === "freed" && sandbox) {
+          sandbox.freedAt = event.atMs;
           state.lifetimes.push(event.atMs - sandbox.startAt);
         }
       });

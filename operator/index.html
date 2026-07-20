@@ -125,6 +125,19 @@
     .pipe-step small { display: block; color: var(--pi-muted); font-size: 12px; line-height: 1.25; }
     .pipe-step > .flow { width: 14px; height: 14px; color: var(--pi-muted); }
     .pipe-step:last-child > .flow { display: none; }
+    .pipe-step .stage-ms {
+      position: absolute;
+      top: 3px;
+      right: 8px;
+      color: var(--pi-muted);
+      font-family: var(--pi-font-code);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .pipe-step.live { background: var(--pi-accent-soft); box-shadow: inset 0 0 0 2px var(--pi-accent); }
+    .pipe-step.live .stage-ms { color: var(--pi-accent); }
+    .pipe-step.done .pi-ic { color: var(--pi-ok); }
+    .pipe-step.done .stage-ms { color: var(--pi-ok); }
 
     .fixture-window { margin-bottom: 18px; }
     .fixture-picker { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px; }
@@ -292,6 +305,22 @@
     .handoff-card li + li { margin-top: 5px; }
     .handoff-reason { grid-column: 1 / -1; border-color: var(--operator-coral); background: var(--operator-coral-soft); }
 
+    .outcome-window { border-color: var(--pi-ok); box-shadow: 4px 4px 0 var(--pi-ok); }
+    .outcome-window .pwin-title { border-color: var(--pi-ok); background: var(--pi-ok-soft); }
+    .outcome-body { padding: 14px; }
+    .outcome-empty { margin: 0; color: var(--pi-muted); }
+    .outcome-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .outcome-card { min-width: 0; padding: 12px; border: 1.5px solid var(--pi-line); background: var(--pi-paper); }
+    .outcome-card h3 { margin: 0 0 7px; font-family: var(--pi-font-ui); font-size: 15px; }
+    .outcome-card p { margin: 0; overflow-wrap: anywhere; }
+    .outcome-card ul { margin: 0; padding-left: 19px; }
+    .outcome-card li + li { margin-top: 5px; }
+    .outcome-card li b { margin-right: 5px; color: var(--pi-muted); font-family: var(--pi-font-ui); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .outcome-verdict { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-color: var(--pi-ok); background: var(--pi-ok-soft); }
+    .outcome-verdict.escalated { border-color: var(--operator-coral); background: var(--operator-coral-soft); }
+    .outcome-note { margin: 10px 0 0; color: var(--pi-muted); font-size: 12px; }
+    .outcome-card .outcome-note { margin-top: 8px; }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -327,6 +356,8 @@
       .clock { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
       .handoff-grid { grid-template-columns: 1fr; }
       .handoff-reason { grid-column: auto; }
+      .outcome-grid { grid-template-columns: 1fr; }
+      .outcome-verdict { grid-column: auto; }
     }
 
     @media (max-width: 430px) {
@@ -376,21 +407,25 @@
         <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-signal"></use></svg>
         <span><b>Twilio audio</b><small>streams the call</small></span>
         <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+        <span class="stage-ms" hidden></span>
       </div>
       <div class="pipe-step">
         <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-doc"></use></svg>
         <span><b>Whisper</b><small>transcribes speech</small></span>
         <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+        <span class="stage-ms" hidden></span>
       </div>
       <div class="pipe-step">
         <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-search"></use></svg>
         <span><b>Agent</b><small>decides and checks slots</small></span>
         <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+        <span class="stage-ms" hidden></span>
       </div>
       <div class="pipe-step">
         <svg class="pi-ic" aria-hidden="true"><use href="/shared/icons.svg#i-check"></use></svg>
         <span><b>Voice and booking</b><small>speaks and writes</small></span>
         <svg class="pi-ic flow" aria-hidden="true"><use href="/shared/icons.svg#i-arrow-r"></use></svg>
+        <span class="stage-ms" hidden></span>
       </div>
     </section>
 

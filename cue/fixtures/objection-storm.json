@@ -1,0 +1,196 @@
+{
+  "meta": {
+    "title": "Objection storm",
+    "subtitle": "Rapid fire objection call",
+    "callId": "CALL-0312",
+    "rep": "Omar Reyes",
+    "repNote": "Week 4",
+    "customer": "Tessa Cole",
+    "account": "Beacon Freight"
+  },
+  "duration": 104,
+  "screenEvents": [
+    {
+      "at": 0,
+      "app": "CRM",
+      "screen": "Beacon Freight record",
+      "detail": "Fleet size and demo follow up notes"
+    },
+    {
+      "at": 23,
+      "app": "Battlecards",
+      "screen": "Loadline comparison",
+      "detail": "Line item pricing side by side"
+    },
+    {
+      "at": 42,
+      "app": "Rollout",
+      "screen": "Implementation tracks",
+      "detail": "Track length by fleet size"
+    },
+    {
+      "at": 59,
+      "app": "Stories",
+      "screen": "Talon Cargo log",
+      "detail": "Nineteen day cutover notes"
+    },
+    {
+      "at": 80,
+      "app": "Calendar",
+      "screen": "Dispatch lead slots",
+      "detail": "Scoping call options next week"
+    }
+  ],
+  "transcript": [
+    {
+      "at": 0,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Tessa, you saw the routing demo last week. Before we talk next steps, tell me where you actually stand."
+    },
+    {
+      "at": 7,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "Honestly, the quote is the problem. Forty per seat is more than we pay for half our stack combined."
+    },
+    {
+      "at": 16,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Per seat it reads high, I agree. Across your nine dispatchers it is under a dollar per routed load. That is the number your CFO will ask about."
+    },
+    {
+      "at": 25,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "Maybe. But Loadline quoted us thirty per seat last month. Why would I pay a third more for the same thing?"
+    },
+    {
+      "at": 33,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "That thirty covers routing only. Tracking and API access are separate line items on their sheet. Priced like for like, the quotes land within five percent."
+    },
+    {
+      "at": 41,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "Fine, say the price works. My team cannot absorb a six month rollout in the middle of peak season."
+    },
+    {
+      "at": 49,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Six months is the figure for fleets over two hundred trucks. Beacon lands in the four week track, and dispatch keeps running through cutover."
+    },
+    {
+      "at": 58,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "Four weeks. Who has that actually worked for?"
+    },
+    {
+      "at": 65,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Talon Cargo runs sixty trucks like you. They went live in nineteen days last quarter, and their dispatch lead logged the cutover day by day. I can send the log."
+    },
+    {
+      "at": 74,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "Send it. But I am not signing anything before our budget freeze lifts in March."
+    },
+    {
+      "at": 82,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Understood, so let us not talk contracts. Can I get thirty minutes with your dispatch lead next week to scope the four week plan against peak season?"
+    },
+    {
+      "at": 91,
+      "speaker": "Tessa",
+      "role": "customer",
+      "text": "If the calendar allows it, yes. Send the Talon log first."
+    },
+    {
+      "at": 97,
+      "speaker": "Omar",
+      "role": "rep",
+      "text": "Both will be in your inbox today. Thanks for pushing on the numbers, Tessa."
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "load-math",
+      "at": 12,
+      "type": "objection_response",
+      "title": "Price per routed load",
+      "content": "Reframe 40 per seat: across 9 dispatchers it is under 1 dollar per routed load at Beacon's volume.",
+      "reason": "The customer called the per seat price higher than half their stack combined.",
+      "usedAt": 16,
+      "useEvidence": "Omar reframed the price at 00:16: \"it is under a dollar per routed load.\""
+    },
+    {
+      "id": "loadline-lines",
+      "at": 27,
+      "type": "account_detail",
+      "title": "Loadline quote breakdown",
+      "content": "The logged Loadline quote covers routing only. Tracking and API access are separate line items.",
+      "reason": "The customer cited a 30 per seat Loadline quote from last month.",
+      "usedAt": 33,
+      "useEvidence": "Omar priced the quotes like for like at 00:33: \"the quotes land within five percent.\""
+    },
+    {
+      "id": "four-week-track",
+      "at": 44,
+      "type": "objection_response",
+      "title": "Four week rollout track",
+      "content": "Six month rollouts apply to fleets over 200 trucks. Beacon's size fits the 4 week track with dispatch live throughout.",
+      "reason": "The customer said a six month rollout would not survive peak season.",
+      "usedAt": 49,
+      "useEvidence": "Omar corrected the rollout figure at 00:49: \"Beacon lands in the four week track.\""
+    },
+    {
+      "id": "talon-log",
+      "at": 61,
+      "type": "suggested_answer",
+      "title": "Talon Cargo cutover log",
+      "content": "Talon Cargo, a 60 truck fleet, went live in 19 days last quarter. Offer their day by day cutover log.",
+      "reason": "The customer asked who the four week track had actually worked for.",
+      "usedAt": 65,
+      "useEvidence": "Omar cited the proof at 01:05: \"went live in nineteen days last quarter.\""
+    },
+    {
+      "id": "march-price-hold",
+      "at": 77,
+      "type": "next_step",
+      "title": "Offer a March price hold",
+      "content": "Offer to hold current pricing through the March budget freeze in exchange for a scoping call now.",
+      "reason": "The customer said nothing gets signed before the budget freeze lifts.",
+      "usedAt": null,
+      "useEvidence": null
+    }
+  ],
+  "recap": {
+    "talkListen": {
+      "rep": 62,
+      "customer": 38
+    },
+    "gaps": [
+      {
+        "after": "Loadline price challenge",
+        "seconds": 6,
+        "cueAt": 27,
+        "helpedBy": "Loadline quote breakdown"
+      },
+      {
+        "after": "rollout pushback",
+        "seconds": 5,
+        "cueAt": 44,
+        "helpedBy": "Four week rollout track"
+      }
+    ]
+  }
+}

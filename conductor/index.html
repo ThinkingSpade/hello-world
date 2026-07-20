@@ -599,7 +599,7 @@
     } else {
       warehouseDb.run("CREATE TABLE orders_raw (order_id INTEGER, customer_id, order_ts TEXT, order_total REAL, status TEXT, load_batch TEXT);");
     }
-    const amountColumn = S.id === "schema-drift" ? "order_total" : "order_total";
+    const amountColumn = "order_total"; // stale contract on purpose: schema-drift renames the raw column, so stg_orders fails until the repair action rewrites this config
     const configInsert = warehouseDb.prepare("INSERT INTO pipeline_config VALUES (?, ?)");
     try {
       configInsert.run(["amount_column", amountColumn]);
