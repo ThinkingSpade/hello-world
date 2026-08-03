@@ -76,16 +76,36 @@
 
       <div>
         <div class="pwin" style="margin-bottom:12px">
-          <div class="pwin-title"><span class="pwin-lamp" id="vec-lamp"></span>retrieval index<span class="c-count" id="vec-count">empty</span></div>
+          <div class="pwin-title"><span class="pwin-lamp" id="vec-lamp"></span>embedding space<span class="c-count" id="vec-count">empty</span></div>
           <div class="pwin-body">
             <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
-              Deterministic local embedding. The same corpus always produces the same vectors,
-              so a retrieved citation is reproducible rather than merely plausible.
+              Every span in the corpus, embedded. One row per span, one column per dimension;
+              blue is a positive weight, red negative, white zero. This is the live index matrix,
+              not a picture of one — hover any cell to read its value and the span it belongs to.
             </p>
-            <div style="display:flex;gap:6px">
-              <input id="q" type="search" placeholder="search the evidence…" style="flex:1;min-width:0;padding:9px;border:2px solid var(--pi-ink);font-family:var(--pi-font-ui);font-size:14px" />
-              <button class="pbtn" id="btn-search" type="button">Find</button>
+            <div id="embed" class="c-embed"></div>
+            <div id="embed-legend" class="c-embed-legend"></div>
+
+            <div style="display:flex;gap:6px;margin-top:12px">
+              <input id="q" type="search" placeholder="ask the evidence a question…" style="flex:1;min-width:0;padding:9px;border:2px solid var(--pi-ink);font-family:var(--pi-font-ui);font-size:14px" />
+              <button class="pbtn" id="btn-search" type="button">Embed &amp; match</button>
             </div>
+
+            <div id="qexplain" class="c-hidden">
+              <div class="c-qmeta" id="qmeta"></div>
+              <div style="margin:6px 0 2px;font-family:var(--pi-font-code);font-size:12px;color:var(--pi-muted)">
+                the question, as a vector — same axis as the matrix above
+              </div>
+              <div id="qstrip" class="c-embed"></div>
+              <div style="margin:10px 0 2px;font-family:var(--pi-font-code);font-size:12px;color:var(--pi-muted)">
+                tokens the recipe produced, heaviest first
+              </div>
+              <div class="c-scroll" style="max-height:190px"><table class="ptable" style="width:100%">
+                <thead><tr><th>token</th><th>kind</th><th>tf</th><th>df</th><th>idf</th><th>→ dim</th><th>sign</th><th>weight</th></tr></thead>
+                <tbody id="qterms"></tbody>
+              </table></div>
+            </div>
+
             <div id="hits" style="margin-top:10px"></div>
           </div>
         </div>

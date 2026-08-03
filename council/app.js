@@ -18,6 +18,7 @@ import { Council } from "./council.js";
 import { Bench } from "./agents.js";
 import { buildDeliberation } from "./deliberate.js";
 import { Trace } from "./trace.js";
+import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
 
@@ -157,9 +158,23 @@ async function buildIndex() {
   $("#vec-lamp").className = "pwin-lamp warn";
   S.index = Vectorizer.build(S.spans);
   const st = Vectorizer.stats(S.index);
-  Trace.step("index", `built ${st.spans} span vectors`);
-  Trace.detail("index", `${st.vocab} terms, ${st.dim} dimensions, embedder ${st.version}`);
-  Trace.detail("index", `deterministic: same corpus always yields the same vectors`);
+  Trace.step("index", `embedding ${st.spans} spans into ${st.dim} dimensions`);
+  Trace.detail("index", `recipe: word unigrams + bigrams + char 4-grams, signed FNV-1a hashing, (1+log tf)·idf, L2 normalised`);
+  Trace.detail("index", `vocabulary ${st.vocab} distinct terms across ${st.spans} spans`);
+  Trace.detail("index", `embedder ${st.version} — deterministic, so the same corpus always yields the same vectors`);
+
+  /* Paint the matrix as it fills. The corpus visibly becoming numbers is worth
+   * the second it costs: it is the step most retrieval systems ask you to take
+   * on faith, and here it is the actual index being drawn. */
+  await EmbedView.stream(S.index, {
+    onStep: (done, total) => { $("#vec-count").textContent = `embedding ${done}/${total}`; },
+  });
+  const dims = EmbedView.render(S.index);
+  if (dims) Trace.result("index", `matrix ${dims.rows} × ${dims.dim}, peak |weight| ${dims.peak.toFixed(3)}`);
+  $("#embed-legend").innerHTML =
+    `<span><i class="pos"></i>positive</span><span><i class="neg"></i>negative</span>` +
+    `<span><i class="zed"></i>zero</span><span><i class="hit"></i>matches your question</span>` +
+    `<span>${st.spans} spans × ${st.dim} dims = ${U.fmt.compact(st.spans * st.dim)} weights</span>`;
   $("#vec-lamp").className = "pwin-lamp on";
   $("#vec-count").textContent = `${st.spans} spans · ${st.vocab} terms · ${st.dim}d · ${st.version}`;
   Report.set("engine", { app: "council/1", vectorizer: st.version, sqlite: "sql.js" });
@@ -1637,6 +1652,7 @@ function renderReproduce() {
 function init() {
   Bench.mount($("#bench"), Council.ROSTER);
   Trace.mount($("#trace"));
+  EmbedView.mount($("#embed"));
   Trace.rule("session");
   Trace.step("council", "engines idle — load a case, or press Run the whole case");
   Report.init({ gates: Object.values(S.gates) });
@@ -1773,14 +1789,59 @@ function runSearch() {
   box.innerHTML = "";
   if (!q) return;
   if (!S.index) { box.appendChild(el("p", "c-empty", "Nothing indexed yet.")); return; }
+
+  /* Take the question apart in the open. Anyone can check the arithmetic:
+   * the tokens are the recipe's tokens, the destination dimension is
+   * fnv1a32(term) % 512, and the weight is (1 + log tf) × idf from this
+   * corpus. There is no step here you have to trust. */
+  const ex = EmbedView.explain(S.index, q);
+  $("#qexplain").classList.remove("c-hidden");
+  Trace.rule("query");
+  Trace.step("retrieval", `embedding the question: "${q}"`);
+  Trace.detail("retrieval", `normalised → "${ex.normalized}"`);
+  Trace.detail("retrieval", `${ex.tokenCount} tokens, ${ex.uniqueTerms} distinct (${ex.unseen} unseen in this corpus)`);
+  Trace.detail("retrieval", `hashed into ${ex.nonZero} of ${ex.dim} dimensions, then L2 normalised`);
+
+  $("#qmeta").innerHTML =
+    `normalised: <b>${U.escapeHtml(ex.normalized.slice(0, 120))}</b> · ` +
+    `${ex.tokenCount} tokens → <b>${ex.uniqueTerms}</b> distinct → ` +
+    `<b>${ex.nonZero}</b>/${ex.dim} dimensions occupied` +
+    (ex.unseen ? ` · <b>${ex.unseen}</b> term(s) unseen in this corpus` : "");
+
+  EmbedView.renderQueryStrip($("#qstrip"), ex.vec);
+
+  const tb = $("#qterms");
+  tb.innerHTML = "";
+  for (const t of ex.terms.slice(0, 40)) {
+    const tr = el("tr");
+    if (!t.df) tr.className = "unseen";
+    tr.appendChild(el("td", "tok", t.term));
+    tr.appendChild(el("td", null, t.kind));
+    tr.appendChild(el("td", null, String(t.tf)));
+    tr.appendChild(el("td", null, String(t.df)));
+    tr.appendChild(el("td", null, t.idf.toFixed(2)));
+    tr.appendChild(el("td", null, String(t.dim)));
+    tr.appendChild(el("td", t.sign > 0 ? "pos" : "neg", t.sign > 0 ? "+" : "−"));
+    tr.appendChild(el("td", null, t.weight.toFixed(3)));
+    tb.appendChild(tr);
+  }
+
   const hits = Vectorizer.search(S.index, q, { k: 6 });
-  if (!hits.length) { box.appendChild(el("p", "c-empty", "No matching evidence.")); return; }
+  EmbedView.setHighlight(hits.map((h) => h.spanId));
+  if (!hits.length) {
+    box.appendChild(el("p", "c-empty", "No span in the corpus shares a term or a direction with that question."));
+    Trace.warn("retrieval", "no candidate spans");
+    return;
+  }
+  Trace.detail("retrieval", `scored ${hits.length} candidate span(s): score = 0.6·cosine + 0.4·bm25(min-max)`);
+
   for (const h of hits) {
+    Trace.result("retrieval", `${h.score.toFixed(3)}  cos ${h.dense.toFixed(3)}  bm25 ${h.lexical.toFixed(2)}  ${locatorLabel(h.span.locator)}`);
     const d = el("div");
     d.style.cssText = "border:1.5px solid var(--pi-line);padding:7px 9px;margin-bottom:6px;font-size:13px";
     const m = el("div");
-    m.style.cssText = "font-family:var(--pi-font-code);font-size:11px;color:var(--pi-muted)";
-    m.textContent = `${locatorLabel(h.span.locator)} · score ${h.score.toFixed(3)} (dense ${h.dense.toFixed(2)} / lexical ${h.lexical.toFixed(2)})`;
+    m.style.cssText = "font-family:var(--pi-font-code);font-size:12px;color:var(--pi-muted)";
+    m.textContent = `${locatorLabel(h.span.locator)} · score ${h.score.toFixed(3)} = 0.6×cos ${h.dense.toFixed(3)} + 0.4×bm25ₙ ${h.lexicalNorm.toFixed(3)}`;
     d.appendChild(m);
     d.appendChild(el("div", null, h.span.text.slice(0, 260)));
     if (h.span.injection) {

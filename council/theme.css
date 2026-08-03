@@ -260,6 +260,36 @@ body.council {
 }
 .c-untrusted .lbl { display: block; font-size: 12px; color: var(--pi-err); letter-spacing: .05em; margin-bottom: 4px; }
 
+/* ---------- embedding space ---------- */
+
+.c-embed { position: relative; border: 1.5px solid var(--pi-line); background: #fff; overflow: hidden; }
+.c-embed-canvas { display: block; width: 100%; image-rendering: pixelated; }
+.c-embed-tip {
+  position: absolute; z-index: 12; pointer-events: none; max-width: 300px;
+  border: 1.5px solid var(--pi-ink); background: #fff; box-shadow: var(--pi-shadow-s);
+  padding: 5px 8px; font-family: var(--pi-font-code); font-size: 12px; white-space: pre-wrap;
+}
+.c-embed-legend {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 6px;
+  font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
+}
+.c-embed-legend i { display: inline-block; width: 11px; height: 11px; border: 1px solid var(--pi-line); vertical-align: -1px; margin-right: 4px; }
+.c-embed-legend .pos { background: var(--pi-accent); }
+.c-embed-legend .neg { background: var(--pi-err); }
+.c-embed-legend .zed { background: #fff; }
+.c-embed-legend .hit { background: var(--pi-ok); }
+
+.c-qmeta {
+  font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
+  border: 1.5px solid var(--pi-line); background: var(--c-sunken); padding: 6px 8px; margin-top: 10px;
+}
+.c-qmeta b { color: var(--pi-ink); }
+#qterms td { font-family: var(--pi-font-code); font-size: 12px; }
+#qterms td.tok { font-family: var(--pi-font-code); color: var(--pi-ink); }
+#qterms td.pos { color: var(--pi-accent); }
+#qterms td.neg { color: var(--pi-err); }
+#qterms tr.unseen td { color: var(--pi-muted); font-style: italic; }
+
 /* ---------- provenance-of-words banner ----------
    The application's whole argument is that you should be able to tell where a
    sentence came from. That has to apply to the application's own sentences. */
