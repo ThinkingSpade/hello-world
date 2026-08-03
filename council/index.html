@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Council — evidence-gated analysis audit</title>
+<meta name="description" content="Upload a case, vectorize it, and put the analysis in front of fifteen specialist auditors. Every figure is computed twice. Every claim is typed and sourced. Nothing ships without a human gate." />
+<link rel="icon" type="image/png" href="/huy-avatar.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css" />
+<link rel="stylesheet" href="theme.css" />
+</head>
+<body class="council">
+
+<div class="c-wrap">
+
+  <header class="c-top">
+    <h1>council.audit</h1>
+    <span class="c-sub">source files are evidence · model output is not</span>
+    <span class="c-spacer"></span>
+    <span class="pstrip" id="run-strip">RUN <b>—</b> · CLAIMS <b>0</b> · RECONCILED <b>0/0</b></span>
+    <button class="pbtn" id="btn-settings" type="button">Model…</button>
+    <a class="pbtn" href="/work.html">← projects</a>
+  </header>
+
+  <!-- ══════════ the bench ══════════ -->
+  <section class="pwin" style="margin:16px 0">
+    <div class="pwin-title"><span class="pwin-lamp" id="bench-lamp"></span>the bench<span class="c-count" id="bench-count">15 seats · idle</span></div>
+    <div class="pwin-body" style="padding:12px">
+      <div id="bench"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ stage rail ══════════ -->
+  <nav class="c-rail" id="rail" aria-label="Run stages">
+    <button class="c-step" data-stage="corpus"  data-state="active"><span class="n">01</span><span class="t">Corpus</span><span class="s" id="rail-corpus">no files</span></button>
+    <button class="c-step" data-stage="contract"><span class="n">02 · gate 1</span><span class="t">Data contract</span><span class="s" id="rail-contract">pending</span></button>
+    <button class="c-step" data-stage="calc"><span class="n">03 · gate 2</span><span class="t">Definitions</span><span class="s" id="rail-calc">pending</span></button>
+    <button class="c-step" data-stage="council"><span class="n">04</span><span class="t">Council</span><span class="s" id="rail-council">not convened</span></button>
+    <button class="c-step" data-stage="research"><span class="n">05 · gate 3</span><span class="t">External</span><span class="s" id="rail-research">quarantined</span></button>
+    <button class="c-step" data-stage="report"><span class="n">06 · gate 4</span><span class="t">Decision</span><span class="s" id="rail-report">locked</span></button>
+  </nav>
+
+  <!-- ══════════ 01 corpus ══════════ -->
+  <section class="stage" data-stage="corpus">
+    <div class="c-grid side" style="margin-top:16px">
+      <div class="pwin">
+        <div class="pwin-title"><span class="pwin-lamp"></span>evidence intake<span class="c-count" id="intake-count">0 files</span></div>
+        <div class="pwin-body">
+          <div class="c-drop" id="drop">
+            <span class="c-drop-ico" aria-hidden="true">▤</span>
+            <h2>drop the case in</h2>
+            <p>Workbooks, decks, documents, briefs. Parsed in your browser — nothing is uploaded anywhere.</p>
+            <p class="c-kinds">.xlsx · .csv · .tsv · .docx · .pptx · .pdf · .txt · .md</p>
+            <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <button class="pbtn primary" id="btn-pick" type="button">Choose files</button>
+              <button class="pbtn" id="btn-demo" type="button">Load the sample case</button>
+            </div>
+            <input type="file" id="file-input" multiple class="c-hidden"
+                   accept=".xlsx,.xlsm,.csv,.tsv,.docx,.pptx,.pdf,.txt,.md" />
+          </div>
+
+          <div id="files" class="c-files" style="margin-top:14px"></div>
+          <div id="intake-warn" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="pwin" style="margin-bottom:12px">
+          <div class="pwin-title"><span class="pwin-lamp" id="vec-lamp"></span>retrieval index<span class="c-count" id="vec-count">empty</span></div>
+          <div class="pwin-body">
+            <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
+              Deterministic local embedding. The same corpus always produces the same vectors,
+              so a retrieved citation is reproducible rather than merely plausible.
+            </p>
+            <div style="display:flex;gap:6px">
+              <input id="q" type="search" placeholder="search the evidence…" style="flex:1;min-width:0;padding:9px;border:2px solid var(--pi-ink);font-family:var(--pi-font-ui);font-size:14px" />
+              <button class="pbtn" id="btn-search" type="button">Find</button>
+            </div>
+            <div id="hits" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <div class="pwin">
+          <div class="pwin-title"><span class="pwin-lamp" id="sentinel-lamp"></span>sentinel</div>
+          <div class="pwin-body" id="sentinel">
+            <p class="c-empty" style="padding:8px">No content scanned yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 02 data contract ══════════ -->
+  <section class="stage c-hidden" data-stage="contract">
+    <div class="pwin" style="margin-top:16px">
+      <div class="pwin-title"><span class="pwin-lamp"></span>what the data actually is<span class="c-count" id="contract-count"></span></div>
+      <div class="pwin-body">
+        <p style="margin-top:0;color:var(--pi-muted);font-size:14px">
+          Measured from the source, not inferred by a model. If the grain is wrong here, every
+          number downstream is wrong in a way no amount of review will catch.
+        </p>
+        <div id="contract-body"><p class="c-empty">Load a corpus first.</p></div>
+      </div>
+    </div>
+
+    <div class="c-gate" data-status="pending" id="gate-data_contract">
+      <h3>gate 1 · data contract</h3>
+      <p style="margin:4px 0 8px;font-size:14px">
+        Approve the grain, the collapse rule for every measure, and the periods to exclude.
+        Nothing computes until this clears.
+      </p>
+      <p class="blocks">Blocks: calculation definitions · council · decision</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="pbtn primary" data-approve="data_contract" type="button">Approve contract</button>
+        <button class="pbtn" data-changes="data_contract" type="button">Request changes</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 03 definitions ══════════ -->
+  <section class="stage c-hidden" data-stage="calc">
+    <div class="c-grid two" style="margin-top:16px">
+      <div class="pwin">
+        <div class="pwin-title"><span class="pwin-lamp"></span>calculation definitions<span class="c-count" id="spec-count">0 specs</span></div>
+        <div class="pwin-body">
+          <p style="margin-top:0;color:var(--pi-muted);font-size:14px">
+            A model may <em>propose</em> a specification. Only the engines execute one. Each figure is
+            produced by SQL over SQLite-WASM and independently by a JavaScript reducer that shares no
+            code with it. Disagreement blocks promotion.
+          </p>
+          <div id="specs"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="pbtn primary" id="btn-run-specs" type="button">Run every approved spec</button>
+            <button class="pbtn" id="btn-approve-all" type="button">Approve all definitions</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pwin">
+        <div class="pwin-title"><span class="pwin-lamp" id="recon-lamp"></span>two-engine reconciliation<span class="c-count" id="recon-count">0/0</span></div>
+        <div class="pwin-body" id="recon"><p class="c-empty">Nothing executed yet.</p></div>
+      </div>
+    </div>
+
+    <div class="c-gate" data-status="pending" id="gate-calc_definitions">
+      <h3>gate 2 · calculation definitions</h3>
+      <p style="margin:4px 0 8px;font-size:14px">Approve what each measure means before it is allowed to produce a figure.</p>
+      <p class="blocks">Blocks: calculated claims · decision</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="pbtn primary" data-approve="calc_definitions" type="button">Approve definitions</button>
+        <button class="pbtn" data-changes="calc_definitions" type="button">Request changes</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 04 council ══════════ -->
+  <section class="stage c-hidden" data-stage="council">
+    <div class="c-grid side" style="margin-top:16px">
+      <div>
+        <div class="pwin" style="margin-bottom:12px">
+          <div class="pwin-title"><span class="pwin-lamp" id="council-lamp"></span>findings<span class="c-count" id="finding-count">0</span></div>
+          <div class="pwin-body">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button class="pbtn primary" id="btn-convene" type="button">Convene the council</button>
+              <select id="sev-filter" style="padding:9px;border:2px solid var(--pi-ink);font-family:var(--pi-font-ui)">
+                <option value="">every severity</option>
+                <option value="blocker">blockers</option>
+                <option value="major">major</option>
+                <option value="minor">minor</option>
+                <option value="note">notes</option>
+              </select>
+              <span class="pchip" id="dry-chip">offline dry run</span>
+            </div>
+            <div id="findings"><p class="c-empty">The council has not been convened.</p></div>
+          </div>
+        </div>
+
+        <div class="pwin">
+          <div class="pwin-title"><span class="pwin-lamp"></span>claim ledger<span class="c-count" id="claim-count">0</span></div>
+          <div class="pwin-body">
+            <div id="claim-filters" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px"></div>
+            <div id="claims"><p class="c-empty">No claims yet.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="pwin" style="margin-bottom:12px">
+          <div class="pwin-title"><span class="pwin-lamp"></span>how disagreement is settled</div>
+          <div class="pwin-body">
+            <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
+              Never by counting. The ladder runs in order and stops at the first rung that decides.
+            </p>
+            <div class="c-ladder" id="ladder">
+              <div class="c-rung" data-basis="source_quality"><span class="num">1</span><span>Source quality — who cites the primary record</span><span class="pchip" data-n>0</span></div>
+              <div class="c-rung" data-basis="formula_reproducibility"><span class="num">2</span><span>Formula reproducibility — which spec reconciles across both engines</span><span class="pchip" data-n>0</span></div>
+              <div class="c-rung" data-basis="definition_consistency"><span class="num">3</span><span>Definition consistency — which reading matches the approved contract</span><span class="pchip" data-n>0</span></div>
+              <div class="c-rung" data-basis="human_judgment"><span class="num">4</span><span>Human judgment — escalated, never auto-resolved</span><span class="pchip" data-n>0</span></div>
+            </div>
+            <div id="escalations" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div class="pwin">
+          <div class="pwin-title"><span class="pwin-lamp"></span>preserved dissent<span class="c-count" id="dissent-count">0</span></div>
+          <div class="pwin-body" id="dissent">
+            <p class="c-empty" style="padding:8px">No dissent recorded.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 05 external research ══════════ -->
+  <section class="stage c-hidden" data-stage="research">
+    <div class="pwin" style="margin-top:16px">
+      <div class="pwin-title"><span class="pwin-lamp" id="research-lamp" class="warn"></span>external research — quarantined</div>
+      <div class="pwin-body">
+        <div class="c-quarantine">
+          <p style="margin:6px 0 10px;font-size:14px">
+            Anything from outside the uploaded case lives here and cannot enter a conclusion until you
+            approve it individually. Each item records its URL, its retrieval date, and the exact quote
+            or paraphrase relied on. External research may raise a question or a hypothesis; it may not
+            overturn a finding grounded in the source files.
+          </p>
+          <div id="research"><p class="c-empty">Nothing retrieved.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="c-gate" data-status="pending" id="gate-external_evidence">
+      <h3>gate 3 · external evidence</h3>
+      <p style="margin:4px 0 8px;font-size:14px">Approve each externally sourced fact individually, or leave it quarantined.</p>
+      <p class="blocks">Blocks: any external claim reaching the decision</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="pbtn primary" data-approve="external_evidence" type="button">Record decisions</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 06 decision ══════════ -->
+  <section class="stage c-hidden" data-stage="report">
+    <div class="pwin" style="margin-top:16px">
+      <div class="pwin-title"><span class="pwin-lamp"></span>charts<span class="c-count" id="chart-count">0</span></div>
+      <div class="pwin-body">
+        <p style="margin-top:0;color:var(--pi-muted);font-size:14px">
+          Every chart is a pure function of its specification and its rows, both of which travel in the
+          run bundle. Reopening the bundle redraws exactly this picture.
+        </p>
+        <div id="charts" class="c-grid two"></div>
+      </div>
+    </div>
+
+    <div class="pwin" style="margin-top:12px">
+      <div class="pwin-title"><span class="pwin-lamp"></span>run bundle<span class="c-count" id="bundle-id">—</span></div>
+      <div class="pwin-body">
+        <div id="reproduce" style="margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="pbtn primary" id="btn-verify" type="button">Re-execute and verify</button>
+          <button class="pbtn" id="btn-export" type="button">Export bundle (.json)</button>
+          <button class="pbtn" id="btn-export-md" type="button">Export brief (.md)</button>
+          <button class="pbtn" id="btn-export-svg" type="button">Export charts (.html)</button>
+          <button class="pbtn" id="btn-replay" type="button">Replay a bundle…</button>
+          <input type="file" id="replay-input" accept=".json" class="c-hidden" />
+        </div>
+      </div>
+    </div>
+
+    <div class="c-gate" data-status="pending" id="gate-final_recommendation">
+      <h3>gate 4 · final recommendation</h3>
+      <p style="margin:4px 0 8px;font-size:14px">
+        The last gate. Approving records who signed off, against which run id, with which dissent still standing.
+      </p>
+      <p class="blocks">Blocks: export marked as final</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="pbtn primary" data-approve="final_recommendation" type="button">Approve and sign</button>
+        <button class="pbtn" data-changes="final_recommendation" type="button">Request changes</button>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top:40px;border-top:2px solid var(--pi-ink);padding-top:14px;font-size:13px;color:var(--pi-muted)">
+    <p style="margin:0 0 6px">
+      Everything runs in this tab. Files are parsed locally and never uploaded. If you configure a model,
+      your key stays in memory for the session and is sent only to the provider you chose — never stored,
+      never written into a prompt body.
+    </p>
+    <p style="margin:0"><a href="CONTRACT.md" style="color:var(--pi-accent)">Module contract</a> · <a href="verify/README.md" style="color:var(--pi-accent)">Acceptance harness</a></p>
+  </footer>
+</div>
+
+<!-- model settings -->
+<dialog id="settings" style="border:2px solid var(--pi-ink);box-shadow:var(--pi-shadow);max-width:460px;padding:0;background:#fff">
+  <form method="dialog" style="margin:0">
+    <div class="pwin-title" style="border-bottom:2px solid var(--pi-ink)">model configuration</div>
+    <div style="padding:16px">
+      <p style="margin:0 0 12px;font-size:13px;color:var(--pi-muted)">
+        Optional. Without a key the council still runs, in a clearly-labelled dry-run mode that produces
+        deterministic placeholder findings derived from your actual corpus — never invented numbers.
+      </p>
+      <label style="display:block;font-family:var(--pi-font-ui);font-size:13px;margin-bottom:4px">Provider</label>
+      <select id="cfg-provider" style="width:100%;padding:9px;border:2px solid var(--pi-ink);margin-bottom:10px">
+        <option value="anthropic">Anthropic</option>
+        <option value="openai">OpenAI</option>
+      </select>
+      <label style="display:block;font-family:var(--pi-font-ui);font-size:13px;margin-bottom:4px">Model</label>
+      <input id="cfg-model" style="width:100%;padding:9px;border:2px solid var(--pi-ink);margin-bottom:10px" value="claude-sonnet-5" />
+      <label style="display:block;font-family:var(--pi-font-ui);font-size:13px;margin-bottom:4px">API key</label>
+      <input id="cfg-key" type="password" placeholder="stays in this tab, in memory only"
+             style="width:100%;padding:9px;border:2px solid var(--pi-ink);margin-bottom:14px" />
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="pbtn" value="cancel" type="submit">Cancel</button>
+        <button class="pbtn primary" id="cfg-save" value="save" type="submit">Use this model</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
