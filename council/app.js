@@ -17,6 +17,7 @@ import { Claims } from "./claims.js";
 import { Council } from "./council.js";
 import { Bench } from "./agents.js";
 import { buildDeliberation } from "./deliberate.js";
+import { Trace } from "./trace.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
 
@@ -93,15 +94,23 @@ async function ingestFiles(fileList) {
   const drop = $("#drop");
   drop.classList.add("busy");
   Bench.setState("sentinel", "reading", "scanning intake");
+  Trace.rule("intake");
 
   for (const f of fileList) {
     try {
+      Trace.step("ingest", `${f.name}`);
       const res = await Ingest.ingest(f, f.name);
+      Trace.detail("ingest", `kind=${res.file.kind} bytes=${res.file.bytes} sha256=${res.file.sha256.slice(0, 16)}`);
+      Trace.detail("ingest", `${res.tables.length} table(s), ${res.spans.length} span(s)`);
+      for (const w of res.file.warnings || []) Trace.warn("ingest", w);
+      const inj = res.spans.filter((x) => x.injection);
+      if (inj.length) Trace.warn("sentinel", `${inj.length} span(s) contain instruction-like text — annotated, never acted on`);
       S.files.push(res.file);
       S.tables.push(...res.tables);
       S.spans.push(...res.spans);
       renderFileCard(res);
     } catch (e) {
+      Trace.error("ingest", `${f.name}: ${e.message}`);
       toast(`${f.name}: ${e.message}`, "err");
       console.error(e);
     }
@@ -148,6 +157,9 @@ async function buildIndex() {
   $("#vec-lamp").className = "pwin-lamp warn";
   S.index = Vectorizer.build(S.spans);
   const st = Vectorizer.stats(S.index);
+  Trace.step("index", `built ${st.spans} span vectors`);
+  Trace.detail("index", `${st.vocab} terms, ${st.dim} dimensions, embedder ${st.version}`);
+  Trace.detail("index", `deterministic: same corpus always yields the same vectors`);
   $("#vec-lamp").className = "pwin-lamp on";
   $("#vec-count").textContent = `${st.spans} spans · ${st.vocab} terms · ${st.dim}d · ${st.version}`;
   Report.set("engine", { app: "council/1", vectorizer: st.version, sqlite: "sql.js" });
@@ -220,7 +232,23 @@ function pickFactTable() {
     if (link) { S.reference = { table: cand, ...link }; break; }
   }
 
+  Trace.rule("data contract");
+  Trace.step("contract", `profiling "${S.fact.sheet}" (${S.fact.rows.length} rows × ${S.fact.header.length} cols)`);
   S.factContract = Contract.profile(S.fact);
+  const fc = S.factContract;
+  Trace.detail("contract", `grain proposed: ${fc.grain.join(" × ")}`);
+  if ((fc.demotedLabels || []).length) {
+    Trace.detail("contract", `demoted to labels: ${fc.demotedLabels.join(", ")} (mean distinct per parent < 1.5)`);
+  }
+  Trace.test("contract", `unique? ${fc.collapsedRowCount} keys / ${fc.rowCount} rows → ${fc.grainIsUnique ? "yes" : "NO"}`);
+  if (fc.splitRowGroups.length || fc.duplicateKeys.length) {
+    Trace.test("contract", `${fc.duplicateKeys.length} identical-attribute groups → true duplicates`);
+    Trace.test("contract", `${fc.splitRowGroups.length} differing-attribute groups → split records`);
+  }
+  for (const m of fc.measures) Trace.result("contract", `${m.col} → ${m.role}`);
+  for (const r of fc.collapseRules) Trace.detail("contract", `fold ${r.col} with ${String(r.rule).toUpperCase()}`);
+  for (const p of fc.incompletePeriods) Trace.warn("contract", `${p.period} incomplete — ${p.reason}`);
+  if (S.reference) Trace.detail("contract", `attribute table "${S.reference.table.sheet}" joined ${S.reference.factKeyCol} → ${S.reference.refKeyCol}`);
   renderContract();
   railStatus("contract", "profiled · awaiting approval", "");
   stage("contract");
@@ -385,6 +413,7 @@ function setGate(id, status, notes = "") {
     g.approvedBy = "operator (this session)";
     g.approvedAt = new Date().toISOString();
   }
+  Trace.gate(`gate "${id}" → ${status}`);
   const node = $(`#gate-${id}`);
   node.dataset.status = status;
   $$(".c-gate-approved-stamp", node).forEach((n) => n.remove());
@@ -585,6 +614,10 @@ function deriveSpecs() {
   }
 
   renderSpecs();
+  Trace.rule("calculation definitions");
+  Trace.step("calc", `derived ${S.specs.length} specifications from the approved contract`);
+  if (change) Trace.detail("calc", `change point detected at ${change.period} on "${change.dim}" (${change.values.length} arriving value(s))`);
+  if (weights) Trace.detail("calc", `weight column chosen: "${weights.col}" (widest spread in the attribute table)`);
   railStatus("calc", `${S.specs.length} specs · awaiting approval`, "");
 }
 
@@ -769,8 +802,16 @@ async function runAllSpecs() {
   const box = $("#recon");
   box.innerHTML = "";
 
+  Trace.rule("execution — two engines per figure");
   for (const spec of approved) {
     const r = await Calc.run({ ...spec, runId: Report.computeRunId() }, { tableName: "fact" });
+    if (r.undefinedResult) {
+      Trace.warn("engines", `${spec.name} → undefined (both engines agree there is no value)`);
+    } else if (r.reconciled) {
+      Trace.result("engines", `${spec.name} → ${formatValue(r.sqlValue, spec.unit)}  [sql==js, Δ${r.delta.toExponential(1)}, ${r.ms.toFixed(1)}ms]`);
+    } else {
+      Trace.error("engines", `${spec.name} → ${r.error}`);
+    }
     S.results.push(r);
     renderReconRow(box, spec, r);
 
@@ -1048,6 +1089,7 @@ async function convene({ autoplay = true } = {}) {
   Report.set("resolutions", S.resolutions);
   Report.set("transcript", Council.transcript());
   Report.set("deliberation", S.turns);
+  Report.set("console", Trace.lines());
   refreshRunStrip();
   if (autoplay) await playDeliberation();
 }
@@ -1285,6 +1327,9 @@ function playDeliberation({ instant = false } = {}) {
     return Promise.resolve();
   }
   $("#delib-lamp").className = "pwin-lamp warn";
+  $("#trace-lamp").className = "pwin-lamp warn";
+  $("#delib-controls").classList.remove("c-hidden");
+  Trace.rule("deliberation");
 
   const pace = Number($("#delib-pace").value) || 1700;
   return new Promise((resolve) => {
@@ -1292,6 +1337,8 @@ function playDeliberation({ instant = false } = {}) {
     const step = () => {
       if (i >= turns.length) {
         $("#delib-lamp").className = "pwin-lamp on";
+        $("#trace-lamp").className = "pwin-lamp on";
+        $("#trace-count").textContent = `${Trace.lines().length} lines`;
         $("#delib-count").textContent = `${turns.length} turns`;
         Bench.hush();
         /* Settle the room. Leaving every seat reading "speaking" after the last
@@ -1308,21 +1355,54 @@ function playDeliberation({ instant = false } = {}) {
         return;
       }
       const t = turns[i++];
-      renderTurn(box, t);
       $("#delib-count").textContent = `${i}/${turns.length}`;
-      if (!instant) {
-        Bench.say(t.agentId, t.text, t.kind);
-        Bench.setState(t.agentId, t.kind === "challenge" ? "flagged" : "writing", t.kind === "challenge" ? "challenging" : "speaking");
+
+      if (instant) {
+        emitThoughts(t);
+        renderTurn(box, t);
+        step();
+        return;
+      }
+
+      Bench.say(t.agentId, t.text, t.kind);
+      Bench.setState(t.agentId, t.kind === "challenge" ? "flagged" : "writing", t.kind === "challenge" ? "challenging" : "speaking");
+
+      /* The seat works before it speaks: its reasoning streams into the console
+       * line by line, and only then does the sentence land in the transcript.
+       * Watching the working arrive is the point — a conclusion that appears
+       * fully formed is exactly what this application argues against. */
+      const think = t.think || [];
+      const perThought = Math.max(160, Math.min(420, pace * 0.34));
+      Trace.step(t.agentId, t.kind === "challenge" ? "challenging the previous claim" : "considering");
+      let k = 0;
+      const tick = () => {
+        if (k < think.length) {
+          const line = think[k++];
+          Trace.line(t.agentId, /^result:|^found:|^therefore|^expect|^assigned|^no figure|^retention/.test(line) ? "result" : /\?|test|compare|scanned|searched/i.test(line) ? "test" : "detail", line, { indent: 1 });
+          delibTimer = setTimeout(tick, perThought);
+          return;
+        }
+        Trace.say(t.agentId, t.text);
+        for (const c of t.cites || []) Trace.detail(t.agentId, `cites ${c.spanId}: "${c.quote.slice(0, 90)}…"`);
+        renderTurn(box, t);
         box.scrollTop = box.scrollHeight;
+        $("#trace-count").textContent = `${Trace.lines().length} lines`;
         // Longer lines get longer on screen; nobody can read 40 words in a second.
         const dwell = Math.min(pace * 2.2, pace * (0.55 + t.text.length / 260));
         delibTimer = setTimeout(step, dwell);
-      } else {
-        step();
-      }
+      };
+      tick();
     };
     step();
   });
+}
+
+function emitThoughts(t) {
+  Trace.step(t.agentId, t.kind === "challenge" ? "challenging the previous claim" : "considering");
+  for (const line of t.think || []) Trace.detail(t.agentId, line);
+  Trace.say(t.agentId, t.text);
+  for (const c of t.cites || []) Trace.detail(t.agentId, `cites ${c.spanId}: "${c.quote.slice(0, 90)}…"`);
+  $("#trace-count").textContent = `${Trace.lines().length} lines`;
 }
 
 function renderTurn(box, t) {
@@ -1345,12 +1425,17 @@ function renderTurn(box, t) {
 function appendRulings(box) {
   const contested = (S.resolutions || []).filter((r) => r.contested);
   if (!contested.length) return;
+  Trace.rule("resolution ladder");
   const seen = new Set();
   for (const r of contested) {
     if (r.outcome === "overturned") continue;
+    // Both sides of one dispute produce a resolution with the same rationale;
+    // dedupe before logging, or the console reports each ruling twice.
     const key = r.basis + r.rationale;
     if (seen.has(key)) continue;
     seen.add(key);
+    Trace.line("the ladder", r.outcome === "escalated" ? "warn" : "result",
+      `${r.outcome} on ${r.basis.replace(/_/g, " ")} — ${r.rationale.slice(0, 140)}`);
     const d = el("div", "c-turn c-ruling");
     d.appendChild(el("div", "who", "the ladder"));
     const what = el("div", "what");
@@ -1551,6 +1636,9 @@ function renderReproduce() {
 
 function init() {
   Bench.mount($("#bench"), Council.ROSTER);
+  Trace.mount($("#trace"));
+  Trace.rule("session");
+  Trace.step("council", "engines idle — load a case, or press Run the whole case");
   Report.init({ gates: Object.values(S.gates) });
   Claims.setRun(Report.computeRunId());
   renderReproduce();
@@ -1580,13 +1668,26 @@ function init() {
   });
 
   $$("#btn-auto, #btn-auto-top").forEach((b) => b.addEventListener("click", autopilot));
+  $("#btn-trace-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(Trace.toText()); toast("Console copied.", "ok"); }
+    catch { U.download(`council-console.txt`, "text/plain", Trace.toText()); }
+  });
   $("#btn-delib").addEventListener("click", () => playDeliberation());
   $("#btn-delib-skip").addEventListener("click", () => playDeliberation({ instant: true }));
 
   $("#btn-search").addEventListener("click", runSearch);
   $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
 
-  $$(".c-step").forEach((b) => b.addEventListener("click", () => stage(b.dataset.stage)));
+  /* Arriving at the council with the gates cleared and nothing convened is a
+   * dead end the reader has to guess their way out of — so convene on arrival. */
+  $$(".c-step").forEach((b) => b.addEventListener("click", async () => {
+    stage(b.dataset.stage);
+    if (b.dataset.stage === "council"
+        && S.gates.calc_definitions.status === "approved"
+        && !S.findings.length) {
+      await convene();
+    }
+  }));
   $$("[data-approve]").forEach((b) => b.addEventListener("click", () => approveGate(b.dataset.approve)));
   $$("[data-changes]").forEach((b) => b.addEventListener("click", () => {
     setGate(b.dataset.changes, "changes_requested", "Operator asked for changes.");

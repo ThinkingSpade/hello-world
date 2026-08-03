@@ -54,9 +54,13 @@ export function buildDeliberation(ctx) {
   const turns = [];
   const findings = [];
   let n = 0;
+  /* `think` is the seat's working: the values it read and the tests it ran
+   * before it said anything. Every entry must be derived from the run — this is
+   * the console's content, and a fabricated step there would be worse than no
+   * console at all. */
   const say = (agentId, text, opts = {}) => {
     if (!text) return;
-    turns.push({ id: U.stableId("turn", agentId, String(n++)), agentId, text, ...opts });
+    turns.push({ id: U.stableId("turn", agentId, String(n++)), agentId, text, think: [], ...opts });
   };
 
   /* ---------- 1. what the data is ---------- */
@@ -68,18 +72,41 @@ export function buildDeliberation(ctx) {
     `Before anyone quotes a number: the grain is ${(c.grain || []).join(" × ")}, and it is ${c.grainIsUnique ? "unique" : "not unique"}. ` +
     (c.splitRowGroups
       ? `${c.splitRowGroups} keys appear more than once. Those are split records, not duplicates — the same fact written in two pieces because a period label changed mid-week. ${c.rowCount} rows collapse to ${c.collapsedRowCount}.`
-      : `Every key resolves to one row.`));
+      : `Every key resolves to one row.`),
+    { think: [
+      `candidate key columns: ${(c.grain || []).join(", ")}`,
+      ...((c.demotedLabels || []).length
+        ? [`demoted as labels riding on a finer column: ${c.demotedLabels.join(", ")} — mean distinct values per parent < 1.5`]
+        : []),
+      `uniqueness test: ${c.collapsedRowCount} distinct keys across ${c.rowCount} rows`,
+      c.grainIsUnique ? `result: key is unique` : `result: NOT unique — ${c.rowCount - c.collapsedRowCount} surplus rows`,
+      `duplicate vs split test: compare non-key attributes within each repeated key`,
+      `${c.duplicateKeys} groups identical on every attribute → true duplicates`,
+      `${c.splitRowGroups} groups differ on a non-key attribute → split records`,
+    ] });
 
   if (stock && flow) {
     say("contract",
       `The fold matters more than it looks. "${flow.col}" accumulates, so its segments add up. "${stock.col}" does not — it is a level recorded twice, and summing it would inflate every inventory figure in the deck. I am folding it with MAX and disclosing that.`,
-      { kind: "spec" });
+      { kind: "spec", think: [
+        `for each numeric column, compare segment values within one split key`,
+        `"${flow.col}": ${flow.rationale}`,
+        `"${stock.col}": ${stock.rationale}`,
+        `rule: ratio near 1.0 means one quantity recorded repeatedly, so SUM would multiply it`,
+        `assigned folds → ${(c.collapseRules || []).map((r) => `${r.col}=${String(r.rule).toUpperCase()}`).join(", ")}`,
+      ] });
     say("assumption",
       `Logging that as an assumption, not a fact. If "${stock.col}" turns out to be additive across segments, every level in this analysis is understated and the weeks-of-supply table moves with it.`);
   }
 
   for (const p of (c.incompletePeriods || []).slice(0, 2)) {
-    say("contract", `${p.period} is out. ${p.reason} A window containing it would show a drop that is a reporting artefact, not demand.`);
+    say("contract", `${p.period} is out. ${p.reason} A window containing it would show a drop that is a reporting artefact, not demand.`,
+      { think: [
+        `completeness is measured on the steadiest-reporting dimension, not the largest one`,
+        `a dimension that legitimately grows over the series would otherwise flag every early period`,
+        `${p.period}: coverage ${(p.coverage * 100).toFixed(0)}% of the modal count`,
+        `excluded from every trailing and matched-period window`,
+      ] });
   }
 
   /* ---------- 2. the trust boundary ---------- */
@@ -98,7 +125,12 @@ export function buildDeliberation(ctx) {
     `I do not state figures — I state specifications, and the engines answer them. ${total} definitions were approved and executed. ` +
     `${recon} of ${total} reconciled between SQL and an independent reducer that shares no code with it. ` +
     (recon === total ? `No figure in this room came from one engine.` : `${total - recon} did not, and those are blocked from becoming claims.`),
-    { kind: "spec" });
+    { kind: "spec", think: [
+      `each spec runs twice: SQL over SQLite-WASM, and a JS reducer sharing no code path`,
+      `reconciliation test: |sql - js| / max(1,|sql|,|js|) <= 1e-9`,
+      `${recon}/${total} within tolerance`,
+      recon === total ? `no figure rests on a single engine` : `${total - recon} blocked from promotion to a claim`,
+    ] });
 
   const undef = (ctx.results || []).filter((r) => r.undefinedResult).length;
   if (undef) {
@@ -118,7 +150,13 @@ export function buildDeliberation(ctx) {
       `It is not like-for-like. On the capacity-weighted measure the same window is ${pct(weighted.value)}. ` +
       `The gap between those two numbers is mix: the new items carry more rated pages each, so fewer units move the same capacity. ` +
       `Quote the unit number without the weighted one and you have overstated the decline by ${Math.abs((raw.value - weighted.value) * 100).toFixed(1)} points.`,
-      { kind: "key" });
+      { kind: "key", think: [
+        `unweighted measure "${raw.spec.name}" → ${pct(raw.value, 2)}`,
+        `capacity-weighted measure "${weighted.spec.name}" → ${pct(weighted.value, 2)}`,
+        `both reconciled across engines: ${raw.reconciled && weighted.reconciled}`,
+        `gap = ${Math.abs((raw.value - weighted.value) * 100).toFixed(1)} percentage points`,
+        `a per-unit measure moved because the unit changed, not because demand did`,
+      ] });
     say("story",
       `Then the headline is the weighted figure, and the unit figure is the explanation underneath it. Lead with ${pct(raw.value)} and every question in the room is about the wrong number.`);
   } else if (weighted) {
@@ -135,7 +173,12 @@ export function buildDeliberation(ctx) {
     const pctAdopt = `${(adoption.value * 100).toFixed(1)}%`;
     say("narrative",
       `Let me put the optimistic reading on the table so someone has to knock it down. New items are ${pctAdopt} of units in the last complete period. That is a transition that worked. The customers moved.`,
-      { kind: "claim" });
+      { kind: "claim", think: [
+        `read "${adoption.spec.name}" → ${pctAdopt}`,
+        `items counted as new: absent from the first half of the series (structural, not a label)`,
+        `strongest available reading: high share means the replacement was accepted`,
+        `citations available to support the causal step: none`,
+      ] });
     findings.push({
       findingId: U.stableId("finding", "narrative", "adoption-success"),
       agentId: "narrative", runId: ctx.runId, severity: "major",
@@ -150,7 +193,13 @@ export function buildDeliberation(ctx) {
       mandated
         ? `I have to challenge that, and I can cite it. The brief says the channel was instructed to return legacy stock. When you remove the alternative, share goes to the survivor whether or not a single customer preferred it. ${pctAdopt} measures the shelf, not the buyer.`
         : `I have to challenge that. Share rising when the alternative is withdrawn tells you about availability, not preference — but I cannot cite a source for the withdrawal in this corpus, so treat my objection as weaker than it sounds.`,
-      { kind: "challenge", cites: mandated ? [mandated] : [] });
+      { kind: "challenge", cites: mandated ? [mandated] : [], think: [
+        `share is a ratio over what remained purchasable, not over what buyers preferred`,
+        `searched the corpus for evidence the alternative was withdrawn`,
+        mandated ? `found: span ${mandated.spanId}` : `found: nothing — objection proceeds uncited and will lose rung 1 if contested`,
+        `confound: when choice is removed, the survivor's share rises with zero behaviour change`,
+        `therefore this figure cannot evidence retention, only availability`,
+      ] });
     findings.push({
       findingId: U.stableId("finding", "causal", "adoption-conversion"),
       agentId: "causal", runId: ctx.runId, severity: "blocker",
@@ -174,7 +223,12 @@ export function buildDeliberation(ctx) {
   if (noCustomer) {
     say("causal",
       `And the deeper limit: nothing in this file identifies a customer. Not a hashed id, not a loyalty key. No cohort can be followed across the change, so retention is not a hard question here — it is an unobservable one. That belongs on the slide as a limitation, not buried in an appendix.`,
-      { kind: "key" });
+      { kind: "key", think: [
+        `scanned grain columns for a customer-like identifier: ${(c.grain || []).join(", ")}`,
+        `no column matches customer / buyer / account / member`,
+        `without a subject key, no cohort can be followed across the change`,
+        `retention is therefore unobservable in this source — a limitation, not a finding`,
+      ] });
   }
 
   /* ---------- 6. the second dispute: which window is the headline ---------- */
@@ -183,7 +237,12 @@ export function buildDeliberation(ctx) {
   if (weighted && l4 && Math.abs(l4.value - weighted.value) > 0.03) {
     say("analytics",
       `The trailing short window is ${pct(l4.value)} against ${pct(weighted.value)} for the full period. That is a material step down, and it is the most recent information we have. I would lead with it.`,
-      { kind: "claim" });
+      { kind: "claim", think: [
+        `trailing window → ${pct(l4.value, 2)}`,
+        `full period → ${pct(weighted.value, 2)}`,
+        `gap ${Math.abs((l4.value - weighted.value) * 100).toFixed(1)}pp exceeds the 3pp materiality floor, so this is a real divergence`,
+        `argument: recency — the newest evidence is the most decision-relevant`,
+      ] });
     findings.push({
       findingId: U.stableId("finding", "analytics", "window-recent"),
       agentId: "analytics", runId: ctx.runId, severity: "major",
@@ -195,7 +254,15 @@ export function buildDeliberation(ctx) {
 
     say("sensitivity",
       `I would not, and it is a definition point rather than a preference. A short window is noisier by construction, and the approved contract fixed the full period as the comparison basis at Gate 1. Change the headline window after the fact and you are choosing the window because you have seen the answer.`,
-      { kind: "challenge" });
+      { kind: "challenge", think: [
+        `fewer periods means higher variance — a short window moves more for the same underlying rate`,
+        `the comparison basis was fixed at Gate 1, before any result was visible`,
+        `selecting a window after seeing its answer is window-shopping, whichever direction it points`,
+        `neither side can cite a span the other lacks → rung 1 cannot separate us`,
+        `no competing spec to execute → rung 2 cannot separate us`,
+        `both readings sit inside the approved contract → rung 3 cannot separate us`,
+        `expect escalation to human judgment`,
+      ] });
     findings.push({
       findingId: U.stableId("finding", "sensitivity", "window-full"),
       agentId: "sensitivity", runId: ctx.runId, severity: "major",
