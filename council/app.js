@@ -16,6 +16,7 @@ import { Calc } from "./calc.js";
 import { Claims } from "./claims.js";
 import { Council } from "./council.js";
 import { Bench } from "./agents.js";
+import { buildDeliberation } from "./deliberate.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
 
@@ -37,7 +38,7 @@ const S = {
   reference: null,                 // an attribute table joined to the fact table
   model: null,
   specs: [], results: [],
-  findings: [], resolutions: [],
+  findings: [], resolutions: [], turns: [],
   charts: [],
   gates: {
     data_contract:        { id: "data_contract",        status: "pending", approvedBy: null, approvedAt: null, notes: "", blocks: ["calc_definitions", "council", "final_recommendation"] },
@@ -527,8 +528,8 @@ function deriveSpecs() {
 
   /* the launch/change point: the first period in which a value appears that was
    * absent from the first half of the series. Structural, not hardcoded. */
-  const change = detectChangePoint(dims);
-  const from = change || complete[Math.max(0, complete.length - 16)];
+  const change = detectChange(dims);
+  const from = (change && change.period) || complete[Math.max(0, complete.length - 16)];
 
   const windows = [
     { id: "full", label: `${from} → ${last}`, from, to: last },
@@ -547,6 +548,29 @@ function deriveSpecs() {
         addSpec(matchedSpec({ measure: flow, dateCol, w: windows[0], weights, filter: { col: d, value: v } }));
       }
     }
+  }
+
+  /* Share of the last complete period held by items that only appear in the
+   * back half of the series. Structural, not semantic: the app never has to be
+   * told which items are "new", and this is the figure everyone reaches for
+   * first — which is exactly why the council has to say what it does not mean. */
+  if (change && change.values.length && flows.length) {
+    const inList = change.values.map((v) => `'${String(v).replace(/'/g, "''")}'`).join(", ");
+    addSpec({
+      name: `New-item share of ${flows[0]} · ${last}`,
+      description:
+        `Share of ${flows[0]} in the last complete period held by ${change.dim} values that never appear in the first half ` +
+        `of the series (${change.values.join(", ")}), i.e. items that arrived with the change. Measures channel composition, not customer behaviour.`,
+      unit: "ratio", period: { from: last, to: last },
+      sql: `SELECT CAST(SUM(CASE WHEN ${q(change.dim)} IN (${inList}) THEN ${q(flows[0])} ELSE 0 END) AS REAL) ` +
+           `/ NULLIF(SUM(${q(flows[0])}), 0) AS v FROM fact WHERE ${q(dateCol)} = $d`,
+      params: {
+        $d: last, col: flows[0],
+        filters: [{ col: dateCol, op: "eq", value: last }, { col: change.dim, op: "in", value: change.values }],
+        denomFilters: [{ col: dateCol, op: "eq", value: last }],
+      },
+      reducer: "share_where",
+    });
   }
 
   for (const stock of stocks) {
@@ -662,8 +686,12 @@ function referenceWeights() {
 
 /* The change point: the first period containing a dimension value that never
  * occurs in the first half of the series. That is a launch, a new account, a
- * new SKU — whatever the data's own structure says changed. */
-function detectChangePoint(dims) {
+ * new SKU — whatever the data's own structure says changed.
+ *
+ * Returns the arriving values too, because "how much of today is the new thing"
+ * is the question everyone asks first, and it can be answered structurally
+ * without the app being told what any of these items are. */
+function detectChange(dims) {
   if (!S.collapsed || !dims.length) return null;
   const dateCol = S.factContract.periods[0].col;
   const di = S.collapsed.header.indexOf(dateCol);
@@ -675,14 +703,16 @@ function detectChangePoint(dims) {
     for (const r of S.collapsed.rows) {
       if (String(r[di]).slice(0, 10) <= half) early.add(String(r[ci]));
     }
+    const arrivals = new Set();
     let first = null;
     for (const r of S.collapsed.rows) {
       const v = String(r[ci]);
       if (early.has(v)) continue;
+      arrivals.add(v);
       const p = String(r[di]).slice(0, 10);
       if (!first || p < first) first = p;
     }
-    if (first) return first;
+    if (first) return { period: first, dim: d, values: [...arrivals].sort() };
   }
   return null;
 }
@@ -982,7 +1012,7 @@ function sourceNote(extra = "") {
 
 /* ---------- 04 · council ---------- */
 
-async function convene() {
+async function convene({ autoplay = true } = {}) {
   if (S.gates.data_contract.status !== "approved") return toast("The data contract has to clear first.", "err");
   $("#council-lamp").className = "pwin-lamp warn";
   $("#findings").innerHTML = "";
@@ -993,6 +1023,14 @@ async function convene() {
     Bench.setState(agentId, phase, note);
     if (phase === "writing") Bench.pulse(agentId);
   });
+
+  /* Without a model the seats file useful but static findings. The deliberation
+   * is what makes the room legible: the same run, spoken, with the disputes it
+   * actually contains. Its findings join the pool so the ladder rules on them
+   * for real rather than being narrated. */
+  const spoken = buildDeliberation(context);
+  S.turns = spoken.turns;
+  findings.push(...spoken.findings);
 
   S.findings = findings;
   const calcRunner = async (spec) => Calc.run({ ...spec, approved: true }, { requireApproval: false, tableName: "fact" });
@@ -1009,7 +1047,9 @@ async function convene() {
   Report.set("findings", findings);
   Report.set("resolutions", S.resolutions);
   Report.set("transcript", Council.transcript());
+  Report.set("deliberation", S.turns);
   refreshRunStrip();
+  if (autoplay) await playDeliberation();
 }
 
 function buildCouncilContext() {
@@ -1219,6 +1259,203 @@ function applyFindingsToLedger() {
   renderDissent();
 }
 
+/* ---------- deliberation playback ----------
+ *
+ * The council reads as a list of filings unless you can watch it happen, so the
+ * turns are revealed on a timer with the speaking seat lit on the bench. It is
+ * a replay of a completed run, not a live one — every figure was computed
+ * before the first word is spoken, which is the point.
+ */
+
+let delibTimer = null;
+
+function stopDeliberation() {
+  clearTimeout(delibTimer);
+  delibTimer = null;
+  Bench.hush();
+}
+
+function playDeliberation({ instant = false } = {}) {
+  stopDeliberation();
+  const box = $("#delib");
+  box.innerHTML = "";
+  const turns = S.turns || [];
+  if (!turns.length) {
+    box.appendChild(el("p", "c-empty", "Convene the council first."));
+    return Promise.resolve();
+  }
+  $("#delib-lamp").className = "pwin-lamp warn";
+
+  const pace = Number($("#delib-pace").value) || 1700;
+  return new Promise((resolve) => {
+    let i = 0;
+    const step = () => {
+      if (i >= turns.length) {
+        $("#delib-lamp").className = "pwin-lamp on";
+        $("#delib-count").textContent = `${turns.length} turns`;
+        Bench.hush();
+        /* Settle the room. Leaving every seat reading "speaking" after the last
+         * word makes the bench look stuck, and a seat that raised a blocker
+         * should still show it — the state is the record of what it did. */
+        for (const seat of Council.ROSTER) {
+          const raised = S.findings.filter((f) => f.agentId === seat.id);
+          const blocked = raised.some((f) => f.severity === "blocker");
+          Bench.setState(seat.id, blocked ? "flagged" : "done",
+            raised.length ? `${raised.length} finding${raised.length === 1 ? "" : "s"}` : "no findings");
+        }
+        appendRulings(box);
+        resolve();
+        return;
+      }
+      const t = turns[i++];
+      renderTurn(box, t);
+      $("#delib-count").textContent = `${i}/${turns.length}`;
+      if (!instant) {
+        Bench.say(t.agentId, t.text, t.kind);
+        Bench.setState(t.agentId, t.kind === "challenge" ? "flagged" : "writing", t.kind === "challenge" ? "challenging" : "speaking");
+        box.scrollTop = box.scrollHeight;
+        // Longer lines get longer on screen; nobody can read 40 words in a second.
+        const dwell = Math.min(pace * 2.2, pace * (0.55 + t.text.length / 260));
+        delibTimer = setTimeout(step, dwell);
+      } else {
+        step();
+      }
+    };
+    step();
+  });
+}
+
+function renderTurn(box, t) {
+  const seat = Council.ROSTER.find((r) => r.id === t.agentId);
+  const d = el("div", "c-turn");
+  d.dataset.kind = t.kind || "speak";
+  d.appendChild(el("div", "who", seat ? seat.seat : t.agentId));
+  const what = el("div", "what");
+  what.appendChild(el("span", null, t.text));
+  for (const c of t.cites || []) {
+    const q = el("div", "cite", `“${c.quote}”`);
+    what.appendChild(q);
+  }
+  d.appendChild(what);
+  box.appendChild(d);
+}
+
+/* After the room has spoken, show how each genuine dispute was settled — the
+ * ladder, applied to the arguments that were actually made. */
+function appendRulings(box) {
+  const contested = (S.resolutions || []).filter((r) => r.contested);
+  if (!contested.length) return;
+  const seen = new Set();
+  for (const r of contested) {
+    if (r.outcome === "overturned") continue;
+    const key = r.basis + r.rationale;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const d = el("div", "c-turn c-ruling");
+    d.appendChild(el("div", "who", "the ladder"));
+    const what = el("div", "what");
+    what.appendChild(el("span", null,
+      r.outcome === "escalated"
+        ? `Unresolved, and it stays that way. ${r.rationale}`
+        : `Settled on ${r.basis.replace(/_/g, " ")}. ${r.rationale}`));
+    what.appendChild(el("div", "cite", "No votes were counted. Agreement between seats is recorded as corroboration and never changes an outcome."));
+    d.appendChild(what);
+    box.appendChild(d);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------- autopilot ----------
+ * One button, the whole run. Stages advance themselves and the page scrolls to
+ * whatever is happening, so a first-time viewer never has to work out which tab
+ * to click next. */
+
+async function autopilot() {
+  const btns = $$("#btn-auto, #btn-auto-top");
+  if (btns.some((b) => b.disabled)) return;          // already running
+  btns.forEach((b) => { b.disabled = true; });
+  const banner = el("div", "c-auto");
+  const label = el("span", "c-auto-step", "starting…");
+  const bar = el("div", "c-auto-bar");
+  const fill = el("i");
+  bar.appendChild(fill);
+  banner.appendChild(el("span", null, "▶ autopilot"));
+  banner.appendChild(label);
+  banner.appendChild(bar);
+  const stop = el("button", "pbtn", "stop");
+  stop.style.cssText = "padding:4px 10px;min-height:0";
+  banner.appendChild(stop);
+  document.body.appendChild(banner);
+
+  let cancelled = false;
+  stop.addEventListener("click", () => { cancelled = true; stopDeliberation(); });
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const at = (pctDone, text) => { fill.style.width = `${pctDone}%`; label.textContent = text; };
+
+  try {
+    if (!S.files.length) {
+      at(6, "loading the sample case");
+      stage("corpus");
+      await loadDemo();
+    }
+    if (cancelled) return;
+
+    at(24, "profiling the data contract");
+    stage("contract");
+    await wait(1400);
+    if (cancelled) return;
+
+    at(38, "clearing gate 1");
+    await approveGate("data_contract");
+    await wait(900);
+    if (cancelled) return;
+
+    at(52, "approving the calculation definitions");
+    stage("calc");
+    await wait(1000);
+    if (cancelled) return;
+
+    at(62, "executing — two engines per figure");
+    await approveGate("calc_definitions");
+    if (cancelled) return;
+    await wait(900);
+
+    at(74, "convening the council");
+    stage("council");
+    await wait(600);
+    await convene({ autoplay: false });
+    if (cancelled) return;
+
+    at(80, "deliberating");
+    await playDeliberation();
+    if (cancelled) return;
+
+    at(94, "building the decision record");
+    stage("report");
+    await wait(1200);
+
+    at(100, "done — run complete");
+    await wait(2200);
+  } catch (e) {
+    label.textContent = `stopped: ${e.message}`;
+    await wait(3000);
+  } finally {
+    banner.remove();
+    btns.forEach((b) => { b.disabled = false; });
+  }
+}
+
+async function loadDemo() {
+  const manifest = await (await fetch("demo/manifest.json")).json();
+  const files = [];
+  for (const f of manifest.files) {
+    const r = await fetch(`demo/${f.path}`);
+    if (!r.ok) throw new Error(`demo/${f.path} — ${r.status}`);
+    files.push(new File([await r.blob()], f.path));
+  }
+  await ingestFiles(files);
+}
+
 /* ---------- claim ledger ---------- */
 
 let claimFilter = "";
@@ -1337,21 +1574,14 @@ function init() {
 
   $("#btn-demo").addEventListener("click", async () => {
     $("#btn-demo").disabled = true;
-    try {
-      const manifest = await (await fetch("demo/manifest.json")).json();
-      const files = [];
-      for (const f of manifest.files) {
-        const r = await fetch(`demo/${f.path}`);
-        if (!r.ok) throw new Error(`demo/${f.path} — ${r.status}`);
-        files.push(new File([await r.blob()], f.path));
-      }
-      await ingestFiles(files);
-    } catch (e) {
-      toast(`Could not load the sample case: ${e.message}`, "err");
-    } finally {
-      $("#btn-demo").disabled = false;
-    }
+    try { await loadDemo(); }
+    catch (e) { toast(`Could not load the sample case: ${e.message}`, "err"); }
+    finally { $("#btn-demo").disabled = false; }
   });
+
+  $$("#btn-auto, #btn-auto-top").forEach((b) => b.addEventListener("click", autopilot));
+  $("#btn-delib").addEventListener("click", () => playDeliberation());
+  $("#btn-delib-skip").addEventListener("click", () => playDeliberation({ instant: true }));
 
   $("#btn-search").addEventListener("click", runSearch);
   $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
@@ -1372,7 +1602,7 @@ function init() {
     if (S.gates.calc_definitions.status !== "approved") return toast("Gate 2 has to clear before anything executes.", "err");
     runAllSpecs();
   });
-  $("#btn-convene").addEventListener("click", convene);
+  $("#btn-convene").addEventListener("click", () => convene());
   $("#sev-filter").addEventListener("change", renderFindings);
 
   $("#btn-export").addEventListener("click", () => { Report.exportBundle(); toast("Bundle exported.", "ok"); });
