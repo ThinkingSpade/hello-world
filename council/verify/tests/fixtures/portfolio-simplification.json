@@ -1,0 +1,504 @@
+{
+  "fixture": "portfolio-simplification",
+  "description": "Acceptance values for a four-legacy-to-two-new SKU portfolio simplification in a weekly retailer sell-through dataset. Values were produced by an independent reference implementation and are the only place expected figures may live.",
+  "source": {
+    "sha256": "6306be5c69a5b2e9ceb72c3d25d2868aa3089377a6758732f9cdd9e62ffeb334",
+    "rawRows": 4375
+  },
+  "contract": {
+    "rawRows": 4375,
+    "collapsedKeys": 3956,
+    "splitSegments": 419,
+    "splitWeeks": 37,
+    "weeks": 194,
+    "retailers": 5,
+    "skus": 6,
+    "partialWeeks": [
+      "2026-07-19"
+    ],
+    "lastCompleteWeek": "2026-07-12",
+    "firstInventoryWeek": "2026-04-05",
+    "firstSaleWeek": "2026-04-12",
+    "grain": [
+      "Fiscal Week Ending",
+      "SKU",
+      "Retailer"
+    ],
+    "collapse": {
+      "Sales (Units)": "sum",
+      "Inventory (Units)": "max"
+    },
+    "eventTimeAnchors": {
+      "HOUSE OF INK": {
+        "firstInventory": "2026-04-05",
+        "firstSale": "2026-04-19"
+      },
+      "INK IN A WINK": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-12"
+      },
+      "INK-O-MATIC": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-19"
+      },
+      "JENNY'S PRINT SHOP": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-12"
+      },
+      "THE PRINT GUYS": {
+        "firstInventory": "2026-05-10",
+        "firstSale": "2026-05-10"
+      }
+    }
+  },
+  "acceptance": [
+    {
+      "id": "headline_pages_current",
+      "value": 79141280,
+      "tol": 0,
+      "unit": "pages",
+      "definition": "Rated pages (units x rated yield), all SKUs, 2026-04-05..2026-07-12, partial weeks excluded"
+    },
+    {
+      "id": "headline_pages_prior",
+      "value": 97011280,
+      "tol": 0,
+      "unit": "pages",
+      "definition": "Same measure over the 364-day-matched prior window 2025-04-06..2025-07-13"
+    },
+    {
+      "id": "headline_pages_yoy",
+      "value": -0.18420538312658075,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "headline_pages_current / headline_pages_prior - 1"
+    },
+    {
+      "id": "hist_pages_yoy_y2",
+      "value": -0.16179878148354043,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Same window one year earlier vs its own matched prior year"
+    },
+    {
+      "id": "hist_pages_yoy_y3",
+      "value": -0.19236434699507798,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Same window two years earlier vs its own matched prior year"
+    },
+    {
+      "id": "units_current",
+      "value": 253795,
+      "tol": 0,
+      "unit": "units",
+      "definition": "Sell-through units, headline window"
+    },
+    {
+      "id": "units_prior",
+      "value": 406885,
+      "tol": 0,
+      "unit": "units",
+      "definition": "Sell-through units, matched prior window"
+    },
+    {
+      "id": "units_yoy",
+      "value": -0.37624881723337056,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "units_current / units_prior - 1"
+    },
+    {
+      "id": "pages_per_unit_current",
+      "value": 311.83151756338776,
+      "tol": 0.0005,
+      "unit": "pages",
+      "definition": "headline_pages_current / units_current"
+    },
+    {
+      "id": "pages_per_unit_prior",
+      "value": 238.42432136844562,
+      "tol": 0.0005,
+      "unit": "pages",
+      "definition": "headline_pages_prior / units_prior"
+    },
+    {
+      "id": "pages_per_unit_delta",
+      "value": 0.3078846812842695,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Observed rated-yield mix shift"
+    },
+    {
+      "id": "bridge_yield_normalization_units",
+      "value": -95783.41296981799,
+      "tol": 1,
+      "unit": "units",
+      "definition": "Units implied at prior pages under the current yield mix, minus prior units"
+    },
+    {
+      "id": "bridge_demand_effect_units",
+      "value": -57306.58703018201,
+      "tol": 1,
+      "unit": "units",
+      "definition": "Residual: current units minus units implied at flat pages"
+    },
+    {
+      "id": "latest4w_pages_yoy",
+      "value": -0.3071368692859029,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages, trailing 4 complete weeks vs 364-day-matched prior"
+    },
+    {
+      "id": "latest8w_pages_yoy",
+      "value": -0.2692849233769653,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages, trailing 8 complete weeks vs 364-day-matched prior"
+    },
+    {
+      "id": "latest10w_pages_yoy",
+      "value": -0.25580414599809576,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages, trailing 10 complete weeks vs 364-day-matched prior"
+    },
+    {
+      "id": "black_full_pages_yoy",
+      "value": -0.20826795169618595,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Black rated pages, headline window YoY"
+    },
+    {
+      "id": "black_hist_avg_pages_yoy",
+      "value": -0.169002158205449,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Mean of the two prior same-window Black YoY values"
+    },
+    {
+      "id": "color_full_pages_yoy",
+      "value": -0.03322610397498482,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Color rated pages, headline window YoY"
+    },
+    {
+      "id": "color_latest4w_pages_yoy",
+      "value": -0.36669829222011385,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Color rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "adoption_new_unit_share_last_week",
+      "value": 0.9371393239901071,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "New-SKU share of units in the last complete week"
+    },
+    {
+      "id": "legacy_inventory_remaining",
+      "value": 19562,
+      "tol": 0,
+      "unit": "units",
+      "definition": "Legacy on-hand at the last complete week, MAX collapse rule"
+    },
+    {
+      "id": "legacy_inventory_top2_share",
+      "value": 0.8159186177282487,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Share of remaining legacy on-hand held by the two largest holders"
+    },
+    {
+      "id": "std_black_prelaunch_units",
+      "value": 233708,
+      "tol": 0,
+      "unit": "units",
+      "definition": "FY26-tagged prelaunch Standard Black units (fiscal-year tag applied on raw segments)"
+    },
+    {
+      "id": "prelaunch_units_total",
+      "value": 544417,
+      "tol": 0,
+      "unit": "units",
+      "definition": "FY26-tagged prelaunch units, all SKUs"
+    },
+    {
+      "id": "std_black_prelaunch_share",
+      "value": 0.42928123111511945,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "std_black_prelaunch_units / prelaunch_units_total"
+    },
+    {
+      "id": "retailer_latest4w_pages_yoy::HOUSE OF INK",
+      "value": -0.2716950965246794,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "HOUSE OF INK rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "retailer_latest4w_pages_yoy::INK IN A WINK",
+      "value": 0.31697384694277697,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "INK IN A WINK rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "retailer_latest4w_pages_yoy::INK-O-MATIC",
+      "value": -0.4915781796712886,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "INK-O-MATIC rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "retailer_latest4w_pages_yoy::JENNY'S PRINT SHOP",
+      "value": -0.42609623369746064,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "JENNY'S PRINT SHOP rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "retailer_latest4w_pages_yoy::THE PRINT GUYS",
+      "value": -0.222649785752426,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "THE PRINT GUYS rated pages, trailing 4 complete weeks YoY"
+    },
+    {
+      "id": "wos_new_black::HOUSE OF INK",
+      "value": 8.625607779578607,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "HOUSE OF INK Black new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_color::HOUSE OF INK",
+      "value": 25.304242424242425,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "HOUSE OF INK Color new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_black::INK IN A WINK",
+      "value": 4.150537634408602,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "INK IN A WINK Black new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_color::INK IN A WINK",
+      "value": 8.57208765859285,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "INK IN A WINK Color new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_black::INK-O-MATIC",
+      "value": 2.749146110056926,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "INK-O-MATIC Black new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_color::INK-O-MATIC",
+      "value": 8.783964365256125,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "INK-O-MATIC Color new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_black::JENNY'S PRINT SHOP",
+      "value": 7.467737417125782,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "JENNY'S PRINT SHOP Black new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_color::JENNY'S PRINT SHOP",
+      "value": 21.02440801457195,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "JENNY'S PRINT SHOP Color new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_black::THE PRINT GUYS",
+      "value": 5.006987314293467,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "THE PRINT GUYS Black new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "wos_new_color::THE PRINT GUYS",
+      "value": 8.866141732283465,
+      "tol": 0.005,
+      "unit": "weeks",
+      "definition": "THE PRINT GUYS Color new-SKU on-hand at last complete week / mean weekly sell-through over the trailing 4 weeks"
+    },
+    {
+      "id": "price_unit_delta::std_black",
+      "value": 0.72,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor MSRP index / legacy MSRP index - 1 for std_black"
+    },
+    {
+      "id": "price_yield_delta::std_black",
+      "value": 1.1176470588235294,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor rated yield / legacy rated yield - 1 for std_black"
+    },
+    {
+      "id": "price_cpp_delta::std_black",
+      "value": -0.1877777777777777,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor CPP index / legacy CPP index - 1 for std_black"
+    },
+    {
+      "id": "price_unit_delta::std_color",
+      "value": 0.2978723404255319,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor MSRP index / legacy MSRP index - 1 for std_color"
+    },
+    {
+      "id": "price_yield_delta::std_color",
+      "value": 0.33333333333333326,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor rated yield / legacy rated yield - 1 for std_color"
+    },
+    {
+      "id": "price_cpp_delta::std_color",
+      "value": -0.02659574468085102,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor CPP index / legacy CPP index - 1 for std_color"
+    },
+    {
+      "id": "price_unit_delta::xl_black",
+      "value": -0.2321428571428571,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor MSRP index / legacy MSRP index - 1 for xl_black"
+    },
+    {
+      "id": "price_yield_delta::xl_black",
+      "value": -0.16279069767441856,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor rated yield / legacy rated yield - 1 for xl_black"
+    },
+    {
+      "id": "price_cpp_delta::xl_black",
+      "value": -0.08283730158730152,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor CPP index / legacy CPP index - 1 for xl_black"
+    },
+    {
+      "id": "price_unit_delta::xl_color",
+      "value": -0.23109243697478987,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor MSRP index / legacy MSRP index - 1 for xl_color"
+    },
+    {
+      "id": "price_yield_delta::xl_color",
+      "value": -0.33333333333333337,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor rated yield / legacy rated yield - 1 for xl_color"
+    },
+    {
+      "id": "price_cpp_delta::xl_color",
+      "value": 0.15336134453781525,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Successor CPP index / legacy CPP index - 1 for xl_color"
+    },
+    {
+      "id": "revenue_proxy_yoy::total",
+      "value": -0.23010480507473496,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Units x MSRP index (total), headline window YoY. List-price proxy only \u2014 not audited revenue"
+    },
+    {
+      "id": "asp_index_delta::total",
+      "value": 0.2342985732073779,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Mean MSRP index per unit (total), headline window vs matched prior"
+    },
+    {
+      "id": "revenue_proxy_yoy::black",
+      "value": -0.2769886064213326,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Units x MSRP index (black), headline window YoY. List-price proxy only \u2014 not audited revenue"
+    },
+    {
+      "id": "asp_index_delta::black",
+      "value": 0.24523357999274298,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Mean MSRP index per unit (black), headline window vs matched prior"
+    },
+    {
+      "id": "revenue_proxy_yoy::color",
+      "value": -0.04390694115760008,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Units x MSRP index (color), headline window YoY. List-price proxy only \u2014 not audited revenue"
+    },
+    {
+      "id": "asp_index_delta::color",
+      "value": 0.14493106662702804,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Mean MSRP index per unit (color), headline window vs matched prior"
+    },
+    {
+      "id": "split_inventory_sum_inflation_2026_07_05",
+      "value": 0.281659213668638,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Inventory overstatement on a split week if segments are summed instead of treated as one stock snapshot"
+    },
+    {
+      "id": "eventtime_prelaunch10_pages_yoy",
+      "value": -0.03276560243580884,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the 10 complete periods BEFORE each retailer's own first-inventory week (per-retailer event-time alignment, not calendar alignment)"
+    },
+    {
+      "id": "eventtime_first10_inventory_pages_yoy",
+      "value": -0.1527720553466636,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the first 10 complete periods FROM each retailer's own first-inventory week"
+    },
+    {
+      "id": "eventtime_first10_sale_pages_yoy",
+      "value": -0.18758354857345672,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the first 10 complete periods FROM each retailer's own first-sale week"
+    },
+    {
+      "id": "legacy_inventory_drawdown_from_launch",
+      "value": -0.8512225729170628,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Legacy on-hand at the last complete period versus the first inventory week of the new items (14 periods)"
+    }
+  ]
+}
