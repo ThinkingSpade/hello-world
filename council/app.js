@@ -1030,10 +1030,31 @@ function buildCouncilContext() {
     specs: S.specs.map((s) => ({ specId: s.specId, name: s.name, description: s.description, sql: s.sql, unit: s.unit })),
     results: S.results.map((r) => ({ specId: r.specId, value: r.sqlValue, reconciled: r.reconciled })),
     claims: Claims.ledger().map((c2) => ({ claimId: c2.claimId, type: c2.type, text: c2.text })),
-    spans: (S.index ? Vectorizer.search(S.index, "conclusion recommendation risk assumption trend driver", { k: 24 }) : [])
-      .map((h) => ({ spanId: h.spanId, text: h.span.text.slice(0, 1200), locator: h.span.locator, injection: h.span.injection })),
+    spans: dedupeSpans(S.index ? Vectorizer.search(S.index, "conclusion recommendation risk assumption trend driver", { k: 40 }) : [], 24),
     sentinel: S.spans.filter((s) => s.injection).map((s) => ({ spanId: s.spanId, locator: s.locator, flag: s.injection })),
   };
+}
+
+/* Decks repeat their furniture — a confidentiality footer sits on every slide
+ * and retrieves identically from each one. Left alone, three of the council's
+ * twenty-four context slots go to the same sentence. Dedupe on normalised text,
+ * keeping the highest-scoring instance and its locator. */
+function dedupeSpans(hits, limit) {
+  const seen = new Set();
+  const out = [];
+  for (const h of hits) {
+    const key = h.span.text.replace(/\s+/g, " ").trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      spanId: h.spanId,
+      text: h.span.text.slice(0, 1200),
+      locator: h.span.locator,
+      injection: h.span.injection,
+    });
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 function renderFindings() {

@@ -154,9 +154,9 @@ function injectCSS() {
 .pv-seat .pv-av { width:92px; height:78px; margin:0 auto; }
 .pv-seat svg { width:100%; height:100%; image-rendering:pixelated; overflow:visible; }
 .pv-seat .pv-nm { font-family:var(--pi-font-ui); font-size:12px; font-weight:600; line-height:1.15; margin-top:2px; }
-.pv-seat .pv-rl { font-family:var(--pi-font-code); font-size:10px; color:var(--pi-muted); }
+.pv-seat .pv-rl { font-family:var(--pi-font-code); font-size:12px; color:var(--pi-muted); }
 .pv-seat .pv-st {
-  display:inline-block; margin-top:3px; font-family:var(--pi-font-ui); font-size:11px;
+  display:inline-block; margin-top:3px; font-family:var(--pi-font-ui); font-size:12px;
   letter-spacing:.04em; text-transform:uppercase; border:1.5px solid var(--pi-line);
   padding:0 5px; background:#fff; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
@@ -176,7 +176,7 @@ function injectCSS() {
 .pv-seat.pv-quar { border-style:dashed; border-color:#c2683a; background:#fff8f4; }
 .pv-seat.pv-quar::after {
   content:"QUARANTINED"; position:absolute; top:-9px; left:50%; transform:translateX(-50%);
-  font-family:var(--pi-font-title); font-size:7px; background:#fff8f4; color:#8a4a24; padding:0 4px;
+  font-family:var(--pi-font-title); font-size:10px; background:#fff8f4; color:#8a4a24; padding:0 4px;
 }
 
 /* ---- motion ---- */
@@ -228,7 +228,7 @@ function injectCSS() {
 .pv-bub {
   position:absolute; top:-8px; left:50%; transform:translateX(-50%);
   background:#fff; border:1.5px solid var(--pi-ink); padding:1px 6px; font-family:var(--pi-font-ui);
-  font-size:11px; white-space:nowrap; z-index:6; display:none; box-shadow:2px 2px 0 var(--pi-ink);
+  font-size:12px; white-space:nowrap; z-index:6; display:none; box-shadow:2px 2px 0 var(--pi-ink);
 }
 .pv-seat.pv-mutter .pv-bub, .pv-seat[data-s="thinking"] .pv-bub { display:block; }
 

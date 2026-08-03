@@ -81,7 +81,7 @@ body.council {
 
 .pwin-title { background: #ffffff; }
 .pwin-title .c-count {
-  margin-left: auto; font-family: var(--pi-font-code); font-size: 11px; color: var(--pi-muted);
+  margin-left: auto; font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
 }
 
 /* ---------- the rail: the run as a sequence of gates ---------- */
@@ -96,9 +96,9 @@ body.council {
   transition: background .18s var(--c-step), transform .18s var(--c-ease);
 }
 .c-step:last-child { border-right-width: 2px; }
-.c-step .n { font-family: var(--pi-font-title); font-size: 9px; color: var(--pi-muted); display: block; }
+.c-step .n { font-family: var(--pi-font-title); font-size: 10px; color: var(--pi-muted); display: block; }
 .c-step .t { display: block; font-weight: 600; }
-.c-step .s { display: block; font-size: 11px; color: var(--pi-muted); font-family: var(--pi-font-code); }
+.c-step .s { display: block; font-size: 12px; color: var(--pi-muted); font-family: var(--pi-font-code); }
 .c-step[data-state="active"] { background: var(--pi-accent-soft); }
 .c-step[data-state="active"]::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px;
@@ -144,11 +144,11 @@ body.council {
   animation: c-pop .3s var(--c-ease) both;
 }
 .c-file .k {
-  font-family: var(--pi-font-title); font-size: 8px; text-align: center;
+  font-family: var(--pi-font-title); font-size: 10px; text-align: center;
   border: 1.5px solid var(--pi-ink); padding: 4px 0; background: var(--pi-accent-soft);
 }
 .c-file .nm { font-weight: 600; word-break: break-all; font-size: 13px; }
-.c-file .mt { font-family: var(--pi-font-code); font-size: 11px; color: var(--pi-muted); }
+.c-file .mt { font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted); }
 .c-file.flag { border-color: var(--pi-err); }
 .c-file.flag .k { background: var(--pi-err-soft); }
 
@@ -172,7 +172,7 @@ body.council {
 .c-claim .hd { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .c-claim .tx { font-size: 14px; }
 .c-claim .pv {
-  font-family: var(--pi-font-code); font-size: 11px; color: var(--pi-muted);
+  font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
   margin-top: 6px; padding-top: 6px; border-top: 1px dotted var(--pi-line); word-break: break-word;
 }
 .c-claim .pv b { color: var(--pi-ink); font-weight: 600; }
@@ -181,7 +181,7 @@ body.council {
 
 /* ---------- reconciliation badge ---------- */
 
-.c-recon { display: inline-flex; align-items: center; gap: 6px; font-family: var(--pi-font-code); font-size: 11px; }
+.c-recon { display: inline-flex; align-items: center; gap: 6px; font-family: var(--pi-font-code); font-size: 12px; }
 .c-recon .lamp { width: 9px; height: 9px; border: 1.5px solid var(--pi-ink); display: inline-block; }
 .c-recon.ok  .lamp { background: var(--pi-ok); animation: c-blip 2.4s steps(1) infinite; }
 .c-recon.bad .lamp { background: var(--pi-err); animation: c-alarm .7s steps(1) infinite; }
@@ -194,8 +194,8 @@ body.council {
   font-family: var(--pi-font-code); font-size: 12px; margin-top: 6px;
 }
 .c-engines .eng { border: 1.5px solid var(--pi-line); padding: 5px 8px; background: var(--c-sunken); }
-.c-engines .eng .lab { font-size: 10px; color: var(--pi-muted); text-transform: uppercase; letter-spacing: .06em; }
-.c-engines .vs { text-align: center; font-family: var(--pi-font-title); font-size: 9px; color: var(--pi-muted); }
+.c-engines .eng .lab { font-size: 12px; color: var(--pi-muted); text-transform: uppercase; letter-spacing: .06em; }
+.c-engines .vs { text-align: center; font-family: var(--pi-font-title); font-size: 10px; color: var(--pi-muted); }
 .c-engines.ok  .eng { border-color: var(--pi-ok); }
 .c-engines.bad .eng { border-color: var(--pi-err); }
 
@@ -209,7 +209,7 @@ body.council {
 .c-gate[data-status="approved"] { border-color: var(--pi-ok); background: var(--pi-ok-soft); }
 .c-gate[data-status="changes_requested"] { border-color: var(--pi-warn); background: var(--pi-warn-soft); }
 .c-gate h3 { font-family: var(--pi-font-title); font-size: 11px; margin: 0 0 4px; }
-.c-gate .blocks { font-family: var(--pi-font-code); font-size: 11px; color: var(--pi-muted); }
+.c-gate .blocks { font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted); }
 .c-gate[data-status="pending"]::before {
   content: ""; position: absolute; inset: 0;
   background: repeating-linear-gradient(45deg, transparent 0 12px, rgba(179,55,44,.045) 12px 24px);
@@ -239,7 +239,7 @@ body.council {
 .c-finding[data-sev="note"]    { border-left-color: var(--pi-line); }
 .c-finding .ti { font-weight: 600; font-size: 14px; }
 .c-finding .de { font-size: 13px; color: var(--pi-muted); margin-top: 3px; }
-.c-finding .ci { font-family: var(--pi-font-code); font-size: 11px; margin-top: 5px; }
+.c-finding .ci { font-family: var(--pi-font-code); font-size: 12px; margin-top: 5px; }
 
 /* quarantined external research — visually walled off */
 .c-quarantine {
@@ -249,7 +249,7 @@ body.council {
 .c-quarantine::before {
   content: "EXTERNAL · NOT CASE EVIDENCE UNTIL APPROVED";
   position: absolute; top: -10px; left: 12px; background: var(--c-quar);
-  font-family: var(--pi-font-title); font-size: 8px; color: #8a4a24; padding: 0 6px;
+  font-family: var(--pi-font-title); font-size: 10px; color: #8a4a24; padding: 0 6px;
 }
 
 /* untrusted content envelope */
@@ -258,7 +258,7 @@ body.council {
   font-family: var(--pi-font-code); font-size: 12px; padding: 8px 10px; margin: 6px 0;
   white-space: pre-wrap; word-break: break-word;
 }
-.c-untrusted .lbl { display: block; font-size: 10px; color: var(--pi-err); letter-spacing: .05em; margin-bottom: 4px; }
+.c-untrusted .lbl { display: block; font-size: 12px; color: var(--pi-err); letter-spacing: .05em; margin-bottom: 4px; }
 
 /* ---------- resolution ladder ---------- */
 
@@ -268,7 +268,7 @@ body.council {
   border: 1.5px solid var(--pi-line); padding: 7px 10px; background: #fff;
   font-size: 13px; opacity: .45; transition: opacity .25s, border-color .25s, background .25s;
 }
-.c-rung .num { font-family: var(--pi-font-title); font-size: 9px; text-align: center; }
+.c-rung .num { font-family: var(--pi-font-title); font-size: 10px; text-align: center; }
 .c-rung.fired { opacity: 1; border-color: var(--pi-accent); background: var(--pi-accent-soft); }
 .c-rung.fired .num { color: var(--pi-accent); }
 .c-rung.escalated { opacity: 1; border-color: var(--pi-warn); background: var(--pi-warn-soft); }
