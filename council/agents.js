@@ -232,6 +232,20 @@ function injectCSS() {
 }
 .pv-seat.pv-mutter .pv-bub, .pv-seat[data-s="thinking"] .pv-bub { display:block; }
 
+/* holding the floor */
+.pv-seat.pv-speaking { border-color:var(--pi-accent); box-shadow:0 0 0 3px var(--pi-accent-soft); z-index:8; }
+.pv-seat.pv-speaking .pv-bub {
+  display:block; border-color:var(--pi-accent); border-width:2px;
+  max-width:230px; white-space:normal; text-align:left; line-height:1.3;
+  animation: pv-pop .25s cubic-bezier(.34,1.56,.64,1);
+}
+.pv-seat.pv-speaking .pv-bub[data-kind="challenge"] { border-color:var(--pi-err); background:var(--pi-err-soft); }
+.pv-seat.pv-speaking .pv-bub[data-kind="key"]       { border-color:var(--pi-ok);  background:var(--pi-ok-soft); }
+.pv-seat.pv-speaking .pv-bub[data-kind="quarantine"]{ border-color:#c2683a; background:#fff8f4; }
+.pv-seat.pv-speaking .pv-person { animation: pv-talk .38s ease-in-out infinite alternate; }
+@keyframes pv-talk { from{transform:translateY(0)} to{transform:translateY(-2.5px)} }
+@keyframes pv-pop  { from{opacity:0;transform:translateX(-50%) scale(.85)} to{opacity:1;transform:translateX(-50%) scale(1)} }
+
 #pv-dossier {
   position:absolute; width:30px; height:24px; z-index:9; display:none; pointer-events:none;
   transition:left .5s cubic-bezier(.34,1.25,.64,1), top .5s cubic-bezier(.34,1.25,.64,1);
@@ -329,6 +343,37 @@ export const Bench = {
       return s && ["reading", "thinking", "writing"].includes(s.dataset.s);
     });
     if (["reading", "thinking", "writing"].includes(state)) moveDossier(agentId);
+  },
+
+  /* Put a line in a seat's mouth and give it the floor. The bubble is capped
+   * short because a wall of text over a 92px avatar is unreadable — the full
+   * line lives in the transcript, and this is the visual cue for who is
+   * speaking. */
+  say(agentId, text, kind) {
+    const seat = document.getElementById("pv-" + agentId);
+    if (!seat) return;
+    for (const other of roster) {
+      const s = document.getElementById("pv-" + other.id);
+      if (s && s !== seat) s.classList.remove("pv-speaking");
+    }
+    const bub = seat.querySelector(".pv-bub");
+    if (bub) {
+      const short = String(text).replace(/\s+/g, " ").trim();
+      bub.textContent = short.length > 58 ? short.slice(0, 57) + "…" : short;
+      bub.dataset.kind = kind || "speak";
+    }
+    seat.classList.add("pv-speaking");
+    Bench.pulse(agentId);
+    moveDossier(agentId);
+    busy = true;
+  },
+
+  hush() {
+    for (const a of roster) {
+      const s = document.getElementById("pv-" + a.id);
+      if (s) s.classList.remove("pv-speaking");
+    }
+    busy = false;
   },
 
   pulse(agentId) {

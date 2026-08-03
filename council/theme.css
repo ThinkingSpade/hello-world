@@ -260,6 +260,50 @@ body.council {
 }
 .c-untrusted .lbl { display: block; font-size: 12px; color: var(--pi-err); letter-spacing: .05em; margin-bottom: 4px; }
 
+/* ---------- deliberation transcript ---------- */
+
+.c-delib { max-height: 460px; overflow-y: auto; border: 1.5px solid var(--pi-line); padding: 10px; }
+.c-turn {
+  display: grid; grid-template-columns: 92px 1fr; gap: 10px;
+  padding: 8px 0; border-bottom: 1px dotted var(--pi-line);
+  animation: c-turn-in .32s var(--c-ease) both;
+}
+.c-turn:last-child { border-bottom: 0; }
+.c-turn .who {
+  font-family: var(--pi-font-ui); font-size: 12px; font-weight: 600;
+  color: var(--pi-accent); text-align: right; line-height: 1.25;
+}
+.c-turn .what { font-size: 14px; }
+.c-turn .cite {
+  font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
+  border-left: 3px solid var(--pi-line); padding-left: 8px; margin-top: 5px;
+}
+.c-turn[data-kind="challenge"] .who { color: var(--pi-err); }
+.c-turn[data-kind="challenge"] .what::before {
+  content: "CHALLENGE"; display: inline-block; margin-right: 6px;
+  font-family: var(--pi-font-title); font-size: 10px; color: var(--pi-err);
+}
+.c-turn[data-kind="key"] { background: var(--pi-ok-soft); }
+.c-turn[data-kind="spec"] .who { color: var(--pi-ok); }
+.c-turn[data-kind="quarantine"] { background: var(--c-quar); }
+.c-turn[data-kind="claim"] .who { color: var(--pi-warn); }
+.c-turn.c-ruling { background: var(--pi-accent-soft); }
+.c-turn.c-ruling .who { color: var(--pi-ink); }
+
+@keyframes c-turn-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- autopilot banner ---------- */
+
+.c-auto {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; z-index: 95;
+  border: 2px solid var(--pi-ink); background: #fff; box-shadow: var(--pi-shadow);
+  padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+  font-family: var(--pi-font-ui); font-size: 14px; max-width: 92vw;
+}
+.c-auto .c-auto-step { font-weight: 600; }
+.c-auto .c-auto-bar { width: 160px; height: 8px; border: 1.5px solid var(--pi-ink); overflow: hidden; }
+.c-auto .c-auto-bar > i { display: block; height: 100%; background: var(--pi-accent); width: 0; transition: width .4s var(--c-ease); }
+
 /* ---------- resolution ladder ---------- */
 
 .c-ladder { display: grid; gap: 6px; }

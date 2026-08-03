@@ -21,6 +21,7 @@
     <span class="c-sub">source files are evidence · model output is not</span>
     <span class="c-spacer"></span>
     <span class="pstrip" id="run-strip">RUN <b>—</b> · CLAIMS <b>0</b> · RECONCILED <b>0/0</b></span>
+    <button class="pbtn primary" id="btn-auto-top" type="button">▶ Run the whole case</button>
     <button class="pbtn" id="btn-settings" type="button">Model…</button>
     <a class="pbtn" href="/work.html">← projects</a>
   </header>
@@ -55,9 +56,15 @@
             <p>Workbooks, decks, documents, briefs. Parsed in your browser — nothing is uploaded anywhere.</p>
             <p class="c-kinds">.xlsx · .csv · .tsv · .docx · .pptx · .pdf · .txt · .md</p>
             <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button class="pbtn primary" id="btn-pick" type="button">Choose files</button>
+              <button class="pbtn primary" id="btn-auto" type="button">▶ Run the whole case</button>
+              <button class="pbtn" id="btn-pick" type="button">Choose files</button>
               <button class="pbtn" id="btn-demo" type="button">Load the sample case</button>
             </div>
+            <p style="margin:12px 0 0;font-size:13px;color:var(--pi-muted)">
+              “Run the whole case” loads the sample, clears every gate, executes the calculations and
+              lets the council argue it out — start to finish, no clicking, no API key.
+              Drop your own files in first and it will run those instead.
+            </p>
             <input type="file" id="file-input" multiple class="c-hidden"
                    accept=".xlsx,.xlsm,.csv,.tsv,.docx,.pptx,.pdf,.txt,.md" />
           </div>
@@ -160,6 +167,29 @@
   <section class="stage c-hidden" data-stage="council">
     <div class="c-grid side" style="margin-top:16px">
       <div>
+        <div class="pwin" style="margin-bottom:12px">
+          <div class="pwin-title"><span class="pwin-lamp" id="delib-lamp"></span>deliberation<span class="c-count" id="delib-count">not started</span></div>
+          <div class="pwin-body">
+            <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
+              Seats speak in turn. Every figure quoted here was computed by the engines in the previous
+              stage — nothing in this transcript is written by a model, and nothing is written in advance.
+            </p>
+            <div id="delib" class="c-delib"><p class="c-empty">The room is quiet.</p></div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="pbtn" id="btn-delib" type="button">Replay the deliberation</button>
+              <button class="pbtn" id="btn-delib-skip" type="button">Skip to the end</button>
+              <label style="font-family:var(--pi-font-ui);font-size:13px;display:flex;align-items:center;gap:5px">
+                pace
+                <select id="delib-pace" style="padding:5px;border:2px solid var(--pi-ink);font-family:var(--pi-font-ui);font-size:13px">
+                  <option value="2600">slow</option>
+                  <option value="1700" selected>normal</option>
+                  <option value="900">brisk</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div class="pwin" style="margin-bottom:12px">
           <div class="pwin-title"><span class="pwin-lamp" id="council-lamp"></span>findings<span class="c-count" id="finding-count">0</span></div>
           <div class="pwin-body">
