@@ -290,17 +290,6 @@ body.council {
 #qterms td.neg { color: var(--pi-err); }
 #qterms tr.unseen td { color: var(--pi-muted); font-style: italic; }
 
-/* ---------- provenance-of-words banner ----------
-   The application's whole argument is that you should be able to tell where a
-   sentence came from. That has to apply to the application's own sentences. */
-
-.c-mode {
-  border: 1.5px solid var(--pi-warn); background: var(--pi-warn-soft);
-  padding: 8px 10px; margin: 0 0 10px; font-size: 13px; line-height: 1.45;
-}
-.c-mode[data-mode="model"] { border-color: var(--pi-accent); background: var(--pi-accent-soft); }
-.c-mode b { font-family: var(--pi-font-ui); }
-
 /* ---------- run console ----------
    The one dark surface in a white application. It is a terminal because that is
    what it is: an append-only record of work, read top to bottom. */
