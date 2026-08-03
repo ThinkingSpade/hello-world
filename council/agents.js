@@ -142,7 +142,10 @@ function injectCSS() {
   s.id = "pv-css";
   s.textContent = `
 .pv-bench { position: relative; }
-.pv-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+/* row-gap leaves a band above each card for the speech bubble to sit in,
+   rather than growing down over the avatar it belongs to. margin-top gives the
+   first row the same band, so its bubbles clear the stats strip. */
+.pv-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); column-gap: 8px; row-gap: 38px; margin-top: 38px; }
 @media (max-width: 1200px){ .pv-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
 @media (max-width: 900px) { .pv-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
 @media (max-width: 560px) { .pv-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
@@ -226,9 +229,10 @@ function injectCSS() {
 .pv-seat.pv-glance-r .pv-head { transform:translateX(2px) rotate(4deg); }
 
 .pv-bub {
-  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
-  background:#fff; border:1.5px solid var(--pi-ink); padding:1px 6px; font-family:var(--pi-font-ui);
+  position:absolute; bottom:calc(100% + 5px); left:50%; transform:translateX(-50%);
+  background:#fff; border:1.5px solid var(--pi-ink); padding:1px 7px; font-family:var(--pi-font-ui);
   font-size:12px; white-space:nowrap; z-index:6; display:none; box-shadow:2px 2px 0 var(--pi-ink);
+  max-width:min(210px, 96vw); overflow:hidden; text-overflow:ellipsis; pointer-events:none;
 }
 .pv-seat.pv-mutter .pv-bub, .pv-seat[data-s="thinking"] .pv-bub { display:block; }
 
@@ -236,7 +240,6 @@ function injectCSS() {
 .pv-seat.pv-speaking { border-color:var(--pi-accent); box-shadow:0 0 0 3px var(--pi-accent-soft); z-index:8; }
 .pv-seat.pv-speaking .pv-bub {
   display:block; border-color:var(--pi-accent); border-width:2px;
-  max-width:230px; white-space:normal; text-align:left; line-height:1.3;
   animation: pv-pop .25s cubic-bezier(.34,1.56,.64,1);
 }
 .pv-seat.pv-speaking .pv-bub[data-kind="challenge"] { border-color:var(--pi-err); background:var(--pi-err-soft); }
@@ -245,6 +248,17 @@ function injectCSS() {
 .pv-seat.pv-speaking .pv-person { animation: pv-talk .38s ease-in-out infinite alternate; }
 @keyframes pv-talk { from{transform:translateY(0)} to{transform:translateY(-2.5px)} }
 @keyframes pv-pop  { from{opacity:0;transform:translateX(-50%) scale(.85)} to{opacity:1;transform:translateX(-50%) scale(1)} }
+.pv-bub::after {
+  content:""; position:absolute; left:50%; margin-left:-4px; bottom:-5px;
+  width:7px; height:7px; background:#fff;
+  border-right:1.5px solid var(--pi-ink); border-bottom:1.5px solid var(--pi-ink);
+  transform:rotate(45deg);
+}
+.pv-seat.pv-speaking .pv-bub::after { border-color:var(--pi-accent); border-width:2px; }
+.pv-seat.pv-speaking .pv-bub[data-kind="challenge"], 
+.pv-seat.pv-speaking .pv-bub[data-kind="challenge"]::after { border-color:var(--pi-err); }
+.pv-seat.pv-speaking .pv-bub[data-kind="key"],
+.pv-seat.pv-speaking .pv-bub[data-kind="key"]::after { border-color:var(--pi-ok); }
 
 #pv-dossier {
   position:absolute; width:30px; height:24px; z-index:9; display:none; pointer-events:none;
@@ -352,14 +366,24 @@ export const Bench = {
   say(agentId, text, kind) {
     const seat = document.getElementById("pv-" + agentId);
     if (!seat) return;
+    /* Only one seat holds the floor. A seat that has finished keeps its border
+     * and its finding count, but must stop claiming to be speaking — otherwise
+     * three cards read SPEAKING at once and the bench stops telling you who to
+     * look at. */
     for (const other of roster) {
       const s = document.getElementById("pv-" + other.id);
-      if (s && s !== seat) s.classList.remove("pv-speaking");
+      if (!s || s === seat) continue;
+      s.classList.remove("pv-speaking");
+      if (s.dataset.s === "writing" || s.dataset.s === "flagged") {
+        const st = s.querySelector(".pv-st");
+        if (st && /speaking|challenging/i.test(st.textContent)) st.textContent = "spoke";
+      }
     }
     const bub = seat.querySelector(".pv-bub");
     if (bub) {
       const short = String(text).replace(/\s+/g, " ").trim();
-      bub.textContent = short.length > 58 ? short.slice(0, 57) + "…" : short;
+      bub.textContent = short.length > 34 ? short.slice(0, 33) + "…" : short;
+      bub.title = short;
       bub.dataset.kind = kind || "speak";
     }
     seat.classList.add("pv-speaking");
