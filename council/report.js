@@ -119,8 +119,10 @@ export const Report = {
       }
       if (fresh.error) { failures.push(`${spec.name}: ${fresh.error}`); continue; }
       if (!fresh.reconciled) { failures.push(`${spec.name}: engines no longer reconcile.`); continue; }
+      // A measure that was undefined before and is undefined now has reproduced.
+      if (stored.sqlValue === null && fresh.sqlValue === null) continue;
       if (stored.sqlValue === null || fresh.sqlValue === null) {
-        failures.push(`${spec.name}: no scalar to compare.`);
+        failures.push(`${spec.name}: was ${stored.sqlValue === null ? "undefined" : "defined"} and is now ${fresh.sqlValue === null ? "undefined" : "defined"}.`);
         continue;
       }
       if (!U.closeTo(stored.sqlValue, fresh.sqlValue, spec.tolerance || 1e-9)) {

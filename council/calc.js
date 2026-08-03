@@ -94,7 +94,13 @@ export const Calc = {
   },
 
   tableNames() { return [...loaded.keys()]; },
-  rowsOf(name = "t") { return (loaded.get(name) || {}).rows || []; },
+
+  /* The fact table is whichever was loaded first. Defaulting to it here means a
+   * caller that does not name a table (replay, verify) still hands the reducer
+   * the same rows SQL is reading, rather than an empty array that would look
+   * like a reconciliation failure. */
+  defaultTable() { return loaded.keys().next().value || "t"; },
+  rowsOf(name) { return (loaded.get(name || Calc.defaultTable()) || {}).rows || []; },
   schemaOf(name = "t") {
     const e = loaded.get(name);
     if (!e) return null;
@@ -124,7 +130,7 @@ export const Calc = {
    *
    * Gate 2 is enforced here rather than in the UI on purpose: the check belongs
    * next to the thing it protects, so no future caller can route around it. */
-  async run(spec, { requireApproval = true, tolerance = 1e-9, tableName = "t" } = {}) {
+  async run(spec, { requireApproval = true, tolerance = 1e-9, tableName = null } = {}) {
     const t0 = performance.now();
     const base = {
       specId: spec.specId, runId: spec.runId || "",
@@ -164,13 +170,33 @@ export const Calc = {
       return { ...base, rows, sqlValue, ms: performance.now() - t0, error: `Reducer failed: ${e.message}` };
     }
 
+    /* Both engines returning nothing is agreement, not disagreement.
+     *
+     * The case that forces this distinction: a year-over-year ratio for an item
+     * that did not exist a year ago. The denominator is zero, so the honest
+     * answer is "undefined" — and both engines say so independently. Reporting
+     * that as a reconciliation failure would be wrong twice over: it implies a
+     * discrepancy that does not exist, and it hides the real finding, which is
+     * that the measure is not defined over this window. Such a result is
+     * reconciled, carries no scalar, and is typed as a limitation upstream
+     * rather than promoted to a calculated claim. */
+    if (sqlValue === null && jsValue === null) {
+      return {
+        ...base, rows, sqlValue: null, jsValue: null, delta: 0,
+        reconciled: true, undefinedResult: true,
+        ms: performance.now() - t0,
+        error: null,
+        note: "Both engines independently returned no value — the measure is undefined over this window (most often an empty comparison base). This is not a figure and cannot become a calculated claim.",
+      };
+    }
+
     const delta = (sqlValue === null || jsValue === null)
       ? NaN
       : Math.abs(sqlValue - jsValue) / Math.max(1, Math.abs(sqlValue), Math.abs(jsValue));
     const reconciled = Number.isFinite(delta) && delta <= tolerance;
 
     return {
-      ...base, rows, sqlValue, jsValue, delta, reconciled,
+      ...base, rows, sqlValue, jsValue, delta, reconciled, undefinedResult: false,
       ms: performance.now() - t0,
       error: reconciled ? null
         : `Engines disagree: SQL returned ${fmtNum(sqlValue)}, the independent reducer returned ${fmtNum(jsValue)} (relative delta ${Number.isFinite(delta) ? delta.toExponential(2) : "n/a"}).`,

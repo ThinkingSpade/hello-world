@@ -20,13 +20,35 @@
     "firstInventoryWeek": "2026-04-05",
     "firstSaleWeek": "2026-04-12",
     "grain": [
-      "week",
-      "retailer",
-      "sku"
+      "Fiscal Week Ending",
+      "SKU",
+      "Retailer"
     ],
     "collapse": {
-      "units": "sum",
-      "inventory": "max"
+      "Sales (Units)": "sum",
+      "Inventory (Units)": "max"
+    },
+    "eventTimeAnchors": {
+      "HOUSE OF INK": {
+        "firstInventory": "2026-04-05",
+        "firstSale": "2026-04-19"
+      },
+      "INK IN A WINK": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-12"
+      },
+      "INK-O-MATIC": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-19"
+      },
+      "JENNY'S PRINT SHOP": {
+        "firstInventory": "2026-04-12",
+        "firstSale": "2026-04-12"
+      },
+      "THE PRINT GUYS": {
+        "firstInventory": "2026-05-10",
+        "firstSale": "2026-05-10"
+      }
     }
   },
   "acceptance": [
@@ -449,6 +471,34 @@
       "tol": 5e-05,
       "unit": "ratio",
       "definition": "Inventory overstatement on a split week if segments are summed instead of treated as one stock snapshot"
+    },
+    {
+      "id": "eventtime_prelaunch10_pages_yoy",
+      "value": -0.03276560243580884,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the 10 complete periods BEFORE each retailer's own first-inventory week (per-retailer event-time alignment, not calendar alignment)"
+    },
+    {
+      "id": "eventtime_first10_inventory_pages_yoy",
+      "value": -0.1527720553466636,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the first 10 complete periods FROM each retailer's own first-inventory week"
+    },
+    {
+      "id": "eventtime_first10_sale_pages_yoy",
+      "value": -0.18758354857345672,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Rated pages YoY over the first 10 complete periods FROM each retailer's own first-sale week"
+    },
+    {
+      "id": "legacy_inventory_drawdown_from_launch",
+      "value": -0.8512225729170628,
+      "tol": 5e-05,
+      "unit": "ratio",
+      "definition": "Legacy on-hand at the last complete period versus the first inventory week of the new items (14 periods)"
     }
   ]
 }

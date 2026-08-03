@@ -743,6 +743,21 @@ async function runAllSpecs() {
     const r = await Calc.run({ ...spec, runId: Report.computeRunId() }, { tableName: "fact" });
     S.results.push(r);
     renderReconRow(box, spec, r);
+
+    /* A measure that is undefined over its window is a limitation, not a
+     * figure. The commonest cause is an item with no prior-period base — a
+     * product that did not exist a year ago has no year-over-year change, and
+     * reporting one would be an invention. */
+    if (r.undefinedResult) {
+      Claims.tryAdd({
+        type: "limitation",
+        text: `${spec.name} is undefined — the comparison base for this window is empty.`,
+        constrains: `Any statement about how this item changed year over year. It has no prior-period base, so a percentage change cannot be computed and must not be inferred from the absolute level.`,
+        author: "deterministic", confidence: "high",
+      });
+      continue;
+    }
+
     if (r.reconciled && r.sqlValue !== null) {
       const f = S.files.find((x) => x.fileId === S.fact.fileId) || S.files[0];
       Claims.tryAdd({
@@ -763,7 +778,8 @@ async function runAllSpecs() {
   }
 
   const ok = S.results.filter((r) => r.reconciled).length;
-  $("#recon-count").textContent = `${ok}/${S.results.length}`;
+  const undef = S.results.filter((r) => r.undefinedResult).length;
+  $("#recon-count").textContent = `${ok}/${S.results.length}${undef ? ` · ${undef} undefined` : ""}`;
   $("#recon-lamp").className = `pwin-lamp ${ok === S.results.length ? "on" : "err"}`;
   Bench.setState("math", ok === S.results.length ? "done" : "flagged", `${ok}/${S.results.length} reconciled`);
   Report.set("specs", S.specs);
@@ -786,6 +802,14 @@ function renderReconRow(box, spec, r) {
     const e = el("div", null, r.error);
     e.style.cssText = "font-size:12px;color:var(--pi-err);margin-top:4px";
     d.appendChild(e);
+    box.appendChild(d);
+    return;
+  }
+
+  if (r.undefinedResult) {
+    const n = el("div", null, r.note);
+    n.style.cssText = "font-size:12px;color:var(--pi-warn);margin-top:4px";
+    d.appendChild(n);
     box.appendChild(d);
     return;
   }
@@ -1026,8 +1050,21 @@ function renderFindings() {
 }
 
 function renderLadder() {
+  /* Count only genuine disagreements. An uncontested finding was never
+   * adjudicated, and counting it here would make the ladder look busier — and
+   * the review look more rigorous — than it actually was. */
   const counts = { source_quality: 0, formula_reproducibility: 0, definition_consistency: 0, human_judgment: 0 };
-  for (const r of S.resolutions) if (counts[r.basis] !== undefined) counts[r.basis]++;
+  const contested = S.resolutions.filter((r) => r.contested);
+  for (const r of contested) if (counts[r.basis] !== undefined) counts[r.basis]++;
+
+  const note = $("#ladder-note");
+  if (note) {
+    const uncontested = S.resolutions.length - contested.length;
+    note.textContent = contested.length
+      ? `${contested.length} contested point(s) went to the ladder; ${uncontested} finding(s) were uncontested and were not adjudicated.`
+      : `No two seats reached different conclusions on the same point, so the ladder did not need to run. ${uncontested} finding(s) stand uncontested — which is not the same as corroborated.`;
+  }
+
   for (const rung of $$(".c-rung")) {
     const b = rung.dataset.basis;
     rung.classList.toggle("fired", counts[b] > 0);
