@@ -874,13 +874,37 @@ function buildCharts() {
       byPeriod.set(p, cur);
     }
     const rows = [...byPeriod.values()].sort((a, b) => a.period.localeCompare(b.period));
-    addChart({
+
+    /* Two series on one axis only works if they share a scale. Raw units and
+     * yield-weighted capacity differ by two orders of magnitude, so plotting
+     * both against one axis hides the smaller one entirely — and a dual axis
+     * would be worse, because it lets the eye compare two arbitrary scales.
+     * Indexing both to their own first period is the honest third option: it
+     * puts them on a shared footing and makes the divergence between them —
+     * which is exactly the mix effect — the thing you actually see. */
+    if (weights) {
+      const base = rows.find((r) => r.raw > 0 && r.weighted > 0) || rows[0];
+      for (const r of rows) {
+        r.rawIdx = base.raw ? (r.raw / base.raw) * 100 : null;
+        r.weightedIdx = base.weighted ? (r.weighted / base.weighted) * 100 : null;
+      }
+    }
+
+    addChart(weights ? {
+      chartId: "trend-flow", kind: "line",
+      title: `${flows[0]} against ${weights.col}-weighted capacity`,
+      subtitle: `Both indexed to 100 at ${rows[0].period}. Where the lines separate, the mix changed — units and capacity are no longer telling the same story.`,
+      x: { field: "period", label: dateCol, type: "time" },
+      y: { field: "weightedIdx", label: `index (${rows[0].period} = 100)`, zero: true, format: "n" },
+      series: [{ field: "weightedIdx", label: `${weights.col}-weighted capacity` }, { field: "rawIdx", label: flows[0] }],
+      sourceNote: sourceNote(`Indexed, not absolute. Excludes ${c.incompletePeriods.length} structurally incomplete period(s).`),
+      specHash: "",
+    } : {
       chartId: "trend-flow", kind: "line",
       title: `${flows[0]} by period`,
-      subtitle: weights ? `Raw units against ${weights.col}-weighted capacity — the gap between them is the mix effect` : "",
       x: { field: "period", label: dateCol, type: "time" },
-      y: { field: weights ? "weighted" : "raw", label: weights ? `${flows[0]} × ${weights.col}` : flows[0], zero: true, format: "compact" },
-      series: weights ? [{ field: "weighted", label: `${weights.col}-weighted` }, { field: "raw", label: flows[0] }] : [{ field: "raw", label: flows[0] }],
+      y: { field: "raw", label: flows[0], zero: true, format: "compact" },
+      series: [{ field: "raw", label: flows[0] }],
       sourceNote: sourceNote(`Excludes ${c.incompletePeriods.length} structurally incomplete period(s).`),
       specHash: "",
     }, rows);
