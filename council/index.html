@@ -168,14 +168,31 @@
     <div class="c-grid side" style="margin-top:16px">
       <div>
         <div class="pwin" style="margin-bottom:12px">
+          <div class="pwin-title"><span class="pwin-lamp" id="trace-lamp"></span>run console<span class="c-count" id="trace-count">idle</span></div>
+          <div class="pwin-body" style="padding:0">
+            <p style="margin:0;padding:10px 12px;font-size:13px;color:var(--pi-muted);border-bottom:1.5px solid var(--pi-line)">
+              What each seat actually did: the values it read, the test it ran, the outcome. The transcript
+              below shows conclusions; this shows the working behind them.
+            </p>
+            <div id="trace" class="pterm c-trace"></div>
+            <div style="padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1.5px solid var(--pi-line)">
+              <button class="pbtn" id="btn-trace-copy" type="button">Copy console</button>
+              <span style="font-family:var(--pi-font-code);font-size:12px;color:var(--pi-muted)">
+                ▸ step · &nbsp;· reading · &nbsp;? test · &nbsp;✓ result · &nbsp;» spoken
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pwin" style="margin-bottom:12px">
           <div class="pwin-title"><span class="pwin-lamp" id="delib-lamp"></span>deliberation<span class="c-count" id="delib-count">not started</span></div>
           <div class="pwin-body">
             <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
               Seats speak in turn. Every figure quoted here was computed by the engines in the previous
               stage — nothing in this transcript is written by a model, and nothing is written in advance.
             </p>
-            <div id="delib" class="c-delib"><p class="c-empty">The room is quiet.</p></div>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div id="delib" class="c-delib"><p class="c-empty">The room is quiet. Use “Run the whole case”, or convene the council below.</p></div>
+            <div id="delib-controls" class="c-hidden" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <button class="pbtn" id="btn-delib" type="button">Replay the deliberation</button>
               <button class="pbtn" id="btn-delib-skip" type="button">Skip to the end</button>
               <label style="font-family:var(--pi-font-ui);font-size:13px;display:flex;align-items:center;gap:5px">
