@@ -1752,6 +1752,15 @@ function init() {
     $("#cfg-key").value = "";
     $("#dry-chip").textContent = `${cfg.provider} · ${cfg.model}`;
     $("#dry-chip").className = "pchip acc";
+    const mode = $("#delib-mode");
+    if (mode) {
+      mode.dataset.mode = "model";
+      mode.innerHTML =
+        `<b>Model output.</b> The seats are reasoning for themselves on ${U.escapeHtml(cfg.provider)} / ` +
+        `${U.escapeHtml(cfg.model)}. Their words are model-generated and are <em>not</em> evidence — ` +
+        `figures still come only from the engines, and a seat still cannot author an observed or ` +
+        `calculated claim.`;
+    }
     toast("Model configured. The key stays in memory for this tab only.", "ok");
   });
 

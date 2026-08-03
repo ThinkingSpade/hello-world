@@ -187,10 +187,13 @@
         <div class="pwin" style="margin-bottom:12px">
           <div class="pwin-title"><span class="pwin-lamp" id="delib-lamp"></span>deliberation<span class="c-count" id="delib-count">not started</span></div>
           <div class="pwin-body">
-            <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
-              Seats speak in turn. Every figure quoted here was computed by the engines in the previous
-              stage — nothing in this transcript is written by a model, and nothing is written in advance.
-            </p>
+            <div id="delib-mode" class="c-mode" data-mode="scripted">
+              <b>Scripted narration.</b> With no model configured, the wording and running order of this
+              exchange are authored — a fixed script. What is <em>not</em> authored: every figure quoted,
+              which seats have anything to say, whether a challenge can cite the corpus, whether each
+              dispute arises at all, and how the ladder settles it. Those are read from this run.
+              Configure a model and the seats reason for themselves; this panel will say so.
+            </div>
             <div id="delib" class="c-delib"><p class="c-empty">The room is quiet. Use “Run the whole case”, or convene the council below.</p></div>
             <div id="delib-controls" class="c-hidden" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <button class="pbtn" id="btn-delib" type="button">Replay the deliberation</button>
