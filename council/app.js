@@ -20,6 +20,7 @@ import { buildDeliberation } from "./deliberate.js";
 import { Trace } from "./trace.js";
 import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
+import { Lens } from "./lens.js";
 import { Report } from "./report.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -87,6 +88,25 @@ function refreshRunStrip() {
   const rec = S.results.filter((r) => r.reconciled).length;
   $("#run-strip").innerHTML =
     `RUN <b>${U.escapeHtml(Report.computeRunId().slice(0, 12))}</b> · CLAIMS <b>${sum.total}</b> · RECONCILED <b>${rec}/${S.results.length}</b>`;
+  renderLens();
+}
+
+/* The lens reads live state and derives its own verdict; nothing about the
+ * decision is stored, so it can never drift from what the run actually says. */
+function renderLens() {
+  const v = Lens.render({
+    runId: Report.computeRunId(),
+    findings: S.findings,
+    resolutions: S.resolutions,
+    results: S.results,
+    claims: Claims.ledger(),
+    gates: S.gates,
+  });
+  if (!v) return;
+  const lamp = $("#lens-lamp");
+  if (lamp) lamp.className = `pwin-lamp ${v.lamp}`;
+  const count = $("#lens-count");
+  if (count) count.textContent = `${v.label.toLowerCase()} · ${v.signals} signals`;
 }
 
 /* ---------- 01 · intake ---------- */
@@ -1653,11 +1673,13 @@ function init() {
   Bench.mount($("#bench"), Council.ROSTER);
   Trace.mount($("#trace"));
   EmbedView.mount($("#embed"));
+  Lens.mount($("#lens"), { onJump: (name) => stage(name) });
   Trace.rule("session");
   Trace.step("council", "engines idle — load a case, or press Run the whole case");
   Report.init({ gates: Object.values(S.gates) });
   Claims.setRun(Report.computeRunId());
   renderReproduce();
+  renderLens();
 
   const drop = $("#drop");
   ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => {

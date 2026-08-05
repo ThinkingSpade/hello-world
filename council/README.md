@@ -30,9 +30,11 @@ models argue. The engines compute. A person signs.
 6. **Resolve.** Disagreement is settled by a fixed ladder — source quality, then
    formula reproducibility, then definition consistency, then a human. Never by
    counting votes.
-7. **Sign.** Four gates, each a hard stop. Then export a run bundle that
-   replays the whole analysis without the source files, or re-executes it
-   against them to prove the figures still hold.
+7. **Sign.** Four gates, each a hard stop. The decision lens draws every signal
+   the run produced converging on one verdict — derived from the gates, the
+   reconciliation and the ledger, never written by a model. Then export a run
+   bundle that replays the whole analysis without the source files, or
+   re-executes it against them to prove the figures still hold.
 
 ## The design principles, and where each one lives
 
@@ -41,6 +43,7 @@ models argue. The engines compute. A person signs.
 | Source files are evidence; model output is not | `claims.js` — an `observed` or `calculated` claim authored by a council seat is rejected |
 | Models never do authoritative arithmetic | `calc.js` — a model emits a `CalcSpec`; only SQL and the reducer produce figures |
 | No majority vote | `council.js` — a four-rung resolution ladder; agreement is recorded, never counted |
+| The verdict is derived, never authored | `lens.js` — a pure function of the gates, the reconciliation results, the resolution outcomes and the ledger; no model writes it, and it is never stored |
 | Every claim is typed | `claims.js` — seven types, each with its own validity invariants |
 | Precise provenance on every fact | `claims.js` + `ingest.js` — file, sha256, locator, transformation, period, unit, run id |
 | External research stays isolated | `council.js` + the quarantine panel — external items can only become `external_context`, and only after Gate 3 |
@@ -122,6 +125,7 @@ council/
   claims.js       the typed claim ledger
   council.js      the fifteen seats, providers, resolution ladder
   agents.js       the animated pixel bench
+  lens.js         the decision lens — every signal converging on the verdict
   viz.js          deterministic SVG charts
   report.js       run bundle, replay, verify, export
   demo/           self-contained synthetic sample case
