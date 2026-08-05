@@ -251,29 +251,29 @@
       </div>
 
       <div>
-        <div class="pwin" style="margin-bottom:12px">
-          <div class="pwin-title"><span class="pwin-lamp"></span>how disagreement is settled</div>
-          <div class="pwin-body">
-            <p style="margin:0 0 10px;font-size:13px;color:var(--pi-muted)">
-              Never by counting. The ladder runs in order and stops at the first rung that decides.
-            </p>
-            <div class="c-ladder" id="ladder">
-              <div class="c-rung" data-basis="source_quality"><span class="num">1</span><span>Source quality — who cites the primary record</span><span class="pchip" data-n>0</span></div>
-              <div class="c-rung" data-basis="formula_reproducibility"><span class="num">2</span><span>Formula reproducibility — which spec reconciles across both engines</span><span class="pchip" data-n>0</span></div>
-              <div class="c-rung" data-basis="definition_consistency"><span class="num">3</span><span>Definition consistency — which reading matches the approved contract</span><span class="pchip" data-n>0</span></div>
-              <div class="c-rung" data-basis="human_judgment"><span class="num">4</span><span>Human judgment — escalated, never auto-resolved</span><span class="pchip" data-n>0</span></div>
-            </div>
-            <p id="ladder-note" style="margin:10px 0 0;font-size:12px;color:var(--pi-muted);font-family:var(--pi-font-code)"></p>
-            <div id="escalations" style="margin-top:12px"></div>
-          </div>
-        </div>
-
         <div class="pwin">
           <div class="pwin-title"><span class="pwin-lamp"></span>preserved dissent<span class="c-count" id="dissent-count">0</span></div>
           <div class="pwin-body" id="dissent">
             <p class="c-empty" style="padding:8px">No dissent recorded.</p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Full width, and deliberately: the ladder is the mechanism the whole
+         stage exists to run, and the drawing needs room to converge. -->
+    <div class="pwin" style="margin-top:12px">
+      <div class="pwin-title"><span class="pwin-lamp"></span>how disagreement is settled</div>
+      <div class="pwin-body">
+        <p style="margin:0 0 12px;font-size:14px;color:var(--pi-muted)">
+          Never by counting. Contested points enter on the left and fall through the rungs in order,
+          stopping at the first that decides; whatever a rung settles leaves on the right. Fifteen seats
+          sharing a base model make correlated mistakes, so agreement between them is recorded as
+          corroboration and never converted into confidence.
+        </p>
+        <div class="c-ladder" id="ladder"></div>
+        <p id="ladder-note" style="margin:12px 0 0;font-size:12px;color:var(--pi-muted);font-family:var(--pi-font-code)"></p>
+        <div id="escalations" style="margin-top:12px"></div>
       </div>
     </div>
   </section>

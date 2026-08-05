@@ -21,6 +21,8 @@ import { Trace } from "./trace.js";
 import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
 import { Lens } from "./lens.js";
+import { Ladder } from "./ladder.js";
+import { Converge } from "./converge.js";
 import { Report } from "./report.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -920,16 +922,29 @@ function renderReconRow(box, spec, r) {
     return;
   }
 
-  const eng = el("div", `c-engines ${r.reconciled ? "ok" : "bad"}`);
-  const a = el("div", "eng");
-  a.appendChild(el("div", "lab", "SQL · SQLite-WASM"));
-  a.appendChild(el("div", null, formatValue(r.sqlValue, spec.unit)));
-  eng.appendChild(a);
-  eng.appendChild(el("div", "vs", r.reconciled ? "==" : "≠"));
-  const b = el("div", "eng");
-  b.appendChild(el("div", "lab", `JS · ${spec.reducer}`));
-  b.appendChild(el("div", null, formatValue(r.jsValue, spec.unit)));
-  eng.appendChild(b);
+  /* Two independent computations converging on one figure — the same picture
+   * the decision lens and the ladder draw, at the smallest scale it occurs. */
+  const tone = r.reconciled ? "ok" : "err";
+  const eng = el("div", "c-merge cv");
+  eng.dataset.tone = tone;
+
+  const src = el("div", "c-merge-src");
+  for (const [lab, val] of [
+    ["SQL · SQLite-WASM", r.sqlValue],
+    [`JS · ${spec.reducer}`, r.jsValue],
+  ]) {
+    const box = el("div", "eng");
+    box.appendChild(el("div", "lab", lab));
+    box.appendChild(el("div", "val", formatValue(val, spec.unit)));
+    src.appendChild(box);
+  }
+  eng.appendChild(src);
+  eng.appendChild(Converge.merge({ height: 62, tone, agree: r.reconciled }));
+
+  const out = el("div", "c-merge-out");
+  out.appendChild(el("div", "lab", r.reconciled ? "reconciled" : "no figure"));
+  out.appendChild(el("div", "val", r.reconciled ? formatValue(r.sqlValue, spec.unit) : "—"));
+  eng.appendChild(out);
   d.appendChild(eng);
 
   const badge = el("div", `c-recon ${r.reconciled ? "ok" : "bad"}`);
@@ -1212,27 +1227,18 @@ function renderFindings() {
 }
 
 function renderLadder() {
-  /* Count only genuine disagreements. An uncontested finding was never
-   * adjudicated, and counting it here would make the ladder look busier — and
-   * the review look more rigorous — than it actually was. */
-  const counts = { source_quality: 0, formula_reproducibility: 0, definition_consistency: 0, human_judgment: 0 };
-  const contested = S.resolutions.filter((r) => r.contested);
-  for (const r of contested) if (counts[r.basis] !== undefined) counts[r.basis]++;
+  /* Ladder.derive counts only genuine disagreements. An uncontested finding was
+   * never adjudicated, and folding it in would make the ladder look busier —
+   * and the review look more rigorous — than it actually was. */
+  const m = Ladder.render(S.resolutions);
 
   const note = $("#ladder-note");
-  if (note) {
-    const uncontested = S.resolutions.length - contested.length;
-    note.textContent = contested.length
-      ? `${contested.length} contested point(s) went to the ladder; ${uncontested} finding(s) were uncontested and were not adjudicated.`
-      : `No two seats reached different conclusions on the same point, so the ladder did not need to run. ${uncontested} finding(s) stand uncontested — which is not the same as corroborated.`;
+  if (note && m) {
+    note.textContent = m.contested
+      ? `${m.contested} contested point(s) went to the ladder; ${m.uncontested} finding(s) were uncontested and were not adjudicated.`
+      : `No two seats reached different conclusions on the same point, so the ladder did not need to run. ${m.uncontested} finding(s) stand uncontested — which is not the same as corroborated.`;
   }
 
-  for (const rung of $$(".c-rung")) {
-    const b = rung.dataset.basis;
-    rung.classList.toggle("fired", counts[b] > 0);
-    rung.classList.toggle("escalated", b === "human_judgment" && counts[b] > 0);
-    $("[data-n]", rung).textContent = String(counts[b]);
-  }
   const box = $("#escalations");
   box.innerHTML = "";
   const esc = S.resolutions.filter((r) => r.outcome === "escalated");
@@ -1615,10 +1621,23 @@ function renderClaims() {
     d.appendChild(el("div", "tx", c.text));
 
     if (c.calc) {
-      const eng = el("div", `c-engines ${c.calc.reconciled ? "ok" : "bad"}`);
-      const a = el("div", "eng"); a.appendChild(el("div", "lab", "SQL")); a.appendChild(el("div", null, String(round(c.calc.sqlValue))));
-      const b = el("div", "eng"); b.appendChild(el("div", "lab", "reducer")); b.appendChild(el("div", null, String(round(c.calc.jsValue))));
-      eng.appendChild(a); eng.appendChild(el("div", "vs", c.calc.reconciled ? "==" : "≠")); eng.appendChild(b);
+      /* Same two-into-one as the reconciliation panel, at ledger scale. */
+      const tone = c.calc.reconciled ? "ok" : "err";
+      const eng = el("div", "c-merge c-merge-sm cv");
+      eng.dataset.tone = tone;
+      const src = el("div", "c-merge-src");
+      for (const [lab, val] of [["SQL", c.calc.sqlValue], ["reducer", c.calc.jsValue]]) {
+        const box = el("div", "eng");
+        box.appendChild(el("div", "lab", lab));
+        box.appendChild(el("div", "val", String(round(val))));
+        src.appendChild(box);
+      }
+      eng.appendChild(src);
+      eng.appendChild(Converge.merge({ height: 46, width: 40, tone, agree: c.calc.reconciled }));
+      const out = el("div", "c-merge-out");
+      out.appendChild(el("div", "lab", c.calc.reconciled ? "reconciled" : "no figure"));
+      out.appendChild(el("div", "val", c.calc.reconciled ? String(round(c.calc.sqlValue)) : "—"));
+      eng.appendChild(out);
       d.appendChild(eng);
     }
     if (c.breaksIf) d.appendChild(small(`Breaks if: ${c.breaksIf}`));
@@ -1674,6 +1693,7 @@ function init() {
   Trace.mount($("#trace"));
   EmbedView.mount($("#embed"));
   Lens.mount($("#lens"), { onJump: (name) => stage(name) });
+  Ladder.mount($("#ladder"));
   Trace.rule("session");
   Trace.step("council", "engines idle — load a case, or press Run the whole case");
   Report.init({ gates: Object.values(S.gates) });

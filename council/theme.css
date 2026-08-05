@@ -189,15 +189,33 @@ body.council {
 @keyframes c-alarm { 50% { opacity: .25; } }
 
 /* the two-engine crosscheck readout */
-.c-engines {
-  display: grid; grid-template-columns: 1fr 26px 1fr; gap: 6px; align-items: center;
-  font-family: var(--pi-font-code); font-size: 12px; margin-top: 6px;
+/* two engines converging on one figure — geometry drawn by converge.js */
+.c-merge { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.c-merge .c-merge-src { display: grid; gap: 6px; }
+.c-merge .eng {
+  border: 1.5px solid var(--pi-line); padding: 4px 8px; background: var(--c-sunken);
+  display: flex; align-items: baseline; gap: 8px; min-width: 210px;
 }
-.c-engines .eng { border: 1.5px solid var(--pi-line); padding: 5px 8px; background: var(--c-sunken); }
-.c-engines .eng .lab { font-size: 12px; color: var(--pi-muted); text-transform: uppercase; letter-spacing: .06em; }
-.c-engines .vs { text-align: center; font-family: var(--pi-font-title); font-size: 10px; color: var(--pi-muted); }
-.c-engines.ok  .eng { border-color: var(--pi-ok); }
-.c-engines.bad .eng { border-color: var(--pi-err); }
+.c-merge[data-tone="ok"]  .eng { border-color: var(--pi-ok); }
+.c-merge[data-tone="err"] .eng { border-color: var(--pi-err); }
+.c-merge .lab {
+  font-size: 12px; color: var(--pi-muted); text-transform: uppercase; letter-spacing: .06em;
+  font-family: var(--pi-font-code);
+}
+.c-merge .val { font-family: var(--pi-font-code); font-size: 14px; margin-left: auto; }
+.c-merge .c-merge-out {
+  border: 2px solid var(--t); padding: 5px 10px; background: #fff; min-width: 120px;
+}
+.c-merge .c-merge-out .val {
+  font-family: var(--pi-font-body); font-weight: 700; font-size: 19px; color: var(--t); margin-left: 0;
+}
+.c-merge.c-merge-sm { gap: 6px; }
+.c-merge.c-merge-sm .eng { min-width: 132px; padding: 2px 6px; }
+.c-merge.c-merge-sm .lab { font-size: 11px; }
+.c-merge.c-merge-sm .val { font-size: 12px; }
+.c-merge.c-merge-sm .c-merge-out { min-width: 88px; padding: 3px 8px; }
+.c-merge.c-merge-sm .c-merge-out .val { font-size: 15px; }
+
 
 /* ---------- gates ---------- */
 
@@ -364,18 +382,11 @@ body.council {
 .c-auto .c-auto-bar { width: 160px; height: 8px; border: 1.5px solid var(--pi-ink); overflow: hidden; }
 .c-auto .c-auto-bar > i { display: block; height: 100%; background: var(--pi-accent); width: 0; transition: width .4s var(--c-ease); }
 
-/* ---------- resolution ladder ---------- */
+/* ---------- resolution ladder ----------
+   The rungs themselves are drawn by ladder.js, which owns its own scoped CSS
+   along with the connectors that carry contested points through them. */
 
-.c-ladder { display: grid; gap: 6px; }
-.c-rung {
-  display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center;
-  border: 1.5px solid var(--pi-line); padding: 7px 10px; background: #fff;
-  font-size: 13px; opacity: .45; transition: opacity .25s, border-color .25s, background .25s;
-}
-.c-rung .num { font-family: var(--pi-font-title); font-size: 10px; text-align: center; }
-.c-rung.fired { opacity: 1; border-color: var(--pi-accent); background: var(--pi-accent-soft); }
-.c-rung.fired .num { color: var(--pi-accent); }
-.c-rung.escalated { opacity: 1; border-color: var(--pi-warn); background: var(--pi-warn-soft); }
+.c-ladder { display: block; }
 
 /* ---------- tables ---------- */
 

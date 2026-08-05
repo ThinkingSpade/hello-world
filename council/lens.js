@@ -19,14 +19,13 @@
  * a word — so the encoding survives greyscale, colour blindness, and the
  * reader who has turned motion off.
  *
- * Self-contained: injects its own scoped CSS, depends on nothing but the DOM.
+ * The connector language itself — solid versus dotted, the tone vocabulary, the
+ * glyph shapes — lives in converge.js, because the resolution ladder and the
+ * reconciliation view draw the same picture and should not each invent a line.
  *
  * See CONTRACT.md §9d.
  */
-
-const SVGNS = "http://www.w3.org/2000/svg";
-const REDUCED = typeof matchMedia === "function"
-  && matchMedia("(prefers-reduced-motion: reduce)").matches;
+import { Converge } from "./converge.js";
 
 /* The lens rings occupy this fraction of the core box; connectors terminate on
  * the outermost ring, so the two have to agree. */
@@ -51,14 +50,6 @@ const EFFECT = {
 /* Reading order: what stops the signature first, what needs a person next,
  * then risk, then what is already settled, then background. */
 const EFFECT_ORDER = ["blocks", "human", "raises", "clears", "context"];
-
-const ICON = {
-  octagon: "M4 0h4l4 4v4l-4 4H4L0 8V4z",
-  diamond: "M6 0l6 6-6 6-6-6z",
-  up:      "M6 0l6 7H8.5v5h-5V7H0z",
-  check:   "M4.6 11.4L0 6.8l1.9-1.9 2.7 2.7L10.1.6 12 2.5z",
-  bars:    "M0 1h12v2.6H0zM0 5.2h12v2.6H0zM0 9.4h8.4V12H0z",
-};
 
 const VERDICT = {
   blocked:   { label: "BLOCKED",   tone: "err",    lamp: "err",
@@ -263,23 +254,14 @@ function verdictOf(S) {
 
 /* ---------- DOM ---------- */
 
-function svgEl(tag, attrs) {
-  const n = document.createElementNS(SVGNS, tag);
-  for (const k in attrs) if (attrs[k] != null) n.setAttribute(k, String(attrs[k]));
-  return n;
-}
+const svgEl = Converge.svgEl;
+const iconEl = (kind) => Converge.icon(kind);
 
 function el(tag, cls, text) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
   if (text !== undefined) n.textContent = text;
   return n;
-}
-
-function iconEl(kind) {
-  const s = svgEl("svg", { viewBox: "0 0 12 12", "aria-hidden": "true", class: "c-lens-ic" });
-  s.appendChild(svgEl("path", { d: ICON[kind] || ICON.bars }));
-  return s;
 }
 
 function cardEl(sig, i) {
@@ -380,68 +362,19 @@ function buildLegend(sigs) {
 /* Measured against live layout rather than assumed, so the drawing survives a
  * resize, a font that loads late, and a card that wrapped to three lines. */
 function drawWires(sigs) {
-  wiresEl.innerHTML = "";
+  if (!cards.length) { wiresEl.innerHTML = ""; return; }
   const box = stageEl.getBoundingClientRect();
-  if (box.width < WIRE_MIN_W || !cards.length) return;
+  const pts = Converge.arc(coreEl, box, cards.length, { radiusFrac: RING, facing: "left" });
 
-  wiresEl.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
-  wiresEl.setAttribute("width", String(box.width));
-  wiresEl.setAttribute("height", String(box.height));
-
-  const core = coreEl.getBoundingClientRect();
-  const cx = core.left - box.left + core.width / 2;
-  const cy = core.top - box.top + core.height / 2;
-  const r = Math.min(core.width, core.height) * RING;
-
-  /* Landing points spread across the left arc of the outermost ring, centred
-   * on the horizontal so the fan stays symmetric however many signals there
-   * are. Kept deliberately narrow: a wide fan reads as a list pointing at a
-   * circle, and the whole point of the drawing is convergence. */
-  const n = cards.length;
-  const spread = Math.min(1.25, 0.28 * n);
-
-  cards.forEach((card, i) => {
+  Converge.wires(wiresEl, stageEl, cards.map((card, i) => {
     const eff = EFFECT[sigs[i].effect] || EFFECT.context;
-    const cr = card.getBoundingClientRect();
-    const x1 = cr.right - box.left;
-    const y1 = cr.top - box.top + cr.height / 2;
-
-    /* Subtract, don't add: SVG y grows downward, so the first card — which
-     * sits at the top of the stack — has to land above the centre line or
-     * every connector crosses every other one. */
-    const a = Math.PI - (n === 1 ? 0 : (i - (n - 1) / 2) * (spread / (n - 1)));
-    const x2 = cx + r * Math.cos(a);
-    const y2 = cy + r * Math.sin(a);
-
-    const dx = Math.max(48, (x2 - x1) * 0.48);
-    const d = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + dx).toFixed(1)} ${y1.toFixed(1)}, ${(x2 - dx).toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-
-    const path = svgEl("path", { d, class: "c-lens-wire", fill: "none" });
-    path.dataset.tone = eff.tone;
-    path.dataset.weight = eff.solid ? "moves" : "context";
-    wiresEl.appendChild(path);
-
-    const dot = svgEl("circle", { cx: x2.toFixed(1), cy: y2.toFixed(1), r: eff.solid ? 4 : 3, class: "c-lens-node" });
-    dot.dataset.tone = eff.tone;
-    dot.dataset.weight = eff.solid ? "moves" : "context";
-    wiresEl.appendChild(dot);
-
-    if (!REDUCED) {
-      const len = path.getTotalLength();
-      path.style.strokeDasharray = eff.solid ? `${len}` : `2 5`;
-      if (eff.solid) {
-        path.style.strokeDashoffset = String(len);
-        path.style.animation = `c-lens-draw .85s cubic-bezier(.4,0,.2,1) ${(i * 0.07).toFixed(2)}s forwards`;
-      } else {
-        path.style.opacity = "0";
-        path.style.animation = `c-lens-fade .5s ease ${(i * 0.07 + 0.25).toFixed(2)}s forwards`;
-      }
-      dot.style.opacity = "0";
-      dot.style.animation = `c-lens-fade .4s ease ${(i * 0.07 + 0.6).toFixed(2)}s forwards`;
-    } else if (!eff.solid) {
-      path.style.strokeDasharray = "2 5";
-    }
-  });
+    return {
+      from: { el: card, side: "right" },
+      to: pts[i],
+      tone: eff.tone,
+      solid: eff.solid,
+    };
+  }), { minWidth: WIRE_MIN_W });
 }
 
 function schedule(sigs) {
@@ -536,17 +469,18 @@ export const Lens = {
   /* onJump(stage) — optional. Given it, each card becomes a control that moves
    * the run to the stage the signal came from. */
   mount(node, { onJump = null } = {}) {
+    Converge.injectCSS();
     injectCSS();
     host = node;
     jump = onJump;
     host.innerHTML = "";
-    host.classList.add("c-lens");
+    host.classList.add("cv", "c-lens");
 
     headEl = el("div", "c-lens-head-strip");
     host.appendChild(headEl);
 
     stageEl = el("div", "c-lens-stage");
-    wiresEl = svgEl("svg", { class: "c-lens-wires", "aria-hidden": "true" });
+    wiresEl = svgEl("svg", { class: "cv-wires", "aria-hidden": "true" });
     signalsEl = el("div", "c-lens-signals");
     coreEl = el("div", "c-lens-core");
     legendEl = el("div", "c-lens-legend");
@@ -615,14 +549,6 @@ function injectCSS() {
   const s = document.createElement("style");
   s.id = "c-lens-css";
   s.textContent = `
-.c-lens { --t: var(--pi-accent); }
-.c-lens [data-tone="err"]    { --t: var(--pi-err); }
-.c-lens [data-tone="warn"]   { --t: var(--pi-warn); }
-.c-lens [data-tone="ok"]     { --t: var(--pi-ok); }
-.c-lens [data-tone="accent"] { --t: var(--pi-accent); }
-.c-lens [data-tone="idle"]   { --t: var(--pi-muted); }
-.c-lens [data-tone=""]       { --t: var(--pi-muted); }
-
 .c-lens-head-strip {
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   padding-bottom:10px; margin-bottom:4px; border-bottom:1px solid var(--pi-line);
@@ -647,17 +573,8 @@ function injectCSS() {
 }
 @media (max-width:900px) {
   .c-lens-stage { grid-template-columns:1fr; min-height:0; padding-top:16px; }
-  .c-lens-wires { display:none; }
+  .c-lens-stage .cv-wires { display:none; }
 }
-
-.c-lens-wires { position:absolute; inset:0; pointer-events:none; z-index:0; overflow:visible; }
-.c-lens-wire  { stroke:var(--t); stroke-width:1.5; }
-.c-lens-wire[data-weight="context"] { stroke:var(--pi-muted); stroke-opacity:.5; stroke-width:1.25; }
-.c-lens-node  { fill:var(--t); }
-.c-lens-node[data-weight="context"] { fill:var(--pi-muted); fill-opacity:.5; }
-
-@keyframes c-lens-draw { to { stroke-dashoffset:0; } }
-@keyframes c-lens-fade { to { opacity:1; } }
 
 .c-lens-signals { position:relative; z-index:1; display:grid; gap:14px; }
 
@@ -694,7 +611,6 @@ button.c-lens-card:hover, button.c-lens-card:focus-visible {
   border:1px solid var(--t); padding:1px 6px;
 }
 .c-lens-card[data-tone=""] .c-lens-tag { color:var(--pi-muted); border-color:var(--pi-line); }
-.c-lens-ic { width:10px; height:10px; flex:none; fill:currentColor; }
 
 .c-lens-detail {
   margin:7px 0 0; font-size:12.5px; line-height:1.45; color:var(--pi-muted);

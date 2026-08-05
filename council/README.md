@@ -125,7 +125,9 @@ council/
   claims.js       the typed claim ledger
   council.js      the fifteen seats, providers, resolution ladder
   agents.js       the animated pixel bench
+  converge.js     the shared drawing language for "several things become one"
   lens.js         the decision lens — every signal converging on the verdict
+  ladder.js       the resolution ladder as a cascade, not a list
   viz.js          deterministic SVG charts
   report.js       run bundle, replay, verify, export
   demo/           self-contained synthetic sample case
