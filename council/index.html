@@ -46,6 +46,15 @@
 
   <!-- ══════════ 01 corpus ══════════ -->
   <section class="stage" data-stage="corpus">
+    <header class="c-head">
+      <div class="c-mast">
+        <span class="c-mast-n">01</span>
+        <h2>Evidence intake</h2>
+        <p class="c-mast-deck">Files in, spans out, every one of them locatable. Parsed in this tab; nothing is uploaded.</p>
+      </div>
+      <div class="c-head-rule"></div>
+    </header>
+
     <div class="c-grid side" style="margin-top:16px">
       <div class="pwin">
         <div class="pwin-title"><span class="pwin-lamp"></span>evidence intake<span class="c-count" id="intake-count">0 files</span></div>
@@ -122,6 +131,15 @@
 
   <!-- ══════════ 02 data contract ══════════ -->
   <section class="stage c-hidden" data-stage="contract">
+    <header class="c-head">
+      <div class="c-mast">
+        <span class="c-mast-n">02</span>
+        <h2>What the data is</h2>
+        <p class="c-mast-deck">Measured, not inferred. Get the grain wrong here and every number downstream is wrong.</p>
+      </div>
+      <div class="c-head-rule"></div>
+    </header>
+
     <div class="pwin" style="margin-top:16px">
       <div class="pwin-title"><span class="pwin-lamp"></span>what the data actually is<span class="c-count" id="contract-count"></span></div>
       <div class="pwin-body">
@@ -149,6 +167,15 @@
 
   <!-- ══════════ 03 definitions ══════════ -->
   <section class="stage c-hidden" data-stage="calc">
+    <header class="c-head">
+      <div class="c-mast">
+        <span class="c-mast-n">03</span>
+        <h2>What each number means</h2>
+        <p class="c-mast-deck">A model may propose a definition. Only the engines execute one — and two of them have to agree.</p>
+      </div>
+      <div class="c-head-rule"></div>
+    </header>
+
     <div class="c-grid two" style="margin-top:16px">
       <div class="pwin">
         <div class="pwin-title"><span class="pwin-lamp"></span>calculation definitions<span class="c-count" id="spec-count">0 specs</span></div>
@@ -185,6 +212,15 @@
 
   <!-- ══════════ 04 council ══════════ -->
   <section class="stage c-hidden" data-stage="council">
+    <header class="c-head">
+      <div class="c-mast">
+        <span class="c-mast-n">04</span>
+        <h2>The bench argues</h2>
+        <p class="c-mast-deck">Fifteen lenses on one analysis. Disagreement is settled by a ladder, never by counting.</p>
+      </div>
+      <div class="c-head-rule"></div>
+    </header>
+
     <div class="c-grid side" style="margin-top:16px">
       <div>
         <div class="pwin" style="margin-bottom:12px">
@@ -236,6 +272,7 @@
                 <option value="note">notes</option>
               </select>
               <span class="pchip" id="dry-chip">offline dry run</span>
+              <button class="pbtn" id="btn-to-radar" type="button">Watch it converge →</button>
             </div>
             <div id="findings"><p class="c-empty">The council has not been convened.</p></div>
           </div>
@@ -280,6 +317,15 @@
 
   <!-- ══════════ 05 external research ══════════ -->
   <section class="stage c-hidden" data-stage="research">
+    <header class="c-head">
+      <div class="c-mast">
+        <span class="c-mast-n">05</span>
+        <h2>Quarantine</h2>
+        <p class="c-mast-deck">Anything from outside the uploaded case lives behind a wall until you let it through, item by item.</p>
+      </div>
+      <div class="c-head-rule"></div>
+    </header>
+
     <div class="pwin" style="margin-top:16px">
       <div class="pwin-title"><span class="pwin-lamp" id="research-lamp" class="warn"></span>external research — quarantined</div>
       <div class="pwin-body">
@@ -307,7 +353,10 @@
 
   <!-- ══════════ 06 decision ══════════ -->
   <section class="stage c-hidden" data-stage="report">
-    <div class="pwin" style="margin-top:16px">
+    <!-- the radar carries its own masthead -->
+    <div id="radar"></div>
+
+    <div class="pwin" style="margin-top:20px">
       <div class="pwin-title"><span class="pwin-lamp"></span>charts<span class="c-count" id="chart-count">0</span></div>
       <div class="pwin-body">
         <p style="margin-top:0;color:var(--pi-muted);font-size:14px">

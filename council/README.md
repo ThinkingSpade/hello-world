@@ -68,6 +68,35 @@ models argue. The engines compute. A person signs.
 | External research | context and questions — quarantined, never evidence |
 | Provenance & injection sentinel | provenance completeness, untrusted content |
 
+## Reading the run
+
+The panels each answer a narrow question — did the figures reconcile, what did
+the bench file, what is still disputed. None of them answer the one a reader
+actually arrives with, which is what all of it comes to.
+
+The decision radar draws that. Evidence down the left, the reading in a lens on
+the right, and a line from each item into the lens: **solid if it moved the
+reading, dotted if it was read and changed nothing.** The line takes the item's
+own severity, so a blocker arrives red and a figure that cleared both engines
+arrives green.
+
+The reading itself is not a score and not a model's opinion. It is the first
+rung of a fixed ladder that matches, and the rung that fired is printed under
+the verdict:
+
+| The reading | Fires when |
+|---|---|
+| `Signed` | a person cleared gate 4 — with whatever was still standing recorded alongside |
+| `Blocked` | a figure did not reconcile across both engines, or a blocker was filed |
+| `Escalate` | a disagreement reached the top of the resolution ladder |
+| `Hold` | major findings stand unanswered |
+| `Proceed` | nothing above fired — and the signature is still yours |
+
+Six of the run's items fit on the canvas and a run usually has more, so the
+selection rule is fixed and printed too: every blocker, then the heaviest of the
+rest, then one item that changed nothing. Nothing is hidden — the panels below
+hold all of it, and the legend says how many did not fit.
+
 ## Running it
 
 It is a static site with no build step.
@@ -122,6 +151,7 @@ council/
   claims.js       the typed claim ledger
   council.js      the fifteen seats, providers, resolution ladder
   agents.js       the animated pixel bench
+  lens.js         the decision radar — evidence drawn into the reading
   viz.js          deterministic SVG charts
   report.js       run bundle, replay, verify, export
   demo/           self-contained synthetic sample case

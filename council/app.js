@@ -21,6 +21,7 @@ import { Trace } from "./trace.js";
 import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
+import { Lens } from "./lens.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -35,6 +36,7 @@ const el = (tag, cls, text) => {
 
 const S = {
   files: [], tables: [], spans: [],
+  busy: false,
   index: null,
   fact: null, factContract: null, collapsed: null,
   reference: null,                 // an attribute table joined to the fact table
@@ -873,6 +875,7 @@ async function runAllSpecs() {
   buildCharts();
   renderClaims();
   refreshRunStrip();
+  renderLens();
   railStatus("report", "ready", "");
   toast(`${ok} of ${S.results.length} figures reconciled across both engines.`, ok === S.results.length ? "ok" : "err");
 }
@@ -1073,6 +1076,8 @@ async function convene({ autoplay = true } = {}) {
   $("#council-lamp").className = "pwin-lamp warn";
   $("#findings").innerHTML = "";
   S.findings = [];
+  S.busy = true;
+  renderLens();
 
   const context = buildCouncilContext();
   const findings = await Council.conveneAll(context, (agentId, phase, note) => {
@@ -1106,6 +1111,8 @@ async function convene({ autoplay = true } = {}) {
   Report.set("deliberation", S.turns);
   Report.set("console", Trace.lines());
   refreshRunStrip();
+  S.busy = false;
+  renderLens();
   if (autoplay) await playDeliberation();
 }
 
@@ -1488,6 +1495,8 @@ async function autopilot() {
   document.body.appendChild(banner);
 
   let cancelled = false;
+  S.busy = true;
+  renderLens();
   stop.addEventListener("click", () => { cancelled = true; stopDeliberation(); });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const at = (pctDone, text) => { fill.style.width = `${pctDone}%`; label.textContent = text; };
@@ -1530,9 +1539,10 @@ async function autopilot() {
     await playDeliberation();
     if (cancelled) return;
 
-    at(94, "building the decision record");
+    at(94, "drawing the decision radar");
     stage("report");
-    await wait(1200);
+    renderLens();
+    await wait(1600);
 
     at(100, "done — run complete");
     await wait(2200);
@@ -1540,6 +1550,8 @@ async function autopilot() {
     label.textContent = `stopped: ${e.message}`;
     await wait(3000);
   } finally {
+    S.busy = false;
+    renderLens();
     banner.remove();
     btns.forEach((b) => { b.disabled = false; });
   }
@@ -1627,6 +1639,50 @@ function small(t) {
 }
 function round(v) { return typeof v === "number" ? Math.round(v * 1e6) / 1e6 : v; }
 
+/* ---------- 06 · the decision radar ----------
+ *
+ * The panels below this one each answer a narrow question — did the figures
+ * reconcile, what did the bench file, what is still disputed. None of them
+ * answer the one a reader actually arrives with, which is what all of it comes
+ * to. The radar draws that: every evidence item on the left, the reading in the
+ * lens, and a line from each item into it — solid if it moved the reading,
+ * dotted if it was read and changed nothing.
+ *
+ * Everything it draws is derived here, from the same state the panels use, and
+ * formatted here too, so lens.js never has to know what a unit is.
+ */
+function renderLens() {
+  const figures = S.results.map((r) => {
+    const spec = S.specs.find((s) => s.specId === r.specId) || {};
+    return {
+      name: spec.name || r.specId,
+      sql: formatValue(r.sqlValue, spec.unit),
+      js: formatValue(r.jsValue, spec.unit),
+      reconciled: !!r.reconciled,
+      undefinedResult: !!r.undefinedResult,
+      note: r.note,
+      error: r.error,
+      delta: typeof r.delta === "number" ? r.delta.toExponential(1) : null,
+    };
+  });
+
+  const ledger = Claims.ledger();
+  Lens.render({
+    busy: S.busy,
+    runId: Report.computeRunId(),
+    convened: S.findings.length > 0,
+    roster: Council.ROSTER,
+    findings: S.findings,
+    resolutions: S.resolutions,
+    figures,
+    dissent: ledger.filter((c) => c.dissent && c.dissent.length)
+                   .map((c) => ({ text: c.text, entries: c.dissent })),
+    claimCount: Claims.summary().total,
+    disputedCount: ledger.filter((c) => c.status === "disputed").length,
+    gates: Object.fromEntries(Object.values(S.gates).map((g) => [g.id, g.status])),
+  });
+}
+
 /* ---------- 06 · reproduce ---------- */
 
 function renderReproduce() {
@@ -1645,6 +1701,7 @@ function renderReproduce() {
     ["Gates", Object.values(S.gates).map((g) => `${g.id}:${g.status}`).join(" · ")],
   ];
   for (const [k, v] of rows) box.appendChild(kv(k, v));
+  renderLens();
 }
 
 /* ---------- wiring ---------- */
@@ -1653,6 +1710,12 @@ function init() {
   Bench.mount($("#bench"), Council.ROSTER);
   Trace.mount($("#trace"));
   EmbedView.mount($("#embed"));
+  Lens.mount($("#radar"));
+
+  /* A card in the radar is a piece of evidence that exists somewhere else in
+   * the application. Clicking it takes you to where it lives, so the picture
+   * stays a way in rather than a summary you have to take on trust. */
+  $("#radar").addEventListener("lens:select", (e) => stage(e.detail.stage));
   Trace.rule("session");
   Trace.step("council", "engines idle — load a case, or press Run the whole case");
   Report.init({ gates: Object.values(S.gates) });
@@ -1720,6 +1783,7 @@ function init() {
     runAllSpecs();
   });
   $("#btn-convene").addEventListener("click", () => convene());
+  $("#btn-to-radar").addEventListener("click", () => stage("report"));
   $("#sev-filter").addEventListener("change", renderFindings);
 
   $("#btn-export").addEventListener("click", () => { Report.exportBundle(); toast("Bundle exported.", "ok"); });
@@ -1734,6 +1798,11 @@ function init() {
       await Report.replay(b, { charts: $("#charts") });
       S.findings = b.findings || [];
       S.resolutions = b.resolutions || [];
+      /* The radar reads figures off the session, not the report, so a replayed
+       * bundle has to put them back or the lens reports 0/0 for a run that
+       * reconciled everything. */
+      S.specs = b.specs || [];
+      S.results = b.results || [];
       renderClaims(); renderFindings(); renderLadder(); renderReproduce();
       stage("report");
       toast(`Replayed run ${b.runId} from the bundle alone — no source files needed.`, "ok");
