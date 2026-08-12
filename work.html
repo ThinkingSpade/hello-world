@@ -321,6 +321,30 @@
         </div>
       </article>
 
+      <article class="window exp" style="--dot:var(--blue-tx)">
+        <div class="window-bar" style="--accent:var(--blue-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">portfolio.xlsx</span><button class="win-max" type="button" aria-expanded="false" aria-label="Expand portfolio.xlsx"><svg class="ico-max" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.2"/></svg><svg class="ico-min" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13"/></svg></button></div>
+        <div class="window-body exp-body">
+          <div class="exp-logo" style="--accent:var(--blue-bg)" data-cursor><svg viewBox="0 0 24 24" fill="#fff" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2.6" y="3.2" width="4" height="3.4"/><rect x="2.6" y="7.6" width="4" height="3.4"/><rect x="2.6" y="12" width="4" height="3.4"/><rect x="2.6" y="16.4" width="4" height="3.4"/><path d="M6.6 4.9 H11.2 V9.3 H6.6 M11.2 7.1 H16.4 M6.6 13.7 H11.2 V18.1 H6.6 M11.2 15.9 H16.4" fill="none" stroke-width="1.1"/><rect x="16.4" y="4.6" width="5" height="5" fill="#1c1a17"/><rect x="16.4" y="13.4" width="5" height="5" fill="#1c1a17"/></svg></div>
+          <div class="exp-main">
+            <h2>Portfolio Dashboard</h2>
+            <p class="exp-role">A business case you can click through</p>
+            <p class="exp-meta">Analytics · Product strategy · 2026</p>
+            <p class="exp-desc">A printer ink maker cut four legacy cartridges down to two replacements. This is the dashboard that tracks whether it worked. Weekly rated page demand against last year, how far each of five retailers has actually switched over, how much legacy stock is still sitting in the channel, and how many weeks of supply the new cartridges are carrying. Every number opens. Click a week and you get the retailer split behind it, click a retailer and you get its inventory position. The upload slot takes any spreadsheet you have and profiles it into a dashboard of its own, so you can point it at your numbers instead of mine.</p>
+            <div class="stack">
+              <span class="stack-label">STACK</span>
+              <ul class="chips-tech" data-stack="React 19, TypeScript, Next.js, SheetJS, Tailwind, esbuild, Cloudflare Pages"></ul>
+            </div>
+            <div class="expand"><div class="expand-inner">
+              <p class="exp-tie"><b>↳ How it fits</b>The source is a Next app that builds to a Cloudflare Worker, but nothing in its render path actually needs a server, so the copy running here compiles to a plain browser bundle and the site stays static. The spreadsheet reader is the heaviest piece of it and only the upload slot needs it, so it waits until you pick a file rather than riding along with everything else.</p>
+              <div class="exp-cta">
+                <a class="btn primary" href="/portfolio-dashboard/">Live Run&nbsp;↗</a>
+                <a class="btn locked" href="https://github.com/ThinkingSpade/hello-world/tree/lab/portfolio-dashboard" target="_blank" rel="noopener">Source&nbsp;↗</a>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </article>
+
       <article class="window exp coming" style="--dot:var(--gold-tx)">
         <div class="window-bar" style="--accent:var(--gold-bg)"><span class="dots"><i></i><i></i><i></i></span><span class="window-title">coming-soon</span></div>
         <div class="window-body exp-body">

@@ -1,0 +1,26 @@
+{
+  "name": "portfolio-dashboard-build",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Build harness that compiles the Portfolio Dashboard into the static assets served at /portfolio-dashboard/.",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-icons": "^5.7.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.2.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3"
+  }
+}
