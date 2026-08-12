@@ -2031,6 +2031,113 @@ main {
   background: #fff;
 }
 
+/* Access gate. Shares the source screen's layout so the first thing a visitor
+   sees already belongs to the dashboard. */
+.gate-screen {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr;
+  background: #fff;
+}
+
+.gate-panel {
+  display: grid;
+  width: min(340px, calc(100% - 32px));
+  align-content: center;
+  justify-self: center;
+  gap: 13px;
+  margin-top: -72px;
+  text-align: center;
+}
+
+.gate-panel h1 {
+  color: var(--navy-700);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.gate-panel > p {
+  margin-bottom: 4px;
+  color: var(--gray-500);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.gate-input {
+  width: 100%;
+  height: 56px;
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  background: var(--gray-25);
+  color: var(--navy-900);
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.55em;
+  text-align: center;
+  /* Offsets the trailing space letter-spacing adds after the last character. */
+  text-indent: 0.55em;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.gate-input:focus {
+  outline: none;
+  border-color: var(--brand-200);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(2, 74, 216, 0.1);
+}
+
+.gate-panel.error .gate-input {
+  border-color: var(--coral-500);
+  background: var(--coral-50);
+  animation: gate-shake 320ms ease;
+}
+
+.gate-submit {
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy-700);
+  padding: 0 16px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(43, 54, 116, 0.2);
+  transition: filter 150ms ease, transform 150ms ease, opacity 150ms ease;
+}
+
+.gate-submit:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.gate-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.gate-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.gate-error {
+  min-height: 15px;
+  color: var(--coral-600);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@keyframes gate-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
 .source-brand {
   display: flex;
   align-items: center;

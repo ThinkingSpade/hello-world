@@ -68,7 +68,7 @@ type ImportStatus = {
   message: string;
 };
 
-function PortfolioMark() {
+export function PortfolioMark() {
   return (
     <span className="portfolio-mark" aria-hidden="true">
       <svg viewBox="0 0 44 44" fill="none">
