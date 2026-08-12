@@ -9,7 +9,8 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { cp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as esbuild from "esbuild";
@@ -17,14 +18,20 @@ import * as esbuild from "esbuild";
 const here = dirname(fileURLToPath(import.meta.url));
 const out = join(here, "..", "assets");
 const fontsOut = join(out, "fonts");
+const pageHtml = join(here, "..", "index.html");
 
 const FONT_WEIGHTS = [400, 500, 700];
+
+const hash = (contents) => createHash("sha256").update(contents).digest("hex").slice(0, 8);
 
 async function bundleScripts() {
   const result = await esbuild.build({
     entryPoints: [join(here, "entry.tsx")],
     outdir: out,
-    entryNames: "app",
+    // Content-hashed so a deploy always lands on a new URL. The site is behind a
+    // 4 hour browser cache TTL, so a stable app.js name would leave visitors on
+    // a stale bundle until it expired.
+    entryNames: "app-[hash]",
     chunkNames: "chunk-[hash]",
     bundle: true,
     splitting: true,
@@ -72,8 +79,26 @@ async function copyFonts() {
 
   const cssPath = join(out, "app.css");
   const css = await readFile(cssPath, "utf8");
-  await writeFile(cssPath, `${faces.join("")}\n${css}`);
-  return faces.length;
+  const withFaces = `${faces.join("")}\n${css}`;
+
+  // Hashed for the same reason as the JS bundle.
+  const name = `app-${hash(withFaces)}.css`;
+  await writeFile(cssPath, withFaces);
+  await rename(cssPath, join(out, name));
+  return { fontCount: faces.length, name, bytes: Buffer.byteLength(withFaces) };
+}
+
+/** Points index.html at whatever the current hashed filenames are. */
+async function rewriteHtml(scriptName, styleName) {
+  const html = await readFile(pageHtml, "utf8");
+  const next = html
+    .replace(/\.\/assets\/app[^"']*\.js/g, `./assets/${scriptName}`)
+    .replace(/\.\/assets\/app[^"']*\.css/g, `./assets/${styleName}`);
+
+  if (!next.includes(scriptName) || !next.includes(styleName)) {
+    throw new Error("index.html has no ./assets/app*.js and ./assets/app*.css references to update.");
+  }
+  await writeFile(pageHtml, next);
 }
 
 async function main() {
@@ -82,16 +107,19 @@ async function main() {
 
   const scripts = await bundleScripts();
   await buildStyles();
-  const fontCount = await copyFonts();
+  const styles = await copyFonts();
 
-  const css = await readFile(join(out, "app.css"), "utf8");
+  const entry = scripts.find(([file]) => file.startsWith("app-"));
+  if (!entry) throw new Error("esbuild produced no app-*.js entry bundle.");
+  await rewriteHtml(entry[0], styles.name);
 
   console.log("\nBuilt into portfolio-dashboard/assets/");
   for (const [file, bytes] of scripts) {
-    console.log(`  ${file.padEnd(22)} ${(bytes / 1024).toFixed(1)} KB`);
+    console.log(`  ${file.padEnd(24)} ${(bytes / 1024).toFixed(1)} KB`);
   }
-  console.log(`  ${"app.css".padEnd(22)} ${(Buffer.byteLength(css) / 1024).toFixed(1)} KB`);
-  console.log(`  ${fontCount} font files`);
+  console.log(`  ${styles.name.padEnd(24)} ${(styles.bytes / 1024).toFixed(1)} KB`);
+  console.log(`  ${styles.fontCount} font files`);
+  console.log(`\nindex.html now points at ${entry[0]} and ${styles.name}`);
 }
 
 await main();

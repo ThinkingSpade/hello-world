@@ -58,8 +58,13 @@ cd portfolio-dashboard/_src && npm install && node build.mjs
 ```
 
 That bundles the app with esbuild, compiles the stylesheet with the Tailwind
-CLI, and copies the self-hosted DM Sans files. Commit the regenerated `assets/`
-directory alongside the source change.
+CLI, copies the self-hosted DM Sans files, and rewrites `index.html` to point at
+the rebuilt filenames. Commit the regenerated `assets/` directory and
+`index.html` alongside the source change.
+
+Asset filenames carry a content hash, so each build lands on a new URL. This
+matters because the custom domain serves a four hour browser cache TTL; a stable
+filename would leave return visitors on a stale bundle until it expired.
 
 ## Deployment
 
