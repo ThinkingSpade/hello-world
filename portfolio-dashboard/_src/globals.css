@@ -1184,8 +1184,9 @@ main {
 }
 
 .target-key {
-  border: 1px solid rgba(2, 74, 216, 0.26);
-  background: rgba(2, 74, 216, 0.08);
+  border-radius: 3px;
+  border: 1px solid rgba(2, 74, 216, 0.22);
+  background: rgba(2, 74, 216, 0.07);
 }
 
 .wos-unit {
@@ -1279,14 +1280,17 @@ main {
   gap: 8px;
 }
 
+/* The target band is a backdrop, not an overlay: it sits under the bars so it
+   never tints the data, and the tracks are translucent so it reads through. */
 .wos-target-zone {
   position: absolute;
-  top: -4px;
-  bottom: -4px;
-  z-index: 2;
-  border-right: 1px solid rgba(2, 74, 216, 0.2);
-  border-left: 1px solid rgba(2, 74, 216, 0.2);
-  background: linear-gradient(90deg, rgba(2, 74, 216, 0.045), rgba(2, 74, 216, 0.095), rgba(2, 74, 216, 0.045));
+  top: -5px;
+  bottom: -5px;
+  z-index: 0;
+  border-radius: 5px;
+  border-right: 1px solid rgba(2, 74, 216, 0.22);
+  border-left: 1px solid rgba(2, 74, 216, 0.22);
+  background: rgba(2, 74, 216, 0.07);
   pointer-events: none;
 }
 
@@ -1311,7 +1315,8 @@ main {
   height: 9px;
   overflow: visible;
   border-radius: 999px;
-  background: var(--gray-100);
+  /* Translucent rather than --gray-100 so the target band shows through. */
+  background: rgba(16, 24, 40, 0.055);
 }
 
 .wos-track > i {

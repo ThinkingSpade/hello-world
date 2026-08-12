@@ -6,136 +6,31 @@
   <meta name="description" content="A product portfolio simplification dashboard: four legacy ink SKUs consolidating into two, tracked weekly across five retailers.">
   <title>Portfolio Dashboard | Product portfolio simplification</title>
   <link rel="icon" href="./favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./assets/app.css">
   <style>
-    /* ------------------------------------------------------------------
-       Integration layer only. Everything below is the thin seam between
-       the portfolio shell and the dashboard, which keeps its own design.
-       Nothing here restyles the dashboard itself.
-       ------------------------------------------------------------------ */
-    :root {
-      --pd-bar-h: 44px;
-      --pd-ink: #1e1a14;
-      --pd-soft: #e9edfb;
-      --pd-muted: #6d6353;
-    }
-
-    .pd-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 60;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      height: var(--pd-bar-h);
-      padding: 0 12px;
-      background: var(--pd-soft);
-      border-bottom: 2px solid var(--pd-ink);
-      color: var(--pd-ink);
-    }
-
-    .pd-dots { display: flex; gap: 5px; flex: none; }
-    .pd-dots i {
-      width: 9px;
-      height: 9px;
-      background: #fffdf6;
-      border: 1.5px solid var(--pd-ink);
-    }
-
-    .pd-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
-      letter-spacing: .04em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .pd-back {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 34px;
-      margin-left: auto;
-      padding: 0 12px;
-      flex: none;
-      font-family: 'Pixelify Sans', 'Segoe UI', sans-serif;
-      font-size: 15px;
-      line-height: 1;
-      letter-spacing: .02em;
-      color: var(--pd-ink);
-      text-decoration: none;
-      background: #fffdf6;
-      border: 2px solid var(--pd-ink);
-      box-shadow: 3px 3px 0 var(--pd-ink);
-    }
-    /* The button reads better compact than the 44px touch floor allows, so the
-       hit area is extended past the visible box rather than the box inflated. */
-    .pd-back::after { content: ''; position: absolute; inset: -5px -4px; }
-    .pd-back:hover { background: #fff; }
-    .pd-back:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pd-ink); }
-    .pd-back:focus-visible { outline: 3px solid #2547c9; outline-offset: 2px; }
-    .pd-back svg { width: 13px; height: 13px; flex: none; }
-
-    /* The dashboard's own chrome sticks to the viewport, so it has to be told
-       the top 44px is spoken for. */
-    body { padding-top: var(--pd-bar-h); }
-    .topbar,
-    .generic-topbar { top: calc(var(--pd-bar-h) + 12px); }
-    .dashboard-shell,
-    .source-screen,
-    .generic-shell { min-height: calc(100vh - var(--pd-bar-h)); }
-
-    @media (max-width: 640px) {
-      .topbar,
-      .generic-topbar { top: calc(var(--pd-bar-h) + 8px); }
-    }
-
-    @media (max-width: 460px) {
-      .pd-dots { display: none; }
-      .pd-title { font-size: 9px; }
-    }
-
     /* Placeholder for the moment before the bundle mounts. React replaces it. */
     .pd-boot {
       display: grid;
       place-content: center;
-      gap: 10px;
-      min-height: calc(100vh - var(--pd-bar-h));
+      gap: 8px;
+      min-height: 100vh;
       text-align: center;
-      font-family: 'Pixelify Sans', 'Segoe UI', sans-serif;
-      color: var(--pd-muted);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 13px;
+      color: var(--gray-500, #667085);
     }
     .pd-boot b {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 11px;
-      color: var(--pd-ink);
-      font-weight: 400;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy-900, #111c44);
     }
   </style>
 </head>
 <body>
-  <div class="pd-bar">
-    <span class="pd-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-    <span class="pd-title">portfolio.xlsx</span>
-    <a class="pd-back" href="/work.html">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
-        <path d="M10 3 L5 8 L10 13" />
-      </svg>
-      Projects
-    </a>
-  </div>
-
   <div id="root">
     <div class="pd-boot">
-      <b>loading</b>
-      <span>Starting the dashboard</span>
+      <b>Portfolio Dashboard</b>
+      <span>Starting up</span>
     </div>
   </div>
 
