@@ -1177,7 +1177,6 @@ export default function Home() {
                   <p>PERFORMANCE</p>
                   <h1>Portfolio performance</h1>
                 </div>
-                <span className="decision-label">Maintain both new SKUs</span>
               </div>
 
               <div className="kpi-grid">
