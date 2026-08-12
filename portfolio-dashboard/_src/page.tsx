@@ -543,11 +543,18 @@ function WosChart({
         <span />
       </div>
       <div className={`wos-rows ${rows.length === 1 ? "single" : ""}`}>
+        <i
+          className="wos-target-zone"
+          aria-hidden="true"
+          style={{
+            left: `calc(var(--wos-track-start) + (100% - var(--wos-track-inset)) * ${6 / max})`,
+            width: `calc((100% - var(--wos-track-inset)) * ${2 / max})`,
+          }}
+        />
         {rows.map((row) => (
           <button type="button" key={row.retailer} onClick={() => onSelect(row.retailer)}>
             <span className="wos-label">{titleCase(row.retailer)}</span>
             <span className="wos-lines">
-              <i className="wos-target-zone" aria-hidden="true" style={{ left: `calc(43px + (100% - 83px) * ${6 / max})`, width: `calc((100% - 83px) * ${2 / max})` }} />
               {colorFilter !== "Color" && row.black !== null ? (
                 <span className="wos-line">
                   <span className="wos-series-name">Black</span>

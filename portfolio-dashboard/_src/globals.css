@@ -1142,6 +1142,17 @@ main {
   display: grid;
   gap: 10px;
   margin-top: 17px;
+
+  /* Row grid geometry, named once so the axis, the bars, and the target band
+     all derive the same track edges instead of repeating magic numbers. */
+  --wos-pad: 13px;
+  --wos-label-col: 126px;
+  --wos-open-col: 26px;
+  --wos-series-col: 34px;
+  --wos-value-col: 31px;
+  --wos-line-gap: 9px;
+  --wos-track-start: calc(var(--wos-pad) + var(--wos-label-col) + var(--wos-series-col) + var(--wos-line-gap));
+  --wos-track-inset: calc(var(--wos-track-start) + var(--wos-pad) + var(--wos-open-col) + var(--wos-value-col) + var(--wos-line-gap));
 }
 
 .wos-toolbar {
@@ -1237,6 +1248,7 @@ main {
 }
 
 .wos-rows {
+  position: relative;
   display: grid;
   gap: 6px;
 }
@@ -1280,17 +1292,17 @@ main {
   gap: 8px;
 }
 
-/* The target band is a backdrop, not an overlay: it sits under the bars so it
-   never tints the data, and the tracks are translucent so it reads through. */
+/* One continuous column behind every row, rising to meet the axis rule so it
+   reads as a region of the scale. It sits under the bars, never over them, and
+   the tracks are translucent so it carries through them. */
 .wos-target-zone {
   position: absolute;
-  top: -5px;
-  bottom: -5px;
+  top: -10px;
+  bottom: 0;
   z-index: 0;
-  border-radius: 5px;
-  border-right: 1px solid rgba(2, 74, 216, 0.22);
-  border-left: 1px solid rgba(2, 74, 216, 0.22);
-  background: rgba(2, 74, 216, 0.07);
+  border-right: 1px solid rgba(2, 74, 216, 0.28);
+  border-left: 1px solid rgba(2, 74, 216, 0.28);
+  background: rgba(2, 74, 216, 0.05);
   pointer-events: none;
 }
 
@@ -2727,6 +2739,8 @@ main {
 
   .wos-chart {
     min-width: 520px;
+    --wos-label-col: 104px;
+    --wos-open-col: 22px;
   }
 
   .wos-scale,
