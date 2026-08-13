@@ -1,5 +1,5 @@
-# The Portfolio Dashboard used to be served statically from /portfolio-dashboard/.
-# It now runs as its own Cloudflare Worker behind an access code, so the case data
-# is no longer published here. This redirect covers both hnguyen.dev and the
-# *.pages.dev domain, since it is applied by Pages itself rather than by a zone rule.
-/portfolio-dashboard/* https://portfolio-simplification-analytics.huy1999nguyen.workers.dev/ 302
+# On hnguyen.dev, /portfolio-dashboard/* is served by a Workers Route pointing at
+# the gated dashboard Worker, so Pages never sees those requests. This rule only
+# takes effect on the *.pages.dev domain, where no Workers Route applies and the
+# old static build's case-data.json was still being served from cache.
+/portfolio-dashboard/* https://hnguyen.dev/portfolio-dashboard/ 302
