@@ -2093,6 +2093,11 @@ main {
   box-shadow: 0 0 0 4px rgba(2, 74, 216, 0.1);
 }
 
+.gate-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .gate-panel.error .gate-input {
   border-color: var(--coral-500);
   background: var(--coral-50);
