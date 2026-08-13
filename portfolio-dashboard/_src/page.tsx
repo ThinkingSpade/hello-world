@@ -391,24 +391,35 @@ function TrendChart({
         ) : null}
         <path key={`${metric}-${path}`} className="trend-line" d={path} />
         {points.map((point, index) => (
-          <circle
-            key={point.week}
-            className="trend-point"
-            cx={x(index)}
-            cy={y(point.value)}
-            r={hovered === index ? 6 : 4}
-            tabIndex={0}
-            role="button"
-            aria-label={`${point.label}, ${formatPercent(point.value)}`}
-            onMouseEnter={() => setHovered(index)}
-            onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered(index)}
-            onBlur={() => setHovered(null)}
-            onClick={() => onSelect(point.week)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") onSelect(point.week);
-            }}
-          />
+          <g key={point.week}>
+            {/* The visible dot is 4 units in an 820 unit viewBox, which lands
+                near 8px on a phone. This invisible companion carries the
+                pointer and keyboard affordance at a finger-sized radius. */}
+            <circle
+              className="trend-hit"
+              cx={x(index)}
+              cy={y(point.value)}
+              r={20}
+              tabIndex={0}
+              role="button"
+              aria-label={`${point.label}, ${formatPercent(point.value)}`}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(index)}
+              onBlur={() => setHovered(null)}
+              onClick={() => onSelect(point.week)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") onSelect(point.week);
+              }}
+            />
+            <circle
+              className="trend-point"
+              cx={x(index)}
+              cy={y(point.value)}
+              r={hovered === index ? 6 : 4}
+              aria-hidden="true"
+            />
+          </g>
         ))}
         {points.map((point, index) =>
           index % 2 === 0 || index === points.length - 1 ? (

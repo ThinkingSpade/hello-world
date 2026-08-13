@@ -979,11 +979,26 @@ main {
   fill: #fff;
   stroke: var(--brand-500);
   stroke-width: 2.5;
+  pointer-events: none;
   transition: r 120ms ease, fill 120ms ease;
 }
 
-.trend-point:hover,
-.trend-point:focus {
+/* Invisible finger-sized target sitting under each visible point. */
+.trend-hit {
+  fill: transparent;
+  stroke: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.trend-hit:focus-visible {
+  fill: rgba(2, 74, 216, 0.12);
+  stroke: var(--brand-500);
+  stroke-width: 1.5;
+}
+
+.trend-hit:hover + .trend-point,
+.trend-hit:focus + .trend-point {
   fill: var(--brand-500);
 }
 
@@ -2945,5 +2960,63 @@ main {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Phone pass. The layout already reflows correctly down to 320px; what
+   it lacked was finger-sized controls and a readable type floor. Sizes
+   here are deliberately scoped to phones so the dense desktop
+   presentation is untouched.
+   ------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  /* The info dots stay 14-16px visually; only the hit area grows. -15px
+     clears 44px for the compact 14px variant used inside drawer tables. */
+  .info-tip::after {
+    content: "";
+    position: absolute;
+    inset: -15px;
+  }
+
+  .metric-toggle button {
+    min-height: 44px;
+    font-size: 11px;
+  }
+
+  .mix-bars button,
+  .retailer-bars button {
+    min-height: 44px;
+  }
+
+  .drawer-header .drawer-close {
+    height: 44px;
+    font-size: 11px;
+  }
+
+  /* Type floor. 8px and 9px are legible on a desktop monitor at arm's
+     length and not on a phone. Chart tick labels inside the scrolling
+     inventory panel are left alone; they sit in fixed-width columns. */
+  .kpi-copy small,
+  .data-footer span,
+  .wos-line b {
+    font-size: 11px;
+  }
+
+  /* Two KPI cards to a row leaves no space for a single-line label, so
+     "Channel conversion" was arriving as "Channel conv...". Let it wrap. */
+  .kpi-card p {
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  .filter-trigger small,
+  .sku-map-node small,
+  .sku-map-connector span,
+  .wos-series-name,
+  .wos-scale-track i,
+  .wos-unit,
+  .bar-axis span {
+    font-size: 10px;
   }
 }
