@@ -83,6 +83,12 @@ body.council {
 .pwin-title .c-count {
   margin-left: auto; font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
 }
+.pwin-title .c-link {
+  font-family: var(--pi-font-code); font-size: 12px;
+  color: var(--pi-accent); text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.pwin-title .c-link:hover { color: var(--pi-ink); }
 
 /* ---------- the rail: the run as a sequence of gates ---------- */
 

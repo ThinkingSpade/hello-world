@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Floor — council.audit</title>
+<meta name="description" content="Council's fifteen auditors on an office floor: they sit at their terminals, walk to the boardroom when the council convenes, and a person walks out of the corner office to sign each gate." />
+<link rel="icon" type="image/png" href="/huy-avatar.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/pixel.css" />
+<link rel="stylesheet" href="vendor/cth-tokens.css" />
+<link rel="stylesheet" href="floor.css" />
+</head>
+<body class="fl">
+
+<div class="fl-page">
+
+  <header class="fl-top">
+    <h1>the floor</h1>
+    <span class="fl-sub">fifteen auditors · two engines · four gates</span>
+    <span class="fl-spacer"></span>
+    <a class="pbtn" href="/council/">the live workbench&nbsp;↗</a>
+    <a class="pbtn" href="/work.html">← projects</a>
+  </header>
+
+  <!-- the office window -->
+  <div class="app">
+
+    <div class="app-bar">
+      <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+      <b class="app-name">council.audit</b>
+      <span class="app-ver">v1.0 · run 7f3a91c4</span>
+      <span class="app-mode">auto mode on</span>
+      <span class="fl-spacer"></span>
+      <span class="app-clock" id="clock">03:12 · GATE 1</span>
+      <button class="icon-btn" id="theme" type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+
+    <div class="app-main">
+
+      <section class="floor-pane" aria-label="The council floor">
+        <canvas id="floorCanvas" width="1088" height="704"
+          aria-label="A top-down office: fifteen auditors at their desks, a boardroom, a cafeteria, and the analyst's corner office"></canvas>
+        <p class="floor-hint">CLICK SOMEONE TO INSPECT</p>
+      </section>
+
+      <aside class="side" aria-label="Seat inspector and run log">
+
+        <div class="panel seat-card">
+          <div class="panel-title">SEAT<span id="idSerial">SEAT 01/15</span></div>
+          <div class="seat-head">
+            <canvas id="idPortrait" width="90" height="140"></canvas>
+            <div class="seat-who">
+              <h2 id="idName">Data Contract</h2>
+              <p id="idRole">grain &amp; keys</p>
+              <span class="badge" id="idState" data-st="idle"><i></i><em>idle</em></span>
+            </div>
+          </div>
+          <dl class="rows">
+            <div><dt>LENS</dt><dd id="idLens">grain</dd></div>
+            <div><dt>MAY ASSERT</dt><dd id="idMay">assumption · limitation</dd></div>
+            <div><dt>NOW</dt><dd id="idTask">waiting its turn</dd></div>
+          </dl>
+        </div>
+
+        <div class="panel term">
+          <div class="panel-title">RUN LOG<span id="dexRead">6 CLAIMS · 1 BLOCKED · 0 DISSENT</span></div>
+          <div class="term-body" id="log" role="log" aria-live="polite"></div>
+        </div>
+
+      </aside>
+    </div>
+
+    <div class="app-gates">
+      <p class="gate-title" id="dexTitle">SETTLING THE GRAIN — BEFORE ANYONE COMPUTES ANYTHING</p>
+      <div class="gate-row" id="gates" role="group" aria-label="Pick a gate"></div>
+    </div>
+
+    <div class="app-strip" id="cards" role="tablist" aria-label="The fifteen seats"></div>
+
+  </div>
+
+  <footer class="fl-foot">
+    <p>
+      One recorded case, gate by gate. This is the same room the
+      <a href="/council/">workbench</a> runs — the auditors sit at their terminals, hand claims to each
+      other, and walk to the boardroom when the council convenes. The only person who is not a model is
+      the analyst: she comes out of the corner office at each gate, reads the bundle and signs, because
+      that is the one thing the seats are not allowed to do. Open the workbench and drop a case in, and
+      the same fifteen people do it for real.
+    </p>
+    <p class="fl-credit">
+      The office is <a href="https://github.com/chaitanyagiri/munder-difflin" target="_blank" rel="noopener">Munder Difflin</a>'s
+      (MIT): the cast is drawn by their <code>portraitArt.ts</code>, the room by their
+      <code>TiledMapRenderer</code>, and everyone walks on their BFS. The floor plan is
+      <a href="https://github.com/shahar061/the-office" target="_blank" rel="noopener">shahar061/the-office</a>
+      (ISC), where they got it too. The tiles are <a href="https://limezu.itch.io/" target="_blank" rel="noopener">LimeZu</a>
+      pixel art under the FREE VERSION licence — non-commercial use only, which is what this is.
+      Licences and per-file provenance: <code>council/floor/vendor/README.md</code>.
+    </p>
+    <nav class="fl-links">
+      <a class="pbtn primary" href="/council/">Open the workbench&nbsp;↗</a>
+      <a class="pbtn" href="/work.html">← projects</a>
+    </nav>
+  </footer>
+
+</div>
+
+<script type="module" src="floor.js"></script>
+</body>
+</html>
