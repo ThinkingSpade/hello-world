@@ -6,12 +6,11 @@
  * not know the difference: it still calls setState / say / passDossier / gavel /
  * dissent / stats and the room answers.
  *
- * The seats are the same fifteen people you see on /council/floor/, drawn from
- * the same recipes in ./floor/cast.js, so the two surfaces can no longer drift.
- *
- * When nothing is running the room plays the recorded case as attract mode —
- * the first thing app.js says to it takes over, and the replay stops for good
- * until the page is reloaded.
+ * When nothing is running the room plays the recorded case as attract mode,
+ * with the four gates as buttons so a visitor can scrub through it — the first
+ * thing app.js says to the room takes over, the gates disappear, and the replay
+ * stops for good until the page is reloaded. (The case used to live on its own
+ * page at /council/floor/; that URL now just redirects here.)
  *
  * State is never carried by motion alone: every state has a colour, a glyph on
  * the seat's terminal and a word in its tag and on its card. See CONTRACT.md §9.
@@ -92,8 +91,24 @@ function injectCSS() {
 .pv-view button[aria-pressed="true"] { background: var(--pi-ink); border-color: var(--pi-ink); color: var(--pi-panel); }
 
 .pv-room { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 12px; align-items: start; }
+.pv-room .pv-floor { grid-row: 1; grid-column: 1; }
+.pv-room .pv-card { grid-row: 1 / span 2; grid-column: 2; }
+.pv-room .pv-gates, .pv-room .pv-gates-slot { grid-row: 2; grid-column: 1; }
 .pv-floor { position: relative; background: #fff; border: 2px solid var(--pi-ink); padding: 4px; min-width: 0; }
 .pv-floor canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; cursor: pointer; }
+.pv-gates { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.pv-gates[hidden] { display: none; }
+.pv-gate {
+  flex: 1 1 150px; text-align: left; cursor: pointer;
+  background: var(--pi-panel); border: 1px solid var(--pi-line);
+  padding: 7px 10px 6px; color: var(--pi-ink);
+  font-family: var(--pi-font-title); font-size: 7px; line-height: 1.4;
+}
+.pv-gate span { display: block; margin-top: 4px; font-family: var(--pi-font-ui); font-size: 12px; color: var(--pi-muted); }
+.pv-gate:hover { border-color: var(--pi-muted); }
+.pv-gate.on { background: var(--pi-ink); border-color: var(--pi-ink); color: var(--pi-panel); }
+.pv-gate.on span { color: var(--pi-line); }
+
 .pv-hint {
   position: absolute; left: 12px; bottom: 8px; margin: 0;
   font-family: var(--pi-font-title); font-size: 7px; letter-spacing: .08em;
@@ -162,6 +177,7 @@ function injectCSS() {
 
 @media (max-width: 980px) {
   .pv-room { grid-template-columns: minmax(0, 1fr); }
+  .pv-room .pv-floor, .pv-room .pv-card, .pv-room .pv-gates, .pv-room .pv-gates-slot { grid-row: auto; grid-column: auto; }
   .pv-bench[data-view="cards"] .pv-strip { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
 @media (max-width: 620px) {
@@ -223,37 +239,63 @@ function paintInspector() {
  * An empty bench that says IDLE fifteen times tells a visitor nothing. Until
  * app.js says something, the room plays the recorded case. */
 
+function playAct(n) {
+  if (live) return;
+  act = n;
+  const a = ACTS[n];
+  roster.forEach((r) => {
+    const s = a.st[r.id] || "idle";
+    office.setSeat(r.id, s, (a.now && a.now[r.id]) || "");
+    noteOf[r.id] = (a.now && a.now[r.id]) || "";
+    paintSeatCard(r.id);
+  });
+  refreshChips();
+  if (n === 2) office.convene(["causal", "narrative", "sensitivity", "defensibility"]);
+  else office.disperse();
+  office.gate(a.signer ? "await" : null);
+  setMode("replaying the sample case");
+  let i = 0;
+  const talk = () => {
+    if (live) return;
+    const t = a.talk[i++ % a.talk.length];
+    office.say(t[0], t[1]);
+    attractTimer = setTimeout(talk, 3600);
+  };
+  clearTimeout(attractTimer);
+  talk();
+  paintInspector();
+  const gates = root && root.querySelector(".pv-gates");
+  if (gates) gates.querySelectorAll(".pv-gate").forEach((b) => b.classList.toggle("on", +b.dataset.act === n));
+}
+
 function startAttract() {
   if (REDUCED || live) return;
-  act = 0;
-  const step = () => {
-    if (live) return;
-    const a = ACTS[act];
-    roster.forEach((r) => {
-      const s = a.st[r.id] || "idle";
-      office.setSeat(r.id, s, (a.now && a.now[r.id]) || "");
-      noteOf[r.id] = (a.now && a.now[r.id]) || "";
-      paintSeatCard(r.id);
-    });
-    refreshChips();
-    if (act === 2) office.convene(["causal", "narrative", "sensitivity", "defensibility"]);
-    else office.disperse();
-    office.gate(a.signer ? "await" : null);
-    setMode("replaying the sample case");
-    let i = 0;
-    const talk = () => {
+  playAct(0);
+  attractCycle = setInterval(() => playAct((act + 1) % ACTS.length), ACT_DUR);
+}
+
+/* The four gates of the recorded case, as buttons under the room. This was the
+ * one thing the retired /council/floor/ page could do that the bench could not:
+ * jump straight to a gate instead of waiting the cycle out. Clicking restarts
+ * the clock so the chosen act gets its full stay; going live removes them. */
+function buildGates() {
+  const gates = document.createElement("div");
+  gates.className = "pv-gates";
+  ACTS.forEach((a, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pv-gate" + (i === 0 ? " on" : "");
+    b.dataset.act = i;
+    b.innerHTML = esc(a.btn) + "<span>" + esc(a.sub) + "</span>";
+    b.addEventListener("click", () => {
       if (live) return;
-      const t = a.talk[i++ % a.talk.length];
-      office.say(t[0], t[1]);
-      attractTimer = setTimeout(talk, 3600);
-    };
-    clearTimeout(attractTimer);
-    talk();
-    paintInspector();
-    act = (act + 1) % ACTS.length;
-  };
-  step();
-  attractCycle = setInterval(step, ACT_DUR);
+      clearInterval(attractCycle);
+      playAct(i);
+      attractCycle = setInterval(() => playAct((act + 1) % ACTS.length), ACT_DUR);
+    });
+    gates.appendChild(b);
+  });
+  return gates;
 }
 let attractCycle = 0;
 
@@ -262,6 +304,8 @@ function goLive() {
   live = true;
   clearInterval(attractCycle);
   clearTimeout(attractTimer);
+  const gates = root && root.querySelector(".pv-gates");
+  if (gates) gates.hidden = true;
   office.chatter(false);
   office.reset();
   office.disperse();
@@ -315,6 +359,7 @@ export const Bench = {
           `<p class="pv-hint">CLICK SOMEONE TO INSPECT</p>` +
           `<p class="pv-mode" hidden></p>` +
         `</div>` +
+        `<div class="pv-gates-slot"></div>` +
         `<aside class="pv-card">` +
           `<div class="pv-card-top">SEAT<span id="pv-seatno">SEAT 01/${roster.length}</span></div>` +
           `<div class="pv-who">` +
@@ -385,7 +430,10 @@ export const Bench = {
       paintInspector();
       roster.forEach((a) => paintSeatCard(a.id));
       watchGates();
-      if (!live) setTimeout(startAttract, 900);
+      if (!live && !REDUCED) {
+        el.querySelector(".pv-gates-slot").replaceWith(buildGates());
+        setTimeout(startAttract, 900);
+      }
     });
   },
 
