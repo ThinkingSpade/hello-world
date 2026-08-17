@@ -110,6 +110,49 @@ body.council {
 
 @keyframes c-scan { 0% { transform: scaleX(0); transform-origin: left; } 50% { transform: scaleX(1); transform-origin: left; } 51% { transform-origin: right; } 100% { transform: scaleX(0); transform-origin: right; } }
 
+/* ---------- the case & your desk: the VP's two surfaces ----------
+   The only pwins that keep the accent-soft title bar — they belong
+   to the visitor, not to the machinery. Same chrome, no new colour. */
+
+.c-sub-fiction { display: block; flex: 1 1 100%; order: 99; }
+
+.c-case, .c-desk { margin: 16px 0; }
+.c-case > .pwin-title,
+.c-desk > .pwin-title { background: var(--pi-accent-soft); }
+.c-case .pwin-body p { margin: 0 0 10px; font-size: 14px; }
+.c-case .pwin-body p:last-child { margin-bottom: 0; }
+
+/* the bundle vp.js renders into #vp-desk-body */
+.c-bundle h3 {
+  font-family: var(--pi-font-title); font-size: 11px;
+  letter-spacing: .04em; text-transform: lowercase; margin: 0 0 10px;
+}
+.c-bundle ul {
+  margin: 0 0 12px; padding-left: 20px;
+  font-family: var(--pi-font-body); font-size: 14px;
+}
+.c-bundle li { margin: 4px 0; }
+.c-bundle li b { font-variant-numeric: tabular-nums; }
+.c-bundle .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.c-bundle .chips > :not(.pchip) {
+  display: inline-block; font-family: var(--pi-font-ui); font-size: 12px;
+  letter-spacing: .05em; text-transform: uppercase;
+  border: 1.5px solid var(--pi-ink); background: #fff; padding: 2px 8px;
+}
+.c-bundle .actions {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px;
+}
+.c-bundle div:has(> .pbtn) {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px;
+}
+.c-bundle p {
+  margin: 10px 0 0; font-size: 13px; color: var(--pi-muted);
+}
+.c-bundle .blocks,
+.c-bundle .fine { font-family: var(--pi-font-code); font-size: 12px; }
+
+.c-contested { outline: 2px solid var(--pi-warn); }
+
 /* ---------- drop zone ---------- */
 
 .c-drop {

@@ -21,6 +21,7 @@ import { Trace } from "./trace.js";
 import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
+import { initVP, stopAtGate, cancelStop, caseCardToOwn } from "./vp.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -439,6 +440,7 @@ function setGate(id, status, notes = "") {
   }
   Report.set("gates", Object.values(S.gates));
   refreshRunStrip();
+  document.dispatchEvent(new CustomEvent("council:gate", { detail: { id, status } }));
 }
 
 async function approveGate(id) {
@@ -1325,10 +1327,16 @@ function applyFindingsToLedger() {
  */
 
 let delibTimer = null;
+let delibDone = null;   /* the running playDeliberation's resolve */
 
+/* Stopping a deliberation must also RELEASE whoever is awaiting it. The skip
+ * button starts a second, instant playDeliberation whose first act is this
+ * function — before this resolved the abandoned promise, that click left the
+ * gate-to-gate run parked on the first promise forever. */
 function stopDeliberation() {
   clearTimeout(delibTimer);
   delibTimer = null;
+  if (delibDone) { const r = delibDone; delibDone = null; r(); }
   Bench.hush();
 }
 
@@ -1348,6 +1356,7 @@ function playDeliberation({ instant = false } = {}) {
 
   const pace = Number($("#delib-pace").value) || 1700;
   return new Promise((resolve) => {
+    delibDone = resolve;
     let i = 0;
     const step = () => {
       if (i >= turns.length) {
@@ -1366,6 +1375,7 @@ function playDeliberation({ instant = false } = {}) {
             raised.length ? `${raised.length} finding${raised.length === 1 ? "" : "s"}` : "no findings");
         }
         appendRulings(box);
+        delibDone = null;
         resolve();
         return;
       }
@@ -1479,7 +1489,7 @@ async function autopilot() {
   const bar = el("div", "c-auto-bar");
   const fill = el("i");
   bar.appendChild(fill);
-  banner.appendChild(el("span", null, "▶ autopilot"));
+  banner.appendChild(el("span", null, "▶ the case"));
   banner.appendChild(label);
   banner.appendChild(bar);
   const stop = el("button", "pbtn", "stop");
@@ -1488,7 +1498,7 @@ async function autopilot() {
   document.body.appendChild(banner);
 
   let cancelled = false;
-  stop.addEventListener("click", () => { cancelled = true; stopDeliberation(); });
+  stop.addEventListener("click", () => { cancelled = true; stopDeliberation(); cancelStop(); });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const at = (pctDone, text) => { fill.style.width = `${pctDone}%`; label.textContent = text; };
 
@@ -1505,18 +1515,18 @@ async function autopilot() {
     await wait(1400);
     if (cancelled) return;
 
-    at(38, "clearing gate 1");
-    await approveGate("data_contract");
+    at(38, "waiting at gate 1 — the bundle is on your desk");
+    await stopAtGate("data_contract");
     await wait(900);
     if (cancelled) return;
 
-    at(52, "approving the calculation definitions");
+    at(52, "drafting the calculation definitions");
     stage("calc");
     await wait(1000);
     if (cancelled) return;
 
-    at(62, "executing — two engines per figure");
-    await approveGate("calc_definitions");
+    at(62, "waiting at gate 2 — the bundle is on your desk");
+    await stopAtGate("calc_definitions");
     if (cancelled) return;
     await wait(900);
 
@@ -1533,6 +1543,11 @@ async function autopilot() {
     at(94, "building the decision record");
     stage("report");
     await wait(1200);
+    if (cancelled) return;
+
+    at(97, "waiting at gate 4 — the decision is on your desk");
+    await stopAtGate("final_recommendation");
+    if (cancelled) return;
 
     at(100, "done — run complete");
     await wait(2200);
@@ -1540,6 +1555,7 @@ async function autopilot() {
     label.textContent = `stopped: ${e.message}`;
     await wait(3000);
   } finally {
+    cancelStop();
     banner.remove();
     btns.forEach((b) => { b.disabled = false; });
   }
@@ -1654,10 +1670,11 @@ function init() {
   Trace.mount($("#trace"));
   EmbedView.mount($("#embed"));
   Trace.rule("session");
-  Trace.step("council", "engines idle — load a case, or press Run the whole case");
+  Trace.step("council", "engines idle — load a case, or press Take the case");
   Report.init({ gates: Object.values(S.gates) });
   Claims.setRun(Report.computeRunId());
   renderReproduce();
+  initVP({ approveGate, getState: () => S, stage });
 
   const drop = $("#drop");
   ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => {
@@ -1666,14 +1683,21 @@ function init() {
   ["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => {
     ev.preventDefault(); drop.classList.remove("over");
   }));
-  drop.addEventListener("drop", (ev) => {
-    if (ev.dataTransfer && ev.dataTransfer.files.length) ingestFiles([...ev.dataTransfer.files]);
+  drop.addEventListener("drop", async (ev) => {
+    if (ev.dataTransfer && ev.dataTransfer.files.length) {
+      await ingestFiles([...ev.dataTransfer.files]);
+      if (S.files.length && (S.tables.length || S.spans.length)) caseCardToOwn();
+    }
   });
 
   $("#btn-pick").addEventListener("click", () => $("#file-input").click());
-  $("#file-input").addEventListener("change", (e) => {
-    if (e.target.files.length) ingestFiles([...e.target.files]);
+  $("#file-input").addEventListener("change", async (e) => {
+    const picked = e.target.files.length ? [...e.target.files] : [];
     e.target.value = "";
+    if (picked.length) {
+      await ingestFiles(picked);
+      if (S.files.length && (S.tables.length || S.spans.length)) caseCardToOwn();
+    }
   });
 
   $("#btn-demo").addEventListener("click", async () => {

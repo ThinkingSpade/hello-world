@@ -19,18 +19,41 @@
   <header class="c-top">
     <h1>council.audit</h1>
     <span class="c-sub">source files are evidence · model output is not</span>
+    <span class="c-sub c-sub-fiction">fifteen auditors review the analysis — you sign what becomes true</span>
     <span class="c-spacer"></span>
     <span class="pstrip" id="run-strip">RUN <b>—</b> · CLAIMS <b>0</b> · RECONCILED <b>0/0</b></span>
-    <button class="pbtn primary" id="btn-auto-top" type="button">▶ Run the whole case</button>
+    <button class="pbtn primary" id="btn-auto-top" type="button">▶ Take the case</button>
     <button class="pbtn" id="btn-settings" type="button">Model…</button>
     <a class="pbtn" href="/work.html">← projects</a>
   </header>
+
+  <!-- ══════════ the case ══════════ -->
+  <section class="pwin c-case" id="vp-case">
+    <div class="pwin-title"><span class="pwin-lamp on"></span>the case<span class="c-count" id="vp-case-count">sample</span></div>
+    <div class="pwin-body" id="vp-case-body">
+      <p><b>Series 400, simplified.</b> Four legacy SKUs were consolidated into two; retailers
+      were told to send legacy stock back. The deck on your desk claims sell-through fell
+      <b>9.4%</b> and wants that number in front of leadership.</p>
+      <p>Fifteen auditors will take the analysis apart — the grain, the definitions, the
+      counter-story. Engines compute every figure twice. <b>You are the VP: nothing becomes
+      true until you sign it.</b></p>
+    </div>
+  </section>
 
   <!-- ══════════ the bench ══════════ -->
   <section class="pwin" style="margin:16px 0">
     <div class="pwin-title"><span class="pwin-lamp" id="bench-lamp"></span>the bench<span class="c-count" id="bench-count">15 seats · idle</span></div>
     <div class="pwin-body" style="padding:12px">
       <div id="bench"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ your desk ══════════ -->
+  <section class="pwin c-desk" id="vp-desk">
+    <div class="pwin-title"><span class="pwin-lamp" id="vp-desk-lamp"></span>your desk<span class="c-count" id="vp-desk-count">nothing waiting</span></div>
+    <div class="pwin-body" id="vp-desk-body">
+      <p class="c-empty">Nothing is awaiting your signature. Take the case and the first
+      bundle will be walked over.</p>
     </div>
   </section>
 
@@ -56,14 +79,14 @@
             <p>Workbooks, decks, documents, briefs. Parsed in your browser — nothing is uploaded anywhere.</p>
             <p class="c-kinds">.xlsx · .csv · .tsv · .docx · .pptx · .pdf · .txt · .md</p>
             <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button class="pbtn primary" id="btn-auto" type="button">▶ Run the whole case</button>
+              <button class="pbtn primary" id="btn-auto" type="button">▶ Take the case</button>
               <button class="pbtn" id="btn-pick" type="button">Choose files</button>
               <button class="pbtn" id="btn-demo" type="button">Load the sample case</button>
             </div>
             <p style="margin:12px 0 0;font-size:13px;color:var(--pi-muted)">
-              “Run the whole case” loads the sample, clears every gate, executes the calculations and
-              lets the council argue it out — start to finish, no clicking, no API key.
-              Drop your own files in first and it will run those instead.
+              “Take the case” loads the sample and works gate to gate — the engines compute, the
+              council argues it out, and the run stops at every gate for your signature. No API key;
+              you are the person who signs. Drop your own files in first and it will work those instead.
             </p>
             <input type="file" id="file-input" multiple class="c-hidden"
                    accept=".xlsx,.xlsm,.csv,.tsv,.docx,.pptx,.pdf,.txt,.md" />
@@ -207,7 +230,7 @@
         <div class="pwin" style="margin-bottom:12px">
           <div class="pwin-title"><span class="pwin-lamp" id="delib-lamp"></span>deliberation<span class="c-count" id="delib-count">not started</span></div>
           <div class="pwin-body">
-            <div id="delib" class="c-delib"><p class="c-empty">The room is quiet. Use “Run the whole case”, or convene the council below.</p></div>
+            <div id="delib" class="c-delib"><p class="c-empty">The room is quiet. Use “Take the case”, or convene the council below.</p></div>
             <div id="delib-controls" class="c-hidden" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <button class="pbtn" id="btn-delib" type="button">Replay the deliberation</button>
               <button class="pbtn" id="btn-delib-skip" type="button">Skip to the end</button>
