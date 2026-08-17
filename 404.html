@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>404: Huy Nguyen</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/png" href="/huy-avatar.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Poppins:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/pixel.css" />
+  <style>
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      background: var(--pi-paper); color: var(--pi-ink);
+      font-family: var(--pi-font-body); padding: 24px; box-sizing: border-box;
+    }
+    .lost { width: min(460px, 100%); }
+    .lost .pwin-body { padding: 24px; text-align: center; }
+    .lost h1 {
+      margin: 0 0 4px; font-family: var(--pi-font-title);
+      font-size: clamp(28px, 9vw, 44px); letter-spacing: .04em;
+    }
+    .lost .term {
+      margin: 16px 0 20px; padding: 10px 12px; text-align: left;
+      background: var(--pi-term-bg); color: var(--pi-term-fg);
+      font-family: var(--pi-font-code); font-size: 13px; line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+    .lost .term .dim { color: var(--pi-term-dim); }
+    .lost .term .err { color: var(--pi-term-err); }
+    .lost p { margin: 0 0 20px; font-size: 14px; color: var(--pi-muted); }
+    .lost .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .lost a.pbtn { text-decoration: none; display: inline-flex; align-items: center; }
+  </style>
+</head>
+<body>
+  <main class="pwin lost">
+    <div class="pwin-title"><span class="pwin-lamp err"></span>not found</div>
+    <div class="pwin-body">
+      <h1>404</h1>
+      <div class="term" aria-hidden="true">
+        <span class="dim">▸ ls</span> <span id="path"></span><br />
+        <span class="err">ls: cannot access: no such file or directory</span>
+      </div>
+      <p>This page doesn't exist — it may have moved, or the link has a typo.</p>
+      <div class="row">
+        <a class="pbtn" href="/">← home</a>
+        <a class="pbtn" href="/work.html">projects</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.getElementById("path").textContent =
+      location.pathname.length > 40 ? location.pathname.slice(0, 39) + "…" : location.pathname;
+  </script>
+</body>
+</html>
