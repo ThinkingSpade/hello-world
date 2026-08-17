@@ -17,6 +17,7 @@
  */
 
 import { mountOffice, paintPortrait, PORTRAIT_W, PORTRAIT_H } from "./floor/office.js";
+import { attractVerdict } from "./vp.js";
 import { SEATS, SIGNER } from "./floor/cast.js";
 import { ACTS, ACT_DUR } from "./floor/run.js";
 
@@ -266,6 +267,8 @@ function playAct(n) {
   paintInspector();
   const gates = root && root.querySelector(".pv-gates");
   if (gates) gates.querySelectorAll(".pv-gate").forEach((b) => b.classList.toggle("on", +b.dataset.act === n));
+  /* the last act has a verdict; every other act clears it */
+  attractVerdict(n === ACTS.length - 1);
 }
 
 function startAttract() {
@@ -306,6 +309,7 @@ function goLive() {
   clearTimeout(attractTimer);
   const gates = root && root.querySelector(".pv-gates");
   if (gates) gates.hidden = true;
+  attractVerdict(false);
   office.chatter(false);
   office.reset();
   office.disperse();

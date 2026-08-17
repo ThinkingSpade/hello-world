@@ -49,7 +49,7 @@ function el(tag, cls, text) {
   return n;
 }
 
-function plural(n, word) { return `${n} ${word}${n === 1 ? "" : "s"}`; }
+function plural(n, word) { return `${U.fmt.n(n)} ${word}${n === 1 ? "" : "s"}`; }
 
 function safeState() {
   try { return (deps && typeof deps.getState === "function" && deps.getState()) || {}; }
@@ -74,6 +74,38 @@ function fine(text) {
 }
 
 /* ---------- desk chrome ---------- */
+
+/* Attract mode's last act: the desk states how the recorded case ENDED, so the
+ * replay has a payoff instead of looping silently. Never touches a real pending
+ * bundle, and the first live word (goLive -> attractVerdict(false)) clears it. */
+let verdictShowing = false;
+
+export function attractVerdict(on) {
+  if (pending) return;                     /* a real bundle owns the desk */
+  if (!on) {
+    if (verdictShowing) { verdictShowing = false; deskIdle(); }
+    return;
+  }
+  const body = $id("vp-desk-body");
+  if (!body) return;
+  verdictShowing = true;
+  const count = $id("vp-desk-count");
+  if (count) count.textContent = "the recorded case \u00b7 gate 4";
+  const lamp = $id("vp-desk-lamp");
+  if (lamp) lamp.className = "pwin-lamp on";
+  body.innerHTML = "";
+  const b = el("div", "c-bundle");
+  b.appendChild(el("h3", null, "HOW THE RECORDED CASE ENDS"));
+  const ul = el("ul");
+  [
+    "The \u22129.4% headline does not survive: it mixes withdrawn shelf stock with demand, and excluding the partial week moves it to \u22124.1%.",
+    "What gets signed instead: hold the price architecture for the high-yield group, named owner, trigger at a 4.0% unit decline, re-test in six weeks.",
+    "1 figure stays blocked and is excluded rather than softened; 2 dissents ride along in the export. A person signed \u2014 that is the whole point.",
+  ].forEach((t) => ul.appendChild(el("li", null, t)));
+  b.appendChild(ul);
+  b.appendChild(el("p", "c-data-line", "\u25b8 take the case yourself and the signature is yours"));
+  body.appendChild(b);
+}
 
 function deskIdle() {
   const lamp = $id("vp-desk-lamp");
@@ -138,7 +170,7 @@ function contractLines(st) {
     const repeats = c.grainIsUnique === false
       ? " — keys repeat in the source, so rows are folded, not assumed unique"
       : "";
-    lines.push(`${c.rowCount} source rows collapse to ${c.collapsedRowCount} distinct keys${repeats}.`);
+    lines.push(`${U.fmt.n(c.rowCount)} source rows collapse to ${U.fmt.n(c.collapsedRowCount)} distinct keys${repeats}.`);
   }
   if (c && Array.isArray(c.splitRowGroups) && c.splitRowGroups.length) {
     const n = c.splitRowGroups.length;
@@ -634,6 +666,7 @@ export function stopAtGate(id) {
 
   /* Only one stop can be parked at a time; a stale one is released first so no
    * await leaks. */
+  verdictShowing = false;
   if (pending) {
     const stale = pending.resolve;
     pending = null;

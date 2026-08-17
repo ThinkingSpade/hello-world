@@ -426,7 +426,7 @@ function setGate(id, status, notes = "") {
   g.status = status;
   g.notes = notes;
   if (status === "approved") {
-    g.approvedBy = "operator (this session)";
+    g.approvedBy = "the VP — this session";
     g.approvedAt = new Date().toISOString();
   }
   Trace.gate(`gate "${id}" → ${status}`);
@@ -1261,7 +1261,7 @@ function renderResearch() {
         author: `council:${f.agentId}`, confidence: f.confidence || "low",
       });
       if (errors.length) return toast(errors[0], "err");
-      Claims.promote(claim.claimId, "operator (this session)");
+      Claims.promote(claim.claimId, "the VP — this session");
       btn.disabled = true;
       btn.textContent = "approved";
       renderClaims();
