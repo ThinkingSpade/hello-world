@@ -22,8 +22,21 @@ const GATE_META = {
   final_recommendation: { n: 4, name: "final recommendation",    stage: "report" },
 };
 
-let deps = null;      // { approveGate, getState, stage }
+let deps = null;      // { approveGate, getState, stage, loadCase }
 let pending = null;   // { id, resolve } while a stop is parked at a gate
+
+/* ---------- the case registry ----------
+ * Fetched once from demo/cases.json at init. If the fetch fails the static
+ * card already in the HTML stays put, one fallback button reproduces the old
+ * "Load the sample case" behaviour, and everything else degrades gracefully. */
+
+let registry = null;        // [{ id, title, manifest, card, data }] | null
+let activeCaseId = "series-400";
+let ownCard = false;        // the visitor's own files replaced the sample card
+let chooserBusy = false;    // a chooser-initiated demo load is in flight
+let typing = null;          // { finish, cancel } while the card is being typed
+let autoObserver = null;    // mirrors #btn-auto's disabled state onto the chooser
+let casesStarted = false;
 
 /* ---------- small helpers ---------- */
 
@@ -395,12 +408,222 @@ function onGateEvent(ev) {
   }
 }
 
+/* ---------- case registry + chooser ---------- */
+
+function caseById(id) { return (registry || []).find((c) => c && c.id === id) || null; }
+
+function caseLabel(c) {
+  return String((c && c.id) || "").split("-")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
+}
+
+function setCaseChip() {
+  const count = $id("vp-case-count");
+  if (!count) return;
+  const c = caseById(activeCaseId);
+  count.textContent = c ? `sample · ${caseLabel(c)}` : "sample";
+}
+
+async function initCases() {
+  const body = $id("vp-case-body");
+  const staticHTML = body ? body.innerHTML : "";
+  if (body) body.innerHTML = "";           // the card starts empty, then types
+  let cases = null;
+  try {
+    const r = await fetch("demo/cases.json");
+    if (!r.ok) throw new Error(`cases.json — ${r.status}`);
+    cases = await r.json();
+    if (!Array.isArray(cases) || !cases.length) throw new Error("cases.json is empty");
+  } catch (e) {
+    console.warn("case registry unavailable — keeping the static card:", e);
+    cases = null;
+  }
+  if (cases) {
+    registry = cases;
+    if (!registry.some((c) => c && c.id === activeCaseId)) activeCaseId = registry[0].id;
+    if (!ownCard) typeCase(caseById(activeCaseId));
+  } else if (body && !ownCard) {
+    body.innerHTML = staticHTML;           // fall back to the card shipped in the HTML
+  }
+  renderChooser();
+}
+
+function renderChooser() {
+  const mount = $id("case-chooser");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const items = registry || [{ id: null, title: null }];
+  for (const c of items) {
+    const b = el("button", "pbtn", c.title ? `Load: ${c.title}` : "Load the sample case");
+    b.type = "button";
+    if (c.id) b.dataset.caseId = c.id;
+    b.addEventListener("click", () => chooseCase(c.id));
+    mount.appendChild(b);
+  }
+  watchRunState();
+  syncChooser();
+}
+
+async function chooseCase(id) {
+  if (chooserBusy || runInProgress()) return;
+  chooserBusy = true;
+  syncChooser();
+  try {
+    if (id && registry) {
+      activeCaseId = id;
+      ownCard = false;
+      typeCase(caseById(id));
+    }
+    if (deps && typeof deps.loadCase === "function") await deps.loadCase(id || undefined);
+  } finally {
+    chooserBusy = false;
+    syncChooser();
+  }
+}
+
+function runInProgress() {
+  const b = $id("btn-auto");
+  return !!(b && b.disabled);
+}
+
+function syncChooser() {
+  const mount = $id("case-chooser");
+  if (!mount) return;
+  const busy = chooserBusy || runInProgress();
+  for (const b of mount.querySelectorAll("button")) b.disabled = busy;
+}
+
+/* The autopilot disables #btn-auto for exactly the duration of a run — mirror
+ * that onto the chooser so a case cannot be switched mid-run. */
+function watchRunState() {
+  if (autoObserver) return;
+  const b = $id("btn-auto");
+  if (!b || typeof MutationObserver === "undefined") return;
+  autoObserver = new MutationObserver(syncChooser);
+  autoObserver.observe(b, { attributes: true, attributeFilter: ["disabled"] });
+}
+
+/* ---------- the typed case card ----------
+ * The card arrives the way a brief would: typed. The final content is parsed
+ * ONCE into real nodes and its text nodes are filled progressively, so inline
+ * <b> markup stays bold mid-keystroke and nothing is re-parsed per character.
+ * The finished card's height is measured first and reserved as min-height, so
+ * nothing below the card moves while it types. */
+
+function reducedMotion() {
+  try { return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
+  catch { return false; }
+}
+
+function buildCaseContent(c) {
+  const frag = document.createDocumentFragment();
+  const tpl = document.createElement("template");
+  tpl.innerHTML = (Array.isArray(c.card) ? c.card : []).join("");
+  frag.appendChild(tpl.content);
+  if (c.data) frag.appendChild(el("p", "c-data-line", `▸ ${c.data}`));
+  return frag;
+}
+
+function cancelCaseTyping() {
+  if (typing) typing.cancel();
+}
+
+function typeCase(c) {
+  if (!c) return;
+  cancelCaseTyping();
+  const body = $id("vp-case-body");
+  if (!body) return;
+  setCaseChip();
+
+  body.style.minHeight = "";
+  body.innerHTML = "";
+  body.appendChild(buildCaseContent(c));
+  if (reducedMotion()) return;             // everything appears instantly, no caret
+
+  /* reserve the final height, then hollow the text back out */
+  body.style.minHeight = `${body.offsetHeight}px`;
+  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let total = 0;
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (!n.data) continue;
+    nodes.push({ node: n, text: n.data });
+    total += n.data.length;
+    n.data = "";
+  }
+  if (!total) { body.style.minHeight = ""; return; }
+
+  const caret = el("span", "c-caret");
+  caret.setAttribute("aria-hidden", "true");
+
+  /* the whole card lands in ~2.5–4s, however long its copy runs */
+  const duration = Math.max(2500, Math.min(4000, total * 14));
+  const TICK = 28;
+  const perTick = Math.max(1, Math.round(total / (duration / TICK)));
+
+  let i = 0, pos = 0, timer = null;
+  const placeCaret = () => {
+    const cur = nodes[i];
+    if (cur && cur.node.parentNode) cur.node.parentNode.insertBefore(caret, cur.node.nextSibling);
+  };
+  const finish = () => {
+    clearTimeout(timer);
+    for (const it of nodes) it.node.data = it.text;
+    caret.remove();
+    body.style.minHeight = "";
+    typing = null;
+  };
+  const cancel = () => {
+    clearTimeout(timer);
+    caret.remove();
+    typing = null;
+  };
+  typing = { finish, cancel };
+
+  const step = () => {
+    let budget = perTick;
+    while (budget > 0 && i < nodes.length) {
+      const cur = nodes[i];
+      const take = Math.min(budget, cur.text.length - pos);
+      pos += take;
+      budget -= take;
+      cur.node.data = cur.text.slice(0, pos);
+      if (pos >= cur.text.length) { i += 1; pos = 0; }
+    }
+    if (i >= nodes.length) { finish(); return; }
+    placeCaret();
+    timer = setTimeout(step, TICK);
+  };
+  placeCaret();
+  step();
+}
+
 /* ---------- public API ---------- */
 
-export function initVP({ approveGate, getState, stage } = {}) {
-  deps = { approveGate, getState, stage };
+export function initVP({ approveGate, getState, stage, loadCase } = {}) {
+  deps = { approveGate, getState, stage, loadCase };
   document.removeEventListener("council:gate", onGateEvent);
   document.addEventListener("council:gate", onGateEvent);
+
+  const caseWin = $id("vp-case");
+  if (caseWin && !caseWin.dataset.typeWired) {
+    caseWin.dataset.typeWired = "1";
+    caseWin.addEventListener("click", () => { if (typing) typing.finish(); });
+  }
+  if (!casesStarted) {
+    casesStarted = true;
+    initCases();
+  }
+}
+
+export function activeCase() { return activeCaseId; }
+
+/* Resolve a case id to its manifest path, relative to council/demo/. The
+ * default keeps every existing caller working: no id means the active case,
+ * and no registry means the original demo/manifest.json. */
+export function caseManifest(caseId) {
+  const c = caseById(caseId || activeCaseId);
+  return (c && c.manifest) || "manifest.json";
 }
 
 export function stopAtGate(id) {
@@ -434,11 +657,16 @@ export function cancelStop() {
 }
 
 export function caseCardToOwn() {
+  /* The visitor's own files replace the card INSTANTLY — never typed — and any
+   * in-progress typing is cancelled rather than left racing this render. */
+  cancelCaseTyping();
+  ownCard = true;
   const st = safeState();
   const count = $id("vp-case-count");
   if (count) count.textContent = "your files";
   const body = $id("vp-case-body");
   if (!body) return;
+  body.style.minHeight = "";
 
   const files = Array.isArray(st.files) ? st.files : [];
   const tables = Array.isArray(st.tables) ? st.tables : [];

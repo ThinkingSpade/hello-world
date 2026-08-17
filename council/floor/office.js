@@ -88,6 +88,11 @@ const people = {};
 let signer = null;
 let selected = null, onSelect = null;
 const notes = [], toasts = [], board = [];
+/* Which boardroom chair each convener holds, by id. `board` alone cannot say:
+ * it is eviction order, and after a shift() its indices no longer line up with
+ * boardSeats — which is how every new speaker got sent to chair 3, on top of
+ * whoever was already in it. */
+let boardSeatOf = {};
 let chatter = false, nextNoteAt = 0;
 let cafeSpots = [], nextBreakAt = 0, boardSeats = [];
 /* The VP sits in the corner office and is the reason any of this is happening:
@@ -201,8 +206,8 @@ export async function mountOffice(canvas, opts) {
   pairScreens(fb, fa);
   buildCafeSpots();
   buildBoardSeats(fb);
-  const ceo = stations["desk-ceo"];
-  signer = { x: ceo.x, y: ceo.y + TILE - 1, face: "down", path: null, step: 0, phase: "office", until: 0, alpha: 1, want: null };
+  const sig = signerSeatPoint();
+  signer = { x: sig.x, y: sig.y, face: "up", path: null, step: 0, phase: "office", until: 0, alpha: 1, want: null };
   buildVpSeat();
 
   cv.addEventListener("click", hitTest);
@@ -300,11 +305,13 @@ export const API = {
   convene(ids) {
     if (!boardSeats.length) return;
     board.length = 0;
+    boardSeatOf = {};
     (ids || []).slice(0, boardSeats.length).forEach((k, i) => {
       const p = people[k];
       if (!p) return;
       if (p.break) { cafeSpots[p.break.idx].taken = null; p.break = null; }
       board.push(k);
+      boardSeatOf[k] = i;
       p.sitFace = boardSeats[i].face;
       takeSeat(p, boardSeats[i]);
     });
@@ -317,16 +324,25 @@ export const API = {
     if (!p || !boardSeats.length || board.includes(id)) return;
     if (board.length >= boardSeats.length) {
       const out = board.shift();
+      delete boardSeatOf[out];             /* the evictee's chair is the free one */
       people[out].sitFace = null;
       walkTo(people[out], people[out].home);
     }
-    const seat = boardSeats[board.length];
+    /* Take the first chair no current convener holds — NOT boardSeats[board.length],
+     * which after an eviction always named chair 3 and stacked every newcomer
+     * onto its sitter while the actually-freed chair stayed empty. */
+    const used = new Set(board.map((k) => boardSeatOf[k]));
+    let idx = 0;
+    while (idx < boardSeats.length - 1 && used.has(idx)) idx++;
+    const seat = boardSeats[idx];
     board.push(id);
+    boardSeatOf[id] = idx;
     p.sitFace = seat.face;
     takeSeat(p, seat);
   },
   disperse() {
     board.length = 0;
+    boardSeatOf = {};
     ORDER.forEach((k) => { people[k].sitFace = null; people[k].sitBehind = false; });
     ORDER.forEach((k) => { const q = people[k]; if (q.break) { cafeSpots[q.break.idx].taken = null; q.break = null; } });
     /* "seated" is NOT "at home" — a boardroom chair and the VP's guest stool
@@ -368,12 +384,14 @@ export const API = {
       }
     });
     notes.length = 0; toasts.length = 0; board.length = 0;
+    boardSeatOf = {};
     submitQ.length = 0; filing = null;
     cafeSpots.forEach((c) => { c.taken = null; });
     if (!hard) return;
     cleanMugs = MUGS;
     signer.phase = "office"; signer.want = null; signer.path = null;
-    signer.x = stations["desk-ceo"].x; signer.y = stations["desk-ceo"].y + TILE - 1;
+    const sig = signerSeatPoint();
+    signer.x = sig.x; signer.y = sig.y; signer.face = "up";
   },
   seatState(id) { return people[id] ? people[id].st : "idle"; },
   mugs() { return cleanMugs; },
@@ -429,17 +447,32 @@ function buildBoardSeats(fb) {
   north.concat(south).forEach((t) => { if (solid[t.r]) solid[t.r][t.c] = false; });
 }
 
-/* The guest stool on the far side of the VP's desk — the map draws one, two
- * tiles south of where she sits, and that is where findings get handed over. */
+/* Where the analyst sits when she is in her office: the desk's SOUTH barrel
+ * stool, facing up — back to the viewer, legs closed in by the desk's own art,
+ * the way every desk auditor sits. Her old seat was the NORTH barrel facing
+ * down: a face-down sitter's legs are clipped 9px above her feet, which left
+ * her floating clear of the stool with her head across the wall trim. */
+function signerSeatPoint() {
+  const ceo = stations["desk-ceo"];
+  const t = tileOf(ceo.x, ceo.y);
+  /* stool foot tile is two rows below the spawn; sit 4px into the tile above
+   * it — the same sit rule as the south boardroom chairs (buildBoardSeats) */
+  return { x: t.x * TILE + TILE / 2, y: (t.y + 3) * TILE - 4 };
+}
+
+/* Where a filer stands to hand findings across: beside the desk's east end,
+ * facing the analyst. The old target was the south stool itself — which is now
+ * her chair, so aiming a filer there would park them in her lap. */
 function buildVpSeat() {
   vpSeat = null;
   const ceo = stations["desk-ceo"];
   if (!ceo) return;
   const s = tileOf(ceo.x, ceo.y);
-  for (let d = 2; d <= 4; d++) {
-    const r = s.y + d;
-    if (r < ROWS && !solid[r][s.x]) {
-      vpSeat = { at: { x: s.x * TILE + TILE / 2, y: r * TILE + TILE - 1 }, face: "up" };
+  const spots = [[2, 2, "left"], [2, 1, "left"], [0, 3, "up"]];
+  for (const [dx, dy, face] of spots) {
+    const x = s.x + dx, y = s.y + dy;
+    if (y < ROWS && x < COLS && !solid[y][x]) {
+      vpSeat = { at: { x: x * TILE + TILE / 2, y: y * TILE + TILE - 1 }, face };
       return;
     }
   }
@@ -545,7 +578,10 @@ function sendOnBreak(now) {
   if (!free.length) return;
   const idle = ORDER.filter((k) => {
     const q = people[k];
-    return q.st === "idle" && q.seated && !q.path && !q.break;
+    /* a convener between speakers reads "idle" but still holds a boardroom
+     * chair — sending them to the cafeteria leaves board[] pointing at a chair
+     * with nobody in it, and the seat bookkeeping rots from there */
+    return q.st === "idle" && q.seated && !q.path && !q.break && board.indexOf(k) === -1;
   });
   if (!idle.length) return;
 
@@ -820,7 +856,12 @@ function walkTo(p, dest) {
     }
   }
   p.path = path.map((t) => ({ x: t.x * TILE + TILE / 2, y: t.y * TILE + TILE / 2 }));
-  p.path.push({ x: dest.x, y: dest.y });
+  /* The LAST node is the destination itself, not goal-tile-centre-then-dest.
+   * Stand points sit on tile edges (feet at y+15), often beside somebody —
+   * detouring through the tile centre could enter that person's body zone and
+   * jam the final approach on a walk whose actual endpoint was clear. */
+  if (p.path.length) p.path[p.path.length - 1] = { x: dest.x, y: dest.y };
+  else p.path.push({ x: dest.x, y: dest.y });
   p.seated = false;
 }
 
@@ -832,9 +873,22 @@ function blockBodies(mover, goal) {
   const marks = [];
   const add = (q) => {
     if (q === mover || q.path) return;
+    /* Mark every tile whose CENTER the walk rules would refuse — not just the
+     * tile the body stands in. A seated auditor's feet rest on their tile's
+     * bottom edge, so their body zone bleeds 9px into the tile south of them;
+     * planning through that tile produced a path the mover could never walk,
+     * and repathAround kept returning the same doomed route while the mover
+     * ground through the give-way ladder into the sitter. Planner and mover
+     * must agree on what is passable. */
     const t = tileOf(q.x, q.y);
-    if ((t.x === goal.x && t.y === goal.y) || !solid[t.y] || solid[t.y][t.x]) return;
-    solid[t.y][t.x] = true; marks.push(t);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const x = t.x + dx, y = t.y + dy;
+      if (x === goal.x && y === goal.y) continue;
+      if (!solid[y] || solid[y][x] === undefined || solid[y][x]) continue;
+      if (Math.abs(x * TILE + TILE / 2 - q.x) >= BODY) continue;
+      if (Math.abs(y * TILE + TILE / 2 - q.y) >= BODY) continue;
+      solid[y][x] = true; marks.push({ x, y });
+    }
   };
   ORDER.forEach((k) => add(people[k]));
   add(signer);
@@ -895,7 +949,7 @@ function repathAround(p) {
   unblockBodies(marks);
   if (!path || !path.length) return false;
   p.path = path.map((t) => ({ x: t.x * TILE + TILE / 2, y: t.y * TILE + TILE / 2 }));
-  p.path.push({ x: dest.x, y: dest.y });
+  p.path[p.path.length - 1] = { x: dest.x, y: dest.y };   /* same rule as walkTo */
   return true;
 }
 
@@ -916,6 +970,73 @@ function sidestep(p) {
     return true;
   }
   return false;
+}
+
+/* The stationary person a step would land inside, if any. The analyst is left
+ * out on purpose: she never gives way (people plan around her instead). */
+function stationaryBlocker(p, nx, ny) {
+  for (let i = 0; i < ORDER.length; i++) {
+    const q = people[ORDER[i]];
+    if (q === p || q.path) continue;
+    if (Math.abs(q.x - nx) < BODY && Math.abs(q.y - ny) < BODY) return q;
+  }
+  return null;
+}
+
+/* Ask a sitter to give way: one free adjacent tile, then straight back to the
+ * exact spot (and facing) they held. This is for single-file passages — the
+ * north boardroom bench most of all, where an evicted convener's only way out
+ * runs through every chair between them and the door. Without it the ladder
+ * had no rung left but walking through the sitter. */
+function yieldAside(q) {
+  const t = tileOf(q.x, q.y);
+  const back = { x: q.x, y: q.y };
+  const face = q.face;
+  const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (let i = 0; i < sides.length; i++) {
+    const x = t.x + sides[i][0], y = t.y + sides[i][1];
+    if (!grid.isWalkable(x, y)) continue;
+    const cx = x * TILE + TILE / 2, cy = y * TILE + TILE - 1;
+    if (occupied(q, cx, cy)) continue;
+    q.path = [{ x: cx, y: cy }];
+    q.goTo = back;              /* resume: exactly the seat they left */
+    q.sitFace = face;           /* re-seat facing the way they were */
+    q.seated = false;
+    q.tries = 0; q.wait = 0;
+    return true;
+  }
+  return false;
+}
+
+/* Tiles that belong to somebody — desk homes, boardroom chairs, cafe spots,
+ * the filer's stand at the VP desk. A re-aimed walker must not settle on one:
+ * squatting a desk chair just moves the collision to whenever its owner
+ * returns. */
+function reservedTile(x, y, mover) {
+  const hit = (pt) => { const t = tileOf(pt.x, pt.y); return t.x === x && t.y === y; };
+  for (let i = 0; i < ORDER.length; i++) {
+    const q = people[ORDER[i]];
+    if (q !== mover && hit(q.home)) return true;
+  }
+  for (let i = 0; i < boardSeats.length; i++) if (hit(boardSeats[i].at)) return true;
+  for (let i = 0; i < cafeSpots.length; i++) if (hit(cafeSpots[i].at)) return true;
+  return !!(vpSeat && hit(vpSeat.at));
+}
+
+/* the closest walkable, unclaimed tile near `dest` that nobody stationary is on */
+function freeTileNear(dest, p) {
+  const goal = tileOf(dest.x, dest.y);
+  const from = tileOf(p.x, p.y);
+  let best = null, bestD = Infinity;
+  for (let r = -2; r <= 2; r++) for (let c = -2; c <= 2; c++) {
+    const x = goal.x + c, y = goal.y + r;
+    if (!grid.isWalkable(x, y) || reservedTile(x, y, p)) continue;
+    const cx = x * TILE + TILE / 2, cy = y * TILE + TILE - 1;
+    if (occupied(p, cx, cy)) continue;
+    const d = Math.abs(c) + Math.abs(r) + 0.01 * (Math.abs(x - from.x) + Math.abs(y - from.y));
+    if (d < bestD) { bestD = d; best = { x, y }; }
+  }
+  return best;
 }
 
 function stepWalk(p, dt) {
@@ -941,7 +1062,19 @@ function stepWalk(p, dt) {
     if (p.wait < 600) { p.step = 0; return; }
     p.wait = 0;
     p.tries = (p.tries || 0) + 1;
+    /* If the body in the way is parked on this walk's own DESTINATION, no
+     * search can help: the goal tile is deliberately never blocked, so repath
+     * returns the same route and the old ladder's last rung walked the mover
+     * fully in — two sprites resting on one tile. Stand beside them instead. */
+    const dest = errand(p);
+    if (occupied(p, dest.x, dest.y)) {
+      const t2 = freeTileNear(dest, p);
+      if (t2) { walkTo(p, { x: t2.x * TILE + TILE / 2, y: t2.y * TILE + TILE - 1 }); return; }
+    }
     if (p.tries === 1 && repathAround(p)) return;
+    /* no route around — ask the sitter to give way before anything drastic */
+    const q = stationaryBlocker(p, nx, ny);
+    if (q && yieldAside(q)) { p.step = 0; return; }
     if (p.tries <= 3 && sidestep(p)) return;
   } else {
     p.wait = 0;
@@ -977,7 +1110,7 @@ function stepSigner(now, dt) {
   /* She is always on the floor now — the corner office is hers, and people file
    * their findings there. Fading her out left the room without its point. */
   signer.alpha = 1;
-  if (signer.phase === "office") { signer.face = "down"; return; }
+  if (signer.phase === "office") { signer.face = "up"; return; }
   if (signer.phase === "coming") {
     if (!signer.path) walkTo(signer, READING_SPOT);
     stepWalk(signer, dt);
@@ -987,7 +1120,7 @@ function stepSigner(now, dt) {
   } else if (signer.phase === "signing") {
     if (now >= signer.until) signer.phase = "going";
   } else if (signer.phase === "going") {
-    if (!signer.path) walkTo(signer, seatPoint(stations["desk-ceo"]));
+    if (!signer.path) walkTo(signer, signerSeatPoint());
     stepWalk(signer, dt);
     if (!signer.path) { signer.phase = "office"; signer.path = null; }
   }
@@ -1271,8 +1404,9 @@ function drawSigner(now) {
   ctx.globalAlpha = signer.alpha;
   if (!sitting) { ctx.fillStyle = "rgba(30,26,20,0.16)"; ctx.fillRect(x - 6, y - 2, 12, 3); }
   if (signer.face === "left") { ctx.translate(x, 0); ctx.scale(-1, 1); ctx.translate(-x, 0); }
-  /* at her desk she is sitting at it, so her legs are behind it like everyone else */
-  if (sitting) { ctx.beginPath(); ctx.rect(x - 10, y - SCENE_H, 20, SCENE_H - 9); ctx.clip(); }
+  /* the leg clip is for face-DOWN sitters only, same as drawPerson — she sits
+   * facing up now, with the seat art closing around her legs instead */
+  if (sitting && signer.face === "down") { ctx.beginPath(); ctx.rect(x - 10, y - SCENE_H, 20, SCENE_H - 9); ctx.clip(); }
   ctx.drawImage(img, x - 9, y - SCENE_H);
   ctx.restore();
   if (sitting) seatFront(signer);

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "series-400",
+    "title": "the Series 400 shrink",
+    "manifest": "manifest.json",
+    "card": [
+      "<p><b>Series 400, simplified.</b> Four legacy SKUs were consolidated into two; retailers were told to send legacy stock back. The deck on your desk claims sell-through fell <b>9.4%</b> and wants that number in front of leadership.</p>",
+      "<p>Fifteen auditors will take the analysis apart — the grain, the definitions, the counter-story. Engines compute every figure twice. <b>You are the VP: nothing becomes true until you sign it.</b></p>"
+    ],
+    "data": "2 files · 26,992 workbook cells · 3,366 rows at week × retailer × SKU · 128 weeks · 5 retailers · 6 SKUs"
+  },
+  {
+    "id": "meridian",
+    "title": "the Meridian retention claim",
+    "manifest": "meridian/manifest.json",
+    "card": [
+      "<p><b>Meridian, consolidated.</b> Three subscription plans became two on a price-change date, and the retention deck on your desk claims monthly churn improved <b>2.1 points</b> after the change. It wants that number in the board pack.</p>",
+      "<p>Fifteen auditors will take the analysis apart — the grain, the definitions, the counter-story. Engines compute every figure twice. <b>You are the VP: nothing becomes true until you sign it.</b></p>"
+    ],
+    "data": "2 files · 2,720 workbook cells · 334 rows at month × region × plan · 19 months · 5 plans · 6 region keys"
+  }
+]

@@ -122,6 +122,20 @@ body.council {
 .c-case .pwin-body p { margin: 0 0 10px; font-size: 14px; }
 .c-case .pwin-body p:last-child { margin-bottom: 0; }
 
+/* the typed case card: pixel block caret while typing, gone when done */
+.c-caret {
+  display: inline-block; width: .55em; height: 1.05em;
+  background: var(--pi-ink); vertical-align: -.14em; margin-left: 1px;
+  animation: c-caret .9s steps(1) infinite;
+}
+@keyframes c-caret { 50% { opacity: 0; } }
+
+/* the case's data line — one factual line about the corpus, terminal-ish */
+.c-case .pwin-body .c-data-line {
+  font-family: var(--pi-font-code); font-size: 12px; color: var(--pi-muted);
+  margin: 12px 0 0; word-break: break-word;
+}
+
 /* the bundle vp.js renders into #vp-desk-body */
 .c-bundle h3 {
   font-family: var(--pi-font-title); font-size: 11px;

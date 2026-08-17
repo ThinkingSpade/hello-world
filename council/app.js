@@ -21,7 +21,7 @@ import { Trace } from "./trace.js";
 import { EmbedView } from "./embedview.js";
 import { Viz } from "./viz.js";
 import { Report } from "./report.js";
-import { initVP, stopAtGate, cancelStop, caseCardToOwn } from "./vp.js";
+import { initVP, stopAtGate, cancelStop, caseCardToOwn, caseManifest } from "./vp.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1561,12 +1561,18 @@ async function autopilot() {
   }
 }
 
-async function loadDemo() {
-  const manifest = await (await fetch("demo/manifest.json")).json();
+/* Load a sample case by id via the registry vp.js owns. No id means the
+ * active case, and if the registry never loaded this resolves to the original
+ * demo/manifest.json — so every existing caller keeps working. Manifest file
+ * paths are relative to the manifest's own directory. */
+async function loadDemo(caseId) {
+  const rel = caseManifest(caseId);
+  const base = `demo/${rel.slice(0, rel.lastIndexOf("/") + 1)}`;
+  const manifest = await (await fetch(`demo/${rel}`)).json();
   const files = [];
   for (const f of manifest.files) {
-    const r = await fetch(`demo/${f.path}`);
-    if (!r.ok) throw new Error(`demo/${f.path} — ${r.status}`);
+    const r = await fetch(`${base}${f.path}`);
+    if (!r.ok) throw new Error(`${base}${f.path} — ${r.status}`);
     files.push(new File([await r.blob()], f.path));
   }
   await ingestFiles(files);
@@ -1674,7 +1680,13 @@ function init() {
   Report.init({ gates: Object.values(S.gates) });
   Claims.setRun(Report.computeRunId());
   renderReproduce();
-  initVP({ approveGate, getState: () => S, stage });
+  initVP({
+    approveGate, getState: () => S, stage,
+    loadCase: async (caseId) => {
+      try { await loadDemo(caseId); }
+      catch (e) { toast(`Could not load the sample case: ${e.message}`, "err"); }
+    },
+  });
 
   const drop = $("#drop");
   ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => {
@@ -1700,12 +1712,8 @@ function init() {
     }
   });
 
-  $("#btn-demo").addEventListener("click", async () => {
-    $("#btn-demo").disabled = true;
-    try { await loadDemo(); }
-    catch (e) { toast(`Could not load the sample case: ${e.message}`, "err"); }
-    finally { $("#btn-demo").disabled = false; }
-  });
+  /* The sample-case chooser is rendered into #case-chooser by vp.js from the
+   * case registry; it calls back into loadDemo through the loadCase dep. */
 
   $$("#btn-auto, #btn-auto-top").forEach((b) => b.addEventListener("click", autopilot));
   $("#btn-trace-copy").addEventListener("click", async () => {
