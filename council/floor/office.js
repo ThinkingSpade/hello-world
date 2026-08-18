@@ -517,6 +517,21 @@ function stepFiling(now) {
     /* the council called them to the table on the way — the filing can wait */
     if (board.indexOf(filing.id) !== -1) { p.carry = false; filing = null; return; }
     if (p.path) return;
+    /* Hand over only within arm's reach. A walk that silently failed used to
+     * fall through here and the filer "handed" the bundle from the middle of
+     * the floor, then stood there holding the folder — the frozen mid-floor
+     * stander in the screenshots. Not there yet: retry twice, then give up
+     * and take the findings back to the desk. */
+    const to = vpTarget();
+    const near = to && Math.abs(p.x - to.at.x) < TILE * 1.5 && Math.abs(p.y - to.at.y) < TILE * 1.5;
+    if (!near) {
+      filing.retries = (filing.retries || 0) + 1;
+      if (to && filing.retries <= 2) { walkTo(p, to.at); return; }
+      p.carry = false;
+      filing.phase = "back";
+      walkTo(p, p.home);
+      return;
+    }
     filing.phase = "hand";
     filing.until = now + 2400;
     API.tool(filing.id, "TodoWrite", "findings", 2400);
@@ -1136,7 +1151,30 @@ function refreshTags(now) {
     .slice(0, 4);
 }
 
+let nextSeatCheckAt = 0;
+
+/* A convener whose chair was still occupied when they arrived gets parked on
+ * the nearest free tile — which reads as somebody standing on the bench doing
+ * nothing. The moment the chair actually frees, sit them in it. */
+function retryBoardSeats(now) {
+  if (now < nextSeatCheckAt) return;
+  nextSeatCheckAt = now + 400;
+  for (let i = 0; i < board.length; i++) {
+    const id = board[i], p = people[id];
+    const si = boardSeatOf[id];
+    if (!p || si == null || p.path || !boardSeats[si]) continue;
+    const seat = boardSeats[si];
+    const t = tileOf(seat.at.x, seat.at.y);
+    const pt = tileOf(p.x, p.y);
+    if (pt.x === t.x && pt.y === t.y) continue;               /* already in it */
+    if (occupied(p, seat.at.x, seat.sit != null ? seat.sit : seat.at.y)) continue;
+    p.sitFace = seat.face;
+    takeSeat(p, seat);
+  }
+}
+
 function tick(now, dt) {
+  retryBoardSeats(now);
   refreshTags(now);
   ORDER.forEach((k) => { people[k].screen += dt * 0.012; stepWalk(people[k], dt); });
   stepSigner(now, dt);
@@ -1673,13 +1711,43 @@ function drawMarker(now) {
 
 /* ═══════════════ loop + input ═══════════════ */
 
+/* Fixed-timestep sim. The old loop set dt = min(elapsed, 50), which quietly
+ * meant: at low frame rates the ROOM RUNS IN SLOW MOTION — at 1fps a walker
+ * moved 4px/sec instead of 80, brushes that should last half a second hung on
+ * screen for thirty, and acts kept changing on real-time clocks while people
+ * crawled. Every "still phasing / standing doing nothing" report traced here.
+ * Now elapsed real time is consumed in 16ms sub-steps, so motion is correct at
+ * any frame rate; after a long gap (hidden tab, stall) the room settles
+ * instantly instead of replaying a backlog nobody watched. */
 function frame(ts) {
   if (!running) { last = 0; return; }
-  const dt = last ? Math.min(ts - last, 50) : 16;
-  last = ts; simNow = ts;
-  tick(ts, dt);
-  draw(ts);
+  let elapsed = last ? ts - last : 16;
+  last = ts;
+  if (elapsed > 500) { settleAll(); elapsed = 16; }
+  while (elapsed >= 16) { simNow += 16; tick(simNow, 16); elapsed -= 16; }
+  draw(simNow);
   rafId = requestAnimationFrame(frame);
+}
+
+/* Complete every journey as if the time had actually passed: walkers arrive
+ * and sit, the analyst reaches wherever she was headed. State stays truthful —
+ * only the in-between frames are skipped, because nobody saw them. */
+function settleAll() {
+  ORDER.forEach((k) => {
+    const p = people[k];
+    if (!p.path) return;
+    const dest = errand(p);
+    p.goTo = null; p.path = null; p.wait = 0; p.tries = 0;
+    p.x = dest.x; p.y = dest.y; p.seated = true;
+    p.face = p.sitFace || p.homeFace || "up";
+    p.sitFace = null;
+  });
+  if (signer.path) {
+    const dest = signer.path[signer.path.length - 1];
+    signer.x = dest.x; signer.y = dest.y; signer.path = null;
+    if (signer.phase === "coming") signer.phase = "reading";
+    else if (signer.phase === "going") signer.phase = "office";
+  }
 }
 
 function hitTest(e) {

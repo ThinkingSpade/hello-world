@@ -95,12 +95,12 @@ export function attractVerdict(on) {
   if (lamp) lamp.className = "pwin-lamp on";
   body.innerHTML = "";
   const b = el("div", "c-bundle");
-  b.appendChild(el("h3", null, "HOW THE LAST CASE ENDED · SERIES 400"));
+  b.appendChild(el("h3", null, "HOW THE RECORDED CASE ENDS"));
   const ul = el("ul");
   [
-    "The \u22129.4% headline does not survive: it mixes withdrawn shelf stock with demand, and excluding the partial week moves it to \u22124.1%.",
-    "What gets signed instead: hold the price architecture for the high-yield group, named owner, trigger at a 4.0% unit decline, re-test in six weeks.",
-    "1 figure stays blocked and is excluded rather than softened; 2 dissents ride along in the export. A person signed \u2014 that is the whole point.",
+    "The 2.1-point churn improvement does not survive: the plans were merged, not the customers \u2014 hold the mix fixed and it is 0.44 points.",
+    "What gets signed instead: seat-weighted churn, 2.54% before and 2.07% after \u2014 real, and one fifth of the deck's claim \u2014 with July fenced until every region reports.",
+    "The headline is excluded rather than softened; 2 dissents ride along in the export. A person signed \u2014 that is the whole point.",
   ].forEach((t) => ul.appendChild(el("li", null, t)));
   b.appendChild(ul);
   b.appendChild(el("p", "c-data-line", "\u25b8 take the case yourself and the signature is yours"));

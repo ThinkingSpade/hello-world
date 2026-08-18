@@ -274,7 +274,13 @@ function playAct(n) {
 function startAttract() {
   if (REDUCED || live) return;
   playAct(0);
-  attractCycle = setInterval(() => playAct((act + 1) % ACTS.length), ACT_DUR);
+  /* a hidden tab keeps its timers (throttled) while the room's rAF stops —
+   * advancing acts into a frozen room piles up walks that all fire on refocus.
+   * Hold the act while hidden; re-enter it when the tab comes back. */
+  attractCycle = setInterval(() => { if (!document.hidden) playAct((act + 1) % ACTS.length); }, ACT_DUR);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !live) playAct(act);
+  });
 }
 
 /* The four gates of the recorded case, as buttons under the room. This was the
