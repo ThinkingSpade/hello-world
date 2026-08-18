@@ -472,6 +472,12 @@ async function initCases() {
   }
   if (cases) {
     registry = cases;
+    /* the visitor's last choice survives a reload — picking Meridian and
+     * coming back to Series 400 read as the page forgetting you */
+    try {
+      const saved = localStorage.getItem("council-case");
+      if (saved && registry.some((c) => c && c.id === saved)) activeCaseId = saved;
+    } catch {}
     if (!registry.some((c) => c && c.id === activeCaseId)) activeCaseId = registry[0].id;
     if (!ownCard) typeCase(caseById(activeCaseId));
   } else if (body && !ownCard) {
@@ -503,6 +509,7 @@ async function chooseCase(id) {
   try {
     if (id && registry) {
       activeCaseId = id;
+      try { localStorage.setItem("council-case", id); } catch {}
       ownCard = false;
       typeCase(caseById(id));
     }
