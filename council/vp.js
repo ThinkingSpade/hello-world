@@ -31,7 +31,7 @@ let pending = null;   // { id, resolve } while a stop is parked at a gate
  * "Load the sample case" behaviour, and everything else degrades gracefully. */
 
 let registry = null;        // [{ id, title, manifest, card, data }] | null
-let activeCaseId = "series-400";
+let activeCaseId = "meridian";   /* the current sample; the office replay still tells Series 400 */
 let ownCard = false;        // the visitor's own files replaced the sample card
 let chooserBusy = false;    // a chooser-initiated demo load is in flight
 let typing = null;          // { finish, cancel } while the card is being typed
@@ -95,7 +95,7 @@ export function attractVerdict(on) {
   if (lamp) lamp.className = "pwin-lamp on";
   body.innerHTML = "";
   const b = el("div", "c-bundle");
-  b.appendChild(el("h3", null, "HOW THE RECORDED CASE ENDS"));
+  b.appendChild(el("h3", null, "HOW THE LAST CASE ENDED · SERIES 400"));
   const ul = el("ul");
   [
     "The \u22129.4% headline does not survive: it mixes withdrawn shelf stock with demand, and excluding the partial week moves it to \u22124.1%.",
@@ -462,7 +462,7 @@ async function initCases() {
   if (body) body.innerHTML = "";           // the card starts empty, then types
   let cases = null;
   try {
-    const r = await fetch("demo/cases.json");
+    const r = await fetch("demo/cases.json", { cache: "no-cache" });
     if (!r.ok) throw new Error(`cases.json — ${r.status}`);
     cases = await r.json();
     if (!Array.isArray(cases) || !cases.length) throw new Error("cases.json is empty");
