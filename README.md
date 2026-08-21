@@ -8,6 +8,11 @@ The live site is [hello-world-bp7.pages.dev](https://hello-world-bp7.pages.dev).
 
 ## Project demos
 
+- **Aether Intelligence** (`/aether/`) — runs a high-fidelity competitive
+  intelligence swarm simulation with a living force-directed graph, source and
+  alert ledgers, entity resolution, and autonomous-agent telemetry. The Vite,
+  React, and TypeScript source lives in `aether-intelligence/`; its production
+  build is committed directly to the static `aether/` route.
 - **Abacus** (`/abacus/`) — compiles constrained analysis plans to SQL and runs
   them over SQLite-WASM in the browser.
 - **Atlas** (`/atlas/`) — searches two shipped document corpora with hybrid
@@ -35,6 +40,8 @@ The live site is [hello-world-bp7.pages.dev](https://hello-world-bp7.pages.dev).
 - `shared/pixel.css` is the shared pixel-interface design system used by demos.
 - `shared/icons.svg` is the reusable SVG icon sprite.
 - Each project directory is a self-contained static demo.
+- `aether-intelligence/` is the editable Vite source for Aether; `aether/` is
+  its generated static portfolio route.
 
 ## Run locally
 
@@ -46,6 +53,10 @@ python -m http.server 8000
 
 Open <http://localhost:8000>. Serving over HTTP is required for demos that
 fetch local JSON, SQLite, or WebAssembly assets.
+
+To work on Aether itself, run `npm install && npm run dev` from
+`aether-intelligence/`. Run `npm run build` there to refresh the checked-in
+`aether/` route.
 
 ## Deployment
 
